@@ -30,6 +30,24 @@ type Patch struct {
 	// key, or a key followed by ":" and an item meta, in block palettes,
 	// NBT, JSON and text anywhere in the worlds and the database.
 	Rename map[string]string
+	// Blocks replaces whole block palette entries of sub chunks (every
+	// layer): an entry whose name is a key gets Name and States, keeping
+	// its version, instead of Rename (a block that changes into another
+	// needs its states, or it gets the first registered ones). Only sub
+	// chunk palettes are touched.
+	Blocks map[string]Block
+}
+
+// Block is the name and block states of a palette entry.
+type Block struct {
+	Name   string
+	States map[string]any
+}
+
+// block returns the replacement of the palette entry name.
+func (p Patch) block(name string) (Block, bool) {
+	b, ok := p.Blocks[name]
+	return b, ok
 }
 
 func (p Patch) rename(s string) string {
@@ -118,7 +136,9 @@ type renamer struct {
 	key      func(string) string
 	mentions func([]byte) bool
 	lost     *renamer
-	warn     bool // log the values that mention a name but could not be rewritten
+	// blocks, if set, replaces whole sub chunk palette entries.
+	blocks func(name string) (string, map[string]any, bool)
+	warn   bool // log the values that mention a name but could not be rewritten
 }
 
 func (r renamer) embedded() renamer {
@@ -131,9 +151,16 @@ func (r renamer) embedded() renamer {
 // newRenamer applies the patches in order.
 func newRenamer(ps []Patch) renamer {
 	var old [][]byte
+	hasBlocks := false
 	for _, p := range ps {
 		for k := range p.Rename {
 			old = append(old, []byte(k))
+		}
+		for k := range p.Blocks {
+			old = append(old, []byte(k))
+		}
+		if len(p.Blocks) > 0 {
+			hasBlocks = true
 		}
 	}
 	rep := func(s string) string {
@@ -142,7 +169,7 @@ func newRenamer(ps []Patch) renamer {
 		}
 		return s
 	}
-	return renamer{rep: rep, key: rep, mentions: func(b []byte) bool {
+	r := renamer{rep: rep, key: rep, mentions: func(b []byte) bool {
 		for _, o := range old {
 			if bytes.Contains(b, o) {
 				return true
@@ -150,4 +177,20 @@ func newRenamer(ps []Patch) renamer {
 		}
 		return false
 	}}
+	if hasBlocks {
+		// Each patch in turn: Blocks if it names the entry, else Rename.
+		r.blocks = func(name string) (string, map[string]any, bool) {
+			var states map[string]any
+			replaced := false
+			for _, p := range ps {
+				if b, ok := p.block(name); ok {
+					name, states, replaced = b.Name, b.States, true
+				} else {
+					name = p.rename(name)
+				}
+			}
+			return name, states, replaced
+		}
+	}
+	return r
 }

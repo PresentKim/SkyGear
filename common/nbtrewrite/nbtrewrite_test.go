@@ -86,3 +86,103 @@ func TestNBTKeys(t *testing.T) {
 		t.Error("NBT differs from NBTKeys(rep, rep)")
 	}
 }
+
+func paletteEntry(t *testing.T, name string, states map[string]any) []byte {
+	e, err := nbt.MarshalEncoding(map[string]any{"name": name, "states": states, "version": int32(18090528)}, nbt.LittleEndian)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return e
+}
+
+// twoEntrySubChunk is a version 9 sub chunk with one layer of 1 bit indices
+// and the palette [air, old].
+func twoEntrySubChunk(t *testing.T) (sub, words []byte) {
+	words = make([]byte, 128*4)
+	for i := range words {
+		words[i] = byte(i * 7)
+	}
+	sub = append([]byte{9, 1, 0, 1 << 1}, words...)
+	sub = append(sub, 2, 0, 0, 0)
+	sub = append(sub, paletteEntry(t, "minecraft:air", map[string]any{})...)
+	sub = append(sub, paletteEntry(t, "a:old", map[string]any{"x": "keep"})...)
+	return sub, words
+}
+
+func decodeEntries(t *testing.T, b []byte) (out []map[string]any) {
+	b = b[4+128*4+4:]
+	for len(b) > 0 {
+		d := nbt.NewDecoderWithEncoding(bytes.NewReader(b), nbt.LittleEndian)
+		var m map[string]any
+		if err := d.Decode(&m); err != nil {
+			t.Fatal(err)
+		}
+		out = append(out, m)
+		n, _ := nbt.MarshalEncoding(m, nbt.LittleEndian)
+		b = b[len(n):]
+	}
+	return out
+}
+
+func TestSubChunkBlocksReplacesEntry(t *testing.T) {
+	sub, words := twoEntrySubChunk(t)
+	hook := func(name string) (string, map[string]any, bool) {
+		if name == "a:old" {
+			return "a:new", map[string]any{"s": "10"}, true
+		}
+		return "", nil, false
+	}
+	out, err := SubChunkBlocks(sub, upper, hook)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(out[:4+len(words)+4], sub[:4+len(words)+4]) {
+		t.Error("header, index words or palette count changed")
+	}
+	es := decodeEntries(t, out)
+	if len(es) != 2 || es[0]["name"] != "minecraft:air" || es[1]["name"] != "a:new" {
+		t.Fatalf("entries %v", es)
+	}
+	if st, _ := es[1]["states"].(map[string]any); len(st) != 1 || st["s"] != "10" {
+		t.Errorf("states %v", es[1]["states"])
+	}
+	if es[1]["version"] != int32(18090528) {
+		t.Errorf("version %v", es[1]["version"])
+	}
+	if again, err := SubChunkBlocks(out, upper, hook); err != nil || !bytes.Equal(again, out) {
+		t.Errorf("second pass changed the sub chunk: %v", err)
+	}
+}
+
+func TestSubChunkBlocksNilIsSubChunk(t *testing.T) {
+	sub, _ := twoEntrySubChunk(t)
+	rep := func(s string) string { return strings.Replace(s, "old", "renamed", 1) }
+	a, err := SubChunk(sub, rep)
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := SubChunkBlocks(sub, rep, nil)
+	if err != nil || !bytes.Equal(a, b) {
+		t.Errorf("SubChunkBlocks(nil) differs: %v", err)
+	}
+}
+
+// TestSubChunkBlocksEveryLayer: version 8 and 9, two layers, the entry in
+// both; an entry the hook does not name is untouched.
+func TestSubChunkBlocksEveryLayer(t *testing.T) {
+	one, _ := twoEntrySubChunk(t)
+	body := one[3:]
+	sub := append([]byte{9, 2, 0}, body...)
+	sub = append(sub, body...)
+	out, err := SubChunkBlocks(sub, nil2, func(n string) (string, map[string]any, bool) {
+		return "a:new", nil, n == "a:old"
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if bytes.Contains(out, []byte("a:old")) || bytes.Count(out, []byte("a:new")) != 2 || bytes.Count(out, []byte("minecraft:air")) != 2 {
+		t.Errorf("layers not both rewritten")
+	}
+}
+
+func nil2(s string) string { return s }

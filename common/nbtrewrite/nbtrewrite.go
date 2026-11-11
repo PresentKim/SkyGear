@@ -11,6 +11,8 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+
+	"github.com/sandertv/gophertunnel/minecraft/nbt"
 )
 
 // ErrShort is the error of data that ends inside a tag.
@@ -37,14 +39,44 @@ func NBTKeys(b []byte, rep func(string) string, key func(string) string) ([]byte
 
 // roots rewrites n root tags at the start of b and returns the rewritten
 // tags and the bytes after them.
-func roots(b []byte, n int, rep func(string) string) (out, rest []byte, err error) {
+func roots(b []byte, n int, rep func(string) string, block func(string) (string, map[string]any, bool)) (out, rest []byte, err error) {
 	r := &rewriter{in: b, rep: rep, key: rep}
 	for range n {
+		start, outStart := r.pos, len(r.out)
 		if err := r.root(); err != nil {
 			return nil, nil, err
 		}
+		if block == nil {
+			continue
+		}
+		if e, ok := replaceEntry(r.in[start:r.pos], block); ok {
+			r.out = append(r.out[:outStart], e...)
+		}
 	}
 	return r.out, b[r.pos:], nil
+}
+
+// replaceEntry returns the palette entry in with its name and states from
+// block, if block names it.
+func replaceEntry(in []byte, block func(string) (string, map[string]any, bool)) ([]byte, bool) {
+	var m map[string]any
+	if err := nbt.UnmarshalEncoding(in, &m, nbt.LittleEndian); err != nil {
+		return nil, false
+	}
+	name, _ := m["name"].(string)
+	nn, states, ok := block(name)
+	if !ok {
+		return nil, false
+	}
+	if states == nil {
+		states = map[string]any{}
+	}
+	m["name"], m["states"] = nn, states
+	e, err := nbt.MarshalEncoding(m, nbt.LittleEndian)
+	if err != nil {
+		return nil, false
+	}
+	return e, true
 }
 
 // IsSubChunkKey reports whether k is the key of a sub chunk: x, z (and a
@@ -56,6 +88,15 @@ func IsSubChunkKey(k []byte) bool {
 // SubChunk rewrites the NBT block palettes of a disk sub chunk (versions 1,
 // 8 and 9) and copies the indices as they are.
 func SubChunk(b []byte, rep func(string) string) ([]byte, error) {
+	return SubChunkBlocks(b, rep, nil)
+}
+
+// SubChunkBlocks is SubChunk with a hook for whole palette entries: an entry
+// (a little endian compound {name, states, version}) whose name block
+// accepts is replaced by the name and states block returns (its version and
+// any other tag kept, rep not applied to it); other entries go through rep.
+// The index words are never touched. A nil block is SubChunk.
+func SubChunkBlocks(b []byte, rep func(string) string, block func(name string) (string, map[string]any, bool)) ([]byte, error) {
 	if len(b) < 1 {
 		return nil, ErrShort
 	}
@@ -109,7 +150,7 @@ func SubChunk(b []byte, rep func(string) string) ([]byte, error) {
 			out = append(out, rest[:4]...)
 			rest = rest[4:]
 		}
-		palette, after, err := roots(rest, count, rep)
+		palette, after, err := roots(rest, count, rep, block)
 		if err != nil {
 			return nil, err
 		}

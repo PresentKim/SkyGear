@@ -215,7 +215,7 @@ func rewriteWorld(log *slog.Logger, dir string, r renamer) (int, error) {
 		}
 		var nv []byte
 		if nbtrewrite.IsSubChunkKey(k) {
-			nv, err = nbtrewrite.SubChunk(v, r.rep)
+			nv, err = nbtrewrite.SubChunkBlocks(v, r.rep, r.blocks)
 		} else {
 			nv, err = nbtrewrite.NBT(v, r.rep)
 		}
