@@ -124,8 +124,6 @@ func MachineLines(lang string, m Machine) ([]string, *waila.ItemLine) {
 		return GeneratorLines(lang, st), nil
 	case IsNatureGenerator(m.Kind):
 		return NatureLines(lang, st), nil
-	case m.Kind == KindTinker:
-		return nil, nil
 	case st.Def.Lines != nil:
 		// the kind's owner describes it (Machine.Waila)
 		return nil, nil

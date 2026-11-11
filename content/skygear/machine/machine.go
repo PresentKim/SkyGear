@@ -35,7 +35,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/sievetable"
-	"github.com/presentkim/skygear/content/skygear/tinker"
 	"github.com/presentkim/skygear/content/skygear/wintext"
 	"github.com/presentkim/skygear/platform/account"
 )
@@ -1568,12 +1567,6 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 		return true
 	}
 	if c := m.State.Def.Click; c != nil && c(s, p, tx, pos) {
-		return true
-	}
-	if m.Kind == KindTinker {
-		if !s.Debounced(p) {
-			tinker.ShowTable(s, p, tx, pos)
-		}
 		return true
 	}
 	if m.Kind == KindLab {

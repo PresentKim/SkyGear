@@ -153,6 +153,51 @@ func TestFeatureSiblings(t *testing.T) {
 	}
 }
 
+// machineFeatureImports are the packages of the feature layer machine may
+// import. The features that own a machine kind import machine and register
+// the kind's behaviour (machine.Register); machine does not import them back.
+// tinker is the one exception, and only in machine/tinkertable.go: the tinker
+// feature cannot import machine, because the tinker's tools must register
+// before the machines (the client goldens pin the item ids), so machine sets
+// the tinker table's behaviour itself.
+var machineFeatureImports = map[string]string{"tinker": "tinkertable.go"}
+
+// TestMachineImportsNoFeature: machine imports no package of the feature
+// layer but those of machineFeatureImports, each only in its one file, and
+// its siblings row lists exactly those.
+func TestMachineImportsNoFeature(t *testing.T) {
+	const prefix = "github.com/presentkim/skygear/content/skygear/"
+	if row := siblings["machine"]; len(row) != len(machineFeatureImports) {
+		t.Errorf("the siblings row of machine is %v, want the %d of machineFeatureImports", row, len(machineFeatureImports))
+	}
+	for _, dep := range siblings["machine"] {
+		if _, ok := machineFeatureImports[dep]; !ok {
+			t.Errorf("siblings lists machine -> %s: the feature registers its kind's behaviour with machine.Register instead", dep)
+		}
+	}
+	files, err := os.ReadDir("machine")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, f := range files {
+		if !strings.HasSuffix(f.Name(), ".go") || strings.HasSuffix(f.Name(), "_test.go") {
+			continue
+		}
+		src, err := os.ReadFile("machine/" + f.Name())
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, dep := range featureLayer {
+			if !strings.Contains(string(src), `"`+prefix+dep+`"`) {
+				continue
+			}
+			if machineFeatureImports[dep] != f.Name() {
+				t.Errorf("machine/%s imports the feature %s: the feature registers its kind's behaviour with machine.Register instead", f.Name(), dep)
+			}
+		}
+	}
+}
+
 // TestLookExpandingWithTool: a player in island expansion mode who holds a
 // wand, or sneaks with the iron hammer, gets no preview from the panel update
 // its movement makes (the hidden panel returns first), but gets it from the
