@@ -110,20 +110,31 @@ Thanks for your interest. These are the rules the project follows.
 ## Patched Dragonfly
 
 The server uses the patched copy in `third_party/dragonfly`. Keep the patch
-small: anything that can be done by intercepting packets or reading and
-writing session internals belongs in `common/sghook` (packet hooks,
-`go:linkname`, reflection). Patch Dragonfly only when its behaviour itself has
-to change, and then update `third_party/dragonfly.patch` and
-`third_party/README.md`.
+small and extend Dragonfly from the outside first, in this order:
+
+- `common/clientdef`: components a client gets in the item and block entries
+  (digger, fuel, tool tags, collision boxes, bone visibility, render methods).
+  A custom item or block implements the `clientdef` interface; the game installs
+  it once in `EditEntries` (`content/skygear/names.go`) through
+  `sghook.EditCustomItems` and `sghook.EditCustomBlocks`. Client components do
+  not belong in a patch.
+- `common/sghook`: packet hooks, `go:linkname` to session internals and
+  reflection. Only this package reaches Dragonfly internals.
+- A patch, only when Dragonfly's behaviour itself has to change (storage,
+  ticking, chunk handling, hooks it lacks). Update
+  `third_party/dragonfly.patch` and the row in `third_party/README.md`, and
+  follow its steps to regenerate and check the patch.
+
+See `docs/tech/dragonfly.md`.
 
 `content/skygear/wire` pins what a joining player is sent (block entries,
 item registry, crafting data, creative content) as golden files, hashed per
 block, item, recipe and creative entry. A mismatch names the entries that
-changed; a patch change must leave them as they are. Re-record only in a
-commit meant to change what clients get, with
-`SKYGEAR_GOLDEN=update go test ./content/skygear/wire/`; to see what changed
-inside an entry, run once per tree with `SKYGEAR_GOLDEN_DUMP=<dir>` and
-`diff -r` the two folders.
+changed. A change that moves client data or edits the patch must leave the
+goldens as they are. Re-record only in a commit meant to change what clients
+get, with `SKYGEAR_GOLDEN=update go test ./content/skygear/wire/`, and give the
+reason in the commit message. To see what changed inside an entry, run once per
+tree with `SKYGEAR_GOLDEN_DUMP=<dir>` and `diff -r` the two folders.
 
 ## Licence
 

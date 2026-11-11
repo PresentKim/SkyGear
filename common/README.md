@@ -7,8 +7,8 @@
 
 | 패키지 | 내용 |
 |---|---|
-| `sghook` | Dragonfly 를 패치하지 않고 세션에 닿는 훅(패킷 가로채기, `go:linkname`, 리플렉션): 카메라·HUD·입력 잠금·가짜 블록·제목·DDUI 패킷·폼 응답 정리·`minecraft:falling_block` 으로 보내는 커스텀 엔티티(떠 있는 글자)에 공기 블록 지정 |
-| `clientdef` | 커스텀 아이템이 클라이언트에 보내는 컴포넌트를 Dragonfly 패치 없이 더함(`ItemEntry`, `sghook.EditCustomItems` 안에서): `Digger`·`TagDigger` 를 구현하면 `minecraft:digger`(캐기 속도), `item.Usable` 이면 `minecraft:use_modifiers`, `item.Fuel` 이면 `minecraft:fuel` |
+| `sghook` | Dragonfly 를 패치하지 않고 세션에 닿는 훅(패킷 가로채기, `go:linkname`, 리플렉션): 카메라·HUD·입력 잠금·가짜 블록·제목·DDUI 패킷·폼 응답 정리·`minecraft:falling_block` 으로 보내는 커스텀 엔티티(떠 있는 글자)에 공기 블록 지정. 클라이언트가 받는 아이템·블록 항목을 고치는 `EditCustomItems`·`EditCustomBlocks`. `sghook/hooktest` 는 가짜 클라이언트를 실제 서버 경로로 접속시켜 받은 패킷을 모으고(`Join`), 글 정규형(`Canon`)과 골든 비교(`Golden`)를 준다 |
+| `clientdef` | 커스텀 아이템·블록이 클라이언트에 보내는 컴포넌트를 Dragonfly 패치 없이 더함(`ItemEntry`는 `sghook.EditCustomItems`, `BlockEntry`는 `sghook.EditCustomBlocks` 안에서). 아이템: `Digger`·`TagDigger` 를 구현하면 `minecraft:digger`(캐기 속도), `item.Usable` 이면 `minecraft:use_modifiers`, `item.Fuel` 이면 `minecraft:fuel`. 블록: 도구 태그, 상호작용 표시, 속성 순서, `ExtraProperties` 의 충돌 상자·뼈 보임, `RenderMethods` 의 재질 렌더 방식 |
 | `chestui` | 아이템이 실제로 오가는 창(엔티티 상자). `assets/resourcepack/inventoryui` 와 짝 |
 | `ui` | 메뉴 화면(메뉴·카드·목록·확인·입력·칸 격자·분할·퀘스트 책 등)과 토스트. 화면은 `assets/resourcepack/oreui` 가 그리는 DDUI 화면이고(`oreui`), 그림은 `assets/resourcepack/sgui` 에 있다 |
 | `oreui` | 서버 주도 DDUI 화면(레이아웃·값 보내기, 누름 받기). `assets/resourcepack/oreui` 와 짝 |
@@ -44,4 +44,4 @@
 ## 개발
 
 - `tools/uitextures`, `tools/slotdecotex assets/resourcepack/slotdeco assets/resourcepack/sgui` 가 팩의 임시 그림을 만든다(저장소 루트에서 `go run`).
-- 패키지별 설계 문서는 `docs/tech/`(chestui·waila·slotdeco·timed-items·i18n·resourcepack·backup·json-ui·oreui·storagenet·conduits·itemio)에 있다.
+- 패키지별 설계 문서는 `docs/tech/`(chestui·waila·slotdeco·timed-items·i18n·resourcepack·backup·json-ui·oreui·storagenet·conduits·itemio)에 있고, Dragonfly 확장 방법은 `docs/tech/dragonfly.md` 에 있다.

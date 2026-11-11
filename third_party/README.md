@@ -15,8 +15,13 @@ Dragonfly 의 동작 자체(블록 규칙, 패킷 처리, 세션 기능)를 바�
 `go:linkname` 으로 세션의 비공개 메서드, 리플렉션으로 비공개 필드). 엔티티 상자(`common/chestui`)와
 한 플레이어에게만 보내는 화면 조작(`sghook.SetCamera`·`SetCameraFOV`·`HideHUD`·`LockInputs`·`ViewFakeBlock`·`ViewChunkCentre`·`SendTitle`,
 접속 시 카메라 프리셋), `ForgetHiddenEntities`, 실험 설정(`SendBasicVoxelShapes`, `BlockActionDebug`),
-폼 응답 정리(없는 폼 ID 응답은 킥 대신 버림, 응답 `null` 은 닫기)가 이렇게 동작한다. 세션이 필요한 훅을 위해 접속한 플레이어마다 `sghook.Attach` 를 부른다(`main.go`).
+폼 응답 정리(없는 폼 ID 응답은 킥 대신 버림, 응답 `null` 은 닫기), `minecraft:falling_block` 으로 보내는 떠 있는 글자(변형이 없으면 공기 블록 지정)가 이렇게 동작한다. 세션이 필요한 훅을 위해 접속한 플레이어마다 `sghook.Attach` 를 부른다(`main.go`).
 `sghook` 이 이름으로 기대는 내부는 `TestInternals` 가 검사한다(업그레이드 후 깨지면 여기서 보인다).
+
+클라이언트가 접속 때 받는 커스텀 아이템·블록 항목은 `sghook.EditCustomItems`·`sghook.EditCustomBlocks` 로 고친다.
+더하는 내용(`minecraft:digger`·`minecraft:fuel`·`minecraft:use_modifiers`, 블록의 도구 태그·상호작용 표시·충돌 상자·뼈 보임·재질 방식)은 `common/clientdef` 에 있고,
+`content/skygear/names.go` 의 `EditEntries` 가 한 번 등록한다. `content/skygear/wire` 의 `TestWire` 가 접속한 플레이어가 받는 데이터를 골든 파일로 고정한다.
+패치를 바꾸거나 Dragonfly 를 올린 뒤 골든이 그대로면 클라이언트가 받는 데이터가 같다는 뜻이다. 확장 방법과 검증은 [docs/tech/dragonfly.md](../docs/tech/dragonfly.md) 에 있다.
 
 ### 패치 목록 (`dragonfly.patch`)
 
@@ -26,7 +31,7 @@ Dragonfly 의 동작 자체(블록 규칙, 패킷 처리, 세션 기능)를 바�
 | `server/session/player.go`(`sendRecipes`, `SetRecipeFilter`), `session.go`, `handler_crafting.go` | 플레이어별 레시피 필터: 필터가 고른 레시피만 `CraftingData` 로 보내고 받아들임(네트워크 ID 는 전체 목록 순번 그대로). `SetRecipeFilter` 는 바로 다시 보낸다(레시피 연구·잠금). 필터가 있으면 동적 레시피(장식된 도자기)는 막음 |
 | `server/session/fake_chunk.go` (신규), `chunk.go`, `world.go`, `session.go` | `ViewFakeChunk`/`ClearFakeChunk`(그 플레이어에게만 보이는 청크: 그동안 그 청크의 월드 블록 갱신은 안 보내고, 청크 재전송·서브청크 요청은 가짜 청크로 응답). 섬 확장 `map` 보기용 |
 | `server/listener.go`, `server/conf.go` | NetherNet 리스너 설정 `LocalIP`(연결을 묶고 알리는 로컬 주소 하나)와 `PublicIP`(로컬 주소 대신 알리는 공개 주소, 1:1 NAT·터널 뒤 서버용). `NetherNetConfig` 와 `Config` 의 NetherNet 항목에 둠 |
-| `server/block/crop.go` 외 작물·줄기 6종 `RandomTick` | `block.ScheduledCropGrowth` 가 켜져 있으면 작물·수박/호박 줄기가 무작위 틱으로 자라지 않음(게임이 인스턴스 시간 일정으로 키움) |
+| `server/block/crop.go`, `carrot.go`, `potato.go`, `wheat_seeds.go`, `beetroot_seeds.go`, `melon_seeds.go`, `pumpkin_seeds.go` 의 `RandomTick` | `block.ScheduledCropGrowth` 가 켜져 있으면 작물·수박/호박 줄기가 무작위 틱으로 자라지 않음(게임이 인스턴스 시간 일정으로 키움) |
 | `server/block/carrot.go`, `potato.go`, `wheat_seeds.go`, `beetroot_seeds.go` | 다 자란 작물을 캘 때 떨어지는 작물·씨앗을 성장 0의 새 아이템으로(업스트림은 다 자란 상태를 복사해, 심으면 바로 다 자란 작물이 된다) |
 | `server/item/recipe/recipe.go`, `server/session/player.go`, `server/session/handler_crafting.go`, `server/session/shaped_arrangement_test.go` (신규) | 정해진 모양으로만 만들어지는 레시피: `Shaped.WithoutMirror()`(좌우 대칭 배치도 안 됨, 클라이언트에 `AssumeSymmetry=false`). **서버도 모양을 검사**한다(업스트림은 클라이언트가 고른 레시피의 재료를 칸 위치와 상관없이 가져간다): 제작 칸의 아이템이 레시피 모양(격자 안 어디든, 대칭은 허용할 때만)이 아니면 거절 |
 | `server/session/player.go` (`creativeBlockFitter`) | 레시피 결과의 블록 런타임 ID 를 그 아이템의 창작 인벤토리 항목(항목이 하나뿐일 때)과 같게 보냄. 클라이언트 레시피 책은 결과가 창작 항목과 같을 때만 레시피를 나열하는데, 바닐라 레시피 데이터의 블록 상태(상자 방향 등)는 창작 목록과 다를 수 있다 |
