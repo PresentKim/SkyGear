@@ -279,21 +279,14 @@ type Def struct {
 	Charge    []int
 	autoSieve bool
 
-	// The kinds whose behaviour is another package's set these (Register):
-	// click is what a click does instead of opening the window, true if
-	// it took the click; run is the work of one run; insert, peek and extract
-	// replace the item I/O of the block.
-	Click   func(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool
-	Run     func(s *core.Session, st *State, pos cube.Pos, tx *world.Tx)
-	Insert  func(tx *world.Tx, pos cube.Pos, st item.Stack) int
-	Peek    func(tx *world.Tx, pos cube.Pos, want func(item.Stack) bool) item.Stack
-	Extract func(tx *world.Tx, pos cube.Pos, st item.Stack, n int) item.Stack
-	// Accepts, if set, says which items an input slot takes (slot is -1 for
-	// "any input slot"); it replaces the machine's own rule, so the network
-	// kinds can hold items with stored values (disks, patterns).
-	Accepts func(slot int, st item.Stack) bool
-	// Lines, if set, are the kind's panel lines in place of the machine's own (Machine.Waila).
-	Lines func(lang string, tx *world.Tx, pos cube.Pos) []string
+	// Owner is the feature that supplies the kind's behaviour with Register
+	// ("" for a kind whose behaviour is this package's); registered is set
+	// once it did (kinds.go).
+	Owner      string
+	registered bool
+	// Behaviour is what the owner registered: the zero value until then and
+	// for the machine feature's own kinds.
+	Behaviour
 }
 
 var Kinds = map[string]*Def{

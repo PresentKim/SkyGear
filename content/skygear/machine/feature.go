@@ -6,4 +6,4 @@ import (
 )
 
 // Feature is the machine feature, listed in the game's feature list.
-var Feature = &core.Feature{Name: "machine", Entities: []world.EntityType{RangeBoxType}, Creative: creativeItems, Commands: commands, Setup: subscribe}
+var Feature = &core.Feature{Name: "machine", Entities: []world.EntityType{RangeBoxType}, Creative: creativeItems, Commands: commands, Setup: subscribe, Check: CheckKinds}
