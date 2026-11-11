@@ -1,20 +1,14 @@
 package skygear
 
 import (
-	"time"
-
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/achievement"
-	"github.com/presentkim/skygear/content/skygear/advancement"
 	"github.com/presentkim/skygear/content/skygear/codex"
-	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/look"
-	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
-	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/screens"
 )
 
@@ -23,16 +17,12 @@ func registerCommands(g *Game) {
 	// A separate command rather than an alias: clients check typed commands
 	// against the command list, where aliases may not be accepted.
 	cmd.Register(cmd.New("sg", i18n.T(i18n.Default, "cmd.menu"), nil, menuCmd{g: g}))
-	cmd.Register(cmd.New("묘목", i18n.T(i18n.Default, "cmd.sapling"), nil, saplingCmd{g: g}))
 	cmd.Register(cmd.New("메뉴발급", i18n.T(i18n.Default, "cmd.menuItem"), nil, menuItemCmd{g: g}))
 	cmd.Register(cmd.New("menuitem", i18n.T(i18n.Default, "cmd.menuItem"), nil, menuItemCmd{g: g}))
 	cmd.Register(cmd.New("도감", i18n.T(i18n.Default, "cmd.codex"), nil, codexCmd{g: g}))
 	cmd.Register(cmd.New("codex", i18n.T(i18n.Default, "cmd.codex"), nil, codexCmd{g: g}))
 	cmd.Register(cmd.New("도움말", i18n.T(i18n.Default, "help.cmd"), nil, helpCmd{g: g}))
 	cmd.Register(cmd.New("sghelp", i18n.T(i18n.Default, "help.cmd"), nil, helpCmd{g: g}))
-	cmd.Register(cmd.New("통계", i18n.T(i18n.Default, "monitor.cmd"), nil, statsCmd{g: g}))
-	cmd.Register(cmd.New("stats", i18n.T(i18n.Default, "monitor.cmd"), nil, statsCmd{g: g}))
-	cmd.Register(cmd.New("sapling", i18n.T(i18n.Default, "cmd.sapling"), nil, saplingCmd{g: g}))
 }
 
 // playerSession is the player running a command and the session of its
@@ -90,38 +80,6 @@ func (c menuItemCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		return
 	}
 	o.Printf("%s", i18n.T(i18n.Of(p), "menu.item.given"))
-}
-
-// statsCmd is /통계 (and /stats): the production statistics.
-type statsCmd struct{ g *Game }
-
-func (c statsCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
-	p, s, ok := c.g.playerSession(src, o, tx)
-	if !ok {
-		return
-	}
-	progress.Advance(s.Session, tx, advancement.Stats)
-	machine.ShowStats(s.Session, p, machine.StatsItems)
-}
-
-// saplingCmd is /묘목 (and /sapling).
-type saplingCmd struct{ g *Game }
-
-func (c saplingCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
-	p, ok := src.(*player.Player)
-	if !ok {
-		return
-	}
-	s, ok := c.g.sessionOf(tx.World())
-	if !ok {
-		o.Error(i18n.T(i18n.Of(p), "sapling.needIsland"))
-		return
-	}
-	if err := farm.GiveSapling(s.Session, p, tx, time.Now()); err != nil {
-		o.Errorf(i18n.T(i18n.Of(p), "sapling.cooldown"), err.Error())
-		return
-	}
-	o.Printf("%s", i18n.T(i18n.Of(p), "sapling.given"))
 }
 
 // openCodex opens the codex: the page of the item p holds, else the page of

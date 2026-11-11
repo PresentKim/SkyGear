@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/df-mc/dragonfly/server"
+	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/clientdef"
 	"github.com/presentkim/skygear/common/sghook"
@@ -29,6 +30,9 @@ type Feature struct {
 	// inventory, each with its Slot in the list (CreativeItems). It is called
 	// when the list is built, after every item is registered.
 	Creative func() []CreativeItem
+	// Commands, if set, returns the commands the feature adds (Commands). It
+	// is called when the game starts, after the catalogs are loaded.
+	Commands func() []cmd.Command
 	// Setup subscribes the feature's steps to the hooks. It runs once, during
 	// Install, before any event is emitted.
 	Setup func()

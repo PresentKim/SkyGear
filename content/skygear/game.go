@@ -8,6 +8,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -48,6 +49,9 @@ type Game struct {
 func New(log *slog.Logger, d *db.DB, isOperator func(*player.Player) bool, release string) *Game {
 	g := &Game{log: log, db: d, isOperator: isOperator, release: release}
 	registerCommands(g)
+	for _, c := range core.Commands() {
+		cmd.Register(c)
+	}
 	catalog.RegisterCreativeItems()
 	registerAdmin(g)
 	registerDebug(g)
