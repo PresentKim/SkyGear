@@ -1,9 +1,11 @@
 package skygear
 
 import (
+	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/dimension"
+	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
 // The second dimension's reaction to a death and a respawn.
@@ -62,4 +64,56 @@ func init() {
 	core.Leave.On(10, "dimension.leave", func(e core.Presence) {
 		dimension.Leave(e.S, e.Tx, e.P)
 	})
+}
+
+// A hunter only moves: the use chain refuses it, and the weapons of a hunter
+// strike on their own (dimension/gear.go). The menu item is the way out.
+func init() {
+	core.UseOnBlock.Handle(10, "dimension.hunting", func(e core.UseOnBlockEvent) bool {
+		if dimension.Hunting(e.S, e.P) {
+			e.Cancel()
+			return true
+		}
+		return false
+	})
+	core.UseOnBlock.Handle(30, "dimension.stone", func(e core.UseOnBlockEvent) bool {
+		return useStone(e.Actor, e.Held)
+	})
+	core.Use.Handle(30, "dimension.hunting", func(e core.UseEvent) bool {
+		if dimension.Hunting(e.S, e.P) {
+			e.Cancel()
+			return true
+		}
+		return false
+	})
+	core.Use.Handle(40, "dimension.stone", func(e core.UseEvent) bool {
+		return useStone(e.Actor, e.Held)
+	})
+	core.UseOnEntity.Handle(10, "dimension.hunting", func(e core.EntityEvent) bool {
+		if dimension.Hunting(e.S, e.P) {
+			e.Cancel()
+			return true
+		}
+		return false
+	})
+	core.AttackEntity.Handle(10, "dimension.hunter", func(e core.EntityEvent) bool {
+		if _, ok := e.Target.(*dimension.Monster); ok || dimension.Hunting(e.S, e.P) {
+			e.Cancel()
+			return true
+		}
+		return false
+	})
+}
+
+// useStone opens the second dimension's window for a held teleport stone,
+// on a block or the air; it reports whether held is one.
+func useStone(a core.Actor, held item.Stack) bool {
+	if _, ok := held.Item().(sgitem.DimensionStone); !ok {
+		return false
+	}
+	a.Cancel()
+	if !a.S.Debounced(a.P) {
+		dimension.ShowWindow(a.S, a.P, "")
+	}
+	return true
 }

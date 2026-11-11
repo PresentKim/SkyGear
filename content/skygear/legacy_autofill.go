@@ -33,3 +33,12 @@ func init() {
 		}
 	})
 }
+
+// A thrown snowball, egg or pearl may be the last of the stack.
+func init() {
+	core.Use.On(10, "autofill.use", func(e core.UseEvent) {
+		if e.Held.Count() == 1 {
+			core.RefillHandLater(e.P, e.Tx, e.Held)
+		}
+	})
+}

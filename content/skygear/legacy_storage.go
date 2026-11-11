@@ -42,3 +42,14 @@ func init() {
 		}
 	})
 }
+
+// A sneaking player uses a drawer with a held item that is no block.
+func init() {
+	core.UseOnBlock.Handle(90, "storage.sneakUse", func(e core.UseOnBlockEvent) bool {
+		if storage.SneakUse(e.S, e.P, e.Tx, e.Pos, e.Held) {
+			e.Cancel()
+			return true
+		}
+		return false
+	})
+}

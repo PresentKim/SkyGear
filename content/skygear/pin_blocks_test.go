@@ -75,12 +75,12 @@ func TestPinBlocks(t *testing.T) {
 		return out
 	}
 	// event runs call inside one traced transaction.
-	event := func(name string, sc scene, outcome func(ctx *player.Context) string, call func(hd *handler, ctx *player.Context, p *player.Player)) {
+	event := func(name string, sc scene, outcome func(ctx *player.Context) string, call func(hd *core.PlayerHandler, ctx *player.Context, p *player.Player)) {
 		var ctx *player.Context
 		pinRun(t, lines, name, func() string { return outcome(ctx) }, func() {
 			withPlayer(t, sc.s, sc.h, func(p *player.Player, tx *world.Tx) {
 				ctx = player.NewEventContext(tx, p)
-				call(sc.s.Handler(p).(*handler), ctx, p)
+				call(sc.s.Handler(p).(*core.PlayerHandler), ctx, p)
 			})
 		})
 	}
@@ -134,7 +134,7 @@ func TestPinBlocks(t *testing.T) {
 
 	// StartBreak.
 	startBreak := func(name string, at cube.Pos, setup func(s *session, p *player.Player, tx *world.Tx)) {
-		event("StartBreak/"+name, start(setup), cancelled, func(hd *handler, ctx *player.Context, p *player.Player) {
+		event("StartBreak/"+name, start(setup), cancelled, func(hd *core.PlayerHandler, ctx *player.Context, p *player.Player) {
 			hd.HandleStartBreak(ctx, at)
 		})
 	}

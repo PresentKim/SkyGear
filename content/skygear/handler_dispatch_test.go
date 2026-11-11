@@ -4,6 +4,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -38,10 +39,10 @@ var playerHandlerHooks = map[string]string{
 	"HandleCommandExecution": "Command",
 }
 
-// TestHandlerMethodsOneWay: each player handler method is served either by
-// a legacy body in handler.go or by the subscribers of its hook, never both
-// and never neither. A body that stays for a hook with subscribers must only
-// forward to the kernel handler's method of the same name.
+// TestHandlerMethodsOneWay: the player handler is the kernel's. Every player
+// handler method the game uses is a method of core.PlayerHandler and has at
+// least one subscriber on its hook, the root package declares no player
+// handler method of its own, and the session's handler is the kernel's.
 func TestHandlerMethodsOneWay(t *testing.T) {
 	kt := reflect.TypeOf(&core.PlayerHandler{})
 	for m := range playerHandlerHooks {
@@ -54,66 +55,36 @@ func TestHandlerMethodsOneWay(t *testing.T) {
 	for _, s := range core.Subscriptions() {
 		subs[s.Hook]++
 	}
+	for method, hook := range playerHandlerHooks {
+		if subs[hook] == 0 {
+			t.Errorf("%s: hook %s has no subscribers", method, hook)
+		}
+	}
 
-	f, err := parser.ParseFile(token.NewFileSet(), "handler.go", nil, 0)
+	files, err := os.ReadDir(".")
 	if err != nil {
 		t.Fatal(err)
 	}
-	declared := map[string]*ast.FuncDecl{}
-	for _, d := range f.Decls {
-		fd, ok := d.(*ast.FuncDecl)
-		if !ok || fd.Recv == nil || !strings.HasPrefix(fd.Name.Name, "Handle") {
+	for _, de := range files {
+		name := de.Name()
+		if !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
 			continue
 		}
-		if star, ok := fd.Recv.List[0].Type.(*ast.StarExpr); !ok || star.X.(*ast.Ident).Name != "handler" {
-			continue
+		f, err := parser.ParseFile(token.NewFileSet(), name, nil, 0)
+		if err != nil {
+			t.Fatal(err)
 		}
-		declared[fd.Name.Name] = fd
-	}
-	for name := range declared {
-		if _, ok := playerHandlerHooks[name]; !ok {
-			t.Errorf("handler.go declares %s, which is no player handler method of the table", name)
-		}
-	}
-
-	for method, hook := range playerHandlerHooks {
-		n := subs[hook]
-		fd, legacy := declared[method]
-		switch {
-		case legacy && forwards(fd, method):
-			if n == 0 {
-				t.Errorf("%s forwards to the kernel, but hook %s has no subscribers", method, hook)
+		for _, d := range f.Decls {
+			if fd, ok := d.(*ast.FuncDecl); ok && fd.Recv != nil {
+				if _, isHandler := playerHandlerHooks[fd.Name.Name]; isHandler {
+					t.Errorf("%s declares %s: the kernel's handler serves it", name, fd.Name.Name)
+				}
 			}
-		case legacy && n > 0:
-			t.Errorf("%s has a legacy body and hook %s has %d subscribers: served twice", method, hook, n)
-		case !legacy && n == 0:
-			t.Errorf("%s has no legacy body and hook %s has no subscribers: served by nobody", method, hook)
 		}
 	}
-}
 
-// forwards reports whether fd's body is one call of the kernel handler's
-// method of the same name.
-func forwards(fd *ast.FuncDecl, method string) bool {
-	if len(fd.Body.List) != 1 {
-		return false
+	s := testSession(t)
+	if _, ok := s.Handler(nil).(*core.PlayerHandler); !ok {
+		t.Errorf("session.Handler is %T, want *core.PlayerHandler", s.Handler(nil))
 	}
-	var call *ast.CallExpr
-	switch s := fd.Body.List[0].(type) {
-	case *ast.ExprStmt:
-		call, _ = s.X.(*ast.CallExpr)
-	case *ast.ReturnStmt:
-		if len(s.Results) == 1 {
-			call, _ = s.Results[0].(*ast.CallExpr)
-		}
-	}
-	if call == nil {
-		return false
-	}
-	sel, ok := call.Fun.(*ast.SelectorExpr)
-	if !ok || sel.Sel.Name != method {
-		return false
-	}
-	in, ok := sel.X.(*ast.SelectorExpr)
-	return ok && in.Sel.Name == "PlayerHandler"
 }

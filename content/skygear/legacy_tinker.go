@@ -57,3 +57,13 @@ func init() {
 		}
 	})
 }
+
+// The iron hammer used on the air while sneaking switches diagonal vein
+// mining.
+func init() {
+	core.Use.On(70, "tinker.veinToggle", func(e core.UseEvent) {
+		if sgitem.IsIronHammer(e.Held) && e.P.Sneaking() && !e.S.Debounced(e.P) {
+			tinker.ToggleVeinDiagonal(e.S, e.P)
+		}
+	})
+}

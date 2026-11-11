@@ -25,3 +25,12 @@ func init() {
 		}
 	})
 }
+
+// A net-shaped machine or a miner in hand remembers the face it is placed on.
+func init() {
+	core.UseOnBlock.On(60, "machine.noteFace", func(e core.UseOnBlockEvent) {
+		if m, ok := e.Held.Item().(machine.Machine); ok && (machine.NetShaped(m.Kind) || m.Kind == machine.KindMiner) {
+			machine.NotePlaceFace(e.S, e.P, e.Face)
+		}
+	})
+}

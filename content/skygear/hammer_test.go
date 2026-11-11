@@ -11,6 +11,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
@@ -262,7 +263,7 @@ func TestDeathKeepsFood(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		hd := s.Handler(p).(*handler)
+		hd := s.Handler(p).(*core.PlayerHandler)
 		p.SetFood(5)
 		hd.HandleDeath(p, nil, new(bool))
 		p.SetFood(20) // what Dragonfly's respawn does

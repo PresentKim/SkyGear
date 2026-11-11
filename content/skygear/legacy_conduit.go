@@ -38,3 +38,17 @@ func init() {
 		}
 	})
 }
+
+// A player who clicks a conduit's connector plate on the block it touches
+// opens its settings, whatever they hold, unless the held conduit goes into
+// that conduit (a click on the conduit itself is ConduitBundle.Activate).
+// Sneaking places blocks instead.
+func init() {
+	core.UseOnBlock.Handle(100, "conduit.plate", func(e core.UseOnBlockEvent) bool {
+		if !e.P.Sneaking() && conduit.UsePlate(e.S, e.P, e.Tx, e.Pos, e.Face, e.Click, e.Held) {
+			e.Cancel()
+			return true
+		}
+		return false
+	})
+}

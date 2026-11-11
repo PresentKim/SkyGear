@@ -57,3 +57,13 @@ func expandGuard(s *core.Session, ctx *player.Context, pos cube.Pos) bool {
 	}
 	return false
 }
+
+// The block clicked and the block next to its face are guarded alike.
+func init() {
+	core.UseOnBlock.Handle(40, "expand.guard", func(e core.UseOnBlockEvent) bool {
+		return expandGuard(e.S, e.Ctx, e.Pos)
+	})
+	core.UseOnBlock.Handle(160, "expand.guardSide", func(e core.UseOnBlockEvent) bool {
+		return expandGuard(e.S, e.Ctx, e.Pos.Side(e.Face))
+	})
+}

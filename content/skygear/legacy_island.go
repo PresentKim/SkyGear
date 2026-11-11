@@ -72,3 +72,13 @@ func islandGuard(s *core.Session, ctx *player.Context, pos cube.Pos) bool {
 	ctx.Player().SendTip(i18n.T(i18n.Default, "island.outside"))
 	return true
 }
+
+// The block clicked and the block next to its face are guarded alike.
+func init() {
+	core.UseOnBlock.Handle(50, "island.guard", func(e core.UseOnBlockEvent) bool {
+		return islandGuard(e.S, e.Ctx, e.Pos)
+	})
+	core.UseOnBlock.Handle(170, "island.guardSide", func(e core.UseOnBlockEvent) bool {
+		return islandGuard(e.S, e.Ctx, e.Pos.Side(e.Face))
+	})
+}

@@ -187,7 +187,7 @@ func TestAutofillPlace(t *testing.T) {
 	island.StateOf(s.Session).Chunks = []island.ChunkPos{{0, 0}}
 	loadAround(s)
 	h := spawnPlayer(s)
-	hd := s.Handler(nil).(*handler)
+	hd := s.Handler(nil).(*core.PlayerHandler)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		p.SetHeldItems(item.NewStack(block.Stone{}, 1), item.Stack{})
 		_ = p.Inventory().SetItem(20, item.NewStack(block.Stone{}, 5))

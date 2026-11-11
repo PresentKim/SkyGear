@@ -140,10 +140,6 @@ func (s *session) Spawn() mgl64.Vec3 { return island.Spawn(s.Session) }
 // during its run) to the island instead (instance.Relocator).
 func (s *session) Relocate(pos mgl64.Vec3) bool { return core.InArena(pos) }
 
-func (s *session) Handler(*player.Player) player.Handler {
-	return &handler{PlayerHandler: core.PlayerHandler{S: s.Session}, s: s}
-}
-
 // Close emits Close and stores the state (core.Lifecycle), then forgets the
 // session.
 func (s *session) Close(tx *world.Tx) {

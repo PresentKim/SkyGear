@@ -3,8 +3,6 @@ package skygear
 import (
 	"fmt"
 	"math/rand/v2"
-	"os"
-	"regexp"
 	"runtime"
 	"strings"
 	"testing"
@@ -193,12 +191,12 @@ func TestPinUse(t *testing.T) {
 		record()
 		between = nil
 	}
-	event := func(name string, sc scene, prior int, forget bool, call func(hd *handler, ctx *player.Context, p *player.Player), extra func() string) {
+	event := func(name string, sc scene, prior int, forget bool, call func(hd *core.PlayerHandler, ctx *player.Context, p *player.Player), extra func() string) {
 		fire := func() *player.Context {
 			var ctx *player.Context
 			withPlayer(t, sc.s, sc.h, func(p *player.Player, tx *world.Tx) {
 				ctx = player.NewEventContext(tx, p)
-				call(sc.s.Handler(p).(*handler), ctx, p)
+				call(sc.s.Handler(p).(*core.PlayerHandler), ctx, p)
 			})
 			return ctx
 		}
@@ -247,8 +245,8 @@ func TestPinUse(t *testing.T) {
 	}
 
 	// UseOnBlock.
-	clickAt := func(at cube.Pos, face cube.Face, click mgl64.Vec3) func(hd *handler, ctx *player.Context, p *player.Player) {
-		return func(hd *handler, ctx *player.Context, p *player.Player) {
+	clickAt := func(at cube.Pos, face cube.Face, click mgl64.Vec3) func(hd *core.PlayerHandler, ctx *player.Context, p *player.Player) {
+		return func(hd *core.PlayerHandler, ctx *player.Context, p *player.Player) {
 			hd.HandleItemUseOnBlock(ctx, at, face, click)
 		}
 	}
@@ -537,7 +535,7 @@ func TestPinUse(t *testing.T) {
 		if extra != nil {
 			ex = effects(sc, extra)
 		}
-		event("Use/"+name, sc, prior, forget, func(hd *handler, ctx *player.Context, p *player.Player) { hd.HandleItemUse(ctx) }, ex)
+		event("Use/"+name, sc, prior, forget, func(hd *core.PlayerHandler, ctx *player.Context, p *player.Player) { hd.HandleItemUse(ctx) }, ex)
 	}
 	veinDiagonal := func(s *session, p *player.Player, tx *world.Tx) string {
 		return fmt.Sprintf("diagonal=%t", account.On(p, tinker.VeinDiagonalSetting))
@@ -549,7 +547,7 @@ func TestPinUse(t *testing.T) {
 	// cancelled; the deferred refill then finds the hand empty.
 	thrown := func(name string, setup setupFn) {
 		sc := start(setup)
-		event("Use/"+name, sc, 0, false, func(hd *handler, ctx *player.Context, p *player.Player) {
+		event("Use/"+name, sc, 0, false, func(hd *core.PlayerHandler, ctx *player.Context, p *player.Player) {
 			hd.HandleItemUse(ctx)
 			if !ctx.Cancelled() {
 				h, off := p.HeldItems()
@@ -584,7 +582,7 @@ func TestPinUse(t *testing.T) {
 		return scene{s, h}
 	}
 	sw := watching()
-	event("Use/menuItemWatching", sw, 0, false, func(hd *handler, ctx *player.Context, p *player.Player) { hd.HandleItemUse(ctx) }, effects(sw, held))
+	event("Use/menuItemWatching", sw, 0, false, func(hd *core.PlayerHandler, ctx *player.Context, p *player.Player) { hd.HandleItemUse(ctx) }, effects(sw, held))
 	// 3 dimension.hunting
 	onUse("hunting", chain(hunting, holding(stone)), 0, false, held)
 	onUse("huntingStone", chain(hunting, holding(dimStone)), 0, false, held)
@@ -656,7 +654,7 @@ func TestPinUse(t *testing.T) {
 		return sc
 	}
 	entityEvent := func(prefix, name string, sc scene, prior int, target func(s *session) func(tx *world.Tx, p *player.Player) world.Entity, attack bool, extra func(s *session, p *player.Player, tx *world.Tx) string) {
-		call := func(hd *handler, ctx *player.Context, p *player.Player) {
+		call := func(hd *core.PlayerHandler, ctx *player.Context, p *player.Player) {
 			e := target(sc.s)(p.Tx(), p)
 			if attack {
 				hd.HandleAttackEntity(ctx, e, nil, nil, nil)
@@ -686,26 +684,15 @@ func TestPinUse(t *testing.T) {
 	}
 	entityEvent("AttackEntity", "huntingMonster", start(hunting), 0, fixed(monster), true, held)
 
-	// Every mark written in the four methods and useStone's callers is
-	// reached, and the shapes of the rows are right.
-	src, err := os.ReadFile("handler.go")
-	if err != nil {
-		t.Fatal(err)
-	}
-	text := string(src)
-	from, to := strings.Index(text, "func (h *handler) HandleItemUseOnBlock"), len(text)
-	if from < 0 || to < from {
-		t.Fatal("handler.go: the methods were not found")
-	}
+	// Every subscriber of the four hooks is reached, and the shapes of the
+	// rows are right.
 	var names []string
-	seen := map[string]bool{}
-	for _, m := range regexp.MustCompile(`core\.Mark\("([^"]+)"\)`).FindAllStringSubmatch(text[from:to], -1) {
-		if !seen[m[1]] {
-			seen[m[1]] = true
-			names = append(names, m[1])
+	for _, sub := range core.Subscriptions() {
+		switch sub.Hook {
+		case "UseOnBlock", "Use", "UseOnEntity", "AttackEntity":
+			names = append(names, sub.Name)
 		}
 	}
-	names = append(names, "expand.guard", "island.guard", "expand.guardSide", "island.guardSide")
 	pinCheckReached(t, names, lines)
 
 	rows := map[string]string{

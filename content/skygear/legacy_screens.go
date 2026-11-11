@@ -1,8 +1,10 @@
 package skygear
 
 import (
+	"github.com/df-mc/dragonfly/server/player"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/screens"
 )
 
@@ -29,4 +31,41 @@ func init() {
 	core.Leave.On(60, "screens.board", func(e core.Presence) {
 		e.P.RemoveScoreboard()
 	})
+}
+
+// A held menu item opens the menu on a block and in the air.
+func init() {
+	core.UseOnBlock.Handle(20, "screens.menuItem", func(e core.UseOnBlockEvent) bool {
+		if screens.IsMenuItem(e.Held) {
+			e.Cancel()
+			useHeldScreen(e.S, e.P)
+			return true
+		}
+		return false
+	})
+	core.Use.Handle(20, "screens.menuItem", func(e core.UseEvent) bool {
+		if screens.IsMenuItem(e.Held) {
+			e.Cancel()
+			useHeldScreen(e.S, e.P)
+			return true
+		}
+		return false
+	})
+}
+
+// useHeldScreen opens the menu held by p. The client repeats use packets
+// while the button is held, so repeats are ignored.
+func useHeldScreen(s *core.Session, p *player.Player) {
+	if s.Debounced(p) {
+		return
+	}
+	if dimension.Hunting(s, p) {
+		dimension.ShowRunMenu(s, p)
+		return
+	}
+	if dimension.Watching(s, p) {
+		dimension.ShowWatchMenu(s, p)
+		return
+	}
+	screens.OpenMenu(s, p)
 }

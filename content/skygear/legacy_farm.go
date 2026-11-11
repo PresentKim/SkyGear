@@ -60,3 +60,23 @@ func init() {
 		}
 	})
 }
+
+// Using a composter or a crop with a free hand acts on it; sneaking uses the
+// item as usual (placing blocks, bone meal). A crop shows its time or
+// harvests, and places nothing.
+func init() {
+	core.UseOnBlock.Handle(120, "farm.composter", func(e core.UseOnBlockEvent) bool {
+		if !e.P.Sneaking() && farm.UseComposter(e.S, e.P, e.Tx, e.Pos, e.Held) {
+			e.Cancel()
+			return true
+		}
+		return false
+	})
+	core.UseOnBlock.Handle(150, "farm.crop", func(e core.UseOnBlockEvent) bool {
+		if !e.P.Sneaking() && farm.UseCrop(e.S, e.P, e.Tx, e.Pos) {
+			e.Cancel()
+			return true
+		}
+		return false
+	})
+}
