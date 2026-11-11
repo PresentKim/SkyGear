@@ -175,6 +175,7 @@
  "platform.enter.serverBusy": "§cThe server is busy. Please try again in a moment.",
  "platform.enter.entering": "Entering",
  "platform.failed": "§c%s failed.",
+ "platform.command.failed": "The command failed with an error.",
  "platform.cmd.lobby": "Moves to the lobby",
  "platform.cmd.saves": "Opens the save selection screen",
  "platform.cmd.guide": "Shows the server guide",

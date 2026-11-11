@@ -175,6 +175,7 @@
  "platform.enter.serverBusy": "§c서버가 혼잡합니다. 잠시 후 다시 시도해 주세요.",
  "platform.enter.entering": "입장",
  "platform.failed": "§c%s에 실패했습니다.",
+ "platform.command.failed": "명령어를 처리하다 오류가 났습니다.",
  "platform.cmd.lobby": "로비로 이동합니다",
  "platform.cmd.saves": "세이브 선택 화면을 엽니다",
  "platform.cmd.guide": "서버 안내를 봅니다",

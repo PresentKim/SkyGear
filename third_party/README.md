@@ -29,7 +29,6 @@ Dragonfly 의 동작 자체(블록 규칙, 패킷 처리, 세션 기능)를 바�
 | `server/listener.go`, `server/conf.go` | NetherNet 리스너 설정 `LocalIP`(연결을 묶고 알리는 로컬 주소 하나)와 `PublicIP`(로컬 주소 대신 알리는 공개 주소, 1:1 NAT·터널 뒤 서버용). `NetherNetConfig` 와 `Config` 의 NetherNet 항목에 둠 |
 | `server/block/crop.go` 외 작물·줄기 6종 `RandomTick` | `block.ScheduledCropGrowth` 가 켜져 있으면 작물·수박/호박 줄기가 무작위 틱으로 자라지 않음(게임이 인스턴스 시간 일정으로 키움) |
 | `server/block/carrot.go`, `potato.go`, `wheat_seeds.go`, `beetroot_seeds.go` | 다 자란 작물을 캘 때 떨어지는 작물·씨앗을 성장 0의 새 아이템으로(업스트림은 다 자란 상태를 복사해, 심으면 바로 다 자란 작물이 된다) |
-| `server/cmd/command.go` | 명령어 `Run` 의 panic 을 잡아 ERROR 로그와 오류 출력으로 바꿈(서버가 죽지 않음) |
 | `server/item/digger.go` (신규), `server/internal/iteminternal/components.go` | `item.Digger`(`DestroySpeeds`: 블록 이름별)와 `item.TagDigger`(`DestroySpeedsByTag`: 블록 태그 질의별, `item.TagSpeed`)를 구현한 커스텀 아이템에 `minecraft:digger` 컴포넌트(캐기 속도)를 보냄. 없으면 클라이언트가 커스텀 도구로 맨손 속도로 캔다 |
 | `server/internal/iteminternal/components.go` | `item.Usable` 을 구현한 커스텀 아이템(먹는 것 제외)에 `minecraft:use_modifiers` 를 보냄. 없으면 클라이언트가 허공 사용을 서버에 보내지 않는다 |
 | `server/internal/iteminternal/components.go`, `fuel_test.go` (신규) | `item.Fuel` 을 구현한 커스텀 아이템에 `minecraft:fuel` 컴포넌트(`duration`, 초)를 보냄. 없으면 클라이언트가 커스텀 연료(나무껍질 섬유)를 화로 연료 칸에 넣지 못한다 |
