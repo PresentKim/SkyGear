@@ -19,5 +19,5 @@
 
 클라이언트 레시피 책은 **창작 인벤토리 목록**(`CreativeContent`)에 있는 결과의 레시피만, 그것도 **블록 상태까지** 같을 때만 나열한다.
 
-- 우리 아이템·블록: `catalog/creative.go` 가 게임 시작 때 창작 인벤토리에 등록한다(머리 없는 익명 그룹, 탭은 건축·장비·아이템). `TestEveryGameRecipeResultIsCreative` 가 우리 레시피의 결과가 모두 창작 목록에 있는지 검사한다. **새 아이템·블록을 레시피로 만들 때는 `catalog/creative.go` 에도 넣는다.**
+- 우리 아이템·블록: `catalog.RegisterCreativeItems` 가 게임 시작 때 각 기능의 창작 항목과 `catalog/creative.go` 의 공용 아이템을 자리(`Slot`) 순서로 창작 인벤토리에 등록한다(머리 없는 익명 그룹, 탭은 건축·장비·아이템). `TestEveryGameRecipeResultIsCreative` 가 우리 레시피의 결과가 모두 창작 목록에 있는지 검사한다. 새 아이템·블록을 레시피로 만들 때는 그 아이템을 가진 기능의 `creative.go`(`core.Feature.Creative`)에, 여러 기능이 같이 쓰는 아이템이면 `catalog/creative.go` 에 넣는다.
 - 바닐라 블록: 바닐라 레시피 데이터(`crafting_data.nbt`)의 블록 결과는 창작 항목과 상태가 다른 것이 많다(상자·퇴비통 등 30여 종). Dragonfly 패치 `creativeBlockFitter` 가 레시피 결과의 블록 런타임 ID 를 창작 항목의 것으로 맞춘다.

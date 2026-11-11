@@ -56,19 +56,24 @@ Thanks for your interest. These are the rules the project follows.
   imports `platform/instance`, not the other way round).
 - Sky Gear features are packages under `content/skygear/<feature>`. A feature
   declares a `core.Feature` in its `feature.go` (`Name`, `Entities`,
-  `Settings`, `ItemEntry`, `Setup`) and subscribes its steps to the kernel's
-  hooks in `Setup`, in `subscribe.go`, with subscriber names
+  `Settings`, `ItemEntry`, `Creative`, `Commands`, `Setup`) and subscribes
+  its steps to the kernel's hooks in `Setup`, in `subscribe.go`, with
+  subscriber names
   `<feature>.<step>` and a priority unique within the hook. It keeps its data in
   `core.NewPart`, `core.NewPlayers` and `core.NewSaved` parts, never in a field
-  of `Session`, and never imports the root package. Adding a feature is its
-  package, one line in the list in `content/skygear/features.go`, its entries
+  of `Session`, and never imports the root package. Its blocks fill in their
+  own WAILA lines (`Waila`, in `look.go`) and its items their slot decoration
+  (`Decor`); its creative items go in `creative.go` and its commands in
+  `commands.go`. Adding a feature is its package, one line in the list in `content/skygear/features.go`, its entries
   in `layers`, `featureLayer` and `TestFeatureNames` in
   `content/skygear/layers_test.go` and, once it subscribes, its lines in the
   goldens under `content/skygear/testdata/pin`. The root package only lists
-  the features and holds the platform glue (`Game`, `session`), the commands and
-  the operator tools; it subscribes to nothing. See `docs/tech/extension.md`.
+  the features and holds the platform glue (`Game`, `session`) and the
+  operator tools (`/sgadmin`, `/sgdebug`); it holds no player command and
+  subscribes to nothing. See `docs/tech/extension.md`.
 - `go test ./content/skygear -run TestPin -count=1` compares the order of every
-  hook's subscribers and the steps each scenario reaches with the goldens in
+  hook's subscribers, the steps each scenario reaches, the WAILA panels
+  (`look.golden`) and the creative list (`creative.golden`) with the goldens in
   `content/skygear/testdata/pin`. A change in dispatch order shows up as a
   golden diff. Re-record (`SKYGEAR_GOLDEN=update`) only in a commit meant to
   change that behaviour, and give the reason in the commit message.
@@ -110,9 +115,11 @@ Thanks for your interest. These are the rules the project follows.
   `common/resourcepack.LoadFS` derives it from the content hash.
 - Do not change the UUIDs of the packs under `assets/resourcepack/` (clients have them
   cached).
-- New craftable items and blocks must also be registered in
-  `content/skygear/catalog/creative.go` (the client recipe book only lists
-  results that are in the creative inventory; a test checks this).
+- New craftable items and blocks must also be listed in the creative items of
+  the feature that owns them (`Feature.Creative`, in the feature's
+  `creative.go`), or in the central runs of `content/skygear/catalog/creative.go`
+  for shared items (the client recipe book only lists results that are in the
+  creative inventory; `TestEveryGameRecipeResultIsCreative` checks this).
 
 ## Ore UI page
 

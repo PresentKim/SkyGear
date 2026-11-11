@@ -101,8 +101,8 @@
 | 손의 도구가 부서짐(지팡이 포함) | 같은 종류의 도구(닳은 정도는 따지지 않음) |
 | 체에 마지막 블록을 넣음 | 같은 블록 |
 
-공용 함수는 `content/skygear/core/refill.go`(`RefillHand`, 게임이 묶음을 줄인 뒤에 채우는 `RefillHandLater`)이고, 핸들러(놓기·먹기·쓰기·도구 닳기), 체(`machine/sieve.go`), 지팡이가 부른다.
+공용 함수는 `content/skygear/autofill/refill.go`(`RefillHand`, 게임이 묶음을 줄인 뒤에 채우는 `RefillHandLater`)이고, `autofill` 기능의 구독자(놓기·먹기·쓰기·도구 닳기), 체(`machine/sieve.go`), 지팡이가 부른다.
 
 ## 10. 구현 위치
 
-`content/skygear/wand`: 설정(`wand.go`), 놓을 자리 찾기와 블록 공급(`build.go`의 `Plan`), 클릭·되돌리기·미리보기(`use.go`), 원형 메뉴(`screen.go`, 화면은 `common/ui/radial.go` 의 `ShowRadial` 과 `web/oreui/src/screens/radial.tsx`). 아이템은 `sgitem/wand.go`(`Wand`, `InfinityWand`). 클릭은 `UseOnBlock` 훅의 `wand.use`(넓히기)와 `Use` 훅의 `wand.options`(웅크리고 허공: 원형 메뉴)가 가로채고, 미리보기는 `look` 의 바라보기 갱신이 부른다. 블록마다 핸들러의 `HandleBlockPlace` 를 거쳐 섬 영역 검사와 놓기 집계가 다른 블록과 같다.
+`content/skygear/wand`: 설정(`wand.go`), 놓을 자리 찾기와 블록 공급(`build.go`의 `Plan`), 클릭·되돌리기·미리보기(`use.go`), 원형 메뉴(`screen.go`, 화면은 `common/ui/radial.go` 의 `ShowRadial` 과 `web/oreui/src/screens/radial.tsx`). 아이템은 `sgitem/wand.go`(`Wand`, `InfinityWand`). 클릭은 `UseOnBlock` 훅의 `wand.use`(넓히기)와 `Use` 훅의 `wand.options`(웅크리고 허공: 원형 메뉴)가 가로채고, 미리보기는 `look.Follow` 로 단 `wand.preview` 가 패널 갱신을 따라가며 보인다. 블록마다 핸들러의 `HandleBlockPlace` 를 거쳐 섬 영역 검사와 놓기 집계가 다른 블록과 같다.

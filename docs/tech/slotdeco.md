@@ -19,7 +19,7 @@ JSON UI 는 칸의 아이템 데이터를 읽지 못하고, 칸 컬렉션의 `#h
 ## 서버 쪽
 
 - `slotdeco.Decorate(등급, 전면 번호, 이름)` 이 표식을 붙이고, `Strip` 이 지우고, `Of` 가 읽는다.
-- 이름이 직접 없는 고정 아이템은 언어 파일(`texts/ko_KR.lang`·`en_US.lang`)의 이름에 표식이 들어 있다. 규칙은 한 곳, `skygear.ItemDecor`(decor.go)이고 `go run ./tools/slotmarks assets/resourcepack/skygear` 가 두 파일에 쓴다. 테스트(`TestPackHasItemAssets`)가 어긋나면 알려 준다.
+- 이름이 직접 없는 고정 아이템은 언어 파일(`texts/ko_KR.lang`·`en_US.lang`)의 이름에 표식이 들어 있다. 등급과 단계는 아이템마다 자기 `Decor()` 메서드(`slotdeco.Decorated`)가 정하고, 여러 기능이 같이 쓰는 아이템의 것은 `sgitem/decor.go` 에 있다. `decor.ItemDecor` 가 그 값을 읽고, `go run ./tools/slotmarks assets/resourcepack/skygear` 가 두 파일에 쓴다. 테스트(`TestPackHasItemAssets`)가 어긋나면 알려 준다.
 - 스택마다 이름이 있는 아이템은 이름을 만들 때 붙인다: 도구는 레벨로 등급(`toolRarity`: 3·5·8·10 레벨에서 고급·희귀·영웅·전설, 이름 색도 등급 색), 기계 창의 정보 아이콘은 정지 중일 때 경고 배지.
 - 표식이 든 이름을 문장 중간에 넣으면 등급 색이 뒤의 글에 이어진다. 그래서 `naming.ItemName()` 은 표식이 없는 이름을 돌려주고, 칸 위의 이름에만 표식을 쓴다. 이름을 비교·검색하는 곳은 `textsearch`(색 코드를 건너뜀)나 `slotdeco.Strip` 을 쓴다.
 

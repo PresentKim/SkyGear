@@ -22,11 +22,14 @@
 // Dragonfly; cancelling and stopping the chain are independent.
 //
 // A Feature is what a feature package hands to the game: its name, entity
-// types, settings, item entry edit and a Setup that subscribes its steps. The
-// root package lists the features and passes them to Install, which runs each
-// Setup under the feature's name; a subscriber is named "<feature>.<step>".
-// EditEntries and CheckEntries compose the client entry edits of the features.
-// The kernel imports no feature package.
+// types, settings, item entry edit, creative items, commands and a Setup that
+// subscribes its steps. The root package lists the features and passes them to
+// Install, which runs each Setup under the feature's name; a subscriber is
+// named "<feature>.<step>". EditEntries and CheckEntries compose the client
+// entry edits of the features, CreativeItems orders the creative items of the
+// features and of the content list by Slot, and Commands collects the
+// features' commands (PlayerSession finds the player and session a command
+// runs for). The kernel imports no feature package.
 //
 // A feature declares its parts as package variables and reads them with
 // Of(s); it never adds fields to Session.

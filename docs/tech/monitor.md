@@ -8,7 +8,7 @@
 |---|---|
 | `machine/stats.go` | `prodStats`(1분 칸 15개 고리, 아이템 종류별 개수와 발전·소비 RE), `State.Emit`(출력 + 기록)·`State.RoomFor`(출력 공간 검사 + 막힘 기록)·`State.TickWork`(에너지 쓰기 + 진행), 화면 세 쪽(`ShowStats`), 세이브에 두는 `FactoryState`(`Produced`: 누적, 아이템 키별 / `AlertsOn`: 알림을 켠 계정) |
 | `machine/monitor.go` | `machineStatus`·`stuckKind`, 기계 목록 판정(`judge`), 알림 상태기계(`TickMonitor`), 알림 보내기, 정지 목록 화면 |
-| `content/skygear/commands.go` | `/통계`(`statsCmd`) |
+| `machine/commands.go` | `/통계`, `/stats`(`statsCmd`) |
 
 - 기계의 출력 지점은 `put(출력)` 대신 `Emit`을 쓰고, 출력이 막히는 곳은 `RoomFor`로 막힘을 기록한다. 막힘은 `st.Stuck`에 남고 `Tick` 시작에서 지운다.
 - 발전기는 연료가 없으면 `stuckFuel`, 용암 발전기는 용암이 없으면 `stuckFuel`로 적는다. 한 번도 일하지 않은 기계는 연료 부족을 알리지 않는다.

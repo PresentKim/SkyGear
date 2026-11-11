@@ -1,6 +1,7 @@
 # 기능 확장
 
 게임의 기능은 `content/skygear` 아래 패키지 하나씩이다. 기능은 서버 이벤트를 훅으로 받고, 자기 데이터를 `core` 의 파트에 두고, 루트 패키지의 기능 목록에 한 줄로 오른다.
+블록의 패널 줄, 아이템의 칸 장식, 창작 목록의 항목, 명령어, 설정도 기능이 자기 패키지에서 선언한다.
 이 문서는 그 바탕이 되는 층, 이벤트가 기능에 닿는 길, 새 기능을 더하는 순서, 구조를 지키는 테스트를 적는다.
 Dragonfly 자체를 확장하는 방법은 [dragonfly.md](dragonfly.md) 에 있다.
 
@@ -13,9 +14,32 @@ Dragonfly 자체를 확장하는 방법은 [dragonfly.md](dragonfly.md) 에 있�
 | Dragonfly 패치 | `third_party/dragonfly` | Dragonfly 의 동작 자체. 패치 규칙은 [dragonfly.md](dragonfly.md) |
 | `sghook` | `common/sghook` | 패킷 훅, 세션 내부 접근, 클라이언트에 보내는 아이템·블록 항목 고치기(`EditCustomItems`, `EditCustomBlocks`, `ApplyEntryEdits`). Dragonfly 내부는 여기서만 건드린다 |
 | `clientdef` | `common/clientdef` | 커스텀 아이템·블록이 클라이언트에 보내는 컴포넌트. 공개 레지스트리만 쓰고 게임을 모른다 |
-| `core` | `content/skygear/core` | 기능의 커널. `Session`과 그 파트(`Part`, `Players`, `Saved`), 훅(`Hook`)과 이벤트, 핸들러(`PlayerHandler`, `WorldHandler`), 수명 호출(`Lifecycle`), 기능 서술자(`Feature`)와 `Install` |
+| `core` | `content/skygear/core` | 기능의 커널. `Session`과 그 파트(`Part`, `Players`, `Saved`), 훅(`Hook`)과 이벤트, 핸들러(`PlayerHandler`, `WorldHandler`), 수명 호출(`Lifecycle`), 기능 서술자(`Feature`)와 `Install`, 창작 목록 순서(`CreativeItem`, `CreativeItems`), 기능의 명령어(`Commands`, `PlayerSession`) |
 | 기능 패키지 | `content/skygear/<기능>` | 한 기능의 블록·아이템·화면·규칙과, 그 기능이 훅에 거는 구독자 |
-| 루트 | `content/skygear` | 기능 목록(`features.go`)과 플랫폼 접착제(`Game`, `session`), 명령어, 운영자 도구 |
+| 루트 | `content/skygear` | 기능 목록(`features.go`)과 플랫폼 접착제(`Game`, `session`), 운영자 도구 |
+
+`content/skygear` 안의 패키지는 `content/skygear/layers_test.go` 의 `layers` 에 아래에서 위로 적혀 있다.
+
+- 데이터: `locales`, `naming`, `textfmt`, `formicon`, `blockmodel`, `netshape`, `sgitem`, `sievetable`, `wintext`, `machinerecipe`, `advancement`, `hopper`, `migrate`, `wire`
+- 핵심: `core`, `network`, `achievement`, `preview`, `look`, `autofill`
+- 진행: `progress`, `island`, `climate`
+- 기능: `tinker`, `decor`, `machine`, `conduit`, `storage`, `farm`, `fairy`, `dimension`, `handwork`, `expand`, `copier`, `wand`, `netstore`, `elevator`
+- 내용 목록: `catalog`
+- 화면: `codex`, `screens`
+
+`look`(WAILA 패널)과 `autofill`(손에 든 묶음 다시 채우기)은 핵심 칸에 있어서 기능 칸의 패키지가 둘을 부를 수 있다.
+
+루트 패키지에 남은 파일은 다음과 같다.
+
+| 파일 | 하는 일 |
+|---|---|
+| `features.go` | 기능 목록 `Features` 와 `core.Install`. 루트 자신의 기능 `itemsFeature` 는 아이템 항목의 이름을 번역 키로 바꾸고(`naming.LocalItemName`) 클라이언트가 빈 나무 양동이로 액체를 겨누게 한다(`sgitem.ClipWoodenBucket`) |
+| `game.go` | `Game` 과 `session`. 플랫폼의 `instance.Game`·`instance.Session` 을 구현한다. `New` 가 기능의 명령어(`core.Commands()`)와 창작 목록(`catalog.RegisterCreativeItems`)과 운영자 명령을 등록한다 |
+| `state.go` | 세이브 상태 문서의 버전(`State`, `core.NewSaved`) |
+| `hopper.go` | `hopper` 는 기능이 아닌 데이터 칸 패키지라 루트가 `init` 에서 호퍼 블록과 아이템을 등록한다(`hopper.Register`) |
+| `blockcounts.go` | 커스텀 블록 수와 상태 수(`CustomBlockCounts`, `LogCustomBlockCounts`). 서버가 시작할 때 로그에 남긴다 |
+| `admin.go` | 운영자 명령 `/sgadmin` |
+| `debug.go`, `debug_factory.go`, `debug_oreui.go`, `debug_ui.go` | 운영자 디버그 명령 `/sgdebug` 와 그 도구 |
 
 무엇을 import 할 수 있는지는 다음과 같다.
 
@@ -23,6 +47,7 @@ Dragonfly 자체를 확장하는 방법은 [dragonfly.md](dragonfly.md) 에 있�
 - `core` 는 `common`, `platform`, 그리고 데이터 층의 패키지를 import 한다. 기능 패키지는 import 하지 않는다(`TestFeaturesLiftable`).
 - 기능 패키지는 `core`, `common`, `platform`, 자기보다 아래 칸의 `content/skygear/*` 패키지를 import 한다. 같은 칸의 기능끼리는 `content/skygear/layers_test.go` 의 `siblings` 표에 적힌 import 만 허용된다(`TestLayers`, `TestFeatureSiblings`). 루트 패키지는 직접도 간접도 import 하지 않는다(`TestFeaturesLiftable`).
 - 루트 패키지는 모든 기능을 import 한다.
+- `look` 은 게임 패키지 가운데 `core` 와 `naming` 만, `decor` 는 `naming` 과 `tinker` 만 import 한다(`layers_test.go` 의 `onlyImports`, `TestCapabilityImports`). 블록과 아이템이 인터페이스(`waila.Provider`, `slotdeco.Decorated`)로 자기를 설명하므로 두 패키지는 블록·아이템을 둔 패키지를 모른다.
 
 위 칸이 아래 칸을 불러야 하면 아래 칸이 함수 변수를 두고 위 칸이 `init` 에서 채운다(예: `core.ShowMenu` 는 `screens` 가 채운다).
 
@@ -110,10 +135,10 @@ Dragonfly 자체를 확장하는 방법은 [dragonfly.md](dragonfly.md) 에 있�
 
 ## 새 기능 더하기
 
-엘리베이터(`content/skygear/elevator`)가 가장 작은 예다.
+엘리베이터(`content/skygear/elevator`)가 가장 작은 예다. `feature.go`, `subscribe.go`, `creative.go` 세 파일로 서술자, 구독자, 창작 목록 항목을 둔다.
 
-1. `content/skygear/<기능>/` 패키지를 만든다. 기능의 규칙과 블록·아이템은 이 패키지 안에 둔다.
-2. `feature.go` 에 서술자를 둔다. 필드는 `Name`, `Entities`(기능이 더하는 엔티티 종류), `Settings`(플레이어 설정), `ItemEntry`(커스텀 아이템 항목 고치기), `Setup`(구독자 달기)이다. `Name` 은 패키지 이름과 같아야 한다.
+1. `content/skygear/<기능>/` 패키지를 만든다. 기능의 규칙과 블록·아이템은 이 패키지 안에 둔다. 블록과 아이템은 패키지의 `init` 에서 `world.RegisterBlock`, `world.RegisterItem` 으로 등록하고(`elevator/elevator.go`), 이름은 리소스팩의 `assets/resourcepack/skygear/texts/ko_KR.lang`, `en_US.lang` 에 둔다(`pack_test.go` 가 검사한다).
+2. `feature.go` 에 서술자를 둔다. 필드는 `Name`, `Entities`(기능이 더하는 엔티티 종류), `Settings`(플레이어 설정), `ItemEntry`(커스텀 아이템 항목 고치기), `Creative`(창작 목록 항목), `Commands`(명령어), `Setup`(구독자 달기)이다. `Name` 은 패키지 이름과 같아야 한다. 쓰지 않는 필드는 비워 둔다.
 
    ```go
    package elevator
@@ -121,7 +146,7 @@ Dragonfly 자체를 확장하는 방법은 [dragonfly.md](dragonfly.md) 에 있�
    import "github.com/presentkim/skygear/content/skygear/core"
 
    // Feature is the elevator feature, listed in the game's feature list.
-   var Feature = &core.Feature{Name: "elevator", Setup: subscribe}
+   var Feature = &core.Feature{Name: "elevator", Creative: creativeItems, Setup: subscribe}
    ```
 
 3. `subscribe.go` 에서 `Setup` 이 부르는 `subscribe()` 가 구독자를 단다. 이름은 `<기능>.<단계>` 이고 접두어가 기능 이름과 같아야 한다.
@@ -145,10 +170,93 @@ Dragonfly 자체를 확장하는 방법은 [dragonfly.md](dragonfly.md) 에 있�
    }
    ```
 
-4. 루트의 `content/skygear/features.go` 의 `Features` 에 `<기능>.Feature` 를 한 줄 더하고 import 를 더한다. 설정과 아이템 항목 고치기는 목록 순서대로 적용되고 `Setup` 도 그 순서대로 돈다.
-5. `content/skygear/layers_test.go` 에 기능을 알린다. `layers` 에서 칸을 정하고(자기보다 아래 칸에 든 패키지만 import 할 수 있다), 기능 칸이면 `featureLayer` 에도 이름을 더한다. 같은 칸의 기능을 import 하면 `siblings` 에 행을 더한다. 기능의 순서는 `TestFeatureNames` 의 `want` 목록에도 적혀 있으니 `Features` 에 더한 자리에 같이 더한다.
-6. 구독자를 달았으면 골든이 달라진다. `order.golden` 에는 새 줄(`<훅> <우선순위> <이름>`)이 생기고, 그 훅을 거치는 장면이 있으면 `handler-simple.golden`, `handler-blocks.golden`, `handler-use.golden`, `lifecycle.golden` 의 그 장면 줄에도 새 이름이 들어간다. 의도한 변경이므로 `SKYGEAR_GOLDEN=update go test ./content/skygear -run TestPin -count=1` 로 다시 기록하고 `git diff` 로 새 단계의 이름만 늘었는지 확인한다. 커밋 메시지에 어느 단계를 더했는지 적는다.
-7. `go test ./content/skygear -run 'TestLayers|TestFeature|TestEvery|TestRoot|TestPin|TestHandlerMethodsOneWay' -count=1` 로 확인한다. 위 순서를 빠뜨리면 이 테스트들이 `TestLayers`(`package <기능> is not in layers`), `TestFeatureNames`, `TestPinOrder`, `TestEverySubscriberHasItsFeature`, `TestPinSimple` 따위로 어긋난 곳을 알려 준다.
+4. 기능의 블록이 WAILA 패널에 줄을 더하면 `look.go` 에 그 블록의 `Waila(v, info)` 메서드를 둔다(`waila.Provider`). `info` 에는 `look` 이 채운 이름, 아이콘, 도구, 바닐라 보관 블록의 내용이 들어 있고, 메서드는 고친 `info` 를 돌려준다. 예는 `hopper/look.go` 다.
+
+   ```go
+   func (h FlowHopper) Waila(v waila.View, info waila.Info) waila.Info {
+       info.Lines = HopperLines(v.Lang, h)
+       if h.Inv != nil {
+           info.Container = &waila.Container{Layout: waila.LayoutChest, Items: h.Inv.Items()}
+       }
+       return info
+   }
+   ```
+
+   세션의 데이터가 필요하면 `core.At(v.Tx)` 로 세션을 찾는다(nil 이면 `info` 를 그대로 돌려준다). 기능이 소유하지 않은 블록(바닐라 퇴비통, 작물, 화로)의 패널은 `Setup` 에서 `waila.RegisterAdapter` 로 단 어댑터가 채운다. 예는 `farm/look.go` 의 `registerLook` 이고 `subscribe()` 가 부른다.
+
+   ```go
+   func registerLook() {
+       waila.RegisterAdapter(func(v waila.View, b world.Block, info waila.Info) waila.Info {
+           if c, ok := b.(block.Composter); ok {
+               if s := core.At(v.Tx); s != nil {
+                   info.Lines = ComposterLines(s, v.Lang, v.Pos, c)
+               }
+           }
+           // ...
+           return info
+       })
+   }
+   ```
+
+   어댑터는 다른 블록에는 `info` 를 그대로 돌려줘야 한다. `look` 에 블록 종류를 더하지 않는다. `look` 이 기능 패키지를 import 하면 `TestCapabilityImports` 가 실패한다. 패널이 달라지면 `TestPinLook`(`look.golden`)이 어긋난 장면을 보여 준다.
+5. 기능의 아이템에 등급이나 단계 표시가 있으면 그 아이템에 `Decor()` 메서드를 둔다(`slotdeco.Decorated`). 예는 `fairy/fairymagic.go` 의 요정 판이다.
+
+   ```go
+   // Decor is the board's slot decoration (slotdeco.Decorated).
+   func (Board) Decor() (slotdeco.Rarity, int) { return slotdeco.Rare, 0 }
+   ```
+
+   여러 기능이 같이 쓰는 아이템의 `Decor()` 는 `sgitem/decor.go` 에 있다. `decor.ItemDecor` 가 이 메서드를 읽는다. `TestItemDecor` 에 아이템의 등급과 단계를 한 줄 더한다. 언어 파일의 이름 표식은 `go run ./tools/slotmarks assets/resourcepack/skygear` 로 다시 쓰고, 빠지면 `TestPackHasItemAssets` 가 실패한다.
+6. 기능의 아이템과 블록을 창작 목록에 올리려면 `creative.go` 에 `creativeItems` 를 두고 서술자에 `Creative: creativeItems` 를 쓴다. 클라이언트 레시피 책은 창작 목록에 있는 결과만 보이므로 만들 수 있는 아이템은 모두 올린다(`TestEveryGameRecipeResultIsCreative`). 예는 `elevator/creative.go` 다.
+
+   ```go
+   func creativeItems() []core.CreativeItem {
+       var out []core.CreativeItem
+       for _, c := range item.Colours() {
+           out = append(out, core.CreativeItem{Slot: 70, Category: creative.ConstructionCategory(), Item: Elevator{Colour: c}})
+       }
+       return out
+   }
+   ```
+
+   `Slot` 이 목록의 자리다. 항목은 `Slot` 순서로 놓이고, 같은 `Slot` 안에서는 기능이 돌려준 순서를 지킨다(`core.CreativeItems`). 지금 자리는 10 `progress`, 20 `storage`, 30 `farm`, 40 `conduit`, 50 `machine`, 60 `catalog`, 70 `elevator`, 80 `catalog`, 90 `farm`, 100 `catalog`, 110 `netstore`, 120 `catalog`, 130 `fairy`, 140 `catalog`, 150 `farm`, 160 `catalog` 이다. 새 기능은 앞뒤에 올 이웃 사이의 빈 수를 쓴다(75 등). 한 `Slot` 을 두 주인이 쓰면 게임이 시작할 때 창작 목록을 만들며 패닉한다. `catalog` 자리는 기능이 아닌 패키지(`sgitem`, `hopper`)의 항목이고 `catalog/creative.go` 의 `ownCreative` 에 있다. 기능의 자리는 `TestCreativeListNamesNoFeature` 의 `want` 에도 더한다. 창작 목록이 바뀌므로 `creative.golden`(`TestPinCreative`)과 `content/skygear/wire/testdata/creative.golden`(`TestWire`)을 의도한 변경으로 다시 기록한다(아래 "핀").
+7. 기능의 명령어는 `commands.go` 의 `commands()` 가 돌려주고 서술자에 `Commands: commands` 를 쓴다. 게임은 `skygear.New` 에서 `core.Commands()` 로 모든 기능의 명령어를 기능 목록 순서대로 받아 등록한다. 예는 `farm/commands.go` 다.
+
+   ```go
+   func commands() []cmd.Command {
+       return []cmd.Command{
+           cmd.New("묘목", i18n.T(i18n.Default, "cmd.sapling"), nil, saplingCmd{}),
+           cmd.New("sapling", i18n.T(i18n.Default, "cmd.sapling"), nil, saplingCmd{}),
+       }
+   }
+   ```
+
+   플레이어와 세션이 필요한 명령은 `Run` 의 처음에 `core.PlayerSession(src, o, tx)` 를 부른다. 명령을 보낸 쪽이 플레이어가 아니면 조용히, 플레이어가 세이브 밖에 있으면 세이브에 들어간 뒤 쓸 수 있다고 알리고 false 를 돌려준다(`machine/commands.go`, `screens/commands.go`). 한국어 명령 이름이 든 파일은 `content/skygear/locales/locales_test.go` 의 `TestNoKoreanInCode` 허용 목록에 더한다. 명령 이름은 `TestFeatureCommands` 의 `want` 에 기능 목록 순서대로 더한다.
+8. 기능이 패널을 숨기거나 패널 갱신을 따라가야 하면 `look` 의 두 자리를 쓴다. `look.Hidden` 은 패널을 숨길지 정하는 함수 하나이고 `expand` 가 `subscribe()` 에서 채운다(섬 확장 모드). `look.Follow(name, f)` 는 패널을 갱신할 때마다 `f` 를 부르고, 단 순서대로 돈다. 이름은 `<기능>.<단계>` 이고 `subscribe()` 의 끝에서 단다. 예는 `wand/subscribe.go` 다.
+
+   ```go
+   func followLook() {
+       look.Follow("wand.preview", func(t look.Target) {
+           ShowPreview(t.S, t.P, t.Tx)
+       })
+   }
+   ```
+
+   따라가는 단계를 더하면 `TestLookFollowers` 의 목록에 이름을 더한다.
+9. 플레이어 설정은 서술자의 `Settings` 에 둔다. `Install` 이 기능 목록 순서대로 등록한다. 예는 `autofill/feature.go` 다.
+
+   ```go
+   Settings: []account.Setting{
+       {Key: Setting, NameKey: "setting.autofill", Default: true, Group: "setting.group.play"},
+   },
+   ```
+
+   `NameKey` 의 글은 `locales` 에 둔다. 설정을 더하면 `settings.golden`(`TestPinSettings`)이 달라지므로 의도한 변경으로 다시 기록한다.
+10. 커스텀 아이템 항목을 고치는 함수는 서술자의 `ItemEntry` 에 둔다(아래 "클라이언트 항목 고치기"). 지금은 루트의 `itemsFeature`(`features.go`)만 쓴다. 클라이언트가 받는 항목이 바뀌므로 `content/skygear/wire/testdata/items.golden`(`TestWire`)이 달라진다.
+11. 루트의 `content/skygear/features.go` 의 `Features` 에 `<기능>.Feature` 를 한 줄 더하고 import 를 더한다. 설정, 아이템 항목 고치기, 창작 항목, 명령어는 목록 순서대로 모이고 `Setup` 도 그 순서대로 돈다.
+12. `content/skygear/layers_test.go` 에 기능을 알린다. `layers` 에서 칸을 정하고(자기보다 아래 칸에 든 패키지만 import 할 수 있다), 기능 칸이면 `featureLayer` 에도 이름을 더한다. 같은 칸의 기능을 import 하면 `siblings` 에 행을 더한다. 기능의 순서는 `TestFeatureNames` 의 `want` 목록에도 적혀 있으니 `Features` 에 더한 자리에 같이 더한다.
+13. 구독자를 달았으면 골든이 달라진다. `order.golden` 에는 새 줄(`<훅> <우선순위> <이름>`)이 생기고, 그 훅을 거치는 장면이 있으면 `handler-simple.golden`, `handler-blocks.golden`, `handler-use.golden`, `lifecycle.golden` 의 그 장면 줄에도 새 이름이 들어간다. 의도한 변경이므로 `SKYGEAR_GOLDEN=update go test ./content/skygear -run TestPin -count=1` 로 다시 기록하고 `git diff` 로 새 단계의 이름만 늘었는지 확인한다. 커밋 메시지에 어느 단계를 더했는지 적는다.
+14. `go test ./content/skygear -run 'TestLayers|TestFeature|TestCapability|TestLook|TestCreative|TestItemDecor|TestEvery|TestRoot|TestPin|TestHandlerMethodsOneWay' -count=1` 로 확인한다. 위 순서를 빠뜨리면 이 테스트들이 `TestLayers`(`package <기능> is not in layers`), `TestFeatureNames`, `TestPinOrder`, `TestEverySubscriberHasItsFeature`, `TestPinSimple`, `TestCreativeListNamesNoFeature`, `TestFeatureCommands` 따위로 어긋난 곳을 알려 준다.
 
 ### 우선순위 고르기
 
@@ -193,11 +301,9 @@ core.Death.On(30, "tinker.keepFood", func(e core.PlayerEvent) {
 
 ## 기능이 아직 손대는 중앙 목록
 
-구독과 데이터는 기능 패키지 안에서 끝나지만, 다음은 기능마다 여러 곳에 이름이 오르는 목록이다. 해당하는 기능만 고친다.
+구독, 데이터, 패널 줄, 칸 장식, 창작 항목, 명령어, 설정은 기능 패키지 안에서 끝나지만, 다음은 여러 기능의 이름이 한곳에 오르는 목록이다. 해당하는 기능만 고친다.
 
-- 창작 목록, 게임 아이템 레시피, 연구 트리: `content/skygear/catalog` 의 `creative.go`, `recipes.go`, `research.go`.
-- 바라보는 블록의 WAILA 줄: `content/skygear/look/look.go` 의 `Info`.
-- 명령어: 루트의 `content/skygear/commands.go` 의 `registerCommands`.
+- 게임 아이템 레시피와 연구 트리: `content/skygear/catalog` 의 `recipes.go`, `research.go`.
 - 글: `content/skygear/locales` 의 `ko.json`, `en.json` 과 나뉜 파일들.
 
 ## 구조를 지키는 규칙
@@ -211,15 +317,21 @@ core.Death.On(30, "tinker.keepFood", func(e core.PlayerEvent) {
 | `feature.go` 가 있는 패키지는 `Features` 에 정확히 한 번 오르고 `Name` 이 패키지 이름이다 | `TestEveryFeatureListed`, `TestFeatureNames` |
 | 기능 패키지는 루트를 import 하지 않는다(간접도). `core` 는 기능을 import 하지 않는다. `common` 은 `content/`, `platform/` 을 import 하지 않는다 | `TestFeaturesLiftable` |
 | 패키지는 `layers` 의 아래 칸만 import 하고, 같은 칸의 기능 import 는 `siblings` 가 허용한 것뿐이다 | `TestLayers`, `TestFeatureSiblings` |
+| `look` 은 `core`, `naming` 만, `decor` 는 `naming`, `tinker` 만 import 한다. 블록과 아이템은 인터페이스로 자기를 설명한다 | `TestCapabilityImports` |
+| 패널 갱신을 따라가는 단계는 `tinker.vein`, `wand.preview` 순서다 | `TestLookFollowers` |
+| `catalog/creative.go` 는 `core`, `hopper`, `machine`, `sgitem` 만 import 하고, 기능의 창작 자리는 표에 적힌 대로다 | `TestCreativeListNamesNoFeature` |
+| 한 창작 자리는 주인이 하나다. 두 주인이 쓰면 패닉이다 | `core.TestCreativeSlotOfTwoOwnersPanics`, `core.TestCreativeItemsSortBySlot` |
+| 기능의 명령어가 기능 목록 순서대로 모인다 | `TestFeatureCommands`, `core.TestCommandsInListOrder` |
+| 아이템이 자기 칸 장식을 말하고, 말하지 않는 아이템은 일반 등급이다 | `TestItemDecor` |
 | 기능 하나가 목록과 자기 패키지만으로 이벤트를 받는다 | `core.TestNewFeatureNeedsOnlyTheList` |
 | 플레이어 핸들러의 모든 메서드가 `core.PlayerHandler` 에 있고 훅마다 구독자가 있으며, 루트가 같은 이름의 메서드를 두지 않는다 | `TestHandlerMethodsOneWay` |
 | 핫 경로는 할당하지 않는다. 이벤트마다 `AllocsPerRun` 으로 0 을 확인한다 | `core.TestEmitAllocatesNothing`, `core.TestEventsEmitAllocateNothing` |
 | 구독자는 `Install` 동안에만 단다. 첫 `Emit` 뒤의 등록, 같은 훅 안의 이름·우선순위 겹침은 패닉이다 | `core.TestRegisterAfterEmitPanics`, `core.TestSamePriorityPanics`, `core.TestSameNamePanics` |
 
-핫 경로(이동, 매초, 빠른 틱)를 건드리면 벤치마크로 재 본다. 이벤트 하나의 비용은 `core` 의 `BenchmarkEmit`, `BenchmarkEmitMove` 와 루트의 `BenchmarkHandleMove`, `BenchmarkSecond`, `BenchmarkUseOnBlock`, `BenchmarkUse` 가 잰다.
+핫 경로(이동, 매초, 빠른 틱)를 건드리면 벤치마크로 재 본다. 이벤트 하나의 비용은 `core` 의 `BenchmarkEmit`, `BenchmarkEmitMove` 와 루트의 `BenchmarkHandleMove`, `BenchmarkSecond`, `BenchmarkUseOnBlock`, `BenchmarkUse` 가 잰다. 패널 하나의 비용은 루트의 `BenchmarkLookMachine`(시선 추적과 패널 보내기), `BenchmarkLookInfoMachine`, `BenchmarkLookInfoStone`(패널 만들기)이 잰다.
 
 ```sh
-go test -run xxx -bench 'HandleMove|Second|UseOnBlock|Use$' -benchmem -count 5 ./content/skygear
+go test -run xxx -bench 'HandleMove|Second|UseOnBlock|Use$|LookMachine|LookInfo' -benchmem -count 5 ./content/skygear
 go test -run xxx -bench Emit -benchmem -count 5 ./content/skygear/core
 ```
 
@@ -227,7 +339,7 @@ go test -run xxx -bench Emit -benchmem -count 5 ./content/skygear/core
 
 ## 핀
 
-구독 순서와 클라이언트가 받는 데이터는 골든 파일로 고정한다.
+구독 순서, 패널, 창작 목록, 클라이언트가 받는 데이터는 골든 파일로 고정한다.
 
 | 파일 | 담는 것 | 테스트 |
 |---|---|---|
@@ -235,10 +347,12 @@ go test -run xxx -bench Emit -benchmem -count 5 ./content/skygear/core
 | `content/skygear/testdata/pin/handler-simple.golden`, `handler-blocks.golden`, `handler-use.golden` | 장면마다 이벤트가 거친 구독자 이름과 결과(취소 여부, 효과) | `TestPinSimple`, `TestPinBlocks`, `TestPinUse` |
 | `content/skygear/testdata/pin/lifecycle.golden` | 입장·퇴장·매초·빠른 틱·새 날·자동 저장·닫기·시작의 구독자 이름과 결과 | `TestPinLifecycle` |
 | `content/skygear/testdata/pin/settings.golden` | 설정이 등록된 순서 | `TestPinSettings` |
+| `content/skygear/testdata/pin/look.golden` | 장면마다 바라본 블록의 패널 한 줄(이름, 번역 키, 아이콘, 줄, 아이템 줄, 보관 칸, 도구, 표시, 출처), 143개 | `TestPinLook` |
+| `content/skygear/testdata/pin/creative.golden` | 게임이 더한 창작 목록 항목을 클라이언트가 보이는 순서대로 그룹과 함께, 243개 | `TestPinCreative` |
 | `content/skygear/wire/testdata/*.golden` | 접속한 플레이어가 받는 블록 항목, 아이템 등록, 제작 데이터, 창작 목록의 항목별 해시 | `TestWire` |
 
 ```sh
-go test ./content/skygear -run 'TestPin' -count=1     # 구독 순서와 장면
+go test ./content/skygear -run 'TestPin' -count=1     # 구독 순서, 장면, 패널, 창작 목록
 go test ./content/skygear/wire/                        # 클라이언트 데이터
 ```
 
