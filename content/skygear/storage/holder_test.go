@@ -1,4 +1,4 @@
-package skygear
+package storage_test
 
 import (
 	"math"
