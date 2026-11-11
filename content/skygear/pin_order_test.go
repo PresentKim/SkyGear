@@ -65,9 +65,11 @@ func TestPinOrder(t *testing.T) {
 // import) in features.go: the audit counted 8 central files for adding
 // `elevator` before the kernel (handler.go, second.go, game.go, settings.go,
 // the entity list, the item edit, the lost/found and conduit-load glue). The
-// test side has two tables a new package also fills, on purpose: its row in
-// layers (layers_test.go) and, once it subscribes, its lines in
-// testdata/pin/order.golden. core/newfeature_test.go proves that a feature
+// test side has tables a new package also fills, on purpose: its row in
+// layers and featureLayer and its name in TestFeatureNames' want list
+// (layers_test.go) and, once it subscribes, its lines in
+// testdata/pin/order.golden and the scenario goldens that reach its hook.
+// core/newfeature_test.go proves that a feature
 // with a subscriber receives its event with no other central change.
 
 const modulePrefix = "github.com/presentkim/skygear/"

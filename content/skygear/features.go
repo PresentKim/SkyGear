@@ -28,8 +28,9 @@ import (
 
 // Features is every feature of the game, the one place they are listed. The
 // order is the layer order: settings and item entry edits apply in it, and
-// each feature's Setup runs in it. The subscribers the root package holds
-// (legacy_*.go) register themselves in init functions, not through Setup.
+// each feature's Setup runs in it, which is where the feature's subscribers
+// register (core.Install, called from init below). The root package subscribes
+// to nothing itself.
 var Features = []*core.Feature{
 	core.KernelFeature,
 	achievement.Feature,

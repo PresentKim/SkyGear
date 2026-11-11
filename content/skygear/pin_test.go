@@ -132,7 +132,7 @@ func pinGolden(t *testing.T, file string, lines map[string]string) {
 		}
 	}
 	if failed {
-		t.Logf("record with SKYGEAR_GOLDEN=update only if the legacy behaviour was changed on purpose")
+		t.Logf("record with SKYGEAR_GOLDEN=update only if a step was added, removed or reordered on purpose")
 	}
 }
 

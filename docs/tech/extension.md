@@ -146,8 +146,9 @@ Dragonfly 자체를 확장하는 방법은 [dragonfly.md](dragonfly.md) 에 있�
    ```
 
 4. 루트의 `content/skygear/features.go` 의 `Features` 에 `<기능>.Feature` 를 한 줄 더하고 import 를 더한다. 설정과 아이템 항목 고치기는 목록 순서대로 적용되고 `Setup` 도 그 순서대로 돈다.
-5. `content/skygear/layers_test.go` 에 기능의 칸을 정한다. `layers` 에서 자기보다 아래 칸에 든 패키지만 import 할 수 있다. 같은 칸의 기능을 import 하면 `siblings` 에 행을 더하고, 기능 칸이면 `featureLayer` 에도 이름을 더한다.
-6. 구독자를 달았으면 `content/skygear/testdata/pin/order.golden` 에 그 줄이 생긴다. 줄은 `<훅> <우선순위> <이름>` 이다. 의도한 변경이므로 `SKYGEAR_GOLDEN=update go test ./content/skygear -run TestPinOrder -count=1` 로 다시 기록하고, 커밋 메시지에 어느 단계를 더했는지 적는다.
+5. `content/skygear/layers_test.go` 에 기능을 알린다. `layers` 에서 칸을 정하고(자기보다 아래 칸에 든 패키지만 import 할 수 있다), 기능 칸이면 `featureLayer` 에도 이름을 더한다. 같은 칸의 기능을 import 하면 `siblings` 에 행을 더한다. 기능의 순서는 `TestFeatureNames` 의 `want` 목록에도 적혀 있으니 `Features` 에 더한 자리에 같이 더한다.
+6. 구독자를 달았으면 골든이 달라진다. `order.golden` 에는 새 줄(`<훅> <우선순위> <이름>`)이 생기고, 그 훅을 거치는 장면이 있으면 `handler-simple.golden`, `handler-blocks.golden`, `handler-use.golden`, `lifecycle.golden` 의 그 장면 줄에도 새 이름이 들어간다. 의도한 변경이므로 `SKYGEAR_GOLDEN=update go test ./content/skygear -run TestPin -count=1` 로 다시 기록하고 `git diff` 로 새 단계의 이름만 늘었는지 확인한다. 커밋 메시지에 어느 단계를 더했는지 적는다.
+7. `go test ./content/skygear -run 'TestLayers|TestFeature|TestEvery|TestRoot|TestPin|TestHandlerMethodsOneWay' -count=1` 로 확인한다. 위 순서를 빠뜨리면 이 테스트들이 `TestLayers`(`package <기능> is not in layers`), `TestFeatureNames`, `TestPinOrder`, `TestEverySubscriberHasItsFeature`, `TestPinSimple` 따위로 어긋난 곳을 알려 준다.
 
 ### 우선순위 고르기
 
