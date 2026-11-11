@@ -48,7 +48,6 @@ type Game struct {
 // release is the running server release.
 func New(log *slog.Logger, d *db.DB, isOperator func(*player.Player) bool, release string) *Game {
 	g := &Game{log: log, db: d, isOperator: isOperator, release: release}
-	registerCommands(g)
 	for _, c := range core.Commands() {
 		cmd.Register(c)
 	}

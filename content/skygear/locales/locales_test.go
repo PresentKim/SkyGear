@@ -19,9 +19,9 @@ func TestKeysInCode(t *testing.T) {
 	i18ntest.KeysInCode(t, "../../../cmd", 1, nil)
 }
 
-// TestNoKoreanInCode: what stays in code is command names (skygear
+// TestNoKoreanInCode: what stays in code is command names (the features'
 // commands.go).
 func TestNoKoreanInCode(t *testing.T) {
-	i18ntest.NoKoreanInCode(t, "..", nil, "../commands.go", "../farm/commands.go", "../machine/commands.go")
+	i18ntest.NoKoreanInCode(t, "..", nil, "../screens/commands.go", "../farm/commands.go", "../machine/commands.go")
 	i18ntest.NoKoreanInCode(t, "../../../cmd", nil)
 }
