@@ -21,9 +21,14 @@
 - `UseOnBlock` 의 두 번째 확장 모드 검사 `expand.guardSide`(160)는 멈출 수 없다. 확장 모드의 플레이어는 이미 `expand.guard`(40)에서 멈춘다. 단계를 지우거나 옆 칸 검사가 의미를 갖게 고친다. 지우면 `order.golden` 과 `handler-use.golden` 에서 그 줄이 빠진다.
 - `TestHuntClear`(`content/skygear/dimension/dimension_test.go`)와 `TestKitAndLevels` 가 `TestHuntFails` 와 같은 시간 의존 방식이라 `-race` 에서 `TestHuntFails` 처럼 불안정해질 수 있다. 같은 방식으로 시간에 기대지 않게 고친다.
 - `-race` 에서 `TestPinUse` 가 가끔 테스트에만 있는 데이터 경합을 보고한다. 동기 테스트 월드가 미뤄 둔 일을 월드 큐 밖에서 돌리기 때문이다(`fairy.wander` 와 `placeAt`·`Teleport`). 테스트 월드가 미룬 일을 월드 큐에서 돌리게 하거나, 시나리오가 그 일이 끝나기를 기다리게 고친다.
-- `machine.Register` 는 부르는 기능이 그 종류의 `Owner` 인지 확인하지 않는다. 다른 기능이 남의 종류를 등록해도 `TestKindOwners` 와 골든은 통과한다. 커널이 지금 설치 중인 기능 이름을 알려 주면 막을 수 있다. 테스트가 `Setup` 을 직접 부르는 경우(`netstore/keys_test.go`)를 어떻게 볼지 먼저 정한다.
+- `machine.Register` 는 부르는 기능이 그 종류의 `Owner` 인지 확인하지 않는다. 다른 기능이 남의 종류를 등록해도 `TestKindOwners` 와 골든은 통과한다. 커널이 지금 설치 중인 기능 이름을 알려 주면 막을 수 있다. 기능 패키지의 테스트는 `core.Install` 없이 `coretest.Setup` 으로 설치하므로(`netstore/keys_test.go`) 그 경우를 어떻게 볼지 먼저 정한다.
 - `debug_ui.go` 의 `windowKinds` 에서 `k != machine.KindTinker` 는 이제 뜻이 없다. 제작대에 클릭 훅이 있어 앞 조건에서 이미 빠진다. 지운다.
 - 패널 줄을 내지 않는 종류(서랍 테두리·제작대·보구 제작대, `machine.NoLines`)는 시간 가속 줄도 내지 않는다. 전에는 가속 줄이 붙었다. 이 종류들은 전력을 쓰지 않아 모래시계가 듣지 않으므로 손으로 고친 세이브에서만 차이가 난다. 가속 줄을 살릴지 정한다.
+- `dimension` 은 `fairy` 가 등록하는 아이템(`sgitem.FairyDust`)을 `fairy` 를 임포트하지 않고 지급한다. 루트가 둘을 함께 링크해서 동작한다. `TestHuntRecords` 가 이 때문에 루트에 남아 있다. 요정 가루의 등록을 `sgitem` 이나 `dimension` 이 닿는 곳으로 옮기거나 `dimension` 이 `fairy` 를 임포트하게 한다. 등록 순서가 바뀌면 클라이언트 골든을 다시 기록해야 한다.
+- 한 프로세스에서 테스트를 두 번 돌리면(`-count=2`) `netstore` 의 `TestTerminalDepositGoesToTask`("craft hooks not set")와 `wire` 의 `TestWire` 가 실패한다. 테스트가 바꾼 전역 훅을 되돌리지 않기 때문이다. 되돌리게 고친다.
+- 기능 패키지로 옮긴 핸들러 테스트는 자기 기능만 설치한 채로 돈다. "취소되지 않는다"·"가져가지 않는다" 같은 단언은 다른 기능의 앞 단계가 이벤트를 건드리지 않는다는 것까지는 더 증명하지 않는다(`TestPlantingRecordsCrop`, `TestPlateClicksWithAnythingInHand`). 조합된 순서는 루트의 `order.golden` 과 시나리오 골든이 고정한다. 이 두 경우를 시나리오 골든에 더할지 정한다.
+- 루트 테스트의 `droppedItems` 와 `droppedKeys`(`helpers_test.go`)는 같은 함수다. 하나로 합친다.
+- `coretest.Setup` 을 `core.Install` 보다 먼저 부르는 테스트 바이너리는 같은 구독자를 두 번 등록해 패닉한다. 지금은 그런 바이너리가 없다. `Install` 이 이미 설치된 기능을 건너뛰게 할지 정한다.
 
 ### 시나리오
 - DDUI 화면(데이터 저장소 `custom_form_data_1`·`oui_event`)을 읽고 누르는 접속 봇이 필요하다. 메뉴는 모두 DDUI 화면이다.
