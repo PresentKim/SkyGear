@@ -16,7 +16,7 @@
 - 달성 토스트를 HUD 제목 표식으로 그릴지 검토(지금은 엔진 토스트).
 
 ### 정리
-- Sky Gear 이름 변경 세이브 변환(`content/skygear/nsmigrate`)과 그 호출(`cmd/skygear/main.go`)을 모든 서버가 한 번씩 돌린 뒤 지운다. 데이터 폴더의 `skygear-namespace.done` 플래그와 `<데이터 폴더>.before-skygear` 사본도 함께 지운다.
+- Sky Gear 이름 변경 세이브 변환(`content/skygear/migrate/namespace.go`와 그 테스트)과 그 호출(`cmd/skygear/main.go`)을 모든 서버가 한 번씩 돌린 뒤 지운다. 데이터 폴더의 `skygear-namespace.done` 플래그와 `<데이터 폴더>.before-skygear` 사본도 함께 지운다.
 
 ### 시나리오
 - DDUI 화면(데이터 저장소 `custom_form_data_1`·`oui_event`)을 읽고 누르는 접속 봇이 필요하다. 메뉴는 모두 DDUI 화면이다.

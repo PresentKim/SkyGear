@@ -31,7 +31,6 @@ import (
 	_ "github.com/presentkim/skygear/content/skygear/locales" // this server's texts
 	"github.com/presentkim/skygear/content/skygear/migrate"
 	"github.com/presentkim/skygear/content/skygear/naming"
-	"github.com/presentkim/skygear/content/skygear/nsmigrate"
 	"github.com/presentkim/skygear/platform"
 	"github.com/presentkim/skygear/platform/account"
 	"github.com/presentkim/skygear/platform/db"
@@ -73,7 +72,7 @@ func run(log *slog.Logger) error {
 	}
 	// Saves from before the rename to SkyGear are converted once, before
 	// the lobby world opens.
-	if err := nsmigrate.Run(log, pconf.Data.Dir, pconf.Backup.Dir); err != nil {
+	if err := migrate.Namespace(log, pconf.Data.Dir, pconf.Backup.Dir); err != nil {
 		return err
 	}
 	conf, err := readServerConfig(log)

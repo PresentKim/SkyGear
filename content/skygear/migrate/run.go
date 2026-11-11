@@ -245,14 +245,25 @@ func rewriteRows(log *slog.Logger, d *sql.DB, r renamer, scopeCol string, id int
 		return 0, err
 	}
 	defer tx.Rollback()
+	changed, err := rewriteTables(log, tx, r, func(t table) bool {
+		return t.name != "data_versions" && slices.Contains(t.cols, "save_id") == (scopeCol != "")
+	}, scopeCol, id)
+	if err != nil {
+		return 0, err
+	}
+	return changed, tx.Commit()
+}
+
+// rewriteTables rewrites the tables of tx that pick selects (scopeCol and id
+// as in rewriteRows) and returns the number of values changed.
+func rewriteTables(log *slog.Logger, tx *sql.Tx, r renamer, pick func(table) bool, scopeCol string, id int64) (int, error) {
 	tables, err := tableColumns(tx)
 	if err != nil {
 		return 0, err
 	}
 	changed := 0
 	for _, t := range tables {
-		hasSave := slices.Contains(t.cols, "save_id")
-		if t.name == "data_versions" || hasSave != (scopeCol != "") {
+		if !pick(t) {
 			continue
 		}
 		n, err := rewriteTable(log, tx, t, r, scopeCol, id)
@@ -261,7 +272,7 @@ func rewriteRows(log *slog.Logger, d *sql.DB, r renamer, scopeCol string, id int
 		}
 		changed += n
 	}
-	return changed, tx.Commit()
+	return changed, nil
 }
 
 type table struct {
@@ -331,6 +342,8 @@ func rewriteTable(log *slog.Logger, tx *sql.Tx, t table, r renamer, scopeCol str
 		for i, v := range vals {
 			if nv, ok := rewriteValue(v, r); ok {
 				updates = append(updates, update{rowid, t.cols[i], nv})
+			} else if r.warn && mentionsValue(v, r) {
+				log.Warn("namespace conversion: value left as it is", "table", t.name, "column", t.cols[i], "rowid", rowid)
 			}
 		}
 	}
@@ -344,6 +357,16 @@ func rewriteTable(log *slog.Logger, tx *sql.Tx, t table, r renamer, scopeCol str
 		}
 	}
 	return len(updates), nil
+}
+
+func mentionsValue(v any, r renamer) bool {
+	switch v := v.(type) {
+	case string:
+		return r.mentions([]byte(v))
+	case []byte:
+		return r.mentions(v)
+	}
+	return false
 }
 
 // rewriteValue returns v with the renamed strings replaced and whether it
@@ -369,7 +392,7 @@ func rewriteBytes(b []byte, r renamer) ([]byte, bool) {
 		return b, false
 	}
 	if b[0] == 10 {
-		if nb, err := nbtrewrite.NBT(b, r.rep); err == nil {
+		if nb, err := nbtrewrite.NBTKeys(b, r.rep, r.key); err == nil {
 			return nb, !bytes.Equal(nb, b)
 		}
 	}
@@ -418,8 +441,9 @@ func walkJSON(v any, r renamer, changed *bool) any {
 			return ns
 		}
 		// []byte fields are base64 in JSON: lost items hold item NBT.
-		if raw, err := base64.StdEncoding.DecodeString(v); err == nil && len(raw) > 0 && raw[0] == 10 && r.mentions(raw) {
-			if nb, err := nbtrewrite.NBT(raw, r.rep); err == nil {
+		e := r.embedded()
+		if raw, err := base64.StdEncoding.DecodeString(v); err == nil && len(raw) > 0 && raw[0] == 10 && e.mentions(raw) {
+			if nb, err := nbtrewrite.NBTKeys(raw, e.rep, e.key); err == nil {
 				*changed = true
 				return base64.StdEncoding.EncodeToString(nb)
 			}

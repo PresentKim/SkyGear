@@ -19,7 +19,14 @@ var ErrShort = errors.New("nbt: unexpected end of data")
 // NBT returns b, one or more root tags appended to each other, with every
 // tag name and string value passed through rep.
 func NBT(b []byte, rep func(string) string) ([]byte, error) {
-	r := &rewriter{in: b, rep: rep, out: make([]byte, 0, len(b))}
+	return NBTKeys(b, rep, rep)
+}
+
+// NBTKeys is NBT with the value keys of Dragonfly item stacks passed through
+// key instead of rep: tag names and string values (also the string values of
+// item stacks) go through rep.
+func NBTKeys(b []byte, rep func(string) string, key func(string) string) ([]byte, error) {
+	r := &rewriter{in: b, rep: rep, key: key, out: make([]byte, 0, len(b))}
 	for r.pos < len(r.in) {
 		if err := r.root(); err != nil {
 			return nil, err
@@ -31,7 +38,7 @@ func NBT(b []byte, rep func(string) string) ([]byte, error) {
 // roots rewrites n root tags at the start of b and returns the rewritten
 // tags and the bytes after them.
 func roots(b []byte, n int, rep func(string) string) (out, rest []byte, err error) {
-	r := &rewriter{in: b, rep: rep}
+	r := &rewriter{in: b, rep: rep, key: rep}
 	for range n {
 		if err := r.root(); err != nil {
 			return nil, nil, err
@@ -117,6 +124,7 @@ type rewriter struct {
 	pos int
 	out []byte
 	rep func(string) string
+	key func(string) string
 }
 
 func (r *rewriter) take(n int) ([]byte, error) {
@@ -284,7 +292,7 @@ func (r *rewriter) stackValues() error {
 	if err != nil {
 		return err
 	}
-	if nd, ok := rewriteStackValues(data, r.rep); ok {
+	if nd, ok := rewriteStackValues(data, r.rep, r.key); ok {
 		data = nd
 	}
 	r.out = binary.LittleEndian.AppendUint32(r.out, uint32(len(data)))
@@ -292,14 +300,14 @@ func (r *rewriter) stackValues() error {
 	return nil
 }
 
-func rewriteStackValues(data []byte, rep func(string) string) ([]byte, bool) {
+func rewriteStackValues(data []byte, rep, key func(string) string) ([]byte, bool) {
 	var values []mapValue
 	if err := gob.NewDecoder(bytes.NewReader(data)).Decode(&values); err != nil {
 		return nil, false
 	}
 	changed := false
 	for i, v := range values {
-		if k := rep(v.K); k != v.K {
+		if k := key(v.K); k != v.K {
 			values[i].K, changed = k, true
 		}
 		if s, ok := v.V.(string); ok {

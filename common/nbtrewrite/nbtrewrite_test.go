@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/df-mc/dragonfly/server/item"
 	"github.com/sandertv/gophertunnel/minecraft/nbt"
 )
 
@@ -47,5 +48,41 @@ func TestNBTRewritesNestedStrings(t *testing.T) {
 	}
 	if s := string(out); !strings.Contains(s, "new:block") || !strings.Contains(s, "kept") {
 		t.Errorf("rewritten %q", s)
+	}
+}
+
+// TestNBTKeys: tag names and strings go through rep, the value keys of item
+// stacks through key.
+func TestNBTKeys(t *testing.T) {
+	m := item.WriteNBT(item.NewStack(item.Stick{}, 1).WithValue("Card", "old:block"), true)
+	m["df_tag"] = "old:block"
+	in, err := nbt.MarshalEncoding(m, nbt.LittleEndian)
+	if err != nil {
+		t.Fatal(err)
+	}
+	out, err := NBTKeys(in, upper, strings.ToLower)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got map[string]any
+	if err := nbt.UnmarshalEncoding(out, &got, nbt.LittleEndian); err != nil {
+		t.Fatal(err)
+	}
+	if got["df_tag"] != "new:block" {
+		t.Errorf("string value or tag name: %v", got)
+	}
+	s := item.ReadNBT(got, nil)
+	if v, ok := s.Value("card"); !ok || v != "new:block" {
+		t.Errorf("stack value = %v, %v", v, ok)
+	}
+	if _, ok := s.Value("Card"); ok {
+		t.Error("stack key not passed through key")
+	}
+	same, err := NBT(in, upper)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, _ := NBTKeys(in, upper, upper); !bytes.Equal(same, want) {
+		t.Error("NBT differs from NBTKeys(rep, rep)")
 	}
 }

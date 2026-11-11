@@ -1,16 +1,20 @@
-package nsmigrate
+package migrate
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/item"
+	"github.com/df-mc/goleveldb/leveldb"
+	"github.com/presentkim/skygear/common/nbtrewrite"
 	"github.com/presentkim/skygear/common/playerstate"
 	"github.com/sandertv/gophertunnel/minecraft/nbt"
 )
@@ -35,7 +39,7 @@ func TestPlayerState(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	nb, ok := convertBytes(b)
+	nb, ok := rewriteBytes(b, dbRenamer())
 	if !ok || hasOld(nb) || hasDFKey(nb) {
 		t.Fatalf("not converted: %v %q", ok, nb)
 	}
@@ -77,7 +81,7 @@ func TestSubChunk(t *testing.T) {
 	b = append(b, 0)
 	b = append(b, encodeNBT(t, map[string]any{"name": "dragonfactory:conduit_item_1"})...)
 
-	nb, err := rewriteSubChunk(b)
+	nb, err := nbtrewrite.SubChunk(b, replaceOld)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,7 +91,7 @@ func TestSubChunk(t *testing.T) {
 	if !bytes.Equal(nb[:4+len(words)], b[:4+len(words)]) {
 		t.Fatal("indices changed")
 	}
-	if _, err := rewriteSubChunk(nb); err != nil {
+	if _, err := nbtrewrite.SubChunk(nb, replaceOld); err != nil {
 		t.Fatalf("converted sub chunk does not parse: %v", err)
 	}
 }
@@ -100,7 +104,7 @@ func TestJSON(t *testing.T) {
 		"titles":   []any{"df_tinker"},
 		"lost":     []any{map[string]any{"Item": itemNBT}},
 	})
-	nb, ok := convertBytes(in)
+	nb, ok := rewriteBytes(in, dbRenamer())
 	if !ok || hasOld(nb) {
 		t.Fatalf("not converted: %s", nb)
 	}
@@ -137,13 +141,118 @@ func TestRunNewServer(t *testing.T) {
 	if err := os.MkdirAll(data, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := Run(slog.Default(), data, filepath.Join(data, "backups")); err != nil {
+	if err := Namespace(slog.Default(), data, filepath.Join(data, "backups")); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := os.Stat(filepath.Join(data, FlagFile)); err != nil {
+	if _, err := os.Stat(filepath.Join(data, NamespaceFlagFile)); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(data + ".before-skygear"); err == nil {
 		t.Fatal("copied the data of a new server")
+	}
+}
+
+// TestNamespaceWorldStackKeys: in a world value, item stack value keys go
+// through replaceKey (df_ -> sg_) while tag names and strings only lose the
+// dragonfactory names.
+func TestNamespaceWorldStackKeys(t *testing.T) {
+	dir := t.TempDir()
+	m := item.WriteNBT(item.NewStack(item.Stick{}, 1).WithValue("df_card", "dragonfactory:x"), true)
+	m["df_tag"] = int32(1)
+	val := encodeNBT(t, m)
+	ldb, err := leveldb.OpenFile(filepath.Join(dir, "db"), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := ldb.Put([]byte("plain"), val, nil); err != nil {
+		t.Fatal(err)
+	}
+	ldb.Close()
+	if n, err := convertWorld(slog.Default(), dir); err != nil || n != 1 {
+		t.Fatalf("convertWorld = %d, %v", n, err)
+	}
+	ldb, err = leveldb.OpenFile(filepath.Join(dir, "db"), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ldb.Close()
+	got, err := ldb.Get([]byte("plain"), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var out map[string]any
+	if err := nbt.UnmarshalEncoding(got, &out, nbt.LittleEndian); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := out["df_tag"]; !ok {
+		t.Fatalf("tag name changed: %v", out)
+	}
+	s := item.ReadNBT(out, nil)
+	if v, _ := s.Value("sg_card"); v != "skygear:x" {
+		t.Fatalf("card = %v", v)
+	}
+	if _, ok := s.Value("df_card"); ok {
+		t.Fatal("df_card kept")
+	}
+}
+
+// TestNamespaceLostItemNBT: the item NBT kept as base64 in JSON is renamed
+// like the world's: only when it holds a dragonfactory name, and then tag
+// names and strings lose that name but keep df_ (stack value keys excepted).
+func TestNamespaceLostItemNBT(t *testing.T) {
+	only := encodeNBT(t, map[string]any{"df_tag": "df_val"})
+	in, _ := json.Marshal(map[string]any{"Item": only})
+	if nb, ok := rewriteBytes(in, dbRenamer()); ok {
+		t.Fatalf("NBT with only df_ rewritten: %s", nb)
+	}
+
+	m := item.WriteNBT(item.NewStack(item.Stick{}, 1).WithValue("df_card", "dragonfactory:x"), true)
+	m["df_tag"] = "df_val"
+	m["Extra"] = "dragonfactory:y"
+	in, _ = json.Marshal(map[string]any{"Item": encodeNBT(t, m)})
+	nb, ok := rewriteBytes(in, dbRenamer())
+	if !ok {
+		t.Fatal("not converted")
+	}
+	var out struct{ Item []byte }
+	if err := json.Unmarshal(nb, &out); err != nil {
+		t.Fatal(err)
+	}
+	var got map[string]any
+	if err := nbt.UnmarshalEncoding(out.Item, &got, nbt.LittleEndian); err != nil {
+		t.Fatal(err)
+	}
+	if got["df_tag"] != "df_val" || got["Extra"] != "skygear:y" {
+		t.Fatalf("lost item = %v", got)
+	}
+	s := item.ReadNBT(got, nil)
+	if v, _ := s.Value("sg_card"); v != "skygear:x" {
+		t.Fatalf("card = %v", v)
+	}
+}
+
+// TestNamespaceWarnsUnrewritten: the conversion reports a value that holds a
+// name it could not rewrite (a blob that is no NBT and no UTF-8).
+func TestNamespaceWarnsUnrewritten(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "platform.db")
+	d, err := sql.Open("sqlite", "file:"+path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	bad := append([]byte{0xff, 0xfe}, "dragonfactory:x"...)
+	if _, err := d.Exec(`CREATE TABLE save_state (key TEXT); CREATE TABLE t (b BLOB)`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := d.Exec(`INSERT INTO t VALUES (?)`, bad); err != nil {
+		t.Fatal(err)
+	}
+	d.Close()
+	var buf bytes.Buffer
+	log := slog.New(slog.NewTextHandler(&buf, nil))
+	if n, err := convertDB(log, path); err != nil || n != 0 {
+		t.Fatalf("convertDB = %d, %v", n, err)
+	}
+	if !strings.Contains(buf.String(), "value left as it is") {
+		t.Fatalf("no warning: %q", buf.String())
 	}
 }

@@ -12,7 +12,7 @@ import (
 var layers = []string{
 	// data
 	"locales", "naming", "textfmt", "formicon", "blockmodel", "netshape", "sgitem", "sievetable", "wintext", "machinerecipe",
-	"advancement", "hopper", "nsmigrate", "migrate",
+	"advancement", "hopper", "migrate",
 	// core
 	"core", "network", "achievement", "preview",
 	// progress

@@ -22,7 +22,7 @@
 | | `machinerecipe` | 합금 제련기·실험실·자동 제작기 레시피 |
 | | `advancement` | 발전과제 트리·장·배치 |
 | | `hopper` | 나무·역방향 호퍼 |
-| | `nsmigrate` | 이름 변경(DragonFactory → Sky Gear) 전 세이브의 한 번짜리 변환 |
+| | `migrate` | 세이브 데이터를 실행 중인 릴리스 형식으로 올리는 패치(`Patches`)와, 이름 변경(DragonFactory → Sky Gear) 전 세이브의 한 번짜리 변환(`Namespace`) |
 | 핵심 | `core` | 세이브 하나의 실행 상태(`Session`: 월드·시계·난수·세이브 정보)와 기능이 자기 데이터를 두는 방법(`Part`·`Players`·`Saved`), 공용 도우미(아이템, 메뉴 버튼, 디버그 도형) |
 | | `network` | 세이브의 에너지·아이템·유체 연결망 |
 | | `achievement` | 계정 업적 목록·등록과 횟수 집계(`Count` 등) |

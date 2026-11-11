@@ -8,6 +8,9 @@
 // A change to saved data (a renamed block or item, a moved key) gets a new
 // patch at the end of Patches with the release it ships in. A released
 // patch is never edited.
+//
+// Namespace is the one-time conversion of saves from before the rename from
+// DragonFactory to Sky Gear (namespace.go); it runs before Run.
 package migrate
 
 import (
@@ -106,35 +109,45 @@ func valid(v string) error {
 	return nil
 }
 
-// renamer applies a run of patches to one string.
+// renamer applies a rename to the strings of saved data: rep to tag names
+// and string values, key to the value keys of item stacks, mentions says
+// whether bytes hold anything to rename. lost, if set, is the renamer of the
+// item NBT that JSON keeps as base64 (the lost items); nil means r itself.
 type renamer struct {
-	patches []Patch
-	old     [][]byte
+	rep      func(string) string
+	key      func(string) string
+	mentions func([]byte) bool
+	lost     *renamer
+	warn     bool // log the values that mention a name but could not be rewritten
 }
 
-func newRenamer(ps []Patch) renamer {
-	r := renamer{patches: ps}
-	for _, p := range ps {
-		for k := range p.Rename {
-			r.old = append(r.old, []byte(k))
-		}
+func (r renamer) embedded() renamer {
+	if r.lost != nil {
+		return *r.lost
 	}
 	return r
 }
 
-func (r renamer) rep(s string) string {
-	for _, p := range r.patches {
-		s = p.rename(s)
-	}
-	return s
-}
-
-// mentions reports whether b holds any of the renamed strings.
-func (r renamer) mentions(b []byte) bool {
-	for _, o := range r.old {
-		if bytes.Contains(b, o) {
-			return true
+// newRenamer applies the patches in order.
+func newRenamer(ps []Patch) renamer {
+	var old [][]byte
+	for _, p := range ps {
+		for k := range p.Rename {
+			old = append(old, []byte(k))
 		}
 	}
-	return false
+	rep := func(s string) string {
+		for _, p := range ps {
+			s = p.rename(s)
+		}
+		return s
+	}
+	return renamer{rep: rep, key: rep, mentions: func(b []byte) bool {
+		for _, o := range old {
+			if bytes.Contains(b, o) {
+				return true
+			}
+		}
+		return false
+	}}
 }

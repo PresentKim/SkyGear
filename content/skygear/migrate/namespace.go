@@ -1,13 +1,8 @@
-// Package nsmigrate converts the saves of the server from before its rename
-// from DragonFactory to Sky Gear: identifiers, item value and message keys
-// move from dragonfactory: (_ and .) to skygear:, the time limit key from df-server:expires to skygear:expires,
-// and the df_ achievement and item value keys to sg_.
-// Run does it once at startup and leaves a flag file in the data folder; the
-// package goes away once every server has run it.
-package nsmigrate
+package migrate
 
 import (
 	"bytes"
+	"database/sql"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -15,14 +10,26 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
+	"github.com/df-mc/goleveldb/leveldb"
+	"github.com/df-mc/goleveldb/leveldb/opt"
 	"github.com/pelletier/go-toml"
+	"github.com/presentkim/skygear/common/nbtrewrite"
 )
 
-// FlagFile is the file in the data folder that marks the conversion done.
-const FlagFile = "skygear-namespace.done"
+// The conversion of the saves of the server from before its rename from
+// DragonFactory to Sky Gear: identifiers, item value and message keys move
+// from dragonfactory: (_ and .) to skygear:, the time limit key from
+// df-server:expires to skygear:expires, and the df_ achievement and item value
+// keys to sg_. Namespace does it once at startup and leaves a flag file in the
+// data folder; it goes away once every server has run it.
+
+// NamespaceFlagFile is the file in the data folder that marks the conversion
+// done.
+const NamespaceFlagFile = "skygear-namespace.done"
 
 // The old names: identifiers (dragonfactory:), item value keys
 // such as the menu item's (dragonfactory_menu), message keys (dragonfactory.)
@@ -68,12 +75,29 @@ func hasOld(b []byte) bool {
 	return false
 }
 
-// Run converts the database in dataDir, the save worlds under it and the
+// worldRenamer renames the NBT of the worlds: tag names and strings lose the
+// dragonfactory names, item stack value keys also get df_ -> sg_.
+func worldRenamer() renamer {
+	return renamer{rep: replaceOld, key: replaceKey, mentions: func(b []byte) bool { return hasOld(b) || hasDFKey(b) }}
+}
+
+// dbRenamer renames the database: names and keys alike. The item NBT that
+// JSON keeps as base64 (the lost items) is the world's, and only read when it
+// holds a dragonfactory name.
+func dbRenamer() renamer {
+	r := worldRenamer()
+	r.rep = replaceKey
+	r.warn = true
+	r.lost = &renamer{rep: replaceOld, key: replaceKey, mentions: hasOld}
+	return r
+}
+
+// Namespace converts the database in dataDir, the save worlds under it and the
 // lobby world, unless the flag file says it was done. Before it changes
 // anything it copies them to <dataDir>.before-skygear (backupDir, the
 // platform's backup folder, is left out of the copy).
-func Run(log *slog.Logger, dataDir, backupDir string) error {
-	flag := filepath.Join(dataDir, FlagFile)
+func Namespace(log *slog.Logger, dataDir, backupDir string) error {
+	flag := filepath.Join(dataDir, NamespaceFlagFile)
 	if _, err := os.Stat(flag); err == nil {
 		return nil
 	}
@@ -121,6 +145,86 @@ func Run(log *slog.Logger, dataDir, backupDir string) error {
 	}
 	log.Info("namespace conversion done", "values", total, "worlds", len(worlds), "took", time.Since(start).Round(time.Millisecond))
 	return os.WriteFile(flag, []byte(fmt.Sprintf("%s %d values in %d worlds\n", time.Now().Format(time.RFC3339), total, len(worlds))), 0o644)
+}
+
+// convertDB rewrites the old names in every text and blob column of the
+// platform database: item names in player states, the game's JSON state
+// (with the NBT of its lost items), counters and settings.
+func convertDB(log *slog.Logger, path string) (int, error) {
+	d, err := sql.Open("sqlite", "file:"+path+"?_pragma=busy_timeout(5000)")
+	if err != nil {
+		return 0, err
+	}
+	defer d.Close()
+	tx, err := d.Begin()
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback()
+
+	changed := 0
+	for _, q := range []string{
+		`UPDATE save_state SET key = 'skygear.state' WHERE key = 'dragonfactory.state'`,
+	} {
+		res, err := tx.Exec(q)
+		if err != nil {
+			return 0, fmt.Errorf("%s: %w", q, err)
+		}
+		n, _ := res.RowsAffected()
+		changed += int(n)
+	}
+	n, err := rewriteTables(log, tx, dbRenamer(), func(table) bool { return true }, "", 0)
+	if err != nil {
+		return 0, err
+	}
+	return changed + n, tx.Commit()
+}
+
+// convertWorld rewrites the old names in an mcdb world folder: block palettes
+// of the sub chunks, block entities, entities and any other NBT value that
+// holds them. It returns the number of values changed.
+func convertWorld(log *slog.Logger, dir string) (int, error) {
+	ldb, err := leveldb.OpenFile(filepath.Join(dir, "db"), &opt.Options{BlockSize: 16 * opt.KiB})
+	if err != nil {
+		return 0, fmt.Errorf("open %s: %w", dir, err)
+	}
+	defer ldb.Close()
+
+	r := worldRenamer()
+	batch := new(leveldb.Batch)
+	changed := 0
+	it := ldb.NewIterator(nil, nil)
+	for it.Next() {
+		k, v := it.Key(), it.Value()
+		if !r.mentions(v) {
+			continue
+		}
+		var nv []byte
+		if nbtrewrite.IsSubChunkKey(k) {
+			nv, err = nbtrewrite.SubChunk(v, r.rep)
+		} else {
+			nv, err = nbtrewrite.NBTKeys(v, r.rep, r.key)
+		}
+		if err != nil {
+			if !hasOld(v) {
+				continue // df_ was only bytes of a value that is no NBT
+			}
+			log.Warn("namespace conversion: value left as it is", "world", dir, "key", fmt.Sprintf("%x", k), "err", err)
+			continue
+		}
+		if !bytes.Equal(nv, v) {
+			batch.Put(slices.Clone(k), nv)
+			changed++
+		}
+	}
+	it.Release()
+	if err := it.Error(); err != nil {
+		return 0, err
+	}
+	if err := ldb.Write(batch, nil); err != nil {
+		return 0, err
+	}
+	return changed, nil
 }
 
 // worldDirs are the worlds under dataDir (the saves are
