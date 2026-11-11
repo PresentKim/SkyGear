@@ -35,7 +35,7 @@ func TestProjectsLeadToTheDragonEgg(t *testing.T) {
 		if !progress.RecipeFilter(s.Session)(recipeFor(block.DragonEgg{})) {
 			t.Fatal("the last project did not open the egg recipe")
 		}
-		completeDragon(s.Session, p, tx, machinePos)
+		progress.CompleteDragon(s.Session, p, tx, machinePos)
 		if !progress.Advanced(s.Session, advancement.Dragon) {
 			t.Errorf("%s not done by placing the egg", advancement.Dragon)
 		}

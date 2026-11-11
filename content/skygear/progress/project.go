@@ -1,4 +1,4 @@
-package skygear
+package progress
 
 import (
 	"math/rand/v2"
@@ -11,7 +11,6 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/content/skygear/advancement"
 	"github.com/presentkim/skygear/content/skygear/core"
-	"github.com/presentkim/skygear/content/skygear/progress"
 )
 
 // The projects: the long goal of the game.
@@ -21,13 +20,13 @@ import (
 // the Sky Gear. They are researches whose cost is the goal, so the
 // research screen, the paying and the sharing of the island come for free.
 
-// completeDragon is the end of the game: the dragon egg is placed. The
+// CompleteDragon is the end of the game: the dragon egg is placed. The
 // advancement is the record; the island celebrates.
-func completeDragon(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) {
-	if progress.Advanced(s, advancement.Dragon) {
+func CompleteDragon(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) {
+	if Advanced(s, advancement.Dragon) {
 		return
 	}
-	progress.Advance(s, tx, advancement.Dragon)
+	Advance(s, tx, advancement.Dragon)
 	s.Broadcast(tx, "project.dragon.done", p.Name())
 	c := pos.Vec3Centre()
 	for range 24 {
