@@ -28,7 +28,7 @@
 | [14-config-copier.md](14-config-copier.md) | 설정 복사기: 도관 면·자동 제작기·서랍의 설정을 복사해 붙이기 |
 | [15-magic-sieve.md](15-magic-sieve.md) | 마법 체와 에센스 테마: 새 몬스터 4종, 난이도, 에센스로 바뀌는 드롭 표 |
 | [16-ore-balance.md](16-ore-balance.md) | 광석 밸런스: ATM10: To the Sky 와 같은 체 표, 조각 → 광석 블록, 망치·분쇄기·세척기 가공 |
-| [17-dimension.md](17-dimension.md) | 이차원: 텔레포트석, 몬스터별 사냥 기록과 별·해금, 뱀서식 사냥터, 보구, 이차원 에센스 수집기, 기존 세이브 처리 |
+| [17-dimension.md](17-dimension.md) | 이차원: 텔레포트석, 몬스터별 사냥 기록과 별·해금, 뱀서식 사냥터, 보구, 이차원 에센스 수집기 |
 | [18-storage-network.md](18-storage-network.md) | 스토리지 망: 컨트롤러·케이블·디스크 드라이브, 단말, 입력기·출력기·외부 저장공간, 패턴과 자동 제작, 성능 설계 |
 | [19-construction-wand.md](19-construction-wand.md) | 건축 지팡이(ConstructionWand 모드 이식): 면 넓히기, 지팡이 네 단계, 설정, 되돌리기, 미리보기 |
 | [open-questions.md](open-questions.md) | 결정이 필요한 사항과 밸런싱 수치 표 |
