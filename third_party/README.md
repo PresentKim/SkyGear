@@ -27,7 +27,6 @@ Dragonfly 의 동작 자체(블록 규칙, 패킷 처리, 세션 기능)를 바�
 | `server/session/player.go`(`sendRecipes`, `SetRecipeFilter`), `session.go`, `handler_crafting.go` | 플레이어별 레시피 필터: 필터가 고른 레시피만 `CraftingData` 로 보내고 받아들임(네트워크 ID 는 전체 목록 순번 그대로). `SetRecipeFilter` 는 바로 다시 보낸다(레시피 연구·잠금). 필터가 있으면 동적 레시피(장식된 도자기)는 막음 |
 | `server/session/fake_chunk.go` (신규), `chunk.go`, `world.go`, `session.go` | `ViewFakeChunk`/`ClearFakeChunk`(그 플레이어에게만 보이는 청크: 그동안 그 청크의 월드 블록 갱신은 안 보내고, 청크 재전송·서브청크 요청은 가짜 청크로 응답). 섬 확장 `map` 보기용 |
 | `server/listener.go`, `server/conf.go` | NetherNet 리스너 설정 `LocalIP`(연결을 묶고 알리는 로컬 주소 하나)와 `PublicIP`(로컬 주소 대신 알리는 공개 주소, 1:1 NAT·터널 뒤 서버용). `NetherNetConfig` 와 `Config` 의 NetherNet 항목에 둠 |
-| `server/conf.go`, `server/server.go` | `Config.ShutdownKick`: 서버가 꺼질 때 플레이어를 내보내는 화면의 글을 정한다(기본값인 번역 키 `%disconnect.disconnected` 는 연결 끊김 화면에 키 그대로 보인다) |
 | `server/block/crop.go` 외 작물·줄기 6종 `RandomTick` | `block.ScheduledCropGrowth` 가 켜져 있으면 작물·수박/호박 줄기가 무작위 틱으로 자라지 않음(게임이 인스턴스 시간 일정으로 키움) |
 | `server/block/carrot.go`, `potato.go`, `wheat_seeds.go`, `beetroot_seeds.go` | 다 자란 작물을 캘 때 떨어지는 작물·씨앗을 성장 0의 새 아이템으로(업스트림은 다 자란 상태를 복사해, 심으면 바로 다 자란 작물이 된다) |
 | `server/cmd/command.go` | 명령어 `Run` 의 panic 을 잡아 ERROR 로그와 오류 출력으로 바꿈(서버가 죽지 않음) |

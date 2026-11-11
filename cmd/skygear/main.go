@@ -96,9 +96,6 @@ func run(log *slog.Logger) error {
 
 	// Every world is an empty void; the lobby and islands are built on demand.
 	conf.Generator = func(world.Dimension) world.Generator { return world.NopGenerator{} }
-	// The disconnect screen shows text as it is (no translation keys, no
-	// colour codes), so the shutdown message is written out in plain text.
-	conf.ShutdownKick = func(p *player.Player) string { return i18n.T(i18n.Of(p), "platform.shutdown") }
 	// No server-wide join and quit lines: the lobby has no chat, and a save's
 	// players hear of each other only (instance.Manager).
 	conf.JoinMessage, conf.QuitMessage = chat.Translation{}, chat.Translation{}
@@ -209,6 +206,9 @@ func run(log *slog.Logger) error {
 		m.CloseAll()
 		account.Flush()
 		close(stopBackup)
+		// The disconnect screen shows text as it is, so the shutdown message
+		// is written out in plain text.
+		platform.DisconnectAll(srv.Players(nil), func(p *player.Player) string { return i18n.T(i18n.Of(p), "platform.shutdown") })
 		if err := srv.Close(); err != nil {
 			log.Error("close server", "err", err)
 		}
