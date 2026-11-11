@@ -8,5 +8,6 @@ import (
 // Feature is the dimension feature, listed in the game's feature list.
 var Feature = &core.Feature{
 	Name:     "dimension",
+	Setup:    subscribe,
 	Entities: append([]world.EntityType{GatePortalType, FxDemoType, GemType, PopupType}, MonsterTypes()...),
 }
