@@ -13,6 +13,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/content/skygear/network"
 	"github.com/presentkim/skygear/platform/account"
 	"github.com/presentkim/skygear/platform/db"
 	"github.com/presentkim/skygear/platform/instance"
@@ -121,7 +122,7 @@ func TestBridgeFastCountPerSession(t *testing.T) {
 	for _, s := range []*session{a, a, a, b} {
 		s.World.Do(func(tx *world.Tx) { s.Fast(tx) })
 	}
-	if x, y := *fastCount.Of(a.Session), *fastCount.Of(b.Session); x != 3 || y != 1 {
+	if x, y := network.FastCount(a.Session), network.FastCount(b.Session); x != 3 || y != 1 {
 		t.Fatalf("fast counts %d and %d, want 3 and 1", x, y)
 	}
 }

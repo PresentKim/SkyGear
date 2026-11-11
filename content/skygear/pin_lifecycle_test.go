@@ -385,20 +385,22 @@ func TestPinLifecycle(t *testing.T) {
 		s, _, _ := fresh(1)
 		for i := 1; i <= 11; i++ {
 			in(s, func(tx *world.Tx) {
-				pinRun(t, lines, fmt.Sprintf("Fast/%02d", i), func() string { return fmt.Sprintf("fastCount=%d", *fastCount.Of(s.Session)) }, func() { s.Fast(tx) })
+				pinRun(t, lines, fmt.Sprintf("Fast/%02d", i), func() string { return fmt.Sprintf("fastCount=%d", network.FastCount(s.Session)) }, func() { s.Fast(tx) })
 			})
 		}
 	}
 	{
 		s, _, _ := fresh(0)
 		in(s, func(tx *world.Tx) {
-			pinRun(t, lines, "Fast/noPlayers", func() string { return fmt.Sprintf("fastCount=%d", *fastCount.Of(s.Session)) }, func() { s.Fast(tx) })
+			pinRun(t, lines, "Fast/noPlayers", func() string { return fmt.Sprintf("fastCount=%d", network.FastCount(s.Session)) }, func() { s.Fast(tx) })
 		})
 	}
 	{
 		s, _, _ := fresh(2)
 		in(s, func(tx *world.Tx) {
-			pinRun(t, lines, "Fast/twoPlayers", func() string { return fmt.Sprintf("fastCount=%d players=%d", *fastCount.Of(s.Session), players(tx)) }, func() { s.Fast(tx) })
+			pinRun(t, lines, "Fast/twoPlayers", func() string {
+				return fmt.Sprintf("fastCount=%d players=%d", network.FastCount(s.Session), players(tx))
+			}, func() { s.Fast(tx) })
 		})
 	}
 	// A player in the hunting ground without a hunt is sent back to the island.
@@ -541,9 +543,8 @@ func TestPinLifecycle(t *testing.T) {
 
 	pinGolden(t, filepath.Join("testdata", "pin", "lifecycle.golden"), lines)
 	var names []string
-	for _, file := range []string{"game.go", "legacy_network.go"} {
-		names = append(names, pinMarksIn(t, file, "package skygear")...)
-	}
+	names = append(names, pinMarksIn(t, "game.go", "package skygear")...)
+	names = append(names, pinMarksIn(t, filepath.Join("network", "subscribe.go"), "package network")...)
 	for _, sub := range core.Subscriptions() {
 		switch sub.Hook {
 		case "Second", "Fast", "Load", "Start", "Join", "Leave", "NewDay", "Autosave", "Close", "ColumnLoad", "ColumnUnload", "EntityDespawn":
