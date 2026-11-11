@@ -36,7 +36,7 @@ func TestPinSimple(t *testing.T) {
 		loadAround(s)
 		h := spawnPlayer(s)
 		withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-			f(s, &handler{s: s}, p, tx)
+			f(s, s.Handler(p).(*handler), p, tx)
 		})
 	}
 	// ctxEvent runs a context event: call gets the context.

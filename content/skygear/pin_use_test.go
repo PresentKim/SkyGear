@@ -198,7 +198,7 @@ func TestPinUse(t *testing.T) {
 			var ctx *player.Context
 			withPlayer(t, sc.s, sc.h, func(p *player.Player, tx *world.Tx) {
 				ctx = player.NewEventContext(tx, p)
-				call(&handler{s: sc.s}, ctx, p)
+				call(sc.s.Handler(p).(*handler), ctx, p)
 			})
 			return ctx
 		}
@@ -308,7 +308,7 @@ func TestPinUse(t *testing.T) {
 		return func() string {
 			at := cube.Pos{6, island.IslandY + 2, 6}
 			withPlayer(t, sc.s, sc.h, func(p *player.Player, tx *world.Tx) {
-				(&handler{s: sc.s}).HandleBlockPlace(player.NewEventContext(tx, p), at, machine.New(machine.KindMiner))
+				sc.s.Handler(p).HandleBlockPlace(player.NewEventContext(tx, p), at, machine.New(machine.KindMiner))
 			})
 			out := ""
 			withPlayer(t, sc.s, sc.h, func(p *player.Player, tx *world.Tx) {

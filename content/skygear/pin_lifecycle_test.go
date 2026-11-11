@@ -260,19 +260,23 @@ func TestPinLifecycle(t *testing.T) {
 	// --- Leave ---
 	{
 		s, _, hs := fresh(1)
-		s.diedFood = map[*world.EntityHandle]int{hs[0]: 3}
+		for h, f := range map[*world.EntityHandle]int{hs[0]: 3} {
+			keptFood.Of(s.Session)[h] = f
+		}
 		withPlayer(t, s, hs[0], func(p *player.Player, tx *world.Tx) {
 			pinRun(t, lines, "Leave/plain", func() string {
-				return fmt.Sprintf("diedFood=%d players=%d", len(s.diedFood), players(tx))
+				return fmt.Sprintf("diedFood=%d players=%d", len(keptFood.Of(s.Session)), players(tx))
 			}, func() { s.Leave(p) })
 		})
 	}
 	{
 		s, _, hs := fresh(2)
-		s.diedFood = map[*world.EntityHandle]int{hs[0]: 3, hs[1]: 5}
+		for h, f := range map[*world.EntityHandle]int{hs[0]: 3, hs[1]: 5} {
+			keptFood.Of(s.Session)[h] = f
+		}
 		withPlayer(t, s, hs[0], func(p *player.Player, tx *world.Tx) {
 			pinRun(t, lines, "Leave/withOther", func() string {
-				return fmt.Sprintf("diedFood=%d players=%d", len(s.diedFood), players(tx))
+				return fmt.Sprintf("diedFood=%d players=%d", len(keptFood.Of(s.Session)), players(tx))
 			}, func() { s.Leave(p) })
 		})
 	}

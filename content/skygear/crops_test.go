@@ -155,7 +155,7 @@ func TestPlantingRecordsCrop(t *testing.T) {
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		ctx := player.NewEventContext(tx, p)
-		(&handler{s: s}).HandleBlockPlace(ctx, cropPos, block.BeetrootSeeds{})
+		s.Handler(p).HandleBlockPlace(ctx, cropPos, block.BeetrootSeeds{})
 		if r := farm.StateOf(s.Session).Crops[farm.CropKey(cropPos)]; ctx.Cancelled() || r == nil || r.Kind != "beetroot" {
 			t.Fatalf("record %+v cancelled %v", r, ctx.Cancelled())
 		}

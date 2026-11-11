@@ -139,10 +139,7 @@ func (g *Game) sessionOf(w *world.World) (*session, bool) {
 // instance world.
 type session struct {
 	*core.Session
-	// diedFood is the food level each player died with, given back when it
-	// respawns (handler.go).
-	diedFood map[*world.EntityHandle]int
-	g        *Game
+	g *Game
 	// state is the saved state (savedState).
 	state *State
 	// tickReach is how far from a viewer blocks tick, in blocks (the load
@@ -191,7 +188,6 @@ func (s *session) Leave(p *player.Player) {
 	s.Session.Leave(p)
 	core.Mark("expand.stop")
 	expand.Stop(s.Session, p, p.Tx())
-	delete(s.diedFood, p.H())
 	core.Mark("look.clear")
 	waila.Clear(p)
 	// Shapes are client-side: clear them before the player leaves the
@@ -205,7 +201,9 @@ func (s *session) Leave(p *player.Player) {
 	p.SetRecipeFilter(nil)
 }
 
-func (s *session) Handler(*player.Player) player.Handler { return &handler{s: s} }
+func (s *session) Handler(*player.Player) player.Handler {
+	return &handler{PlayerHandler: core.PlayerHandler{S: s.Session}, s: s}
+}
 
 func (s *session) NewDay(tx *world.Tx, day int) {
 	core.Mark("island.purgeLost")

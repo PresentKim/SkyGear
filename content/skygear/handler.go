@@ -5,7 +5,6 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
-	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -32,9 +31,12 @@ import (
 	"github.com/presentkim/skygear/content/skygear/wand"
 )
 
-// handler handles a player's events inside a skygear instance.
+// handler handles a player's events inside a skygear instance. The methods it
+// does not declare are the kernel's: they emit the hook of the same name.
+// A method is declared here (a legacy body) or served by the hook, never both
+// (TestHandlerMethodsOneWay).
 type handler struct {
-	player.NopHandler
+	core.PlayerHandler
 	s *session
 }
 
@@ -399,91 +401,6 @@ func (h *handler) HandleToggleSneak(ctx *player.Context, after bool) {
 	}
 }
 
-func (h *handler) HandleToggleSprint(ctx *player.Context, after bool) {
-	if after {
-		core.Mark("achievement.sprint")
-		achievement.Count(ctx.Player(), "sprint", 1)
-	}
-}
-
-// HandleJump rides an elevator up when the player jumps on one.
-func (h *handler) HandleJump(p *player.Player) {
-	core.Mark("achievement.jump")
-	achievement.Count(p, "jump", 1)
-	core.Mark("elevator.up")
-	elevator.Up(h.s.Session, p, p.Tx())
-}
-
-// HandleItemDamage keeps the iron hammer whole: its vein mining costs food
-// instead (vein.go).
-func (h *handler) HandleItemDamage(ctx *player.Context, it item.Stack, damage *int) {
-	core.Mark("tinker.ironHammer")
-	if sgitem.IsIronHammer(it) {
-		*damage = 0
-	}
-	core.Mark("autofill.broken")
-	// a held tool that breaks is replaced by another of its kind
-	if held, _ := ctx.Player().HeldItems(); *damage > 0 && it.Durability() >= 0 && *damage >= it.Durability() && sameItemName(held, it) {
-		core.RefillHandLater(ctx.Player(), ctx.Player().Tx(), it)
-	}
-}
-
-// sameItemName reports whether a and b are the same item, however worn.
-func sameItemName(a, b item.Stack) bool {
-	n1, m1 := a.Item().EncodeItem()
-	n2, m2 := b.Item().EncodeItem()
-	return !a.Empty() && !b.Empty() && n1 == n2 && m1 == m2
-}
-func (h *handler) HandlePunchAir(ctx *player.Context) {
-	core.Mark("achievement.punchAir")
-	achievement.Count(ctx.Player(), "punch_air", 1)
-}
-func (h *handler) HandleChat(ctx *player.Context, _ *string) {
-	core.Mark("achievement.chat")
-	achievement.Count(ctx.Player(), "chat", 1)
-}
-func (h *handler) HandleItemConsume(ctx *player.Context, it item.Stack) {
-	core.Mark("achievement.eat")
-	achievement.Count(ctx.Player(), "eat", 1)
-	core.Mark("autofill.consume")
-	core.RefillHandLater(ctx.Player(), ctx.Player().Tx(), it)
-}
-func (h *handler) HandleItemPickup(ctx *player.Context, i *item.Stack) {
-	core.Mark("achievement.pickup")
-	achievement.Count(ctx.Player(), "pickup", int64(i.Count()))
-}
-
-// HandleDeath and HandleRespawn keep the food level through death: dying
-// does not fill the food bar (it would make vein mining's food cost free).
-func (h *handler) HandleDeath(p *player.Player, _ world.DamageSource, _ *bool) {
-	core.Mark("achievement.death")
-	achievement.Count(p, "death", 1)
-	core.Mark("dimension.died")
-	dimension.Died(h.s.Session, p.Tx(), p)
-	core.Mark("tinker.keepFood")
-	if h.s.diedFood == nil {
-		h.s.diedFood = map[*world.EntityHandle]int{}
-	}
-	h.s.diedFood[p.H()] = p.Food()
-}
-func (h *handler) HandleRespawn(p *player.Player, pos *mgl64.Vec3, _ **world.World) {
-	core.Mark("dimension.respawned")
-	dimension.Respawned(h.s.Session, p, pos)
-	core.Mark("tinker.restoreFood")
-	if food, ok := h.s.diedFood[p.H()]; ok {
-		delete(h.s.diedFood, p.H())
-		p.SetFood(food)
-	}
-}
-func (h *handler) HandleBlockPick(ctx *player.Context, _ cube.Pos, _ world.Block) {
-	core.Mark("achievement.blockPick")
-	achievement.Count(ctx.Player(), "block_pick", 1)
-}
-func (h *handler) HandleHeldSlotChange(ctx *player.Context, _, _ int) {
-	core.Mark("achievement.heldSlot")
-	achievement.Count(ctx.Player(), "hotbar", 1)
-}
-
 func (h *handler) HandleItemDrop(ctx *player.Context, _ item.Stack) {
 	core.Mark("dimension.hunting")
 	if dimension.Hunting(h.s.Session, ctx.Player()) {
@@ -505,8 +422,4 @@ func (h *handler) HandleHurt(ctx *player.Context, dmg *float64, _ bool, _ *time.
 	if dimension.Fallen(h.s.Session, ctx.Player().Tx(), ctx.Player(), *dmg) {
 		ctx.Cancel()
 	}
-}
-func (h *handler) HandleCommandExecution(ctx *player.Context, _ cmd.Command, _ []string) {
-	core.Mark("achievement.command")
-	achievement.Count(ctx.Player(), "command", 1)
 }

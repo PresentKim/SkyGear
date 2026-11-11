@@ -30,7 +30,7 @@ func TestHammerDropsCrushedBlock(t *testing.T) {
 			tx.SetBlock(pos, b, nil)
 			p.SetHeldItems(held, item.Stack{})
 			drops := []item.Stack{item.NewStack(b.(world.Item), 1)}
-			(&handler{s: s}).HandleBlockBreak(player.NewEventContext(tx, p), pos, &drops, new(int))
+			s.Handler(p).HandleBlockBreak(player.NewEventContext(tx, p), pos, &drops, new(int))
 			return drops
 		}
 		hammer := item.NewStack(sgitem.Hammer{}, 1)
@@ -262,7 +262,7 @@ func TestDeathKeepsFood(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		hd := &handler{s: s}
+		hd := s.Handler(p).(*handler)
 		p.SetFood(5)
 		hd.HandleDeath(p, nil, new(bool))
 		p.SetFood(20) // what Dragonfly's respawn does

@@ -114,7 +114,7 @@ func TestCrookBreaksLeavesInPlay(t *testing.T) {
 			tx.SetBlock(pos, l, nil)
 			p.SetHeldItems(held, item.Stack{})
 			drops := l.BreakInfo().Drops(item.ToolNone{}, nil)
-			(&handler{s: s}).HandleBlockBreak(player.NewEventContext(tx, p), pos, &drops, new(int))
+			s.Handler(p).HandleBlockBreak(player.NewEventContext(tx, p), pos, &drops, new(int))
 			return drops
 		}
 		crook := item.NewStack(sgitem.Crook{Tier: sgitem.CrookDiamond}, 1)

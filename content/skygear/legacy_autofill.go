@@ -1,0 +1,26 @@
+package skygear
+
+import (
+	"github.com/df-mc/dragonfly/server/item"
+	"github.com/presentkim/skygear/content/skygear/core"
+)
+
+// A broken tool and a consumed item are replaced from the inventory.
+func init() {
+	core.ItemDamage.On(20, "autofill.broken", func(e core.ItemDamageEvent) {
+		// a held tool that breaks is replaced by another of its kind
+		if held, _ := e.P.HeldItems(); *e.Damage > 0 && e.Item.Durability() >= 0 && *e.Damage >= e.Item.Durability() && sameItemName(held, e.Item) {
+			core.RefillHandLater(e.P, e.Tx, e.Item)
+		}
+	})
+	core.ItemConsume.On(20, "autofill.consume", func(e core.ItemEvent) {
+		core.RefillHandLater(e.P, e.Tx, e.Item)
+	})
+}
+
+// sameItemName reports whether a and b are the same item, however worn.
+func sameItemName(a, b item.Stack) bool {
+	n1, m1 := a.Item().EncodeItem()
+	n2, m2 := b.Item().EncodeItem()
+	return !a.Empty() && !b.Empty() && n1 == n2 && m1 == m2
+}

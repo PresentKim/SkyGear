@@ -91,7 +91,7 @@ func TestExpansionMode(t *testing.T) {
 			t.Fatal("player can still move")
 		}
 		move := player.NewEventContext(tx, p)
-		(&handler{s: s}).HandleMove(move, mgl64.Vec3{3, 64, 3}, cube.Rotation{})
+		s.Handler(p).HandleMove(move, mgl64.Vec3{3, 64, 3}, cube.Rotation{})
 		if !move.Cancelled() {
 			t.Fatal("movement not cancelled in expansion mode")
 		}
@@ -106,7 +106,7 @@ func TestExpansionMode(t *testing.T) {
 		expand.Step(s.Session, 0, 1)(p, tx)
 		// Building is off.
 		ctx := player.NewEventContext(tx, p)
-		(&handler{s: s}).HandleBlockPlace(ctx, cube.Pos{1, 64, 1}, block.Dirt{})
+		s.Handler(p).HandleBlockPlace(ctx, cube.Pos{1, 64, 1}, block.Dirt{})
 		if !ctx.Cancelled() {
 			t.Fatal("placed a block in expansion mode")
 		}

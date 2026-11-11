@@ -82,7 +82,7 @@ func TestPinBlocks(t *testing.T) {
 		pinRun(t, lines, name, func() string { return outcome(ctx) }, func() {
 			withPlayer(t, sc.s, sc.h, func(p *player.Player, tx *world.Tx) {
 				ctx = player.NewEventContext(tx, p)
-				call(&handler{s: sc.s}, ctx, p)
+				call(sc.s.Handler(p).(*handler), ctx, p)
 			})
 		})
 	}
@@ -157,7 +157,7 @@ func TestPinBlocks(t *testing.T) {
 		}, func() {
 			withPlayer(t, sc.s, sc.h, func(p *player.Player, tx *world.Tx) {
 				ctx = player.NewEventContext(tx, p)
-				(&handler{s: sc.s}).HandleBlockBreak(ctx, at, &drops, &xp)
+				sc.s.Handler(p).HandleBlockBreak(ctx, at, &drops, &xp)
 			})
 		})
 	}
@@ -229,7 +229,7 @@ func TestPinBlocks(t *testing.T) {
 		}, func() {
 			withPlayer(t, sc.s, sc.h, func(p *player.Player, tx *world.Tx) {
 				ctx = player.NewEventContext(tx, p)
-				(&handler{s: sc.s}).HandleBlockPlace(ctx, at, b)
+				sc.s.Handler(p).HandleBlockPlace(ctx, at, b)
 				if !ctx.Cancelled() {
 					held, off := p.HeldItems()
 					p.SetHeldItems(held.Grow(-1), off)

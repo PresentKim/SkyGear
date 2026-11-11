@@ -547,7 +547,7 @@ func TestPlateClicksWithAnythingInHand(t *testing.T) {
 				p.StopSneaking()
 			}
 			ctx := player.NewEventContext(tx, p)
-			(&handler{s: s}).HandleItemUseOnBlock(ctx, at, face, mgl64.Vec3{1, 0.5, 0.5})
+			s.Handler(p).HandleItemUseOnBlock(ctx, at, face, mgl64.Vec3{1, 0.5, 0.5})
 			if ctx.Cancelled() {
 				return true
 			}

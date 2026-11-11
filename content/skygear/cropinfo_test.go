@@ -28,7 +28,7 @@ func TestUsingCrops(t *testing.T) {
 		tx.SetBlock(grown, farm.WithGrowth(block.WheatSeeds{}, 7), nil)
 
 		ctx := player.NewEventContext(tx, p)
-		(&handler{s: s}).HandleItemUseOnBlock(ctx, young, cube.FaceUp, mgl64.Vec3{})
+		s.Handler(p).HandleItemUseOnBlock(ctx, young, cube.FaceUp, mgl64.Vec3{})
 		if !ctx.Cancelled() {
 			t.Fatal("using a crop was not cancelled (a block could be placed on it)")
 		}

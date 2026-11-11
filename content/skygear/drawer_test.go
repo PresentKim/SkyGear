@@ -303,7 +303,7 @@ func TestDrawerFrontPunchIsPerPlayer(t *testing.T) {
 		e, _ := b.Entity(tx)
 		tx.Block(d2).(storage.Drawer).Punch(d2, cube.FaceSouth, tx, e.(*player.Player))
 		ctx := player.NewEventContext(tx, pa)
-		(&handler{s: s}).HandleBlockBreak(ctx, d1, &[]item.Stack{}, new(int))
+		s.Handler(nil).HandleBlockBreak(ctx, d1, &[]item.Stack{}, new(int))
 		if !ctx.Cancelled() {
 			t.Fatal("front punch mined the drawer after another player's punch")
 		}
@@ -548,7 +548,7 @@ func useBlock(s *session, tx *world.Tx, p *player.Player, pos cube.Pos, held ite
 		p.StopSneaking()
 	}
 	ctx := player.NewEventContext(tx, p)
-	(&handler{s: s}).HandleItemUseOnBlock(ctx, pos, cube.FaceUp, mgl64.Vec3{0.5, 1, 0.5})
+	s.Handler(p).HandleItemUseOnBlock(ctx, pos, cube.FaceUp, mgl64.Vec3{0.5, 1, 0.5})
 	if ctx.Cancelled() {
 		return true
 	}

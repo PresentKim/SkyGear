@@ -142,7 +142,7 @@ func TestHittingTheFairyGivesTheGift(t *testing.T) {
 			t.Errorf("fairy has a name tag %q", e.(*fairy.Fairy).NameTag())
 		}
 		ctx := player.NewEventContext(tx, p)
-		(&handler{s: s}).HandleAttackEntity(ctx, e, nil, nil, nil)
+		s.Handler(p).HandleAttackEntity(ctx, e, nil, nil, nil)
 		if !ctx.Cancelled() || !e.(*fairy.Fairy).Data.Data.(*fairy.FairyData).Gave {
 			t.Fatal("hitting the fairy did not give the gift instead of a hit")
 		}
