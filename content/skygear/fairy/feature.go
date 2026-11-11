@@ -6,4 +6,4 @@ import (
 )
 
 // Feature is the fairy feature, listed in the game's feature list.
-var Feature = &core.Feature{Name: "fairy", Entities: []world.EntityType{EntityType}, Setup: subscribe}
+var Feature = &core.Feature{Name: "fairy", Entities: []world.EntityType{EntityType}, Creative: creativeItems, Setup: subscribe}

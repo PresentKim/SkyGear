@@ -8,19 +8,18 @@ import (
 	"github.com/df-mc/dragonfly/server/item/creative"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/content/skygear/core"
-	"github.com/presentkim/skygear/content/skygear/elevator"
-	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/hopper"
 	"github.com/presentkim/skygear/content/skygear/machine"
-	"github.com/presentkim/skygear/content/skygear/netstore"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
 // Creative inventory entries of the game's own items and blocks. The client
 // builds its recipe book from the creative inventory: a recipe whose result
 // is not in it is never listed, so every item and block the game makes is
-// registered here, in anonymous groups of the fitting tab. Slots order the
-// list (core.CreativeItems): a run of items has one slot.
+// registered here, in anonymous groups of the fitting tab. A feature lists
+// its own items in its descriptor (core.Feature.Creative); the items of the
+// shared item packages are listed below (ownCreative). Slots order the whole
+// list (core.CreativeItems).
 var registerCreativeOnce sync.Once
 
 // RegisterCreativeItems adds the game's items to the creative inventory. It
@@ -47,8 +46,8 @@ func RegisterCreativeItems() {
 	})
 }
 
-// ownCreative are the creative items this package lists, each run with its
-// slot.
+// ownCreative are the creative items of the packages that are no feature:
+// the shared items (sgitem) and the hoppers.
 func ownCreative() []core.CreativeItem {
 	construction, equipment, items := creative.ConstructionCategory(), creative.EquipmentCategory(), creative.ItemsCategory()
 	var out []core.CreativeItem
@@ -57,18 +56,8 @@ func ownCreative() []core.CreativeItem {
 		out = append(out, core.CreativeItem{Slot: slot, Category: c, Item: it})
 	}
 
-	slot = 50
-	for _, k := range machine.Order {
-		add(construction, machine.Machine{Kind: k})
-	}
-
 	slot = 60
 	add(construction, sgitem.Dust{})
-
-	slot = 70
-	for _, c := range item.Colours() {
-		add(construction, elevator.Elevator{Colour: c})
-	}
 
 	slot = 80
 	for _, k := range sgitem.CrushedKinds {
@@ -98,23 +87,12 @@ func ownCreative() []core.CreativeItem {
 	add(items, sgitem.BarkFiber{})
 	add(items, sgitem.FairyDust{})
 
-	slot = 110
-	for t := range netstore.DiskCaps {
-		add(items, netstore.Disk{Tier: t})
-	}
-	add(items, netstore.Pattern{})
-	add(items, netstore.Upgrade{})
-	add(items, netstore.Upgrade{Stack: true})
-
 	slot = 120
 	add(items, sgitem.FairyEmerald{})
 	add(items, sgitem.DimensionStone{})
 	for _, kind := range append(append([]string(nil), sgitem.RelicWeapons...), sgitem.RelicCharms...) {
 		add(equipment, sgitem.Relic{Kind: kind})
 	}
-
-	slot = 130
-	add(equipment, fairy.Board{})
 
 	slot = 140
 	add(items, sgitem.FairyBoneMeal{})
