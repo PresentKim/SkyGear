@@ -4,6 +4,7 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/look"
 )
 
 // subscribe registers the steps of expand on the kernel's hooks.
@@ -12,6 +13,7 @@ func subscribe() {
 	subscribeLeave()
 	subscribeGuard()
 	subscribeSide()
+	hideLook()
 }
 
 // A player in island expansion mode stays in place and sees the expansion
@@ -73,4 +75,12 @@ func subscribeSide() {
 	core.UseOnBlock.Handle(160, "expand.guardSide", func(e core.UseOnBlockEvent) bool {
 		return guard(e.S, e.Ctx, e.Pos.Side(e.Face))
 	})
+}
+
+// A player in island expansion mode sees no WAILA panel.
+func hideLook() {
+	look.Hidden = func(s *core.Session, p *player.Player) bool {
+		_, expanding := Of(s, p)
+		return expanding
+	}
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/look"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
@@ -22,6 +23,7 @@ func subscribe() {
 	subscribeEffects()
 	subscribeTools()
 	subscribeVeinToggle()
+	followLook()
 }
 
 func subscribeFood() {
@@ -76,6 +78,20 @@ func subscribeVeinToggle() {
 	core.Use.On(70, "tinker.veinToggle", func(e core.UseEvent) {
 		if sgitem.IsIronHammer(e.Held) && e.P.Sneaking() && !e.S.Debounced(e.P) {
 			ToggleVeinDiagonal(e.S, e.P)
+		}
+	})
+}
+
+// On the fast tick the vein outline follows the block a player looks at.
+func followLook() {
+	look.Follow("tinker.vein", func(t look.Target) {
+		if !t.Tick {
+			return
+		}
+		if t.Ok {
+			ShowVeinOutline(t.S, t.P, t.Tx, t.Pos)
+		} else {
+			HideVeinOutline(t.S, t.P)
 		}
 	})
 }

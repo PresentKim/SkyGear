@@ -2,12 +2,14 @@ package wand
 
 import (
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/look"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
 // subscribe registers the wand steps of the use chain.
 func subscribe() {
 	subscribeUse()
+	followLook()
 }
 
 // The construction wand builds out the face clicked and does nothing else;
@@ -25,5 +27,12 @@ func subscribeUse() {
 		if _, ok := sgitem.WandOf(e.Held); ok && e.P.Sneaking() && !e.S.Debounced(e.P) {
 			ShowOptions(e.S, e.P)
 		}
+	})
+}
+
+// The preview follows where a player holding a wand looks.
+func followLook() {
+	look.Follow("wand.preview", func(t look.Target) {
+		ShowPreview(t.S, t.P, t.Tx)
 	})
 }
