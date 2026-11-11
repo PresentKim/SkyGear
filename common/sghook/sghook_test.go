@@ -182,8 +182,8 @@ func TestEditCustomItems(t *testing.T) {
 	if (*items)[0].Name != "a" {
 		t.Fatal("edited before a connection")
 	}
-	applyEntryEdits()
-	applyEntryEdits()
+	ApplyEntryEdits()
+	ApplyEntryEdits()
 	if (*items)[0].Name != "a!" || edits != 1 {
 		t.Fatalf("entry %q after %d edits", (*items)[0].Name, edits)
 	}
@@ -204,8 +204,8 @@ func TestEditCustomBlocks(t *testing.T) {
 	if edits != 0 || (*blocks)[0].Properties["x"] != nil {
 		t.Fatal("edited before a connection")
 	}
-	applyEntryEdits()
-	applyEntryEdits()
+	ApplyEntryEdits()
+	ApplyEntryEdits()
 	if edits != 2 || (*blocks)[0].Properties["x"] != int32(1) || (*blocks)[1].Name != "b" || len(*blocks) != 2 {
 		t.Fatalf("entries %v after %d edits", *blocks, edits)
 	}
@@ -234,7 +234,7 @@ func TestEditCustomBlocksGuards(t *testing.T) {
 					t.Errorf("%s change not refused", name)
 				}
 			}()
-			applyEntryEdits()
+			ApplyEntryEdits()
 		}()
 		if (*blocks)[0].Name != "a" || vanillaBlockID((*blocks)[0].Properties) != int32(1) {
 			t.Errorf("%s: entries changed despite the panic", name)
@@ -264,7 +264,7 @@ func TestEditEntriesConcurrentAccept(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			applyEntryEdits()
+			ApplyEntryEdits()
 			if (*items)[1].Name != "b!" || (*blocks)[1].Properties["x"] != int32(1) {
 				t.Error("returned before the entries were edited")
 			}
@@ -273,5 +273,22 @@ func TestEditEntriesConcurrentAccept(t *testing.T) {
 	wg.Wait()
 	if itemEdits.Load() != 2 || blockEdits.Load() != 2 {
 		t.Fatalf("%d item and %d block edits, want 2 each", itemEdits.Load(), blockEdits.Load())
+	}
+}
+
+// TestApplyEntryEditsOnce: the exported call makes both edits once, whoever
+// calls it first.
+func TestApplyEntryEditsOnce(t *testing.T) {
+	srv := &server.Server{}
+	items, blocks := 0, 0
+	EditCustomItems(srv, func(e protocol.ItemEntry) protocol.ItemEntry { items++; return e })
+	EditCustomBlocks(srv, func(e protocol.BlockEntry) protocol.BlockEntry { blocks++; return e })
+	t.Cleanup(func() { EditCustomItems(nil, nil); EditCustomBlocks(nil, nil) })
+	*field[[]protocol.ItemEntry](srv, "customItems") = []protocol.ItemEntry{{Name: "a"}, {Name: "b"}}
+	*field[[]protocol.BlockEntry](srv, "customBlocks") = []protocol.BlockEntry{{Name: "c", Properties: map[string]any{}}}
+	ApplyEntryEdits()
+	ApplyEntryEdits()
+	if items != 2 || blocks != 1 {
+		t.Fatalf("%d item edits, %d block edits", items, blocks)
 	}
 }

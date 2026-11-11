@@ -140,7 +140,7 @@ func (l listener) Accept() (session.Conn, error) {
 	if err != nil {
 		return nil, err
 	}
-	applyEntryEdits()
+	ApplyEntryEdits()
 	w := &Conn{Conn: c}
 	// Accept hands the connection out right after the client's packs are done.
 	w.join.packs = time.Now()
@@ -279,9 +279,12 @@ func EditCustomBlocks(srv *server.Server, edit func(protocol.BlockEntry) protoco
 	blockEdits.srv, blockEdits.edit, blockEdits.done = srv, edit, false
 }
 
-// applyEntryEdits makes the edits of EditCustomItems and EditCustomBlocks,
-// once each.
-func applyEntryEdits() {
+// ApplyEntryEdits makes the edits of EditCustomItems and EditCustomBlocks,
+// once each (a later call does nothing). The listener calls it at the first
+// accepted connection; a game may call it right after Listen to find a bad
+// declaration at startup, in the goroutine that called it. An edit that panics
+// leaves the block entries as built.
+func ApplyEntryEdits() {
 	applyItemEdits()
 	applyBlockEdits()
 }
