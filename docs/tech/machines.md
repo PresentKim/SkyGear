@@ -47,6 +47,36 @@
 | 자동 자원 채굴기 | - | 13~16 | 10 | 40틱 |
 | 자동 농작물 수확기 | - | 13~16 | 10 | 40틱 |
 
+### 정의, 플래그, 소유
+
+- 종류마다 `Def` 하나가 `Kinds` 에 이름으로 들어 있고, `Order` 가 블록과 아이템을 등록하는 순서다. 다른 기능의 종류도 여기에 같이 적어서 등록 순서(클라이언트가 받는 아이템 id)가 설치된 기능에 따라 달라지지 않는다.
+- 기계 틀이 종류에 따라 다르게 하는 일은 `Def` 의 플래그로 적는다. `NoDisplay` 는 계속 갱신할 창이 없는 종류(에너지 셀, 유체 탱크, 전기 도가니, 용암·태양광·수력 발전기, 서랍 종류 셋, 팅커 테이블, 이차원 에센스 수집기, 보구 제작대)이고 틱이 창의 진행, 에너지 게이지, 정보 아이콘을 갱신하기 전에 끝난다. `NoWindow` 는 클릭해도 아무 일이 없는 종류(저장망 케이블), `Cycle` 은 일이 있든 없든 주기가 도는 종류(수확기)다. 수확기 범위가 위아래로 움직이는 것은 `tier.go` 의 `rangeLifts` 표다.
+- 다른 기능의 종류는 `Def.Owner` 에 그 기능 이름이 있다. 그 기능이 `Setup` 에서 `machine.Register(kind, machine.Behaviour{…})` 로 동작을 건넨다(각 기능의 `kinds.go`, 농장은 `farm/harvester.go` 의 `registerKinds`). `Behaviour` 의 필드는 `Click`, `Run`, `Insert`, `Peek`, `Extract`, `Accepts`, `Lines`, `Info` 이고, 비운 필드는 기계 틀이 자기 종류에 하는 대로 한다. 틀은 등록된 동작을 `Def.Hooks()` 로 읽는다.
+- 기능 목록을 설치할 때 기계 기능의 `Check` 인 `CheckKinds` 가 `Order` 의 종류 가운데 `Owner` 가 있는데 등록되지 않은 것을 찾는다. 하나라도 있으면 `machine kinds without behaviour: …` 오류로 시작이 멈춘다. 검사가 끝난 뒤의 `Register` 는 패닉한다(`kinds.go`).
+
+| 소유 | 종류 | 등록하는 동작 |
+|---|---|---|
+| `farm` | `harvester` | `Run` |
+| `storage` | `drawer_controller`, `drawer_interface` | `Click`, `Insert`, `Peek`, `Extract`, `Lines` |
+| `storage` | `drawer_trim` | `Click`(아무 일도 안 함), `Lines: machine.NoLines` |
+| `dimension` | `essence_collector` | `Click`, `Info`(받는 몬스터) |
+| `dimension` | `relic_table` | `Click`, `Lines: machine.NoLines` |
+| `netstore` | `net_controller` | `Click`, `Run`, `Insert`, `Peek`, `Extract` |
+| `netstore` | `net_cable` | 없음(`machine.Behaviour{}`) |
+| `netstore` | `disk_drive` | `Accepts` |
+| `netstore` | `net_terminal` | `Click`, `Insert`, `Peek`, `Extract` |
+| `netstore` | `net_importer`, `net_exporter` | `Click`, `Run`, `Accepts` |
+| `netstore` | `net_external` | `Click`, `Run` |
+| `netstore` | `pattern_encoder` | `Click`, `Accepts` |
+| `netstore` | `net_autocrafter` | `Run`, `Accepts` |
+| 없음 | `tinker_table` | `machine/tinkertable.go` 가 정한다(`Click`, `Lines: NoLines`) |
+
+팅커 테이블은 `tinker` 가 `machine` 을 import 할 수 없어서 `machine` 이 직접 정한다. 그렇게 하면 기계 아이템이 팅커 도구보다 먼저 등록되어 클라이언트가 받는 아이템 id 가 바뀐다. `machine` 이 기능 칸의 패키지를 import 하는 곳은 이 파일 하나다.
+
+### 클라이언트 모양
+
+종류마다 모양이 하나다(`shape.go` 의 `shapeOf`). 정육면체(`shapeCube`)는 면마다 텍스처를 붙이고 일부는 단계나 작동 모습을 상태로 둔다(`tierlook.go`, `animate.go`). 체(`shapeSieve`)는 메쉬 위의 내용물을 상태로 두는 체 모델이다(`sieve.go`). 저장망 블록(`shapeNet`)은 팔과 방향을 상태로 두는 얇은 블록이다(`netshape.go`). 상태, 순열, 기본 속성, 추가 컴포넌트가 모두 이 모양에서 나온다.
+
 ## 아이템 이동
 
 - 호퍼: 위·옆 호퍼 → `InsertItem`(입력에 받을 수 있는 아이템만 1개씩), 아래 호퍼 ← `ExtractItem`(출력에서 1개씩).
@@ -67,6 +97,8 @@
 ## 검증
 
 - 단위: `machine_test.go`(분쇄·자동 체·채굴·창 조작 제한·NBT 왕복·부술 때 드롭·무인 라인), `sieve_test.go`, `harvester_test.go`, `hammer_test.go`.
+- 종류 등록: `machine/kinds_test.go` 가 등록되지 않은 종류의 오류, `Register` 가 패닉하는 경우, `Order` 와 `Kinds` 가 같은지, 플래그가 붙은 종류, 종류마다 모양이 하나인지 본다. 루트의 `kinds_test.go`(`TestKindOwners`)는 종류마다 소유 기능이 `kindOwners` 와 같고 목록에 있으며 모두 등록되었는지 본다.
+- 핀: 루트의 `pin_kinds_test.go`(`TestPinKinds`, `testdata/pin/kinds.golden`)가 종류마다 서서·웅크려 클릭한 결과, 창의 정보 아이콘, 창 칸의 역할과 받는 아이템을 고정한다. `TestForeignKindsRoundTrip` 은 다른 기능의 종류가 이름으로 저장되고 다시 읽히는지 본다.
 - 실기 확인 항목은 [TODO](../TODO.md).
 
 ## 주기형 기계의 링 게이지

@@ -14,7 +14,7 @@
 | `oreui` | 서버 주도 DDUI 화면(레이아웃·값 보내기, 누름 받기). `assets/resourcepack/oreui` 와 짝 |
 | `hud` | 사이드바 점수판으로 보내는 HUD 글. `assets/resourcepack/sgui` 의 `ui/scoreboards.json` 이 그린다(`sgui` 는 HUD 의 JSON UI 와 메뉴 화면의 그림) |
 | `waila` | 바라보는 블록의 패널(제목 형식, 보내기, 도구 아이콘). 블록이 자기 줄을 채우는 `Provider`, 그런 메서드가 없는 블록을 채우는 `Adapter`(`RegisterAdapter`), 둘을 차례로 부르는 `Describe`. `assets/resourcepack/waila` 와 짝 |
-| `slotdeco` | 아이템 칸 장식 표식(`Decorate`, `Strip`, `Of`)과 아이템이 자기 등급과 단계를 말하는 `Decorated`. `assets/resourcepack/slotdeco` 와 짝 |
+| `slotdeco` | 아이템 칸 장식 표식(`Decorate`, `Strip`, `Of`)과 아이템이 자기 등급과 단계를 말하는 `Decorated`, 등급의 이름 색(`Rarity.Colour`). `assets/resourcepack/slotdeco` 와 짝 |
 | `i18n` | 플레이어 언어별 글 카탈로그. 서버는 `i18n.Register` 로 자기 카탈로그를 더한다. `i18n/i18ntest` 는 서버가 자기 코드에 돌리는 카탈로그 검사 |
 | `timed` | 기간제 아이템(현실 시간 만료) |
 | `perf` | 월드 틱 부하 표시 |

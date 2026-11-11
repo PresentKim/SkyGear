@@ -10,8 +10,9 @@
 (`core.Feature`)의 `Setup` 에서 구독한다. 블록의 WAILA 줄(`Waila` 메서드), 아이템의 칸 장식(`Decor` 메서드), 창작 목록 항목(`Creative`), 명령어(`Commands`), 설정(`Settings`)도
 기능이 자기 패키지에서 선언한다. 기능은 루트 패키지의 `features.go` 목록에 한 줄로 오른다. 훅, 우선순위, 새 기능을 더하는 순서는
 [docs/tech/extension.md](../../docs/tech/extension.md) 에 있다.
-위 칸이 아래 칸을 불러야 할 때 중 이벤트가 아닌 것(메뉴 열기, 사이드바 갱신, 다른 기능의 기계 종류)은 위 칸이 함수 변수를 두고,
-아래 칸이 `init` 에서 채운다(예: `core.ShowMenu` 는 `screens` 가, `machine.Kinds[KindRelicTable].Click` 은 `dimension` 이).
+위 칸이 아래 칸을 불러야 할 때 중 이벤트가 아닌 것(메뉴 열기, 사이드바 갱신)은 위 칸이 함수 변수를 두고,
+아래 칸이 `init` 에서 채운다(예: `core.ShowMenu` 는 `screens` 가 채운다). 다른 기능의 기계 종류는 `machine` 이 이름과 정의를 두고,
+그 기능의 `Setup` 이 `machine.Register` 로 동작을 등록한다(예: `machine.KindRelicTable` 은 `dimension` 이).
 
 | 층 | 패키지 | 내용 |
 |---|---|---|
@@ -35,12 +36,12 @@
 | | `preview` | 보는 사람에게만 보내는 블록 미리보기: 선택·충돌 상자가 크기 0 인 16색 미리보기 유리(`Glass`, 지팡이 초록·망치 파랑)와 칸별 레이어 0·1 전송(`Set`·`Clear`). 건축 지팡이와 철 망치가 함께 쓴다 |
 | | `look` | WAILA 패널: 시선 추적과 기본 정보, 블록이 자기 줄을 채운다(`waila.Provider`, 어댑터). 패널 숨기기(`Hidden`)와 갱신 따라가기(`Follow`) |
 | | `autofill` | 손에 든 묶음이 떨어지면 인벤토리의 같은 아이템으로 다시 채우기(`RefillHand`, 설정 `autofill`). 체와 건축 지팡이도 부른다 |
+| | `decor` | 아이템 칸 장식(희귀도·단계 표시)과 툴팁 이름. 등급과 단계는 아이템의 `Decor` 메서드(`slotdeco.Decorated`)에서 읽는다 |
 | 진행 | `progress` | 연구·발전과제 규칙, 레시피 잠금, 연구대 블록 |
 | | `island` | 소유 청크, 시작 위치, 청크 구매, 보이드 복귀, 분실물 보관함 |
 | | `climate` | 날씨·해·성장 시계 |
 | 기능 | `tinker` | 팅커 도구(재료·레벨·개조), 팅커 테이블, 광맥 채굴, 자동 도구 |
-| | `decor` | 아이템 칸 장식(희귀도·단계 표시)과 툴팁 이름. 등급과 단계는 아이템의 `Decor` 메서드(`slotdeco.Decorated`)에서 읽는다 |
-| | `machine` | 기계 블록과 종류(`Kinds`), 창, 에너지·유체, 단계, 체, 가공 기계, 생산 기록과 정지 알림 |
+| | `machine` | 기계의 틀(블록, 창, 틱, 에너지·유체, 단계)과 모든 종류의 목록(`Kinds`, `Order`, 다른 기능의 종류는 `Owner` 와 `Register`), 체, 가공 기계, 생산 기록과 정지 알림 |
 | | `conduit` | 도관 묶음 블록, 연결망 잇기, 표시 엔티티, 연결판과 그 화면 |
 | | `storage` | 서랍과 아이템 거치대, 저장고 컨트롤러와 목록 화면 |
 | | `farm` | 작물, 묘목·나무, 잎, 누에와 누에 나뭇잎, 퇴비통, 배럴과 마녀물, 수확기, 마법 식물 |

@@ -22,10 +22,11 @@
 // Dragonfly; cancelling and stopping the chain are independent.
 //
 // A Feature is what a feature package hands to the game: its name, entity
-// types, settings, item entry edit, creative items, commands and a Setup that
-// subscribes its steps. The root package lists the features and passes them to
-// Install, which runs each Setup under the feature's name; a subscriber is
-// named "<feature>.<step>". EditEntries and CheckEntries compose the client
+// types, settings, item entry edit, creative items, commands, a Setup that
+// subscribes its steps and a Check that Install runs when every feature is set
+// up. The root package lists the features and passes them to Install, which
+// runs each Setup under the feature's name; a subscriber is named
+// "<feature>.<step>". EditEntries and CheckEntries compose the client
 // entry edits of the features, CreativeItems orders the creative items of the
 // features and of the content list by Slot, and Commands collects the
 // features' commands (PlayerSession finds the player and session a command
