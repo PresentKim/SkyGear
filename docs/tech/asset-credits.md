@@ -78,4 +78,6 @@ go run ./tools/fabricotex <ExNihiloFabrico 클론> assets/resourcepack/skygear  
 go run ./tools/infestedtex assets/resourcepack/skygear     # 누에 나뭇잎 고치 단계
 ```
 
+`animtex` 와 `tierblocks` 는 `modtex` 를 먼저 돌린 뒤에만 쓴다. `texdedup` 이 합치는 파일(`blocks/lava_generator_side.png` 등)을 `modtex` 가 쓰기 때문이다.
+
 저작권 표시는 MIT 조건에 따라 `third_party/licenses/` 의 파일과 이 문서가 맡는다.

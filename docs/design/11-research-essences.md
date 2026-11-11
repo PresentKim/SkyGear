@@ -140,7 +140,7 @@
 | 기계 종류·창 배치·주기 | `machine.go` (`KindLab`, `machineState.period`), 창 JSON `sg_machine.json`의 `lab_slots`와 `chest_screen.json`의 `§d§m§8` |
 | 연구 트리·정수 추출기 조합법 | `research.go` (`baseResearchTree`, `laboratory`) |
 | 도감·도움말·발전과제·카운터 | `codex.go`, `help.go`(`helpEssenceText`), `advancement.go`, `counter.go`·`achievement/catalog.go` |
-| 텍스처 | `tools/essencetex`(정수 5종), `tools/machinetex`(정수 추출기) |
+| 텍스처 | 손으로 관리하는 PNG(`assets/resourcepack/skygear/textures/`) |
 | 검사 | `lab_test.go`, `researchessence_test.go`(정수 비용 표, 만들 수 있는지의 순서 점검) |
 
 연구 트리의 정수 비용은 기본 트리에 코드로 더하므로, 비용을 바꾸는 일은 `researchEssenceCosts` 한 곳에서 한다. 새 정수는 종류 상수, 정수 추출기 레시피, 아이템 이름·텍스처, 비용 표, `makers`(`TestEssencesCanBeMade`)를 더하면 된다.
