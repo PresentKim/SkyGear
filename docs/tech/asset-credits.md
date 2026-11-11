@@ -9,7 +9,7 @@
 | 모드 | 저장소 | 확인한 커밋 | 라이선스 | 쓴 곳 |
 |---|---|---|---|---|
 | Mekanism | https://github.com/mekanism/Mekanism | `90bb3de4c7` | MIT (README: 모드 전체) | 합금(인퓨즈·강화·원자), 제어 회로 I~IV, 강화 키트(티어 인스톨러), 설정 복사기, 주괴·가루·덩어리(주석·납·청동·강철·구리·금·철), 전기 화로·전기 도가니·유체 탱크 면 |
-| Ender IO | https://github.com/Team-EnderIO/EnderIO | `a25cd60d65` | Unlicense, 외부 기여 그림은 CC0(`docs/license/`) | 합금로·자동 제작기·몬스터 시뮬레이터·광석 세척기·정수 추출기·발전기류·흡수기·벌목기·에너지 셀 면, 도관 접합제, 도관 텍스처(기존) |
+| Ender IO | https://github.com/Team-EnderIO/EnderIO | `a25cd60d65` | Unlicense, 외부 기여 그림은 CC0(`third_party/licenses/`) | 합금로·자동 제작기·몬스터 시뮬레이터·광석 세척기·정수 추출기·발전기류·흡수기·벌목기·에너지 셀 면, 도관 접합제, 도관 텍스처(기존) |
 | Tinkers' Construct | https://github.com/SlimeKnights/TinkersConstruct | `f4e77d43f3` | MIT (README: 코드와 텍스처 모두) | 장비 제작대 |
 | Storage Drawers | https://github.com/jaquadro/StorageDrawers | `62a33ab1aa` | MIT | 스토리지 관리 블록, 서랍 인터페이스 |
 | Refined Storage | https://github.com/refinedmods/refinedstorage | `60ce906c16` | MIT | 입력기·출력기·외부 저장공간의 한국어 이름과 창 글(화이트리스트·블랙리스트, 우선 순위), `lang/ko_kr.json` |
@@ -48,7 +48,7 @@
 
 마인크래프트 바닐라 텍스처는 팩에 복사하지 않는다. 클라이언트가 가진 그림을 경로로 가리킨다.
 
-- 스카이기어 아틀라스(`textures/terrain_texture.json`)의 일부 키는 `textures/blocks/<바닐라>` 를 가리킨다: 체·나무 깔때기·참나무 배럴(`planks_oak`), 철 깔때기(`hopper_outside`), 자동 체(`planks_big_oak`), 마법 체(`huge_fungus/crimson_planks`), 연구대 옆면(`bookshelf`), 차원 게이트 면(`portal_placeholder`), 통의 물과 마녀의 물(`water_placeholder`), 미리보기 유리 16색(`glass_<색>`, 연회색은 `glass_silver`). `pack_test.go` 의 `vanillaTerrain` 이 이 목록이다.
+- 스카이기어 아틀라스(`textures/terrain_texture.json`)의 일부 키는 `textures/blocks/<바닐라>` 를 가리킨다: 체·나무 깔때기·참나무 배럴(`planks_oak`), 철 깔때기(`hopper_outside`), 자동 체(`planks_big_oak`), 마법 체(`huge_fungus/crimson_planks`), 연구대 옆면(`bookshelf`), 통의 물과 마녀의 물(`water_placeholder`), 미리보기 유리 16색(`glass_<색>`, 연회색은 `glass_silver`). `pack_test.go` 의 `vanillaTerrain` 이 이 목록이다.
 - WAILA 팩의 도구 아이콘·하트·갑옷·물방울·테두리는 `textures/items/*`, `textures/ui/*` 바닐라 경로를 쓴다(`assets/resourcepack/waila/ui/waila/tile.json` 의 `block_tags`, `common.json` 의 `icon_renderer`).
 
 ## 생성한 그림

@@ -10,26 +10,27 @@
 
 | 명령 | 하는 일 |
 |---|---|
-| `/sgadmin give <ID> [개수]` | 게임 아이템·기계·도구(`research_table`, `drawer`, `drawer_key`, `barrel`, `hammer`, `sieve`, `auto_sieve`, `crusher`, `auto_miner`, `harvester`, `drawer_controller`, `tinker_table`, `relic_table`, `essence_collector`, `dimension_stone`, `fairy_emerald`, `fairy_dust`, `ingot_<금속>`, `essence_<몹>`, `seed_<씨앗>`, `petal_<색>`, 보구 `relic_<종류>`(1등급)·`relic_<종류>_<등급 1~5>` 등. 따로 적지 않은 게임 아이템도 `skygear:` 를 뗀 ID로 모두 들어 있고, 화면용 아이콘과 없어진 아이템만 빠진다. 바닐라 아이템은 `minecraft:diamond` 처럼 전체 이름으로, 변형이 있는 아이템은 `minecraft:<이름>:<메타>` 로 들어 있다. 새로 등록한 아이템은 따로 적지 않아도 자동으로 들어간다. 자동 완성에는 네임스페이스를 붙인 전체 목록(`skygear:hammer`, `minecraft:diamond`)이 나오고, 한쪽에만 있는 이름은 네임스페이스를 빼고 써도 된다(`diamond`, `hammer`). 두 쪽에 다 있는 이름(`barrel`)은 네임스페이스를 붙이라고 알린다) |
+| `/sgadmin give <ID> [개수]` | 게임 아이템·기계·도구(`research_table`, `drawer`, `drawer_key`, `barrel`, `hammer`, `sieve`, `auto_sieve`, `crusher`, `auto_miner`, `harvester`, `drawer_controller`, `tinker_table`, `relic_table`, `essence_collector`, `net_conduit`, `dimension_stone`, `fairy_emerald`, `fairy_dust`, `ingot_<금속>`, `essence_<몹>`, `seed_<씨앗>`, `petal_<색>`, 보구 `relic_<종류>`(1등급)·`relic_<종류>_<등급 1~5>` 등. 따로 적지 않은 게임 아이템도 `skygear:` 를 뗀 ID로 모두 들어 있고, 화면용 아이콘만 빠진다. 바닐라 아이템은 `minecraft:diamond` 처럼 전체 이름으로, 변형이 있는 아이템은 `minecraft:<이름>:<메타>` 로 들어 있다. 새로 등록한 아이템은 따로 적지 않아도 자동으로 들어간다. 자동 완성에는 네임스페이스를 붙인 전체 목록(`skygear:hammer`, `minecraft:diamond`)이 나오고, 한쪽에만 있는 이름은 네임스페이스를 빼고 써도 된다(`diamond`, `hammer`). 두 쪽에 다 있는 이름(`barrel`)은 네임스페이스를 붙이라고 알린다) |
 | `/sgadmin research <연구 ID\|all\|reset\|free>` | 연구 하나·전부 완료, 연구 모두 지우기, `free`는 모든 조합법을 인스턴스가 닫힐 때까지 열기(다시 하면 잠금) |
 | `/sgadmin advance <발전과제 ID\|all\|reset>` | 발전과제 하나(앞 단계 포함)·전부 달성, 모두 지우기 |
 | `/sgadmin tps` | 내 HUD 왼쪽 위 서버 부하 줄 켜기·끄기(아래, 로비에서도) |
 
 ## 디버그 (`/sgdebug`)
 
-시나리오와 시험에 쓰는 명령: 일을 지금 일으키거나 상태를 출력한다. 코드: `debug.go`, `debug_ui.go`, `debug_factory.go`, `debug_oreui.go`.
+시험에 쓰는 명령: 일을 지금 일으키거나 상태를 출력한다. 코드: `content/skygear/debug.go`, `debug_ui.go`, `debug_factory.go`, `debug_oreui.go`.
 
 | 명령 | 하는 일 |
 |---|---|
 | `/sgdebug oreinput` | Ore UI 페이지가 받는 입력 이벤트(마우스, 휠, 키, 터치, 포인터, 포커스, 글 입력, 게임패드)를 화면에 줄로 보이고 서버로 보낸다. 서버가 받은 줄과 그동안 클라이언트가 보낸 패킷(`ScriptMessage` 는 내용까지)이 창 위에 보인다([oreui-probes.md](oreui-probes.md)) |
 | `/sgdebug oreres` | 서버가 Ore UI 페이지에 화면 리소스를 줄 수 있는 길을 차례로 시험한다([oreui-probes.md](oreui-probes.md)) |
-| `/sgdebug research` | 연구 화면을 연다(연구대를 쓴 것과 같다. 게임 메뉴에는 연구 카드가 없다). 시나리오용 |
-| `/sgdebug ui [기계]` | 기계를 놓지 않고 그 기계 창을 연다(입력·출력 칸에 예시 아이템, 진행도·에너지 절반). 기계 없이 쓰면 창이 있는 기계 목록 폼이 열리고 버튼으로 차례로 본다. 창 모양 확인용(시나리오 `window_preview.sh`) |
+| `/sgdebug research` | 연구 화면을 연다(연구대를 쓴 것과 같다. 게임 메뉴에는 연구 카드가 없다) |
+| `/sgdebug ui [기계]` | 기계를 놓지 않고 그 기계 창을 연다(입력·출력 칸에 예시 아이템, 진행도·에너지 절반). 기계 없이 쓰면 창이 있는 기계 목록 폼이 열리고 버튼으로 차례로 본다. 창 모양 확인용 |
 | `/sgdebug place <아이템> <dx> <dy> <dz>` | 내 발 위치에서 그만큼 떨어진 칸에 블록을 놓는다. 그 아이템을 든 채 아래 블록 윗면을 누른 것처럼 게임의 놓기 처리를 그대로 거친다(기계 상태·방향). 아이템은 `give` ID 나 바닐라 이름. 조준 없이 짓는 용도 |
 | `/sgdebug floor <반지름>` | 발밑 높이에 반지름만큼 돌 바닥을 깐다(있는 블록은 그대로). 빈 공간에 시험할 자리를 만든다 |
 | `/sgdebug look <yaw> <pitch>` | 시선을 돌리고(yaw 0 남쪽, pitch 90 아래) WAILA 패널을 바로 갱신한 뒤 보는 블록을 출력 |
-| `/sgdebug terminal` | 보고 있는 망 단말·망 컨트롤러의 단말 창을 연다(단말 우클릭과 같다). 시나리오용 |
-| `/sgdebug status` | `researched= chunks= advanced=` 출력(시나리오 확인용) |
+| `/sgdebug terminal` | 보고 있는 망 단말·망 컨트롤러의 단말 창을 연다(단말 우클릭과 같다) |
+| `/sgdebug net <개수> [위]` | 컨트롤러·단말·가장 큰 디스크가 든 드라이브로 이루어진 전원이 켜진 망을 내 북쪽 두 칸, 발보다 `위`칸 위에 짓고 `개수`가지 아이템을 채운 뒤 그 단말 창을 연다. 단말이 이미 있으면 창만 연다 |
+| `/sgdebug status` | `researched= chunks= advanced=` 출력(확인용) |
 | `/sgdebug skip <분>` | 인스턴스 시간을 n분 앞당김(날짜 변경·작물·분실물 만료 확인용) |
 | `/sgdebug timed <초>` | 손에 든 아이템을 지금부터 n초(현실 시간) 기간제로 만든다. 0 이면 기간을 푼다 ([기간제 아이템](timed-items.md)) |
 | `/sgdebug holderpose <x> <y> <z> <크기%> [dx dy dz]` | 서랍 앞면의 손에 쥐는 모양 아이템(막대기·뼈다귀)의 보정 회전·크기·위치를 팩을 다시 받지 않고 바꿔 본다([drawer.md](drawer.md) '손에 쥐는 모양 아이템') |
@@ -44,7 +45,7 @@
 
 ## 서버 부하 표시
 
-운영자가 `/sgadmin tps` 로 켜고 끈다(플레이어마다, 서버를 다시 켜면 꺼짐; 로비에서도 됨). 켜면 HUD 왼쪽 위(일차 줄 아래)에 1초마다 한 줄로 보인다(로비에서는 그 줄만). 코드: `common/perf`(`Line`, `Toggle`), `platform/load.go`, `skygear/sidebar.go`.
+운영자가 `/sgadmin tps` 로 켜고 끈다(플레이어마다, 서버를 다시 켜면 꺼짐; 로비에서도 됨). 켜면 HUD 왼쪽 위(일차 줄 아래)에 1초마다 한 줄로 보인다(로비에서는 그 줄만). 코드: `common/perf`(`Line`, `Toggle`), `platform/load.go`, `content/skygear/screens/sidebar.go`.
 
 `TPS 20.0 · 부하 12% · 틱 6.1ms/9.7ms · 메모리 76MB`
 

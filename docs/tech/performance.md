@@ -13,7 +13,7 @@
 - **청크 읽기·생성**은 청크 작업자 고루틴(기본 1개, `ChunkLoadWorkers`, world/chunk_request.go)이 하고, 결과 반영·조명은 월드 고루틴이 한다. **저장은 월드 고루틴에서 동기로 한다**(LevelDB 쓰기, world/world.go `save`).
 - **접속**: 세션마다 고루틴 3개(쓰기, 패킷 읽기, 20Hz 백그라운드). 패킷 처리는 결국 그 플레이어가 있는 **월드 트랜잭션 안**에서 한다(session/session.go `handlePackets`). 보내는 패킷은 채널(256)로 넘기고 gophertunnel 이 50ms 마다 묶어 보낸다.
 - **월드끼리는 병렬**: 월드마다 큐·고루틴이 따로라 Go 스케줄러가 여러 코어에 나눈다. GOMAXPROCS 를 따로 정하지 않아 모든 코어를 쓴다. 블록 레지스트리 잠금은 등록 때만 잡는다.
-- **이 서버**: 로비 1 + 활성 세이브마다 월드 1(`MaxActive` 까지). 인스턴스마다 `run()` 고루틴이 0.2초(`FastTicker`: WAILA)·1초(시계, 기간제, `SecondTicker`, 자동 저장) 작업을 월드 큐에 넣는다.
+- **이 서버**: 로비 1 + 활성 세이브마다 월드 1(`MaxActive` 까지). 인스턴스마다 `run()` 고루틴이 0.2초(`Session.Fast`: WAILA 같은 게이지)·1초(시계, 기간제, `Session.Second`, 자동 저장) 작업을 월드 큐에 넣는다.
 
 ### 정리
 - **섬 하나의 모든 일은 CPU 코어 하나**에서 돈다. 섬이 여러 개면 코어가 여러 개 쓰인다.
@@ -97,10 +97,10 @@ Flate 압축 수준 (128KB): 1단계 1.17ms 16952B, 3단계 1.82ms 15553B, 6단�
 알려진 한계:
 - 수정된 칼럼이 `16 × SaveInterval` 개를 넘으면 일부 저장이 한 주기를 넘겨 늦어진다(`Close` 는 전부 저장).
 - 블록 엔티티는 아직 서브청크 요청마다 인코딩한다.
-- N3 은 하지 않았다.
+- `setBlock` 의 뷰어 목록 복사(`slices.Clone(c.viewers)`)는 뷰어 콜백이 `addViewer` 로 다시 들어오지 않는다고 확인되기 전에는 그대로 둔다.
 
 ## 접속 시간 기록 (join timing)
 
 플레이어가 접속해 클라이언트 로딩 화면이 닫히면 INFO 줄 하나를 남긴다: `msg="join timing" player=… total_ms=… connect_to_packs_ms=… to_start_game_ms=… client_load_ms=…`(`common/sghook/jointiming.go`). 표시는 Login 처리(`Allower`) → 리소스팩 완료(`Accept`) → StartGame 보냄(`StartGameContext` 시작) → 클라이언트의 SetLocalPlayerAsInitialised(`StartGameContext` 반환) 네 곳이고, `client_load_ms`(StartGame 보낸 뒤 로딩이 끝날 때까지)가 블록 상태·퍼뮤테이션 수에 따라 커지는 값이다. 팩 내려받기 단계는 gophertunnel 안에서 처리돼 따로 보이지 않아 `packs_ms` 는 없고 `connect_to_packs_ms` 에 로그인부터 팩 완료까지가 합쳐진다. 비교하려면 같은 클라이언트·같은 기기로 여러 번 접속해(캐시 영향을 줄이려면 매번 두 번째 접속 값을 쓰거나 클라이언트 팩 캐시를 비운다) 잰 `client_load_ms` 를 견준다. 시작할 때 `custom blocks` 줄이 등록된 커스텀 블록·상태·퍼뮤테이션 수를 한 번 남긴다. 연결이 로딩 전에 끊기면 줄을 남기지 않는다.
 
-도관을 블록으로 그리는 쪽의 비용을 잰 값이다(상태 수 시험은 지웠고 값만 남긴다). 도관을 엔티티로 그릴 때 `client_load_ms` 4,005, 블록 2개(블록마다 상태 37,249개, 합 74,498)로 그릴 때 9,019(+5.0초). 채운 칸 12,083개에서 FPS 는 엔티티 7~20, 블록 184(1% low 60).
+도관을 블록으로 그리는 쪽의 비용을 잰 값이다. 도관을 엔티티로 그릴 때 `client_load_ms` 4,005, 블록 2개(블록마다 상태 37,249개, 합 74,498)로 그릴 때 9,019(+5.0초). 채운 칸 12,083개에서 FPS 는 엔티티 7~20, 블록 184(1% low 60).
