@@ -86,7 +86,7 @@ func TickCollectors(s *core.Session, tx *world.Tx) {
 		return
 	}
 	l.seconds = 0
-	// the old essence bloom harvest counter counts the essences collected
+	// the bloom_ess counter counts the essences collected
 	if n := handOut(s); n > 0 {
 		achievement.CountAll(tx, "bloom_ess", int64(n))
 	}
