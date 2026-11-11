@@ -91,8 +91,8 @@ Join 60 progress.sendRecipes
 Join 70 screens.board
 Join 80 dimension.joined
 Leave 10 dimension.leave
+Leave 15 expand.stop
 Leave 20 core.parts
-Leave 30 expand.stop
 Leave 40 look.clear
 Leave 50 core.shapes
 Leave 60 screens.board

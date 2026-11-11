@@ -134,3 +134,29 @@ func TestExpansionMap(t *testing.T) {
 		}
 	})
 }
+
+// TestLeaveEndsExpansionMode: a player who leaves the session in expansion
+// mode gets back the game mode it had before, through the kernel's Leave
+// with the kernel's own steps (core.parts drops the player's entries).
+func TestLeaveEndsExpansionMode(t *testing.T) {
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		p.SetGameMode(world.GameModeSurvival)
+		expand.Show(s.Session, p)
+		if _, ok := expand.Of(s.Session, p); !ok {
+			t.Fatal("not in expansion mode")
+		}
+		s.Leave(p)
+		if _, ok := expand.Of(s.Session, p); ok {
+			t.Fatal("still in expansion mode after leaving")
+		}
+		if m := p.GameMode(); m != world.GameModeSurvival {
+			t.Fatalf("game mode %T after leaving, want survival", m)
+		}
+		if p.Immobile() {
+			t.Fatal("player still frozen after leaving")
+		}
+	})
+}

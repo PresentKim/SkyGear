@@ -316,7 +316,7 @@ Dragonfly 자체를 확장하는 방법은 [dragonfly.md](dragonfly.md) 에 있�
 - `UseOnBlock` 에서는 `dimension.hunting`(10), `screens.menuItem`(20), `dimension.stone`(30)이 두 가드(`expand.guard` 40, `island.guard` 50)보다 앞이고, 블록을 쓰는 단계(`copier.use` 70부터)는 가드 뒤다. `fairy.time`(140) 다음에 `farm.crop`(150)이 돌고, 옆 칸 가드(`expand.guardSide` 160, `island.guardSide` 170)는 그 뒤다.
 - `UseOnBlock` 에서는 사냥 검사(`dimension.hunting`)가 메뉴 아이템(`screens.menuItem`)보다 앞이고, `Use` 에서는 메뉴 아이템(20)이 사냥 검사(30)보다 앞이다. `Use` 의 `autofill.use`(10)는 메뉴 아이템보다 앞이다.
 - `Second` 에서 `progress.checkHeld`(20)는 `dimension.second`(60)보다 앞이다. 앞의 것이 플레이어가 든 아이템을 읽어 파트에 두고, 뒤의 것이 `RetireItems` 로 아이템을 정리한다. `progress.collection`(120)이 그 파트를 읽는다.
-- `Leave` 에서 `dimension.leave`(10)는 `core.parts`(20)보다 앞이다. `core.parts` 는 `Players` 의 플레이어 항목을 지우므로, 그 뒤(`expand.stop` 30 등)에 도는 구독자는 `Players` 에서 그 플레이어의 항목을 찾지 못한다. 플레이어별 데이터를 읽어야 하는 퇴장 단계는 20 앞에 둔다.
+- `Leave` 에서 `dimension.leave`(10)와 `expand.stop`(15)은 `core.parts`(20)보다 앞이다. `expand.stop` 은 `expanding` 항목에 둔 게임 모드를 되돌리므로 항목이 지워지기 전에 돈다. `core.parts` 는 `Players` 의 플레이어 항목을 지우므로, 그 뒤(`look.clear` 40 등)에 도는 구독자는 `Players` 에서 그 플레이어의 항목을 찾지 못한다. 플레이어별 데이터를 읽어야 하는 퇴장 단계는 20 앞에 둔다.
 - `Close` 에서는 구독자 뒤에 저장 파트 쓰기와 세션 등록 해제가 온다. 구독자는 세션이 아직 등록된 상태에서 돈다.
 
 ## 기능의 데이터

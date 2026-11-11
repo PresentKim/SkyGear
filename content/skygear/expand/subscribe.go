@@ -35,9 +35,11 @@ func subscribeHold() {
 	})
 }
 
-// Island expansion mode ends when the player leaves.
+// Island expansion mode ends when the player leaves. It runs before
+// core.parts drops the player's entries: Stop finds the expansion there and
+// restores the saved game mode, the movement and the camera.
 func subscribeLeave() {
-	core.Leave.On(30, "expand.stop", func(e core.Presence) {
+	core.Leave.On(15, "expand.stop", func(e core.Presence) {
 		Stop(e.S, e.P, e.Tx)
 	})
 }

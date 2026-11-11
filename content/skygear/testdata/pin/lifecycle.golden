@@ -32,10 +32,10 @@ Join/first: screens.menuItem fairy.backfillDust climate.showWeather core.shapes 
 Join/purge: screens.menuItem fairy.backfillDust climate.showWeather core.shapes island.purgeLost progress.sendRecipes screens.board dimension.joined | lost=1
 Join/spectator: screens.menuItem fairy.backfillDust climate.showWeather core.shapes island.purgeLost progress.sendRecipes screens.board dimension.joined | mode=world.survival
 Join/withOther: screens.menuItem fairy.backfillDust climate.showWeather core.shapes island.purgeLost progress.sendRecipes screens.board dimension.joined | slot8=none players=2
-Leave/expanding: dimension.leave core.parts expand.stop look.clear core.shapes screens.board progress.recipes | expanding=false mode=expand.ViewOnlyMode
-Leave/hunting: dimension.leave island.lost core.parts expand.stop look.clear core.shapes screens.board progress.recipes | hunting=false run=false inArena=false
-Leave/plain: dimension.leave core.parts expand.stop look.clear core.shapes screens.board progress.recipes | diedFood=0 players=1
-Leave/withOther: dimension.leave core.parts expand.stop look.clear core.shapes screens.board progress.recipes | diedFood=1 players=2
+Leave/expanding: dimension.leave expand.stop core.parts look.clear core.shapes screens.board progress.recipes | expanding=false mode=world.survival
+Leave/hunting: dimension.leave island.lost expand.stop core.parts look.clear core.shapes screens.board progress.recipes | hunting=false run=false inArena=false
+Leave/plain: dimension.leave expand.stop core.parts look.clear core.shapes screens.board progress.recipes | diedFood=0 players=1
+Leave/withOther: dimension.leave expand.stop core.parts look.clear core.shapes screens.board progress.recipes | diedFood=1 players=2
 NewDay/noPlayers: island.purgeLost game.newDay | lost=1 players=0
 NewDay/onePlayer: island.purgeLost game.newDay | lost=1 players=1
 NewDay/twoPlayers: island.purgeLost game.newDay | lost=0 players=2
