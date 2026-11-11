@@ -6,7 +6,6 @@ package look
 
 import (
 	"fmt"
-	"math"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -26,7 +25,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
-	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/storage"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 	"github.com/presentkim/skygear/content/skygear/tinker"
@@ -166,18 +164,6 @@ func Info(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		}
 		if p.Sneaking() && b.State != nil {
 			info.Lines = append(info.Lines, detailLines(lang, b.State)...)
-		}
-	case storage.Drawer:
-		// The drawer stays the icon; the held item shows like a chest's, a
-		// slot with its count under it; the lock and upgrades show on the
-		// drawer's front and, while sneaking, in the panel.
-		if b.Item.Empty() {
-			info.Lines = []string{i18n.T(lang, "look.empty")}
-		} else {
-			info.Container = &waila.Container{Layout: waila.LayoutChest, Items: []item.Stack{b.Item.Grow(int(min(b.Count, math.MaxInt32)) - b.Item.Count())}}
-		}
-		if p.Sneaking() {
-			info.Lines = append(info.Lines, drawerDetail(lang, b)...)
 		}
 	case block.Composter:
 		info.Lines = farm.ComposterLines(s, lang, pos, b)
@@ -394,19 +380,6 @@ func crafterLines(lang string, st *machine.State) []string {
 		lines = append(lines, i18n.T(lang, "crafter.status.working"))
 	}
 	return append(lines, machine.ConsumerLines(lang, st)...)
-}
-
-// drawerDetail are the lines a sneaking viewer gets of a drawer: its upgrades
-// and lock.
-func drawerDetail(lang string, d storage.Drawer) []string {
-	lines := []string{fmt.Sprintf(i18n.T(lang, "look.drawer.capacity"), d.Capacity, sgitem.MaxCapacityUpgrades, textfmt.Int(d.MaxItems()))}
-	if d.Void {
-		lines = append(lines, i18n.T(lang, "look.drawer.void"))
-	}
-	if d.Locked {
-		lines = append(lines, i18n.T(lang, "look.drawer.locked"))
-	}
-	return lines
 }
 
 // lastLook is when each player's WAILA panel was last updated.
