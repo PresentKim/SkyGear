@@ -135,3 +135,29 @@ func TestHoppersFeedComposterAndBarrel(t *testing.T) {
 		}
 	})
 }
+
+// TestHopperFeedsComposter: a vanilla hopper holding wheat seeds above a
+// composter empties into it (through the composter adapter of itemio).
+func TestHopperFeedsComposter(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	compPos := cube.Pos{4, island.IslandY + 1, 4}
+	s.World.Do(func(tx *world.Tx) {
+		tx.SetBlock(compPos, block.Composter{}, nil)
+		h := block.NewHopper()
+		h.Facing = cube.FaceDown
+		hopPos := compPos.Side(cube.FaceUp)
+		_ = h.Inventory(tx, hopPos).SetItem(0, item.NewStack(block.WheatSeeds{}, 2))
+		tx.SetBlock(hopPos, h, nil)
+	})
+	tick(s, 240)
+	s.World.Do(func(tx *world.Tx) {
+		hopPos := compPos.Side(cube.FaceUp)
+		if left := tx.Block(hopPos).(block.Hopper).Inventory(tx, hopPos).Slots()[0]; !left.Empty() {
+			t.Errorf("the hopper still holds %v", left)
+		}
+		if n := farm.ComposterCount(s.Session, compPos, tx.Block(compPos).(block.Composter)); n != 2 {
+			t.Errorf("the composter holds %d, want 2", n)
+		}
+	})
+}

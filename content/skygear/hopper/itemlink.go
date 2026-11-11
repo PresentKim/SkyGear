@@ -1,8 +1,6 @@
 package hopper
 
 import (
-	"sync"
-
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -11,7 +9,13 @@ import (
 	"github.com/presentkim/skygear/common/itemio"
 )
 
-var RegisterItemIOOnce sync.Once
+// The vanilla hopper moves items through StepHopper (the Dragonfly patch hook
+// block.HopperTransfer), which needs no session.
+func init() {
+	block.HopperTransfer = func(h block.Hopper, pos cube.Pos, tx *world.Tx) (bool, bool) {
+		return StepHopper(tx, pos, h.Inventory(tx, pos), h.Facing, cube.FaceUp)
+	}
+}
 
 // hopperCooldown is the ticks a hopper waits after it moved an item
 // (vanilla's 8).

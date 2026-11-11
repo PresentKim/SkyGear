@@ -51,7 +51,7 @@ type Adapter func(tx, pos, b) (Inserter, Extractor) // 메서드를 못 붙이�
 
 ## 새 블록을 붙이려면
 
-1. 블록 타입에 `Inserter`·`Extractor` 를 구현한다(또는 어댑터를 등록한다: `registerItemIO`).
+1. 블록 타입에 `Inserter`·`Extractor` 를 구현한다(또는 어댑터를 등록한다: 퇴비통은 `farm/subscribe.go`의 `registerComposterIO`).
 2. 면 규칙을 정한다(어느 면이 입력이고 어느 면이 출력인가). 이웃 블록이 누구든 상관없이 동작해야 한다.
 3. 상태가 세이브에 있어야 하면 값 갱신 뒤 블록 표시도 갱신한다(서랍 `storage.SetDrawer`, 배럴 `showBarrel`).
 4. 테스트: 호퍼 위·아래에 두고 틱을 돌려 확인한다(`TestHoppersFeedComposterAndBarrel`, `TestHandsFreeLine`).

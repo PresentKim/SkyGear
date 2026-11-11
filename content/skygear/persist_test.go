@@ -56,8 +56,6 @@ func openPersisted(t *testing.T, dir string) (*session, func()) {
 	s.state = savedState.Of(c)
 	g.sessions.Store(w, s)
 	core.Register(c)
-	activeGame = g
-	registerItemIO()
 	w.Handle(&core.WorldHandler{S: s.Session})
 	loadAround(s)
 	closed := false

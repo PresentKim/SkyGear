@@ -142,8 +142,6 @@ func pinLifeSession(t *testing.T) (*session, *pinStore) {
 	g.sessions.Store(w, s)
 	core.Register(c)
 	t.Cleanup(func() { core.Unregister(c) })
-	activeGame = g
-	registerItemIO()
 	w.Handle(&core.WorldHandler{S: s.Session})
 	return s, st
 }
@@ -588,8 +586,6 @@ func pinStart(t *testing.T) string {
 	}
 	defer func() { _ = d.Close() }()
 	g := &Game{log: slog.New(slog.DiscardHandler), db: d, release: "test"}
-	activeGame = g
-	registerItemIO()
 	lobby := world.Config{Entities: entity.DefaultRegistry.Config().New(EntityTypes())}.New()
 	defer func() { _ = lobby.Close() }()
 	m := instance.NewManager(slog.New(slog.DiscardHandler), d, instance.Config{

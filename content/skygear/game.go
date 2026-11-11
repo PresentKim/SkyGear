@@ -41,19 +41,13 @@ type Game struct {
 	sessions sync.Map // *world.World -> *session
 }
 
-// activeGame is the game used by blocks, whose methods have no other way to
-// reach their session.
-var activeGame = &Game{}
-
 // New creates the game and registers its commands. There is one game per
 // process. isOperator, if not nil, allows players to use the operator tools.
 // release is the running server release.
 func New(log *slog.Logger, d *db.DB, isOperator func(*player.Player) bool, release string) *Game {
 	g := &Game{log: log, db: d, isOperator: isOperator, release: release}
-	activeGame = g
 	registerCommands(g)
 	catalog.RegisterCreativeItems()
-	registerItemIO()
 	registerAdmin(g)
 	registerDebug(g)
 	go codex.Index(i18n.Default)
@@ -145,14 +139,6 @@ func (s *session) Relocate(pos mgl64.Vec3) bool { return core.InArena(pos) }
 func (s *session) Close(tx *world.Tx) {
 	s.Lifecycle.Close(tx)
 	s.g.sessions.Delete(s.World)
-}
-
-// activeGameSession is the session of the world of tx, nil if it has none.
-func activeGameSession(tx *world.Tx) *session {
-	if s, ok := activeGame.sessionOf(tx.World()); ok {
-		return s
-	}
-	return nil
 }
 
 // EntityTypes returns the default entity types plus those of the listed
