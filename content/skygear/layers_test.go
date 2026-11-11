@@ -249,10 +249,12 @@ func TestFeatureNames(t *testing.T) {
 }
 
 // onlyImports are the packages of the game that may import nothing of the
-// game but the listed packages: the look panel asks blocks through an
-// interface (waila.Provider) and so knows no feature.
+// game but the listed packages: the look panel and the slot decoration ask
+// blocks and items through an interface (waila.Provider, slotdeco.Decorated)
+// and so know no feature and no item type.
 var onlyImports = map[string][]string{
-	"look": {"core", "naming"},
+	"look":  {"core", "naming"},
+	"decor": {"naming", "tinker"},
 }
 
 // TestCapabilityImports: the packages of onlyImports import only what their

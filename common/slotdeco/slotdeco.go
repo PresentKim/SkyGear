@@ -111,3 +111,9 @@ func Of(s string) (Rarity, int) {
 	}
 	return r, tier
 }
+
+// Decorated is an item that has a rarity or a tier badge of its own.
+type Decorated interface {
+	// Decor returns the item's rarity and its tier (0: no pips).
+	Decor() (Rarity, int)
+}
