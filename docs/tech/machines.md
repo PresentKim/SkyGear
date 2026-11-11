@@ -15,7 +15,7 @@
   식별자는 `skygear:<종류>` 다. 모델·텍스처는 리소스팩 `assets/resourcepack/skygear/`(`models/blocks/`, `textures/`)에 있고, Go 에는 식별자·재질 이름만 둔다(`blockmodel/models.go`·`sieve.go`).
 - 체 세 종류는 상태 하나(`skygear:look`, 끼운 메쉬 단계×내용물×높이의 번호 `000`~)가 있는 블록이라 메쉬(여섯 단계, 단계마다 색이 다른 `sieve_mesh_<단계>` 텍스처를 입힌 가로세로 막대 여덟 개)와 내용물·진행(8단계, 높이 6픽셀에서 1픽셀까지)이 모델에 보인다. 모델과 메쉬 텍스처는 Ex Nihilo Fabrico 의 체·메쉬 모델에서 `tools/fabricotex` 가 만든다(창 없음, [sieve.go](../../content/skygear/machine/sieve.go)). 상태를 하나로 둔 것은 클라이언트가 런타임 ID를 상태 순서대로 짝짓기 때문이다.
 - 설치된 기계는 `machineState`(포인터)를 가진다. Dragonfly 상자처럼 블록 값이 상태를 가리키고,
-  블록 엔티티 NBT(`Items`, `Progress`, `Owner`, `OwnerName`)로 월드와 함께 저장된다.
+  블록 엔티티 NBT(`Items`, `Progress` …)로 월드와 함께 저장된다.
   설치할 때는 `HandleBlockPlace` → `placeMachine` 이 새 상태로 바꿔 놓는다.
 - 기계 인벤토리는 27칸 `chestui.Storage` 그 자체다. 창의 칸이 곧 입력·출력 칸이고, 나머지는 회색 판유리(조작 불가).
   창 제목의 표식(`§d§m§<n>`)으로 리소스팩이 기계별 레이아웃을 골라 필요한 칸만 보여 준다([json-ui.md](json-ui.md)). 자동 농작물 수확기는 채굴기 레이아웃(`§d§m§3`)을 같이 쓴다. `§d§m§2`는 링·출력 4칸·게이지가 있는 레이아웃이다.

@@ -14,7 +14,7 @@ import (
 func TestHarvesterHarvestsGrownCrops(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindHarvester, "")
+	st := placeTestMachine(s, machinePos, machine.KindHarvester)
 	// A seed to replant with even if the wheat drops none.
 	_ = st.Inv().SetItem(st.Def.Output[0], item.NewStack(block.WheatSeeds{}, 1))
 	wheat, young, melon := machinePos.Add(cube.Pos{2, 0, 0}), machinePos.Add(cube.Pos{-2, 0, 1}), machinePos.Add(cube.Pos{0, 0, 3})
@@ -79,7 +79,7 @@ func TestHarvestedCropsAreYoung(t *testing.T) {
 // TestReplantUsesSeeds: replanting takes a seed from the drops, else from
 // the output; without one the crop is not replanted.
 func TestReplantUsesSeeds(t *testing.T) {
-	st := machine.New(machine.KindHarvester, "", "").State
+	st := machine.New(machine.KindHarvester).State
 	young := block.WheatSeeds{}
 	after, drops := farm.ReplantSeed(st, young, []item.Stack{item.NewStack(item.Wheat{}, 1), item.NewStack(block.WheatSeeds{}, 2)})
 	if _, ok := after.(block.WheatSeeds); !ok || drops[1].Count() != 1 {

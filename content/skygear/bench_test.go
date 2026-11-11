@@ -24,7 +24,7 @@ func benchSession(b *testing.B) *session {
 // BenchmarkMachineTick ticks a powered crusher that always has input.
 func BenchmarkMachineTick(b *testing.B) {
 	s := benchSession(b)
-	st := placeTestMachine(s, machinePos, machine.KindCrusher, "")
+	st := placeTestMachine(s, machinePos, machine.KindCrusher)
 	b.ReportAllocs()
 	b.ResetTimer()
 	for range b.N {
@@ -41,7 +41,7 @@ func BenchmarkMachineTick(b *testing.B) {
 // BenchmarkMachineTickStuck ticks a crusher whose output is full.
 func BenchmarkMachineTickStuck(b *testing.B) {
 	s := benchSession(b)
-	st := placeTestMachine(s, machinePos, machine.KindCrusher, "")
+	st := placeTestMachine(s, machinePos, machine.KindCrusher)
 	for i, slot := range st.Def.Output {
 		_ = st.Inv().SetItem(slot, item.NewStack(block.Dirt{}, 64).WithValue("fill", i))
 	}
@@ -87,7 +87,7 @@ func BenchmarkBundleTick(b *testing.B) {
 // generator and 10 machines.
 func BenchmarkEnergyStep(b *testing.B) {
 	s := benchSession(b)
-	gen := placeTestMachine(s, machinePos, machine.KindGenerator, "")
+	gen := placeTestMachine(s, machinePos, machine.KindGenerator)
 	gen.Unlimited = false
 	s.World.Do(func(tx *world.Tx) {
 		for i := range 50 {
@@ -95,7 +95,7 @@ func BenchmarkEnergyStep(b *testing.B) {
 		}
 	})
 	for i := range 10 {
-		m := placeTestMachine(s, machinePos.Add(cube.Pos{1 + i*5, 0, 1}), machine.KindCrusher, "")
+		m := placeTestMachine(s, machinePos.Add(cube.Pos{1 + i*5, 0, 1}), machine.KindCrusher)
 		m.Unlimited = false
 	}
 	_ = gen.Insert(item.NewStack(item.Coal{}, 64))
@@ -110,7 +110,7 @@ func BenchmarkEnergyStep(b *testing.B) {
 func BenchmarkControllerPeek(b *testing.B) {
 	s := benchSession(b)
 	ctl := machinePos
-	placeTestMachine(s, ctl, machine.KindDrawerController, "")
+	placeTestMachine(s, ctl, machine.KindDrawerController)
 	s.World.Do(func(tx *world.Tx) {
 		n := 0
 		for dy := 0; dy < 2 && n < 50; dy++ {

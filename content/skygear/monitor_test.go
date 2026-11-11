@@ -24,7 +24,7 @@ func runSeconds(s *session, n int) {
 func TestProductionRecorded(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindFurnace, "")
+	st := placeTestMachine(s, machinePos, machine.KindFurnace)
 	_ = st.Inv().SetItem(11, item.NewStack(block.Cobblestone{}, 3))
 	tick(s, 3*(machine.Kinds[machine.KindFurnace].Interval+2))
 	made := machine.OutputCount(st, block.Stone{})
@@ -79,7 +79,7 @@ func TestMinuteWindows(t *testing.T) {
 func TestStallAlert(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindFurnace, "")
+	st := placeTestMachine(s, machinePos, machine.KindFurnace)
 	_ = st.Inv().SetItem(11, item.NewStack(block.Cobblestone{}, 64))
 	for _, slot := range st.Def.Output {
 		_ = st.Inv().SetItem(slot, item.NewStack(block.Dirt{}, 64))
@@ -123,7 +123,7 @@ func TestStallAlert(t *testing.T) {
 func TestStarvedIsQuiet(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindFurnace, "")
+	st := placeTestMachine(s, machinePos, machine.KindFurnace)
 	_ = st.Inv().SetItem(11, item.NewStack(block.Cobblestone{}, 1))
 	tick(s, machine.Kinds[machine.KindFurnace].Interval+5)
 	runSeconds(s, 1)
@@ -141,7 +141,7 @@ func TestStarvedIsQuiet(t *testing.T) {
 func TestStatsScreens(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindFurnace, "")
+	st := placeTestMachine(s, machinePos, machine.KindFurnace)
 	_ = st.Inv().SetItem(11, item.NewStack(block.Cobblestone{}, 2))
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {

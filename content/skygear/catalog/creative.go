@@ -58,9 +58,7 @@ func RegisterCreativeItems() {
 		}
 		add(construction, conduit.NetConduit{})
 		for _, k := range machine.Order {
-			if k != machine.KindSellBox {
-				add(construction, machine.Machine{Kind: k})
-			}
+			add(construction, machine.Machine{Kind: k})
 		}
 		add(construction, sgitem.Dust{})
 		for _, c := range item.Colours() {

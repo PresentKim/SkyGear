@@ -11,7 +11,7 @@ import (
 // stuckCrusher is a crusher holding a finished cycle whose output is full.
 func stuckCrusher(t *testing.T) *State {
 	t.Helper()
-	st := New(KindCrusher, "", "").State
+	st := New(KindCrusher).State
 	for i, slot := range st.Def.Output {
 		_ = st.Inv().SetItem(slot, item.NewStack(block.Dirt{}, 64).WithValue("fill", i))
 	}
@@ -71,7 +71,7 @@ func TestStuckKeepsStatus(t *testing.T) {
 }
 
 func TestFitsNoAllocs(t *testing.T) {
-	st := New(KindCrusher, "", "").State
+	st := New(KindCrusher).State
 	stacks := []item.Stack{item.NewStack(block.Dirt{}, 3)}
 	if !Fits(st.Inv(), st.Def.Output, stacks) {
 		t.Fatal("does not fit")

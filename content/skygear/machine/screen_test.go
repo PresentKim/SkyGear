@@ -30,7 +30,7 @@ func TestMachineScreenHeight(t *testing.T) {
 }
 
 func TestMachineScreenRedrawsOnlyOnVisibleChange(t *testing.T) {
-	st := New(KindCrusher, "", "").State
+	st := New(KindCrusher).State
 	shown := st.screenLook()
 	st.Progress = st.CycleLen() / 20
 	if st.screenLook() != shown {
@@ -48,7 +48,7 @@ func TestMachineScreenRedrawsOnlyOnVisibleChange(t *testing.T) {
 }
 
 func TestMachineScreenRedrawsOnTargetChange(t *testing.T) {
-	st := New(KindMiner, "", "").State
+	st := New(KindMiner).State
 	shown := st.screenLook()
 	st.target = "minecraft:stone"
 	if st.screenLook() == shown {
@@ -57,7 +57,7 @@ func TestMachineScreenRedrawsOnTargetChange(t *testing.T) {
 }
 
 func TestMachineScreenHolds(t *testing.T) {
-	st := New(KindCrusher, "", "").State
+	st := New(KindCrusher).State
 	cobble := item.NewStack(block.Cobblestone{}, 1)
 	if st.holds(cobble) {
 		t.Fatal("an empty crusher holds cobblestone")

@@ -16,7 +16,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/storage"
-	"github.com/presentkim/skygear/platform/instance"
 )
 
 // debugFactory builds a load-test factory: count modules in a grid centred
@@ -57,7 +56,7 @@ func (c debugFactory) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		if max(core.Abs(at[0]-feet[0]), core.Abs(far[0]-feet[0]), core.Abs(at[2]-feet[2]), core.Abs(far[2]-feet[2])) > reach {
 			outside++
 		}
-		s.buildFactoryModule(tx, at, instance.AccountID(p), p.Name(), &built)
+		s.buildFactoryModule(tx, at, &built)
 	}
 	o.Printf(i18n.T(i18n.Default, "skygear.admin.factory.built"), n, built.machines, built.drawers, built.hoppers, built.crops, built.blocks, outside)
 }
@@ -69,7 +68,7 @@ type factoryCount struct {
 
 // buildFactoryModule builds one module whose platform's north-west corner
 // is o (the platform is at o's height, everything else above it).
-func (s *session) buildFactoryModule(tx *world.Tx, o cube.Pos, owner, ownerName string, n *factoryCount) {
+func (s *session) buildFactoryModule(tx *world.Tx, o cube.Pos, n *factoryCount) {
 	set := func(dx, dy, dz int, b world.Block) cube.Pos {
 		pos := o.Add(cube.Pos{dx, dy, dz})
 		tx.SetBlock(pos, b, nil)
@@ -77,7 +76,7 @@ func (s *session) buildFactoryModule(tx *world.Tx, o cube.Pos, owner, ownerName 
 		return pos
 	}
 	placeMachine := func(dx, dy, dz int, kind string) {
-		m := machine.New(kind, owner, ownerName)
+		m := machine.New(kind)
 		// Test factories run without energy.
 		m.State.Unlimited = true
 		if machine.IsSieve(kind) {
@@ -193,7 +192,6 @@ func (c debugDense) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	rows := (n + cols - 1) / cols
 	feet := cube.PosFromVec3(p.Position())
 	origin := feet.Add(cube.Pos{-cols, -1, -rows / 2})
-	owner, name := instance.AccountID(p), p.Name()
 	for i := range n {
 		at := origin.Add(cube.Pos{(i % cols) * 2, 0, i / cols})
 		set := func(dx, dy int, b world.Block) cube.Pos {
@@ -205,7 +203,7 @@ func (c debugDense) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		set(1, 0, block.Stone{})
 		set(0, 1, block.Cobblestone{})
 		set(0, 2, block.Cobblestone{})
-		miner, crusher := machine.New(machine.KindMiner, owner, name), machine.New(machine.KindCrusher, owner, name)
+		miner, crusher := machine.New(machine.KindMiner), machine.New(machine.KindCrusher)
 		miner.State.Unlimited, crusher.State.Unlimited = true, true
 		set(0, 4, miner)
 		set(1, 4, crusher)

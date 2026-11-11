@@ -455,12 +455,12 @@ func TestDrawerController(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	ctl := machinePos
-	placeTestMachine(s, ctl, machine.KindDrawerController, "")
+	placeTestMachine(s, ctl, machine.KindDrawerController)
 	s.World.Do(func(tx *world.Tx) {
 		a, b := ctl.Add(cube.Pos{1, 0, 0}), ctl.Add(cube.Pos{2, 0, 0})
 		tx.SetBlock(a, storage.Drawer{Facing: cube.South}, nil)
 		tx.SetBlock(b, storage.Drawer{Facing: cube.South}, nil)
-		tx.SetBlock(ctl.Add(cube.Pos{0, 0, 1}), machine.New(machine.KindDrawerTrim, "", ""), nil)
+		tx.SetBlock(ctl.Add(cube.Pos{0, 0, 1}), machine.New(machine.KindDrawerTrim), nil)
 		c := ctl.Add(cube.Pos{0, 0, 2})
 		tx.SetBlock(c, storage.Drawer{Facing: cube.South}, nil)
 		// out of reach and unconnected
@@ -512,7 +512,7 @@ func TestStorageSearchAndDeposit(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	ctl := machinePos
-	placeTestMachine(s, ctl, machine.KindDrawerController, "")
+	placeTestMachine(s, ctl, machine.KindDrawerController)
 	s.World.Do(func(tx *world.Tx) {
 		a, b := ctl.Add(cube.Pos{1, 0, 0}), ctl.Add(cube.Pos{2, 0, 0})
 		tx.SetBlock(a, storage.Drawer{Facing: cube.South}, nil)
@@ -561,7 +561,7 @@ func TestControllerSneakClickOpensNoList(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	ctl := machinePos
-	placeTestMachine(s, ctl, machine.KindDrawerController, "")
+	placeTestMachine(s, ctl, machine.KindDrawerController)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), storage.Drawer{Facing: cube.South}, nil)
@@ -601,7 +601,7 @@ func TestControllerClickInsertsHeldItem(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	ctl := machinePos
-	placeTestMachine(s, ctl, machine.KindDrawerController, "")
+	placeTestMachine(s, ctl, machine.KindDrawerController)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), storage.Drawer{Facing: cube.South}, nil)
@@ -665,11 +665,11 @@ func TestControllerDoubleClickInsertsInventory(t *testing.T) {
 			s := testSession(t)
 			loadAround(s)
 			ctl := machinePos
-			placeTestMachine(s, ctl, machine.KindDrawerController, "")
+			placeTestMachine(s, ctl, machine.KindDrawerController)
 			used := ctl
 			if kind == machine.KindDrawerInterface {
 				used = ctl.Add(cube.Pos{3, 0, 0})
-				placeTestMachine(s, used, machine.KindDrawerInterface, "")
+				placeTestMachine(s, used, machine.KindDrawerInterface)
 			}
 			h := spawnPlayer(s)
 			withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
@@ -699,18 +699,18 @@ func TestDrawerInterfaceActsForItsController(t *testing.T) {
 	loadAround(s)
 	ctl := machinePos
 	iface := ctl.Add(cube.Pos{0, 0, 3})
-	placeTestMachine(s, iface, machine.KindDrawerInterface, "")
+	placeTestMachine(s, iface, machine.KindDrawerInterface)
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(ctl.Add(cube.Pos{0, 0, 2}), storage.Drawer{Facing: cube.South}, nil)
 		if n := storage.ControllerInsert(tx, iface, item.NewStack(block.Cobblestone{}, 1)); n != 0 {
 			t.Errorf("an interface without a controller took %d", n)
 		}
 	})
-	placeTestMachine(s, ctl, machine.KindDrawerController, "")
+	placeTestMachine(s, ctl, machine.KindDrawerController)
 	s.World.Do(func(tx *world.Tx) {
 		storage.InvalidateNetworks(s.Session)
 		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), storage.Drawer{Facing: cube.South}, nil)
-		tx.SetBlock(ctl.Add(cube.Pos{0, 0, 1}), machine.New(machine.KindDrawerTrim, "", ""), nil)
+		tx.SetBlock(ctl.Add(cube.Pos{0, 0, 1}), machine.New(machine.KindDrawerTrim), nil)
 		tx.SetBlock(ctl.Add(cube.Pos{0, 0, 2}), storage.Drawer{Facing: cube.South}, nil)
 		m := tx.Block(iface).(machine.Machine)
 		if n := m.InsertItems(tx, iface, cube.FaceUp, item.NewStack(block.Cobblestone{}, 10)); n != 10 {
@@ -734,15 +734,15 @@ func TestTwoControllersStopTheSet(t *testing.T) {
 	ctl := machinePos
 	other := ctl.Add(cube.Pos{2, 0, 0})
 	iface := ctl.Add(cube.Pos{1, 0, 1})
-	placeTestMachine(s, ctl, machine.KindDrawerController, "")
-	placeTestMachine(s, iface, machine.KindDrawerInterface, "")
+	placeTestMachine(s, ctl, machine.KindDrawerController)
+	placeTestMachine(s, iface, machine.KindDrawerInterface)
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), storage.Drawer{Facing: cube.South}, nil)
 		if n := len(storage.Network(tx, ctl)); n != 1 {
 			t.Fatalf("%d drawers with one controller, want 1", n)
 		}
 	})
-	placeTestMachine(s, other, machine.KindDrawerController, "")
+	placeTestMachine(s, other, machine.KindDrawerController)
 	s.World.Do(func(tx *world.Tx) {
 		storage.InvalidateNetworks(s.Session)
 		for _, at := range []cube.Pos{ctl, other, iface} {

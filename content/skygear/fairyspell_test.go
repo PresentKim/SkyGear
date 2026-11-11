@@ -87,7 +87,7 @@ func TestSnowRunsMachinesFaster(t *testing.T) {
 		if snow {
 			cast(t, s, climate.Snow)
 		}
-		st := placeTestMachine(s, machinePos, machine.KindCrusher, "")
+		st := placeTestMachine(s, machinePos, machine.KindCrusher)
 		st.Unlimited = false
 		st.Energy = 1000
 		st.Insert(item.NewStack(block.Cobblestone{}, 1))

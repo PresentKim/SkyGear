@@ -65,7 +65,7 @@ func TestLabBrews(t *testing.T) {
 		t.Run(r.Out.Kind, func(t *testing.T) {
 			s := testSession(t)
 			loadAround(s)
-			st := placeTestMachine(s, machinePos, machine.KindLab, "")
+			st := placeTestMachine(s, machinePos, machine.KindLab)
 			st.SetLab(machinerecipe.LabByKind(r.Out.Kind))
 			fillLab(st, r, 2)
 			tick(s, r.Ticks/2)
@@ -98,7 +98,7 @@ func TestLabBrews(t *testing.T) {
 func TestLabWaits(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindLab, "")
+	st := placeTestMachine(s, machinePos, machine.KindLab)
 	hunting := machinerecipe.Labs[3]
 	st.SetLab(&machinerecipe.Labs[3])
 	_ = st.Inv().SetItem(st.Def.Input[0], item.NewStack(item.GlassBottle{}, 4))
@@ -118,7 +118,7 @@ func TestLabWaits(t *testing.T) {
 func TestLabStopsWithoutRoom(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindLab, "")
+	st := placeTestMachine(s, machinePos, machine.KindLab)
 	r := machinerecipe.Labs[0]
 	st.SetLab(&machinerecipe.Labs[0])
 	for _, slot := range st.Def.Output {
@@ -144,7 +144,7 @@ func TestLabStopsWithoutRoom(t *testing.T) {
 func TestLabAccepts(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindLab, "")
+	st := placeTestMachine(s, machinePos, machine.KindLab)
 	if st.Accepts(item.NewStack(item.GlassBottle{}, 1)) || st.Insert(item.NewStack(item.GlassBottle{}, 1)) {
 		t.Fatal("takes a glass bottle with no essence chosen")
 	}
@@ -182,7 +182,7 @@ func TestFarmingIngredientsGrow(t *testing.T) {
 func TestLabNoticesAnIngredientTakenAway(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindLab, "")
+	st := placeTestMachine(s, machinePos, machine.KindLab)
 	r := machinerecipe.Labs[1]
 	st.SetLab(&machinerecipe.Labs[1])
 	fillLab(st, r, 1)
@@ -202,7 +202,7 @@ func TestLabNoticesAnIngredientTakenAway(t *testing.T) {
 func TestLabFeedLeavesRoom(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindLab, "")
+	st := placeTestMachine(s, machinePos, machine.KindLab)
 	st.SetLab(machinerecipe.LabByKind(sgitem.EssenceEngineering))
 	iron := item.NewStack(item.IronIngot{}, 1)
 	fed := 0
@@ -227,7 +227,7 @@ func TestLabFeedLeavesRoom(t *testing.T) {
 func TestLabScreen(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindLab, "")
+	st := placeTestMachine(s, machinePos, machine.KindLab)
 	conduit, _ := progress.ByID("energy_conduit")
 	progress.StateOf(s.Session).Researched = map[string]bool{}
 	for _, id := range conduit.Needs {
@@ -291,7 +291,7 @@ func countIn(p *player.Player, it world.Item) int {
 func TestLabSaved(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindLab, "")
+	st := placeTestMachine(s, machinePos, machine.KindLab)
 	st.SetLab(machinerecipe.LabByKind(sgitem.EssenceMagic))
 	back := machine.Machine{Kind: machine.KindLab}.DecodeNBT(machine.Machine{Kind: machine.KindLab, State: st}.EncodeNBT()).(machine.Machine)
 	if back.State.Lab == nil || back.State.Lab.Out.Kind != sgitem.EssenceMagic {

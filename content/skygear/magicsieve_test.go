@@ -79,7 +79,7 @@ func TestThemeChance(t *testing.T) {
 func TestMagicSieveCharging(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindMagicSieve, "")
+	st := placeTestMachine(s, machinePos, machine.KindMagicSieve)
 	ess := item.NewStack(sgitem.Essence{Mob: sgitem.MobPiglin}, 2)
 	if st.SlotAccepts(10, ess) || !st.SlotAccepts(11, ess) {
 		t.Fatal("the essence belongs in the essence slot only")
@@ -163,7 +163,7 @@ func TestMagicThemeReplaces(t *testing.T) {
 func TestMagicSieveWorks(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindMagicSieve, "")
+	st := placeTestMachine(s, machinePos, machine.KindMagicSieve)
 	_ = st.Insert(item.NewStack(sgitem.Essence{Mob: sgitem.MobEnder}, 1))
 	for range 3 {
 		_ = st.Insert(item.NewStack(block.Gravel{}, 1))

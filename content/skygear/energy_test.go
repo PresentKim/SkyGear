@@ -32,7 +32,7 @@ func runSteps(s *session, n int) {
 func TestGeneratorBurnsFuelIntoEnergy(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindGenerator, "")
+	st := placeTestMachine(s, machinePos, machine.KindGenerator)
 	st.Unlimited = false
 	if !st.Insert(item.NewStack(item.Coal{}, 2)) {
 		t.Fatal("coal was not taken as fuel")
@@ -67,10 +67,10 @@ func TestGeneratorBurnsFuelIntoEnergy(t *testing.T) {
 func TestGeneratorOutOfFuelPushesStoredEnergy(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	gen := placeTestMachine(s, machinePos, machine.KindGenerator, "")
+	gen := placeTestMachine(s, machinePos, machine.KindGenerator)
 	gen.Unlimited = false
 	gen.Energy = 9605
-	sink := placeTestMachine(s, machinePos.Add(cube.Pos{1, 0, 0}), machine.KindCrusher, "")
+	sink := placeTestMachine(s, machinePos.Add(cube.Pos{1, 0, 0}), machine.KindCrusher)
 	sink.Unlimited = false
 	runSteps(s, 20)
 	if sink.Energy == 0 || gen.Energy >= 9605 {
@@ -83,9 +83,9 @@ func TestGeneratorOutOfFuelPushesStoredEnergy(t *testing.T) {
 func TestPowerLine(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	gen := placeTestMachine(s, machinePos, machine.KindGenerator, "")
+	gen := placeTestMachine(s, machinePos, machine.KindGenerator)
 	gen.Unlimited = false
-	crusher := placeTestMachine(s, machinePos.Add(cube.Pos{3, 0, 0}), machine.KindCrusher, "")
+	crusher := placeTestMachine(s, machinePos.Add(cube.Pos{3, 0, 0}), machine.KindCrusher)
 	crusher.Unlimited = false
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(machinePos.Add(cube.Pos{1, 0, 0}), conduit.Bundle{Energy: 1}, nil)
@@ -123,8 +123,8 @@ func TestPowerLine(t *testing.T) {
 func TestConduitsOnlyJoinEnergyBlocks(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	placeTestMachine(s, machinePos.Add(cube.Pos{1, 0, 0}), machine.KindCrusher, "")
-	placeTestMachine(s, machinePos.Add(cube.Pos{-1, 0, 0}), machine.KindSieve, "")
+	placeTestMachine(s, machinePos.Add(cube.Pos{1, 0, 0}), machine.KindCrusher)
+	placeTestMachine(s, machinePos.Add(cube.Pos{-1, 0, 0}), machine.KindSieve)
 	s.World.Do(func(tx *world.Tx) {
 		if conduit.JoinsEnergy(tx.Block(machinePos.Add(cube.Pos{-1, 0, 0}))) {
 			t.Error("a conduit joins a hand sieve")

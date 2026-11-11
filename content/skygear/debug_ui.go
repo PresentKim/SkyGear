@@ -87,7 +87,7 @@ func previewLater(s *core.Session, p *player.Player, kind string) {
 // previewWindow opens a sample screen of the machine kind, as if it stood
 // under the world.
 func previewWindow(s *core.Session, tx *world.Tx, p *player.Player, kind string) {
-	st := machine.New(kind, "", "").State
+	st := machine.New(kind).State
 	inv := st.Inv()
 	for i, slot := range st.Def.Input {
 		_ = inv.SetItem(slot, item.NewStack(block.Cobblestone{}, 16+i))

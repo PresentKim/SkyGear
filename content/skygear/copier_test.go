@@ -131,8 +131,8 @@ func TestCopierCrafterAndDrawer(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	progress.LocalOf(s.Session).RecipesFree = true
-	crafterA := placeTestMachine(s, machinePos, machine.KindCrafter, "")
-	crafterB := placeTestMachine(s, machinePos.Add(cube.Pos{0, 0, 3}), machine.KindCrafter, "")
+	crafterA := placeTestMachine(s, machinePos, machine.KindCrafter)
+	crafterB := placeTestMachine(s, machinePos.Add(cube.Pos{0, 0, 3}), machine.KindCrafter)
 	cr := machinerecipe.Crafters()[0]
 	crafterA.SetRecipe(cr)
 	s.World.Do(func(tx *world.Tx) {
@@ -149,7 +149,7 @@ func TestCopierCrafterAndDrawer(t *testing.T) {
 			t.Fatalf("recipe %q, want %q", crafterB.RecipeID, cr.ID)
 		}
 		// an auto crafter with no recipe has nothing to copy
-		empty := placeTestMachine(s, machinePos.Add(cube.Pos{0, 0, 6}), machine.KindCrafter, "")
+		empty := placeTestMachine(s, machinePos.Add(cube.Pos{0, 0, 6}), machine.KindCrafter)
 		_ = empty
 		blank, _ := copier.TargetOf(tx, machinePos.Add(cube.Pos{0, 0, 6}), cube.FaceNorth, mgl64Centre())
 		if _, ok := copier.ReadCard(tx, blank); ok {

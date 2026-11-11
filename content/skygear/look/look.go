@@ -328,8 +328,6 @@ func MachineLines(lang string, m machine.Machine) ([]string, *waila.ItemLine) {
 			return lines, nil
 		}
 		return lines[1:], itemLine(lang, item.NewStack(st.Lab.Out, st.Lab.OutCount))
-	case st.Def == machine.Kinds[machine.KindSellBox]:
-		lines = append(lines, i18n.T(lang, "look.machine.sellCycle")+gauge)
 	case st.Def == machine.Kinds[machine.KindHarvester]:
 		lines = append(lines, i18n.T(lang, "look.machine.harvestCycle")+gauge)
 	case st.Def == machine.Kinds[machine.KindGenerator]:

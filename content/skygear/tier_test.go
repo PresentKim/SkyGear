@@ -52,7 +52,7 @@ func TestTierSpeedsUpWork(t *testing.T) {
 	run := func(tier int) int {
 		s := testSession(t)
 		loadAround(s)
-		st := placeTestMachine(s, machinePos, machine.KindCrusher, "")
+		st := placeTestMachine(s, machinePos, machine.KindCrusher)
 		st.Tier = tier
 		_ = st.Inv().SetItem(11, item.NewStack(block.Stone{}, 64))
 		tick(s, 800)
@@ -69,7 +69,7 @@ func TestTierSpeedsUpWork(t *testing.T) {
 func TestTierEnergy(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindCrusher, "")
+	st := placeTestMachine(s, machinePos, machine.KindCrusher)
 	st.Unlimited = false
 	st.Tier = 2
 	st.Energy = st.EnergyCap()
@@ -91,7 +91,7 @@ func TestTierEnergy(t *testing.T) {
 func TestUseKit(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindCrusher, "")
+	st := placeTestMachine(s, machinePos, machine.KindCrusher)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		m := machine.Machine{Kind: machine.KindCrusher, State: st}
@@ -116,7 +116,7 @@ func TestUseKit(t *testing.T) {
 		if st.Tier != machine.MaxTier {
 			t.Fatal("the tier went past the top")
 		}
-		tank := placeTestMachine(s, machinePos.Add(cube.Pos{2, 0, 0}), machine.KindTank, "")
+		tank := placeTestMachine(s, machinePos.Add(cube.Pos{2, 0, 0}), machine.KindTank)
 		held, off = kit(1)
 		machine.UseKit(s.Session, p, tx, machinePos, machine.Machine{Kind: machine.KindTank, State: tank}, sgitem.TierKit{Level: 1}, held, off)
 		if tank.Tier != 0 {
@@ -138,7 +138,7 @@ func TestUseKit(t *testing.T) {
 // TestTierSaved: the tier is saved with the machine and the machine's name and
 // info show it.
 func TestTierSaved(t *testing.T) {
-	m := machine.New(machine.KindCrusher, "", "")
+	m := machine.New(machine.KindCrusher)
 	m.State.Tier = 2
 	back := machine.Machine{Kind: machine.KindCrusher}.DecodeNBT(m.EncodeNBT()).(machine.Machine)
 	if back.State.Tier != 2 {
@@ -151,7 +151,7 @@ func TestTierSaved(t *testing.T) {
 		t.Fatalf("buffer %d", back.State.EnergyCap())
 	}
 	// a machine that takes no kits keeps tier 0 whatever is saved
-	tank := machine.New(machine.KindTank, "", "")
+	tank := machine.New(machine.KindTank)
 	data := tank.EncodeNBT()
 	data["Tier"] = int32(3)
 	if got := (machine.Machine{Kind: machine.KindTank}).DecodeNBT(data).(machine.Machine); got.State.Tier != 0 {

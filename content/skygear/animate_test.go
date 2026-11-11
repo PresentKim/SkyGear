@@ -15,7 +15,7 @@ import (
 func TestActiveLook(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindFurnace, "")
+	st := placeTestMachine(s, machinePos, machine.KindFurnace)
 	look := func() bool {
 		on := false
 		s.World.Do(func(tx *world.Tx) { on = tx.Block(machinePos).(machine.Machine).Active })

@@ -63,11 +63,11 @@ func TestLinksNet(t *testing.T) {
 	if !LinksNet(netLink{on: true}, cube.FaceEast) || LinksNet(netLink{}, cube.FaceEast) {
 		t.Error("a net linker does not decide for itself")
 	}
-	cable := New(KindNetCable, "", "")
+	cable := New(KindNetCable)
 	if !LinksNet(cable, cube.FaceEast) {
 		t.Error("a cable does not link")
 	}
-	imp := New(KindNetImporter, "", "")
+	imp := New(KindNetImporter)
 	imp.State.Facing = cube.FaceWest
 	if LinksNet(imp, cube.FaceEast) || !LinksNet(imp, cube.FaceNorth) {
 		t.Error("an importer links on its head side, or not beside it")

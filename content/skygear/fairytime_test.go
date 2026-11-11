@@ -95,7 +95,7 @@ func TestFairyBoneMealOnPlantsAndSaplings(t *testing.T) {
 // TestFairyHourglass: it winds an energy machine up to the cap, doubles its
 // runs while it lasts, and stays on the machine's NBT; a generator takes none.
 func TestFairyHourglass(t *testing.T) {
-	m := machine.New(machine.KindCrusher, "", "")
+	m := machine.New(machine.KindCrusher)
 	st := m.State
 	if st.HourglassReps(2) != 0 {
 		t.Fatal("extra runs without an hourglass")
@@ -117,7 +117,7 @@ func TestFairyHourglass(t *testing.T) {
 	if fairy.HourglassLine("ko_KR", st) == "" {
 		t.Fatal("no WAILA line while the hourglass runs")
 	}
-	if machine.New(machine.KindGenerator, "", "").State.WindHourglass() {
+	if machine.New(machine.KindGenerator).State.WindHourglass() {
 		t.Fatal("a generator took an hourglass")
 	}
 }

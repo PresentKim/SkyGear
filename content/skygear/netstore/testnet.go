@@ -13,7 +13,7 @@ import (
 // with up to kinds stacks of registered items. It returns the terminal, or
 // false and builds nothing if any of those blocks or the ones below them
 // is not air.
-func BuildTestNet(tx *world.Tx, at cube.Pos, owner, ownerName string, kinds int) (cube.Pos, bool) {
+func BuildTestNet(tx *world.Tx, at cube.Pos, kinds int) (cube.Pos, bool) {
 	for dx := range 3 {
 		for dy := -1; dy <= 0; dy++ {
 			if _, air := tx.Block(at.Add(cube.Pos{dx, dy, 0})).(block.Air); !air {
@@ -24,7 +24,7 @@ func BuildTestNet(tx *world.Tx, at cube.Pos, owner, ownerName string, kinds int)
 	place := func(dx int, kind string) machine.Machine {
 		pos := at.Add(cube.Pos{dx, 0, 0})
 		tx.SetBlock(pos.Side(cube.FaceDown), block.Stone{}, nil)
-		m := machine.New(kind, owner, ownerName)
+		m := machine.New(kind)
 		m.State.Unlimited = kind == machine.KindNetController
 		tx.SetBlock(pos, m, nil)
 		Invalidate(tx, pos)

@@ -22,7 +22,7 @@ import (
 func TestElectricFurnace(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindFurnace, "")
+	st := placeTestMachine(s, machinePos, machine.KindFurnace)
 	if !st.Accepts(item.NewStack(block.Cobblestone{}, 1)) || st.Accepts(item.NewStack(block.Dirt{}, 1)) {
 		t.Fatal("the furnace takes the wrong inputs")
 	}
@@ -38,7 +38,7 @@ func TestElectricFurnace(t *testing.T) {
 func TestItemVacuum(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindVacuum, "")
+	st := placeTestMachine(s, machinePos, machine.KindVacuum)
 	near, far := machinePos.Vec3Centre().Add(mgl64.Vec3{3, 0, 0}), machinePos.Vec3Centre().Add(mgl64.Vec3{30, 0, 0})
 	s.World.Do(func(tx *world.Tx) {
 		tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: near}, item.NewStack(block.Cobblestone{}, 5)))
@@ -83,7 +83,7 @@ func lyingItems(s *session) int {
 func TestItemVacuumTakesItemsOnItsFloor(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindVacuum, "")
+	st := placeTestMachine(s, machinePos, machine.KindVacuum)
 	st.RangeY = 2
 	floor := machinePos.Add(cube.Pos{2, -3, 0})
 	s.World.Do(func(tx *world.Tx) {
@@ -103,7 +103,7 @@ func TestItemVacuumTakesItemsOnItsFloor(t *testing.T) {
 func TestItemVacuumOffset(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindVacuum, "")
+	st := placeTestMachine(s, machinePos, machine.KindVacuum)
 	st.RangeX, st.OffsetX = 2, 4
 	in, out := machinePos.Vec3Centre().Add(mgl64.Vec3{6, 0, 0}), machinePos.Vec3Centre().Add(mgl64.Vec3{-2, 0, 0})
 	s.World.Do(func(tx *world.Tx) {
@@ -124,7 +124,7 @@ func TestItemVacuumOffset(t *testing.T) {
 func TestTreeFeller(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindFeller, "")
+	st := placeTestMachine(s, machinePos, machine.KindFeller)
 	log := func() world.Block { return block.Log{Wood: block.OakWood()} }
 	trunk := machinePos.Add(cube.Pos{2, 0, 0})
 	s.World.Do(func(tx *world.Tx) {
@@ -170,7 +170,7 @@ func TestTreeFeller(t *testing.T) {
 func TestTreeFellerBoneMealsSaplings(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindFeller, "")
+	st := placeTestMachine(s, machinePos, machine.KindFeller)
 	sapling := machinePos.Add(cube.Pos{2, 0, 0})
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(sapling.Side(cube.FaceDown), block.Dirt{}, nil)
@@ -195,7 +195,7 @@ func TestTreeFellerBoneMealsSaplings(t *testing.T) {
 func TestTreeFellerPlantsOnAnySoilInReach(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindFeller, "")
+	st := placeTestMachine(s, machinePos, machine.KindFeller)
 	grassy := machinePos.Add(cube.Pos{2, 1, 1})
 	bare := machinePos.Add(cube.Pos{-4, -1, 2})
 	s.World.Do(func(tx *world.Tx) {
@@ -221,7 +221,7 @@ func TestAutoCrafterMakesARecipe(t *testing.T) {
 	s := testSession(t)
 	progress.LocalOf(s.Session).RecipesFree = true
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindCrafter, "")
+	st := placeTestMachine(s, machinePos, machine.KindCrafter)
 	h := st.Inv().Handler()
 	if st.Accepts(item.NewStack(block.Cobblestone{}, 1)) {
 		t.Fatal("the store takes items before a recipe is chosen")
@@ -275,7 +275,7 @@ func TestAutoCrafterMakesARecipe(t *testing.T) {
 func TestAutoCrafterOnlyMakesResearchedRecipes(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindCrafter, "")
+	st := placeTestMachine(s, machinePos, machine.KindCrafter)
 	st.Sample = machine.Item(machine.KindCrusher)
 	tick(s, 2)
 	if st.Recipe != nil {
@@ -294,12 +294,12 @@ func TestMachineStatusLines(t *testing.T) {
 	s := testSession(t)
 	progress.LocalOf(s.Session).RecipesFree = true
 	loadAround(s)
-	crusher := placeTestMachine(s, machinePos, machine.KindCrusher, "")
+	crusher := placeTestMachine(s, machinePos, machine.KindCrusher)
 	crusher.Progress = crusher.Def.Interval
 	if lines, _ := look.MachineLines(i18n.Default, machine.Machine{Kind: machine.KindCrusher, State: crusher}); !hasLine(lines, "출력 슬롯 부족") {
 		t.Errorf("a blocked crusher says %q", lines)
 	}
-	crafter := placeTestMachine(s, machinePos.Add(cube.Pos{3, 0, 0}), machine.KindCrafter, "")
+	crafter := placeTestMachine(s, machinePos.Add(cube.Pos{3, 0, 0}), machine.KindCrafter)
 	if lines, _ := look.MachineLines(i18n.Default, machine.Machine{Kind: machine.KindCrafter, State: crafter}); !hasLine(lines, "조합법 미설정") {
 		t.Errorf("a crafter without a recipe says %q", lines)
 	}
@@ -327,7 +327,7 @@ func rangeBoxAt(s *session, pos cube.Pos) (at mgl64.Vec3, ok bool) {
 func TestRangeBoxFollowsAMovedCentre(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindVacuum, "")
+	st := placeTestMachine(s, machinePos, machine.KindVacuum)
 	peek := func() {
 		s.World.Do(func(tx *world.Tx) { machine.PeekRange(tx, machinePos, tx.Block(machinePos)) })
 		tick(s, 2)

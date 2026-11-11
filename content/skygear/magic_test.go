@@ -122,7 +122,7 @@ func TestMagicSeedsAndRecipes(t *testing.T) {
 func TestHarvesterPicksBloomingPlants(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindHarvester, "")
+	st := placeTestMachine(s, machinePos, machine.KindHarvester)
 	bloom, bud := machinePos.Add(cube.Pos{2, 0, 0}), machinePos.Add(cube.Pos{-2, 0, 0})
 	s.World.Do(func(tx *world.Tx) {
 		for _, at := range []cube.Pos{bloom, bud} {

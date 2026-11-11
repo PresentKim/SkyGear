@@ -111,7 +111,7 @@ func Menu(p *player.Player, title, body string, opts ...Option) {
 // Messages from screen actions show as toasts: chat is hidden while a screen
 // is open, and a toast shows over it without interrupting the next screen.
 
-// Notify tells p about something that failed (not enough money, out of
+// Notify tells p about something that failed (not enough items, out of
 // stock, ...): a toast only, as it matters just now.
 func Notify(p *player.Player, format string, a ...any) {
 	toast(p, i18n.T(i18n.Of(p), "ui.notify.title"), fmt.Sprintf(format, a...))

@@ -26,7 +26,7 @@ func netEnv(t *testing.T, f func(s *core.Session, tx *world.Tx)) {
 }
 
 func put(tx *world.Tx, pos cube.Pos, kind string) machine.Machine {
-	m := machine.New(kind, "", "")
+	m := machine.New(kind)
 	tx.SetBlock(pos, m, nil)
 	Invalidate(tx, pos)
 	return tx.Block(pos).(machine.Machine)
@@ -167,7 +167,7 @@ func TestNodeCap(t *testing.T) {
 	netEnv(t, func(s *core.Session, tx *world.Tx) {
 		put(tx, p(0), machine.KindNetController)
 		for i := 1; i < NodeCap; i++ {
-			tx.SetBlock(p(i), machine.New(machine.KindNetCable, "", ""), nil)
+			tx.SetBlock(p(i), machine.New(machine.KindNetCable), nil)
 		}
 		st := powered(tx, p(0), 100000)
 		n := At(tx, p(0))

@@ -34,7 +34,7 @@ func TestSolarGenerator(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	climate.StateOf(s.Session).Sun = climate.SunDay
-	gen := placeTestMachine(s, machinePos, machine.KindSolarGenerator, "")
+	gen := placeTestMachine(s, machinePos, machine.KindSolarGenerator)
 	gain := func(ticks int) int {
 		before := gen.Energy
 		tick(s, ticks)
@@ -87,7 +87,7 @@ func TestHydroGenerator(t *testing.T) {
 	// the water is set without block updates and the tests tick less than
 	// the generator's recheck, so the flow they see is the one set
 	place := func(pos cube.Pos, water map[cube.Face]block.Water) *machine.State {
-		st := placeTestMachine(s, pos, machine.KindHydroGenerator, "")
+		st := placeTestMachine(s, pos, machine.KindHydroGenerator)
 		s.World.Do(func(tx *world.Tx) {
 			for f, w := range water {
 				tx.SetBlock(pos.Side(f), w, &world.SetOpts{DisableBlockUpdates: true, DisableLiquidDisplacement: true})

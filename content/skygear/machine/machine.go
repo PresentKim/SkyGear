@@ -37,7 +37,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/tinker"
 	"github.com/presentkim/skygear/content/skygear/wintext"
 	"github.com/presentkim/skygear/platform/account"
-	"github.com/presentkim/skygear/platform/instance"
 )
 
 func init() {
@@ -145,7 +144,6 @@ const (
 	// KindMagicSieve is the auto sieve with an essence slot (magicsieve.go).
 	KindMagicSieve = "magic_sieve"
 	KindMiner      = "auto_miner"
-	KindSellBox    = "sell_box"
 	// KindHarvester harvests grown crops around it (harvester.go).
 	KindHarvester = "harvester"
 	// KindGenerator burns fuel into RE (generator.go).
@@ -206,7 +204,6 @@ const (
 	idAutoSieve
 	idMagicSieve
 	idMiner
-	idSellBox
 	idHarvester
 	idGenerator
 	idAlloy
@@ -485,10 +482,6 @@ var Kinds = map[string]*Def{
 		Use: 40, EnergyCap: ConsumerBuffer,
 		helpKeys: []string{"machine.lab.help.1", "machine.lab.help.2", "machine.lab.help.3"},
 	},
-	KindSellBox: {
-		ID: idSellBox, nameKey: "machine.sellbox.name", Marker: "§d§m§4", Interval: 20, Input: []int{9, 10, 11, 12, 13, 14, 15, 16, 17}, Indicator: 4,
-		helpKeys: []string{"machine.sellbox.help.1", "machine.sellbox.help.2"},
-	},
 }
 
 // Retired are the kinds that are registered (old islands load) but never
@@ -496,7 +489,7 @@ var Kinds = map[string]*Def{
 var Retired = []string{KindGate}
 
 // Order is the registration and display order.
-var Order = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindTank, KindCrucible, KindLavaGenerator, KindSolarGenerator, KindHydroGenerator, KindWasher, KindDrawerController, KindDrawerTrim, KindDrawerInterface, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve, KindCollector, KindRelicTable, KindNetController, KindNetCable, KindDiskDrive, KindNetTerminal, KindNetImporter, KindNetExporter, KindNetExternal, KindPatternEncoder, KindNetAutocrafter}
+var Order = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindTank, KindCrucible, KindLavaGenerator, KindSolarGenerator, KindHydroGenerator, KindWasher, KindDrawerController, KindDrawerTrim, KindDrawerInterface, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve, KindCollector, KindRelicTable, KindNetController, KindNetCable, KindDiskDrive, KindNetTerminal, KindNetImporter, KindNetExporter, KindNetExternal, KindPatternEncoder, KindNetAutocrafter}
 
 // CrusherOutput is what the crusher always makes of an item: the blocks of
 // the hammer chain one step down, an ore block sgitem.CrusherRaw raw ores
@@ -568,8 +561,6 @@ type State struct {
 	rangeEntity *world.EntityHandle
 	rangeSize   int32
 	rangeAt     mgl64.Vec3
-	// owner is the account that placed a sell box and gets its money.
-	Owner, ownerName string
 	// Facing is the side a network attachment acts on (south when it was
 	// placed without a clicked face).
 	Facing cube.Face
@@ -727,9 +718,9 @@ func (st *State) DrainLegacy() {
 	}
 }
 
-func New(kind, owner, ownerName string) Machine {
+func New(kind string) Machine {
 	k := Kinds[kind]
-	st := &State{Def: k, storage: chestui.NewStorage(27, k.windowTitle(i18n.Default)), Owner: owner, ownerName: ownerName, ShownPct: -1, shownEnergy: -1, Facing: cube.FaceSouth}
+	st := &State{Def: k, storage: chestui.NewStorage(27, k.windowTitle(i18n.Default)), ShownPct: -1, shownEnergy: -1, Facing: cube.FaceSouth}
 	if kind == KindMiner {
 		st.Facing = cube.FaceDown
 	}
@@ -791,7 +782,7 @@ func (st *State) OpenWindow(p *player.Player) {
 }
 
 // infoItem is the info icon of a machine window: the machine's name, what
-// it does and, for the sell box, whose it is.
+// it does.
 func (st *State) InfoItem() item.Stack {
 	var lore []wintext.Text
 	for _, k := range st.Def.helpKeys {
@@ -803,9 +794,6 @@ func (st *State) InfoItem() item.Stack {
 		} else {
 			lore = append(lore, wintext.Text{wintext.Key("machine.collector.none")})
 		}
-	}
-	if st.Def.ID == idSellBox && st.ownerName != "" {
-		lore = append(lore, wintext.Text{wintext.Key("machine.info.owner"), wintext.Raw(st.ownerName)})
 	}
 	if st.Tier > 0 {
 		spec := st.spec()
@@ -905,7 +893,7 @@ func (st *State) Accepts(it item.Stack) bool {
 		_, ok := sievetable.Tables[st.Mesh][naming.ItemKey(it.Item())]
 		return ok || st.takesCharge(it)
 	}
-	// The sell box takes nothing.
+	// Anything else takes nothing.
 	return false
 }
 
@@ -1161,8 +1149,6 @@ func (st *State) progressPct() int { return min(100, st.Progress*100/max(1, st.C
 // which takes the percent when withPct is set.
 func (st *State) progressLook() (ring bool, key string, withPct bool) {
 	switch st.Def.ID {
-	case idSellBox:
-		return true, "machine.progress.sellCycle", false
 	case idMiner, idAutoSieve, idMagicSieve, idSimulator, idWasher, idVacuum, idFeller, idCrafter, idLab:
 		return true, "machine.progress.mining", true
 	case idGenerator:
@@ -1226,7 +1212,7 @@ func (a ProgressArrow) Name() string { return i18n.T(i18n.Default, "name.Progres
 func (ProgressArrow) Category() category.Category { return category.Items() }
 
 // CycleGauge is the indicator of machines that work in a repeating cycle
-// (auto harvester, sell box): a hollow ring filled in Step tenths, which
+// (auto harvester): a hollow ring filled in Step tenths, which
 // turns over and over like a loading circle.
 type CycleGauge struct{ Step int }
 
@@ -1305,7 +1291,7 @@ func (Machine) Category() category.Category { return category.Items() }
 // have models.
 var (
 	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindSolarGenerator: true, KindHydroGenerator: true, KindGate: true, KindDrawerController: true, KindDrawerInterface: true, KindTinker: true, KindCollector: true, KindRelicTable: true, KindNetController: true, KindDiskDrive: true, KindNetTerminal: true, KindPatternEncoder: true}
-	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true, KindCrucible: true, KindFurnace: true, KindCrafter: true, KindLab: true, KindNetAutocrafter: true}
+	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindAlloy: true, KindSimulator: true, KindCrucible: true, KindFurnace: true, KindCrafter: true, KindLab: true, KindNetAutocrafter: true}
 )
 
 // States implements block.Permutable: only the sieve has states.
@@ -1417,7 +1403,7 @@ func blankNBT(kind string) map[string]any {
 	if v, ok := blankNBTs.Load(kind); ok {
 		return v.(map[string]any)
 	}
-	data := New(kind, "", "").encodeState()
+	data := New(kind).encodeState()
 	blankNBTs.Store(kind, data)
 	return data
 }
@@ -1467,8 +1453,6 @@ func (m Machine) encodeState() map[string]any {
 		}
 	}
 	data["Recipe"] = m.State.RecipeID
-	data["Owner"] = m.State.Owner
-	data["OwnerName"] = m.State.ownerName
 	if _, head := netHeads[m.Kind]; head || m.Kind == KindMiner {
 		data["Facing"] = int32(m.State.Facing)
 	}
@@ -1476,9 +1460,7 @@ func (m Machine) encodeState() map[string]any {
 }
 
 func (m Machine) DecodeNBT(data map[string]any) any {
-	owner, _ := data["Owner"].(string)
-	ownerName, _ := data["OwnerName"].(string)
-	n := New(m.Kind, owner, ownerName)
+	n := New(m.Kind)
 	n.Shape = m.Shape
 	if f, ok := data["Facing"].(int32); ok && f >= 0 && f < 6 {
 		n.State.Facing = cube.Face(f)
@@ -1688,7 +1670,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	}
 	if m.State == nil {
 		// Placed without going through the place handler.
-		tx.SetBlock(pos, New(m.Kind, "", ""), nil)
+		tx.SetBlock(pos, New(m.Kind), nil)
 		return
 	}
 	if NetShaped(m.Kind) && currentTick%40 == 0 {
@@ -1946,7 +1928,7 @@ func viewCrack(tx *world.Tx, pos cube.Pos, a world.BlockAction) {
 
 // Place sets up a placed machine with a fresh state.
 func Place(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, kind string) {
-	m := New(kind, instance.AccountID(p), p.Name())
+	m := New(kind)
 	account.Grant(p, achievement.FirstMachine)
 	achievement.Count(p, "machine_place", 1)
 	achievement.Count(p, "place_"+kind, 1)

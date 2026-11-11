@@ -25,7 +25,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/storage"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
-	"github.com/presentkim/skygear/platform/instance"
 )
 
 // Debugging tools (/sgdebug): helpers for scenarios and manual tests that
@@ -256,7 +255,7 @@ func (c debugNet) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	at := cube.PosFromVec3(p.Position()).Add(cube.Pos{-1, up, -2})
 	term := at.Add(cube.Pos{1, 0, 0})
 	if !netstore.IsTerminal(tx.Block(term)) {
-		if _, ok := netstore.BuildTestNet(tx, at, instance.AccountID(p), p.Name(), max(0, c.Count)); !ok {
+		if _, ok := netstore.BuildTestNet(tx, at, max(0, c.Count)); !ok {
 			o.Errorf("blocks in the way at %d %d %d", at[0], at[1], at[2])
 			return
 		}

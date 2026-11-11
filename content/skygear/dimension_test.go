@@ -341,8 +341,8 @@ func TestWatch(t *testing.T) {
 func TestCollectors(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	a := placeTestMachine(s, machinePos, machine.KindCollector, "")
-	b := placeTestMachine(s, machinePos.Add(cube.Pos{2, 0, 0}), machine.KindCollector, "")
+	a := placeTestMachine(s, machinePos, machine.KindCollector)
+	b := placeTestMachine(s, machinePos.Add(cube.Pos{2, 0, 0}), machine.KindCollector)
 	tick(s, 2) // the collectors tick, so the island knows them
 	s.World.Do(func(tx *world.Tx) {
 		slime := sgitem.MobSlime
@@ -525,7 +525,7 @@ func TestRetiredGate(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
-	placeTestMachine(s, machinePos, machine.KindGate, "")
+	placeTestMachine(s, machinePos, machine.KindGate)
 	tick(s, 2)
 	s.World.Do(func(tx *world.Tx) {
 		if _, ok := tx.Block(machinePos).(machine.Machine); ok {

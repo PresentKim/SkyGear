@@ -31,7 +31,7 @@ func TestBarkFiberFuel(t *testing.T) {
 
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindGenerator, "")
+	st := placeTestMachine(s, machinePos, machine.KindGenerator)
 	st.Unlimited = false
 	if !st.Insert(item.NewStack(sgitem.BarkFiber{}, 1)) {
 		t.Fatal("the generator does not take a fiber as fuel")

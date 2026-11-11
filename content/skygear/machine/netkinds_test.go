@@ -32,7 +32,7 @@ func TestNetKindsRegistered(t *testing.T) {
 }
 
 func TestDriveAcceptsOnlyDisks(t *testing.T) {
-	m := machine.New(machine.KindDiskDrive, "", "")
+	m := machine.New(machine.KindDiskDrive)
 	st := m.State
 	disk := netstore.WithDiskID(item.NewStack(netstore.Disk{Tier: 1}, 1), "d1")
 	if !st.SlotAccepts(3, disk) {

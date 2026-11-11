@@ -82,7 +82,7 @@ func TestSieveProgressSurvivesReload(t *testing.T) {
 	pos := cube.Pos{3, island.IslandY, 3}
 
 	s, closeAll := openPersisted(t, dir)
-	m := machine.New(machine.KindAutoSieve, "", "")
+	m := machine.New(machine.KindAutoSieve)
 	m.State.Unlimited = true
 	_ = m.State.Inv().SetItem(m.State.Def.Input[0], item.NewStack(block.Gravel{}, 30))
 	s.World.Do(func(tx *world.Tx) { tx.SetBlock(pos, m, nil) })

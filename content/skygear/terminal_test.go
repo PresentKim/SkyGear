@@ -16,8 +16,8 @@ func TestSneakingClickOpensTheTerminalOverEmptySlots(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	ctl := machinePos
-	placeTestMachine(s, ctl, machine.KindNetController, "")
-	placeTestMachine(s, ctl.Add(cube.Pos{1, 0, 0}), machine.KindNetTerminal, "")
+	placeTestMachine(s, ctl, machine.KindNetController)
+	placeTestMachine(s, ctl.Add(cube.Pos{1, 0, 0}), machine.KindNetTerminal)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		for _, held := range []item.Stack{{}, item.NewStack(block.Stone{}, 1)} {

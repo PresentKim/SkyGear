@@ -22,8 +22,8 @@ import (
 func TestSieveByHand(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindSieve, "")
-	other := placeTestMachine(s, machinePos.Add(cube.Pos{1, 0, 0}), machine.KindSieve, "")
+	st := placeTestMachine(s, machinePos, machine.KindSieve)
+	other := placeTestMachine(s, machinePos.Add(cube.Pos{1, 0, 0}), machine.KindSieve)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		use := func() {
@@ -69,7 +69,7 @@ func TestSieveByHand(t *testing.T) {
 func TestSieveNeedsAMesh(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	m := machine.New(machine.KindSieve, "", "")
+	m := machine.New(machine.KindSieve)
 	s.World.Do(func(tx *world.Tx) { tx.SetBlock(machinePos, m, nil) })
 	st := m.State
 	if st.Accepts(item.NewStack(block.Gravel{}, 1)) || st.Insert(item.NewStack(block.Gravel{}, 1)) {
@@ -160,9 +160,9 @@ func TestSieveActsOn5x5(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	at := func(dx, dz int) cube.Pos { return machinePos.Add(cube.Pos{dx, 0, dz}) }
-	mid := placeTestMachine(s, at(0, 0), machine.KindSieve, "")
-	near := placeTestMachine(s, at(2, 2), machine.KindSieve, "")
-	far := placeTestMachine(s, at(3, 0), machine.KindSieve, "")
+	mid := placeTestMachine(s, at(0, 0), machine.KindSieve)
+	near := placeTestMachine(s, at(2, 2), machine.KindSieve)
+	far := placeTestMachine(s, at(3, 0), machine.KindSieve)
 	for _, st := range []*machine.State{mid, near, far} {
 		st.Mesh = ""
 	}
@@ -204,7 +204,7 @@ func TestSieveTopsUpTheHand(t *testing.T) {
 	loadAround(s)
 	var group []*machine.State
 	for dx := range 3 {
-		group = append(group, placeTestMachine(s, machinePos.Add(cube.Pos{dx, 0, 0}), machine.KindSieve, ""))
+		group = append(group, placeTestMachine(s, machinePos.Add(cube.Pos{dx, 0, 0}), machine.KindSieve))
 	}
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
@@ -231,8 +231,8 @@ func TestSieveTopsUpTheHand(t *testing.T) {
 func TestEmptyHandTakesTheMeshOut(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	a := placeTestMachine(s, machinePos, machine.KindSieve, "")
-	b := placeTestMachine(s, machinePos.Add(cube.Pos{1, 0, 0}), machine.KindSieve, "")
+	a := placeTestMachine(s, machinePos, machine.KindSieve)
+	b := placeTestMachine(s, machinePos.Add(cube.Pos{1, 0, 0}), machine.KindSieve)
 	a.Mesh, b.Mesh = "iron", "iron"
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
@@ -279,13 +279,13 @@ func TestSieveShowsItsMesh(t *testing.T) {
 		t.Fatalf("%d looks", len(seen))
 	}
 	for i, tier := range sgitem.MeshTiers {
-		st := machine.New(machine.KindSieve, "", "").State
+		st := machine.New(machine.KindSieve).State
 		st.Mesh = tier.Tier
 		if mesh, content, fill := machine.SieveLook(st); mesh != i+1 || content != 0 || fill != 1 {
 			t.Fatalf("%s mesh look %d/%d/%d", tier.Tier, mesh, content, fill)
 		}
 	}
-	if mesh, _, _ := machine.SieveLook(machine.New(machine.KindSieve, "", "").State); mesh != 0 {
+	if mesh, _, _ := machine.SieveLook(machine.New(machine.KindSieve).State); mesh != 0 {
 		t.Fatal("a sieve without a mesh shows one")
 	}
 	// the state values sort in the order of the looks

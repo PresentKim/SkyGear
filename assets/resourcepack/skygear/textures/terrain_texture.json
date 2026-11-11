@@ -1477,21 +1477,6 @@
     "skygear_research_table_up": {
       "textures": "textures/blocks/research_table_up"
     },
-    "skygear_sell_box_back": {
-      "textures": "textures/blocks/sell_box_back"
-    },
-    "skygear_sell_box_down": {
-      "textures": "textures/blocks/sell_box_down"
-    },
-    "skygear_sell_box_front": {
-      "textures": "textures/blocks/sell_box_front"
-    },
-    "skygear_sell_box_side": {
-      "textures": "textures/blocks/sell_box_side"
-    },
-    "skygear_sell_box_up": {
-      "textures": "textures/blocks/sell_box_up"
-    },
     "skygear_sieve": {
       "textures": "textures/blocks/planks_oak"
     },

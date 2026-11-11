@@ -64,7 +64,7 @@ func TestRemovePlatesLeavesNone(t *testing.T) {
 func TestStuckFellerKeepsItsLog(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindFeller, "")
+	st := placeTestMachine(s, machinePos, machine.KindFeller)
 	oak := block.Log{Wood: block.OakWood()}
 	low, high := machinePos.Add(cube.Pos{2, 1, 0}), machinePos.Add(cube.Pos{2, 3, 0})
 	s.World.Do(func(tx *world.Tx) { tx.SetBlock(low, oak, nil) })
