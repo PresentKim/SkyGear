@@ -89,7 +89,7 @@ func TestCrookIsQuickOnLeaves(t *testing.T) {
 			t.Errorf("%s crook: mining speeds", tier.Name)
 		}
 		speeds := c.DestroySpeeds()
-		for _, name := range []string{"minecraft:oak_leaves", "minecraft:jungle_leaves", "skygear:infested_leaves", "skygear:infesting_leaves"} {
+		for _, name := range []string{"minecraft:oak_leaves", "minecraft:jungle_leaves", "skygear:infesting_leaves"} {
 			if speeds[name] == 0 {
 				t.Errorf("%s crook: no client speed for %s", tier.Name, name)
 			}

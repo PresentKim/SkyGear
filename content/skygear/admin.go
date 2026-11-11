@@ -126,7 +126,7 @@ func giveItems() map[string]func() item.Stack {
 	for _, c := range sgitem.PetalColours {
 		out["petal_"+c] = func() item.Stack { return item.NewStack(sgitem.Petal{Colour: c}, 1) }
 	}
-	for _, sd := range farm.LivePlantSeeds() {
+	for _, sd := range farm.PlantSeeds {
 		out["seed_"+sd] = func() item.Stack { return item.NewStack(farm.PlantSeed{Seed: sd}, 1) }
 	}
 	for _, m := range sgitem.MobKinds {
@@ -209,7 +209,6 @@ func encodedKey(it world.Item) string {
 // are left out by their encoding instead.
 var giveSkip = []string{
 	"cycle_", "energy_gauge_", "progress_", "liquid_", "machine_info", "fairy_board", // screen icons
-	"seed_ess_", // retired (old saves still load them)
 }
 
 // giveEnum is the item of /sgadmin give. Completion lists every item with

@@ -33,7 +33,7 @@ func (s *session) Second(tx *world.Tx) {
 	climate.Tick(s.Session, tx)
 	dimension.TickCollectors(s.Session, tx)
 	for e := range tx.Players() {
-		dimension.RetireItems(s.Session, tx, e.(*player.Player))
+		dimension.RetireItems(e.(*player.Player))
 	}
 	tinker.TickEffects(s.Session, tx)
 	machine.TickMonitor(s.Session, tx)

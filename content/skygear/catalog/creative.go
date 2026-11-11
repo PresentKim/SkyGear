@@ -125,7 +125,7 @@ func RegisterCreativeItems() {
 		for _, c := range sgitem.PetalColours {
 			add(items, sgitem.Petal{Colour: c})
 		}
-		for _, sd := range farm.LivePlantSeeds() {
+		for _, sd := range farm.PlantSeeds {
 			add(items, farm.PlantSeed{Seed: sd})
 		}
 		for _, m := range sgitem.MobKinds {

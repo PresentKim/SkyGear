@@ -241,9 +241,9 @@ func TestSilkwormLeavesDecayWithTheTree(t *testing.T) {
 	})
 }
 
-// TestOldInfestedLeavesUpgrade: the infested leaves block of 26.11.7 turns
-// into full silkworm leaves on an update, and the infesting stages of
-// 26.11.7 ("0" to "3") still read.
+// TestOldInfestedLeavesUpgrade: the infesting stages of 26.11.7 ("0" to "3")
+// still read (the infested leaves block of 26.11.7 is the 26.11.9 patch's,
+// TestRetiredBloomsAndLeaves).
 func TestOldInfestedLeavesUpgrade(t *testing.T) {
 	for stage := range 4 {
 		b, ok := world.BlockByName("skygear:infesting_leaves", map[string]any{"skygear:infest_stage": string(rune('0' + stage))})
@@ -251,21 +251,4 @@ func TestOldInfestedLeavesUpgrade(t *testing.T) {
 			t.Errorf("26.11.7 stage %d reads as %#v", stage, b)
 		}
 	}
-	old, ok := world.BlockByName("skygear:infested_leaves", nil)
-	if !ok {
-		t.Fatal("the 26.11.7 infested leaves block is gone")
-	}
-	s := testSession(t)
-	loadAround(s)
-	pos := cube.Pos{6, island.IslandY + 5, 6}
-	s.World.Do(func(tx *world.Tx) {
-		tx.SetBlock(pos.Add(cube.Pos{1, 0, 0}), fairy.OakLog, nil)
-		tx.SetBlock(pos, old, nil)
-		old.(interface {
-			NeighbourUpdateTick(cube.Pos, cube.Pos, *world.Tx)
-		}).NeighbourUpdateTick(pos, pos, tx)
-		if l, ok := tx.Block(pos).(farm.SilkwormLeaves); !ok || l.Cocoon != farm.CocoonMax {
-			t.Errorf("after an update: %#v", tx.Block(pos))
-		}
-	})
 }

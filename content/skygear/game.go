@@ -171,7 +171,7 @@ func (s *session) Join(p *player.Player, first bool) {
 	progress.SendRecipesTo(s.Session, p)
 	screens.UpdateBoard(s.Session, p)
 	dimension.Joined(s.Session, p)
-	dimension.RetireItems(s.Session, p.Tx(), p)
+	dimension.RetireItems(p)
 }
 
 func (s *session) Leave(p *player.Player) {

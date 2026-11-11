@@ -21,6 +21,7 @@ import (
 	"github.com/df-mc/goleveldb/leveldb"
 	"github.com/presentkim/skygear/common/nbtrewrite"
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/migrate"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
@@ -638,4 +639,190 @@ func TestRetiredStacksArePlainEverywhere(t *testing.T) {
 		t.Fatalf("the lost box = %s (%v)", saved, err)
 	}
 	checkPlain(t, core.DecodeItem(lost.Lost[0].Item), block.Obsidian{}, 1)
+}
+
+// bloomsSubChunk is a sub chunk of 26.11.8 with an essence bloom at
+// (1, 2, 3), an essence bud at (2, 2, 3), an old infested leaves block at
+// (3, 2, 3) and a coal bloom at (4, 2, 3), which stays: the current blocks of
+// other kinds, their palette states rewritten to the old ones.
+func bloomsSubChunk(t *testing.T) []byte {
+	t.Helper()
+	c := chunk.New(world.DefaultBlockRegistry, cube.Range{0, 15})
+	rid := func(b world.Block) uint32 { return world.DefaultBlockRegistry.BlockRuntimeID(b) }
+	c.SetBlock(1, 2, 3, 0, rid(farm.MagicPlant{Kind: "gem_lapis", Bloom: true}))
+	c.SetBlock(2, 2, 3, 0, rid(farm.MagicPlant{Kind: "gem_quartz"}))
+	c.SetBlock(3, 2, 3, 0, rid(block.Stone{}))
+	c.SetBlock(4, 2, 3, 0, rid(farm.MagicPlant{Kind: "gem_coal", Bloom: true}))
+	// A second kind that collapses into the same palette entry as (1, 2, 3).
+	c.SetBlock(5, 2, 3, 0, rid(farm.MagicPlant{Kind: "gem_quartz", Bloom: true}))
+	rep := func(s string) string {
+		switch s {
+		case "gem_lapis_1":
+			return "ess_zombie_1"
+		case "gem_quartz_1":
+			return "ess_blaze_1"
+		case "gem_quartz_0":
+			return "ess_slime_0"
+		}
+		return s
+	}
+	old, err := nbtrewrite.SubChunkBlocks(chunk.EncodeSubChunk(c, chunk.DiskEncoding, 0), rep, func(name string) (string, map[string]any, bool) {
+		return "skygear:infested_leaves", map[string]any{}, name == "minecraft:stone"
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, s := range []string{"ess_zombie_1", "ess_slime_0", "skygear:infested_leaves", "gem_coal_1"} {
+		if !bytes.Contains(old, []byte(s)) {
+			t.Fatalf("the old sub chunk has no %s", s)
+		}
+	}
+	return old
+}
+
+// seedStack is a saved stack of the seed with the id, with a name and lore.
+func seedStack(t *testing.T, id string, count int, slot int) map[string]any {
+	t.Helper()
+	m := oldStack(t, "skygear:seed_"+id, count, farm.PlantSeed{Seed: "gem_redstone"}, slot)
+	return m
+}
+
+// TestRetiredBloomsAndLeaves: a save of 26.11.8 with essence blooms and old
+// infested leaves comes out of the patch loading as redstone blooms (same
+// stage), full silkworm leaves that are not persistent, and the other blooms
+// and the plant records as they were; the seeds are redstone bloom seeds
+// wherever they were, a coverage that includes everything the game once did
+// at run time for a player's inventory.
+func TestRetiredBloomsAndLeaves(t *testing.T) {
+	held, err := nbt.MarshalEncoding(map[string]any{"Items": []any{
+		seedStack(t, "ess_slime", 3, 0),
+		seedStack(t, "ess_blaze", 2, 1),
+		map[string]any{"Name": "skygear:seed_gem_redstone", "Count": byte(4), "Damage": int16(0), "Slot": byte(2)},
+		map[string]any{"Name": "skygear:seed_gem_coal", "Count": byte(1), "Damage": int16(0), "Slot": byte(3)},
+		oldStack(t, "skygear:infested_leaves", 6, block.Obsidian{}, 4),
+	}}, nbt.LittleEndian)
+	if err != nil {
+		t.Fatal(err)
+	}
+	d, dbPath, saves := newRetiredSave(t, held)
+
+	world1 := filepath.Join(saves, "1", "world")
+	subKey := []byte{0, 0, 0, 0, 0, 0, 0, 0, '/', 0}
+	chestKey := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0x31}
+	ldb, err := leveldb.OpenFile(filepath.Join(world1, "db"), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := ldb.Put(subKey, bloomsSubChunk(t), nil); err != nil {
+		t.Fatal(err)
+	}
+	if err := ldb.Put(chestKey, blockEntity(t, "Chest", 4, 5, 6, seedStack(t, "ess_zombie", 5, 7)), nil); err != nil {
+		t.Fatal(err)
+	}
+	ldb.Close()
+
+	at := func(x, y, z int) string { return farm.CropKey(cube.Pos{x, y, z}) }
+	state := `{"plants":{"` + at(1, 2, 3) + `":{"kind":"ess_blaze","ready_at":7},"` + at(2, 2, 3) + `":{"kind":"ess_slime","ready_at":9},"` + at(4, 2, 3) + `":{"kind":"gem_coal","ready_at":11}}}`
+	if _, err := d.Exec(`INSERT INTO save_state (save_id, key, value) VALUES (1, 'skygear.state', ?)`, state); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := migrate.Run(slog.Default(), dbPath, saves, filepath.Join(filepath.Dir(saves), "backup"), "26.11.9"); err != nil {
+		t.Fatal(err)
+	}
+
+	ldb, err = leveldb.OpenFile(filepath.Join(world1, "db"), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ldb.Close()
+	sub, err := ldb.Get(subKey, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	c, err := chunk.DiskDecode(world.DefaultBlockRegistry, chunk.SerialisedData{SubChunks: [][]byte{sub}}, cube.Range{0, 15})
+	if err != nil {
+		t.Fatalf("the migrated sub chunk does not load: %v", err)
+	}
+	blockAt := func(x, y, z uint8) world.Block {
+		b, ok := world.DefaultBlockRegistry.BlockByRuntimeID(c.Block(x, int16(y), z, 0))
+		if !ok {
+			t.Fatalf("no block at %d %d %d", x, y, z)
+		}
+		return b
+	}
+	if b := blockAt(1, 2, 3); b != (farm.MagicPlant{Kind: "gem_redstone", Bloom: true}) {
+		t.Errorf("the essence bloom loads as %#v", b)
+	}
+	if b := blockAt(5, 2, 3); b != (farm.MagicPlant{Kind: "gem_redstone", Bloom: true}) {
+		t.Errorf("the second essence bloom loads as %#v", b)
+	}
+	// The next save of the chunk (palette with a doubled entry) reads again.
+	if again, err := chunk.DiskDecode(world.DefaultBlockRegistry, chunk.SerialisedData{SubChunks: [][]byte{chunk.EncodeSubChunk(c, chunk.DiskEncoding, 0)}}, cube.Range{0, 15}); err != nil || again.Block(5, 2, 3, 0) != c.Block(5, 2, 3, 0) {
+		t.Errorf("the chunk does not survive a save: %v", err)
+	}
+	if b := blockAt(2, 2, 3); b != (farm.MagicPlant{Kind: "gem_redstone"}) {
+		t.Errorf("the essence bud loads as %#v", b)
+	}
+	if b := blockAt(3, 2, 3); b != (farm.SilkwormLeaves{Cocoon: farm.CocoonMax}) {
+		t.Errorf("the infested leaves load as %#v", b)
+	}
+	if b := blockAt(4, 2, 3); b != (farm.MagicPlant{Kind: "gem_coal", Bloom: true}) {
+		t.Errorf("the coal bloom changed to %#v", b)
+	}
+
+	// The plant records of the save.
+	var doc []byte
+	if err := d.QueryRow(`SELECT value FROM save_state WHERE save_id = 1 AND key = 'skygear.state'`).Scan(&doc); err != nil {
+		t.Fatal(err)
+	}
+	var st struct {
+		Plants map[string]*farm.PlantRecord `json:"plants"`
+	}
+	if err := json.Unmarshal(doc, &st); err != nil {
+		t.Fatal(err)
+	}
+	for _, w := range []struct {
+		pos     cube.Pos
+		kind    string
+		readyAt int64
+	}{{cube.Pos{1, 2, 3}, "gem_redstone", 7}, {cube.Pos{2, 2, 3}, "gem_redstone", 9}, {cube.Pos{4, 2, 3}, "gem_coal", 11}} {
+		r := st.Plants[farm.CropKey(w.pos)]
+		if r == nil || r.Kind != w.kind || int64(r.ReadyAt) != w.readyAt {
+			t.Errorf("record at %v = %+v, want %s ready at %d", w.pos, r, w.kind, w.readyAt)
+		}
+	}
+
+	// The seeds: in a player's state, a chest and the leaves item.
+	var pstate []byte
+	if err := d.QueryRow(`SELECT state FROM save_players WHERE save_id = 1`).Scan(&pstate); err != nil {
+		t.Fatal(err)
+	}
+	var items struct{ Items []map[string]any }
+	if err := nbt.UnmarshalEncoding(pstate, &items, nbt.LittleEndian); err != nil {
+		t.Fatal(err)
+	}
+	redstone := farm.PlantSeed{Seed: "gem_redstone"}
+	checkPlain(t, readItem(t, items.Items[0]), redstone, 3)
+	checkPlain(t, readItem(t, items.Items[1]), redstone, 2)
+	checkPlain(t, readItem(t, items.Items[2]), redstone, 4)
+	if st := readItem(t, items.Items[3]); !st.Equal(item.NewStack(farm.PlantSeed{Seed: "gem_coal"}, 1)) {
+		t.Errorf("a coal bloom seed changed: %v", st)
+	}
+	checkPlain(t, readItem(t, items.Items[4]), farm.SilkwormLeaves{Cocoon: farm.CocoonMax, Persistent: true}, 6)
+	if items.Items[0]["Slot"] != byte(0) || items.Items[1]["Slot"] != byte(1) {
+		t.Error("a slot moved")
+	}
+
+	ent, err := ldb.Get(chestKey, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var data map[string]any
+	if err := nbt.UnmarshalEncoding(ent, &data, nbt.LittleEndian); err != nil {
+		t.Fatal(err)
+	}
+	got := block.NewChest().DecodeNBT(data).(block.Chest)
+	seeds, _ := got.Inventory(nil, cube.Pos{}).Item(7)
+	checkPlain(t, seeds, redstone, 5)
 }

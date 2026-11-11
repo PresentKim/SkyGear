@@ -41,8 +41,7 @@ import (
 //     of placed (persistent) leaves stay and pass the update on to the leaves
 //     behind them (wakeLeaves).
 //   - The block keeps the id of the infesting leaves of 26.11.7, whose
-//     stages 0 to 3 read as 0% to 30%; the old infested leaves block turns
-//     into 100% silkworm leaves on its next tick or update (legacyInfested).
+//     stages 0 to 3 read as 0% to 30%.
 
 func init() {
 	for _, persistent := range []bool{false, true} {
@@ -51,11 +50,9 @@ func init() {
 		}
 	}
 	world.RegisterItem(SilkwormLeaves{Cocoon: CocoonMax, Persistent: true})
-	world.RegisterBlock(legacyInfested{})
-	world.RegisterItem(legacyInfested{})
 	world.RegisterItem(Silkworm{})
 	world.RegisterItem(CookedSilkworm{})
-	sgitem.CrookBlockNames = append(sgitem.CrookBlockNames, silkwormLeavesName, legacyInfestedName)
+	sgitem.CrookBlockNames = append(sgitem.CrookBlockNames, silkwormLeavesName)
 }
 
 // Balancing drafts (docs/design/open-questions.md).
@@ -88,7 +85,6 @@ func CocoonTime() time.Duration { return CocoonStepTime * CocoonMax }
 
 const (
 	silkwormLeavesName = "skygear:infesting_leaves"
-	legacyInfestedName = "skygear:infested_leaves"
 	// cocoonState is the one block state: the cocoon step, "p" in front
 	// for persistent leaves. The values of 26.11.7 ("0" to "3") stay valid.
 	cocoonState = "skygear:infest_stage"
@@ -98,7 +94,6 @@ const (
 
 var (
 	silkwormLeavesHash = block.NextHash()
-	legacyInfestedHash = block.NextHash()
 )
 
 // leafMaterial is the look of a leaves texture: cut out, culled against its
@@ -260,44 +255,6 @@ func GrowCocoon(tx *world.Tx, pos cube.Pos, l SilkwormLeaves, r *rand.Rand) {
 	}
 	SpreadAll(tx, pos)
 }
-
-// legacyInfested is the infested leaves block of 26.11.7: full silkworm
-// leaves, which it turns into on its next tick or update.
-type legacyInfested struct{}
-
-func (legacyInfested) EncodeItem() (string, int16) { return legacyInfestedName, 0 }
-
-func (legacyInfested) EncodeBlock() (string, map[string]any) { return legacyInfestedName, nil }
-
-func (legacyInfested) Hash() (uint64, uint64) { return legacyInfestedHash, 0 }
-
-func (legacyInfested) Model() world.BlockModel { return model.Leaves{} }
-
-func (legacyInfested) Name() string { return i18n.T(i18n.Default, "name.SilkwormLeaves") }
-
-func (legacyInfested) Category() category.Category { return category.Nature() }
-
-func (legacyInfested) Properties() customblock.Properties {
-	return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{"*": leafMaterial(cocoonTexture(CocoonMax))}}
-}
-
-func (legacyInfested) BreakInfo() block.BreakInfo {
-	return SilkwormLeaves{Cocoon: CocoonMax}.BreakInfo()
-}
-
-func (legacyInfested) LightDiffusionLevel() uint8 { return 1 }
-
-func (legacyInfested) SideClosed(cube.Pos, cube.Pos, *world.Tx) bool { return false }
-
-func (legacyInfested) LeavesLike() bool { return true }
-
-func (legacyInfested) upgrade(pos cube.Pos, tx *world.Tx) {
-	tx.SetBlock(pos, SilkwormLeaves{Cocoon: CocoonMax}, nil)
-}
-
-func (b legacyInfested) RandomTick(pos cube.Pos, tx *world.Tx, _ *rand.Rand) { b.upgrade(pos, tx) }
-
-func (b legacyInfested) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) { b.upgrade(pos, tx) }
 
 // FindLog reports whether a log is within logReach of pos, counted through
 // leaves and blocks like them (block.LeavesLike), as leaves look for theirs.

@@ -733,27 +733,6 @@
     "skygear:seed_gem_emerald": {
       "textures": "textures/items/seed_gem_emerald"
     },
-    "skygear:seed_ess_zombie": {
-      "textures": "textures/items/seed_ess_zombie"
-    },
-    "skygear:seed_ess_skeleton": {
-      "textures": "textures/items/seed_ess_skeleton"
-    },
-    "skygear:seed_ess_creeper": {
-      "textures": "textures/items/seed_ess_creeper"
-    },
-    "skygear:seed_ess_spider": {
-      "textures": "textures/items/seed_ess_spider"
-    },
-    "skygear:seed_ess_slime": {
-      "textures": "textures/items/seed_ess_slime"
-    },
-    "skygear:seed_ess_enderman": {
-      "textures": "textures/items/seed_ess_enderman"
-    },
-    "skygear:seed_ess_blaze": {
-      "textures": "textures/items/seed_ess_blaze"
-    },
     "skygear:seed_flower_white": {
       "textures": "textures/items/seed_flower_white"
     },

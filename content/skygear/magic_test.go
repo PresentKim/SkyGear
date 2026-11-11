@@ -12,7 +12,6 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/content/skygear/advancement"
-	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/look"
 	"github.com/presentkim/skygear/content/skygear/machine"
@@ -83,7 +82,7 @@ func TestMagicPlantLifecycle(t *testing.T) {
 // TestMagicSeedsAndRecipes: the flower seed makes a random colour, every better seed
 // has a recipe, and the researches unlock them in order.
 func TestMagicSeedsAndRecipes(t *testing.T) {
-	if len(farm.PlantKinds) != 16+7+6+7 {
+	if len(farm.PlantKinds) != 16+7+6 {
 		t.Fatalf("%d kinds", len(farm.PlantKinds))
 	}
 	have := map[string]bool{}
@@ -94,7 +93,7 @@ func TestMagicSeedsAndRecipes(t *testing.T) {
 			}
 		}
 	}
-	for _, sd := range farm.LivePlantSeeds() {
+	for _, sd := range farm.PlantSeeds {
 		if !strings.HasPrefix(sd, "flower_") && !have[sd] {
 			t.Errorf("no recipe makes the seed %s", sd)
 		}
@@ -105,12 +104,12 @@ func TestMagicSeedsAndRecipes(t *testing.T) {
 			unlocked[u] = r.ID
 		}
 	}
-	for _, sd := range farm.LivePlantSeeds() {
+	for _, sd := range farm.PlantSeeds {
 		if !strings.HasPrefix(sd, "flower_") && unlocked["skygear:seed_"+sd] == "" {
 			t.Errorf("no research unlocks the seed %s", sd)
 		}
 	}
-	for _, k := range farm.LivePlantKinds() {
+	for _, k := range farm.PlantKinds {
 		if len(k.Yield) == 0 || k.Grow <= 0 {
 			t.Errorf("%s: incomplete", k.ID)
 		}
@@ -142,32 +141,10 @@ func TestHarvesterPicksBloomingPlants(t *testing.T) {
 	}
 }
 
-// TestRetiredEssenceBlooms: an essence bloom of an old island turns into a
-// redstone bloom as it was, its seeds into redstone bloom seeds; no recipe
-// makes essence bloom seeds, flower seeds come from essences and fairy dust,
-// and no sieve finds monster essences.
-func TestRetiredEssenceBlooms(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	at := machinePos.Side(cube.FaceUp)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		tx.SetBlock(machinePos, block.Dirt{}, nil)
-		tx.SetBlock(at, farm.MagicPlant{Kind: "ess_zombie", Bloom: true}, nil)
-		farm.StateOf(s.Session).Plants = map[string]*farm.PlantRecord{farm.CropKey(at): {Kind: "ess_zombie"}}
-		farm.TickPlants(s.Session, tx)
-		if b, ok := tx.Block(at).(farm.MagicPlant); !ok || b.Kind != "gem_redstone" || !b.Bloom {
-			t.Errorf("the essence bloom became %v", tx.Block(at))
-		}
-		if k := farm.StateOf(s.Session).Plants[farm.CropKey(at)].Kind; k != "gem_redstone" {
-			t.Errorf("its record says %s", k)
-		}
-		_, _ = p.Inventory().AddItem(item.NewStack(farm.PlantSeed{Seed: "ess_blaze"}, 3))
-		farm.RetireSeeds(p)
-		if n := core.CountPlain(p.Inventory(), farm.PlantSeed{Seed: "gem_redstone"}); n != 3 {
-			t.Errorf("%d redstone bloom seeds for 3 essence bloom seeds", n)
-		}
-	})
+// TestNoEssenceBloomRecipes: no recipe makes essence bloom seeds, flower
+// seeds come from essences and fairy dust, and no sieve finds monster
+// essences.
+func TestNoEssenceBloomRecipes(t *testing.T) {
 	flower := false
 	for _, r := range recipe.Recipes() {
 		for _, o := range r.Output() {

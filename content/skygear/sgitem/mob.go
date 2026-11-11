@@ -18,10 +18,6 @@ const (
 // MobKinds are the mobs in menu order, easiest first.
 var MobKinds = []string{MobZombie, MobSkeleton, MobCreeper, MobSpider, MobSlime, MobDrowned, MobWitch, MobPiglin, MobEnder, MobBlaze, MobWither}
 
-// FlowerMobKinds are the mobs whose essence blooms grow (magic.go); the
-// others' essences come from the waves and the sieves.
-var FlowerMobKinds = []string{MobZombie, MobSkeleton, MobCreeper, MobSpider, MobSlime, MobEnder, MobBlaze}
-
 // MobDifficulty is how hard a mob is to beat; the magic sieve finds rare
 // things more often with a harder mob's essence.
 var MobDifficulty = map[string]int{

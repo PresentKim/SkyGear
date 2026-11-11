@@ -18,6 +18,35 @@ var Patches = []Patch{
 		// slots like a chest (its stacks were in 9..17), so the old block
 		// entity's Items by Slot are read by the chest as they are.
 		"skygear:sell_box": "minecraft:chest",
+		// ess_<mob>: the essence blooms were redstone blooms in all but
+		// name (the game turned them into one on the next tick). The kind
+		// is saved as a string: in the state of the block skygear:magic_plant
+		// (ess_<mob>_0 is a bud, ess_<mob>_1 a bloom, as for any kind) and
+		// in the plant records of the save. The soil (dirt, grass, farmland
+		// or podzol) is the same for every kind, so nothing pops off; the
+		// plant record keeps its ready time. No other saved string is one
+		// of these.
+		"ess_zombie":     "gem_redstone",
+		"ess_zombie_0":   "gem_redstone_0",
+		"ess_zombie_1":   "gem_redstone_1",
+		"ess_skeleton":   "gem_redstone",
+		"ess_skeleton_0": "gem_redstone_0",
+		"ess_skeleton_1": "gem_redstone_1",
+		"ess_creeper":    "gem_redstone",
+		"ess_creeper_0":  "gem_redstone_0",
+		"ess_creeper_1":  "gem_redstone_1",
+		"ess_spider":     "gem_redstone",
+		"ess_spider_0":   "gem_redstone_0",
+		"ess_spider_1":   "gem_redstone_1",
+		"ess_slime":      "gem_redstone",
+		"ess_slime_0":    "gem_redstone_0",
+		"ess_slime_1":    "gem_redstone_1",
+		"ess_enderman":   "gem_redstone",
+		"ess_enderman_0": "gem_redstone_0",
+		"ess_enderman_1": "gem_redstone_1",
+		"ess_blaze":      "gem_redstone",
+		"ess_blaze_0":    "gem_redstone_0",
+		"ess_blaze_1":    "gem_redstone_1",
 	},
 		// Plain: the stacks of the retired items become plain stacks of what they
 		// are renamed to, with no old name, lore, durability or values.
@@ -59,10 +88,30 @@ var Patches = []Patch{
 			// since research moved to the research table; paper is what a
 			// note is.
 			"skygear:research_note": "minecraft:paper",
+			// skygear:seed_ess_<mob>: the essence bloom seeds are redstone
+			// bloom seeds now (the retired kind's own replacement, the same
+			// one the game has made of them while it still knew them). A
+			// seed carries nothing, so it becomes a plain seed; the disks
+			// of the storage network add their keys up.
+			"skygear:seed_ess_zombie":   "skygear:seed_gem_redstone",
+			"skygear:seed_ess_skeleton": "skygear:seed_gem_redstone",
+			"skygear:seed_ess_creeper":  "skygear:seed_gem_redstone",
+			"skygear:seed_ess_spider":   "skygear:seed_gem_redstone",
+			"skygear:seed_ess_slime":    "skygear:seed_gem_redstone",
+			"skygear:seed_ess_enderman": "skygear:seed_gem_redstone",
+			"skygear:seed_ess_blaze":    "skygear:seed_gem_redstone",
+			// skygear:infested_leaves: the leaves of 26.11.7 are the
+			// silkworm leaves; the item is the leaves that can be placed.
+			// The placed block is replaced by Blocks.
+			"skygear:infested_leaves": "skygear:infesting_leaves",
 		},
 		// A placed gate is obsidian. A gate had a block entity; the world
 		// would log an error for it at every load, so it is dropped.
 		Blocks: map[string]Block{
 			"skygear:dimension_gate": {Name: "minecraft:obsidian", DropEntities: true},
+			// The leaves of 26.11.7 were full silkworm leaves that turned
+			// into a full cocoon (10) of leaves that are not persistent on
+			// their next tick or update; they are that from the start.
+			"skygear:infested_leaves": {Name: "skygear:infesting_leaves", States: map[string]any{"skygear:infest_stage": "10"}},
 		}},
 }
