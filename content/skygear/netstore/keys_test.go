@@ -12,6 +12,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/storagenet"
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/storage"
 )
 
@@ -21,8 +22,7 @@ import (
 // (machine.Register).
 func init() {
 	world.DefaultBlockRegistry.Finalize()
-	storage.Feature.Setup()
-	Feature.Setup()
+	coretest.Setup(storage.Feature, Feature)
 }
 
 func TestKeyOfCount(t *testing.T) {

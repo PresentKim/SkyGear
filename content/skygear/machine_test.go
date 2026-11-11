@@ -30,21 +30,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/storage"
 )
 
-var machinePos = cube.Pos{3, island.IslandY, 3}
-
-// placeTestMachine places a machine and returns its state.
-func placeTestMachine(s *session, pos cube.Pos, kind string) *machine.State {
-	m := machine.New(kind)
-	// These tests are about the work itself, not about energy (energy_test.go).
-	m.State.Unlimited = true
-	if machine.IsSieve(kind) {
-		// The tests sift with the string mesh fitted.
-		m.State.Mesh = "string"
-	}
-	s.World.Do(func(tx *world.Tx) { tx.SetBlock(pos, m, nil) })
-	return m.State
-}
-
 func TestMachineIDsDistinct(t *testing.T) {
 	seen := map[machine.ID]string{}
 	for kind, k := range machine.Kinds {

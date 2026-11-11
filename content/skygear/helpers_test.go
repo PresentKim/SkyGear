@@ -2,25 +2,25 @@ package skygear
 
 import (
 	"log/slog"
-	"math/rand/v2"
 	"path/filepath"
 	"testing"
-	"time"
 
-	"github.com/df-mc/dragonfly/server/entity"
+	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/go-gl/mathgl/mgl64"
-	"github.com/google/uuid"
-	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
+	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/machine/machinetest"
 	"github.com/presentkim/skygear/platform/db"
-	"github.com/presentkim/skygear/platform/instance"
-	"golang.org/x/text/language"
 )
 
+// The helpers below are the root package's names for the test support
+// packages (core/coretest, machine/machinetest), over the root's session.
+
 // testSession returns a session over a synchronous world, without an
-// instance manager.
+// instance manager: coretest.Session with the game, a database and the save
+// the database holds for it.
 func testSession(t testing.TB) *session {
 	t.Helper()
 	d, err := db.Open(filepath.Join(t.TempDir(), "db.sqlite"))
@@ -35,66 +35,36 @@ func testSession(t testing.TB) *session {
 	if err != nil {
 		t.Fatal(err)
 	}
-	w := world.Config{Synchronous: true, Entities: entity.DefaultRegistry.Config().New(EntityTypes())}.New()
-	t.Cleanup(func() { _ = w.Close() })
+	l := coretest.Session(t)
+	l.SaveID, l.SaveName = save.ID, save.Name
 	g := &Game{log: slog.Default(), db: d}
-	c := core.New(core.Config{
-		World: w, Clock: instance.NewClock(0, 1, 0, 20*time.Minute),
-		SaveID: save.ID, SaveName: save.Name, HostID: "host", Log: slog.Default(),
-	})
-	c.Rand = rand.New(rand.NewPCG(1, 2))
-	s := &session{
-		Lifecycle: core.Lifecycle{Session: c}, g: g,
-	}
-	s.state = savedState.Of(c)
-	t.Cleanup(c.Close)
-	g.sessions.Store(w, s)
-	core.Register(c)
-	t.Cleanup(func() { core.Unregister(c) })
-	w.Handle(&core.WorldHandler{S: s.Session})
+	s := &session{Lifecycle: l, g: g}
+	s.state = savedState.Of(l.Session)
+	g.sessions.Store(l.World, s)
 	return s
 }
 
 func init() { world.DefaultBlockRegistry.Finalize() }
 
-func loadAround(s *session) {
-	s.World.Do(func(tx *world.Tx) {
-		l := world.NewLoader(2, s.World, world.NopViewer{})
-		l.Move(tx, mgl64.Vec3{})
-		l.Load(tx, 50)
-	})
-}
+func loadAround(s *session) { coretest.LoadAround(s.Lifecycle) }
 
-func spawnPlayer(s *session) *world.EntityHandle {
-	id := uuid.New()
-	h := world.EntitySpawnOpts{ID: id}.New(player.Type, player.Config{Name: "p", UUID: id, Locale: language.Korean, Position: mgl64.Vec3{0.5, 64, 2.5}})
-	s.World.Do(func(tx *world.Tx) { tx.AddEntity(h) })
-	return h
-}
+func spawnPlayer(s *session) *world.EntityHandle { return coretest.SpawnPlayer(s.Lifecycle) }
 
 // withPlayer runs f with the player in a transaction. A panic in f fails
 // the test (Dragonfly would only log it).
 func withPlayer(t testing.TB, s *session, h *world.EntityHandle, f func(p *player.Player, tx *world.Tx)) {
 	t.Helper()
-	finished := false
-	s.World.Do(func(tx *world.Tx) {
-		e, _ := h.Entity(tx)
-		f(e.(*player.Player), tx)
-		finished = true
-	})
-	if !finished {
-		t.Fatal("transaction did not finish (panicked)")
-	}
+	coretest.WithPlayer(t, s.Lifecycle, h, f)
 }
 
-func tick(s *session, n int) {
-	for range n {
-		s.World.AdvanceTick()
-	}
-}
+func tick(s *session, n int) { coretest.Tick(s.Lifecycle, n) }
 
 // shapeAs is the shape s keeps under key (nil if none).
-func shapeAs(s *session, key any) debug.Shape {
-	sh, _ := s.Shape(key)
-	return sh
+func shapeAs(s *session, key any) debug.Shape { return coretest.ShapeAs(s.Lifecycle, key) }
+
+var machinePos = machinetest.Pos
+
+// placeTestMachine places a machine and returns its state.
+func placeTestMachine(s *session, pos cube.Pos, kind string) *machine.State {
+	return machinetest.Place(s.Lifecycle, pos, kind)
 }
