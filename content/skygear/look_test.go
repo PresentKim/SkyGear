@@ -243,3 +243,23 @@ func TestLookDetailWhileSneaking(t *testing.T) {
 		}
 	})
 }
+
+// TestLookCropsMatchFarm: the look trace knows the height of exactly the
+// crops the farm grows, from an eighth of the cell at stage 0 to all of it
+// at the last stage.
+func TestLookCropsMatchFarm(t *testing.T) {
+	for _, b := range []world.Block{
+		block.WheatSeeds{}, block.Carrot{}, block.Potato{}, block.BeetrootSeeds{}, block.MelonSeeds{}, block.PumpkinSeeds{},
+		block.Stone{}, block.Farmland{}, block.Sapling{Type: block.OakSapling()}, farm.MagicPlant{Kind: "ore_iron"},
+	} {
+		_, _, crop := farm.CropOf(b)
+		if _, ok := look.CropHeight(b); ok != crop {
+			t.Errorf("%T: look.CropHeight says %t, farm.CropOf says %t", b, ok, crop)
+		}
+	}
+	for stage, want := range map[int]float64{0: 0.125, 3: 0.5, farm.MaxCropStage: 1} {
+		if h, _ := look.CropHeight(farm.WithGrowth(block.WheatSeeds{}, stage)); h != want {
+			t.Errorf("wheat at stage %d is %v high, want %v", stage, h, want)
+		}
+	}
+}

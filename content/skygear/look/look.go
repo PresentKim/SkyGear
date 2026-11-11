@@ -22,7 +22,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/expand"
 	"github.com/presentkim/skygear/content/skygear/fairy"
-	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/storage"
@@ -60,8 +59,7 @@ func LookedAt(p *player.Player, tx *world.Tx, pos mgl64.Vec3, rot cube.Rotation)
 		if _, liquid := b.(world.Liquid); liquid {
 			return true
 		}
-		if _, stage, crop := farm.CropOf(b); crop {
-			h := float64(stage+1) / float64(farm.MaxCropStage+1)
+		if h, crop := CropHeight(b); crop {
 			if !trace.BBoxIntersects(cube.Box(0, 0, 0, 1, h, 1).Translate(pos.Vec3()), eye, end) {
 				return true
 			}
@@ -72,6 +70,32 @@ func LookedAt(p *player.Player, tx *world.Tx, pos mgl64.Vec3, rot cube.Rotation)
 		return false
 	})
 	return hit, found, found != nil
+}
+
+// maxCropGrowth is the last growth stage of a vanilla crop.
+const maxCropGrowth = 7
+
+// CropHeight is how high the model of a vanilla crop stands in its cell at
+// its growth stage (a fraction of the cell), and whether b is such a crop.
+func CropHeight(b world.Block) (float64, bool) {
+	var growth int
+	switch c := b.(type) {
+	case block.WheatSeeds:
+		growth = c.Growth
+	case block.Carrot:
+		growth = c.Growth
+	case block.Potato:
+		growth = c.Growth
+	case block.BeetrootSeeds:
+		growth = c.Growth
+	case block.MelonSeeds:
+		growth = c.Growth
+	case block.PumpkinSeeds:
+		growth = c.Growth
+	default:
+		return 0, false
+	}
+	return float64(growth+1) / float64(maxCropGrowth+1), true
 }
 
 // Update updates p's panel for a player at pos with rotation rot (the
@@ -165,31 +189,8 @@ func Info(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		if p.Sneaking() && b.State != nil {
 			info.Lines = append(info.Lines, detailLines(lang, b.State)...)
 		}
-	case block.Composter:
-		info.Lines = farm.ComposterLines(s, lang, pos, b)
-	case farm.SilkwormLeaves:
-		info.Lines = []string{fmt.Sprintf(i18n.T(lang, "look.cocoon"), b.CocoonPercent())}
-	case farm.Barrel:
-		info.Lines = farm.BarrelLines(s, lang, tx, pos)
-		info.Line = farm.BarrelLiquid(s, lang, pos)
-	case farm.MagicPlant:
-		if i := farm.PlantKindIndex(b.Kind); i >= 0 {
-			k := farm.PlantKinds[i]
-			seed := k.SeedStack()
-			info.Item, info.NameKey = seed.Item(), ""
-			info.Name = i18n.T(lang, "pseed."+k.Seed)
-			info.Tools = []waila.ToolIcon{{Tool: waila.Crops, Mark: waila.MarkNone}}
-			info.Lines = farm.PlantLines(s, lang, pos, b, k)
-		}
 	default:
 		info = waila.Describe(view, b, info)
-	}
-	if kind, _, ok := farm.CropOf(b); ok {
-		info.Name = i18n.T(lang, farm.CropNameKeys[kind])
-		info.Tools = []waila.ToolIcon{{Tool: waila.Crops, Mark: waila.MarkNone}}
-		if r, ok := farm.StateOf(s).Crops[farm.CropKey(pos)]; ok {
-			info.Lines = farm.CropLines(s, lang, r, tx, pos)
-		}
 	}
 	return info
 }
