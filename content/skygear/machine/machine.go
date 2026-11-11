@@ -286,8 +286,9 @@ type Def struct {
 	Owner      string
 	registered bool
 	// hooks is what the owner registered: the zero value until then and for
-	// the machine feature's own kinds. Only Register writes it for a kind
-	// with an owner; Hooks reads it.
+	// the machine feature's own kinds, but for the tinker table, whose hooks
+	// tinkertable.go sets. Only Register writes it for a kind with an owner;
+	// Hooks reads it.
 	hooks Behaviour
 }
 
