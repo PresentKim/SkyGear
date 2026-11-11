@@ -433,7 +433,7 @@ func rewriteJSON(b []byte, r renamer) ([]byte, error) {
 	if err := dec.Decode(&v); err != nil {
 		return nil, err
 	}
-	changed := false
+	changed := r.disks && rewriteDisks(v, r)
 	v = walkJSON(v, r, &changed)
 	if !changed {
 		return b, nil

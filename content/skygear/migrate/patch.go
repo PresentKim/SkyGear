@@ -167,6 +167,9 @@ type renamer struct {
 	// plain, if set, says whether the item stacks named name become plain
 	// stacks of the item they are renamed to.
 	plain func(name string) bool
+	// disks says the item keys of the storage network disks in a save state
+	// document are rewritten as well (diskkeys.go).
+	disks bool
 	warn  bool // log the values that mention a name but could not be rewritten
 }
 
@@ -202,7 +205,7 @@ func newRenamer(ps []Patch) renamer {
 		}
 		return s
 	}
-	r := renamer{rep: rep, key: rep, mentions: func(b []byte) bool {
+	r := renamer{rep: rep, key: rep, disks: true, mentions: func(b []byte) bool {
 		for _, o := range old {
 			if bytes.Contains(b, o) {
 				return true
