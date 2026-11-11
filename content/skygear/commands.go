@@ -35,16 +35,27 @@ func registerCommands(g *Game) {
 	cmd.Register(cmd.New("sapling", i18n.T(i18n.Default, "cmd.sapling"), nil, saplingCmd{g: g}))
 }
 
+// playerSession is the player running a command and the session of its
+// island. Without a player it returns false quietly; without a session it
+// tells the player to save first.
+func (g *Game) playerSession(src cmd.Source, o *cmd.Output, tx *world.Tx) (*player.Player, *session, bool) {
+	p, ok := src.(*player.Player)
+	if !ok || tx == nil {
+		return nil, nil, false
+	}
+	s, ok := g.sessionOf(tx.World())
+	if !ok {
+		o.Error(i18n.T(i18n.Of(p), "menu.needSave"))
+		return nil, nil, false
+	}
+	return p, s, true
+}
+
 type menuCmd struct{ g *Game }
 
 func (c menuCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
-	p, ok := src.(*player.Player)
-	if !ok || tx == nil {
-		return
-	}
-	s, ok := c.g.sessionOf(tx.World())
+	p, s, ok := c.g.playerSession(src, o, tx)
 	if !ok {
-		o.Error(i18n.T(i18n.Of(p), "menu.needSave"))
 		return
 	}
 	screens.OpenMenu(s.Session, p)
@@ -54,13 +65,8 @@ func (c menuCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 type helpCmd struct{ g *Game }
 
 func (c helpCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
-	p, ok := src.(*player.Player)
-	if !ok || tx == nil {
-		return
-	}
-	s, ok := c.g.sessionOf(tx.World())
+	p, s, ok := c.g.playerSession(src, o, tx)
 	if !ok {
-		o.Error(i18n.T(i18n.Of(p), "menu.needSave"))
 		return
 	}
 	screens.ShowHelp(s.Session, p)
@@ -71,12 +77,8 @@ func (c helpCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 type menuItemCmd struct{ g *Game }
 
 func (c menuItemCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
-	p, ok := src.(*player.Player)
-	if !ok || tx == nil {
-		return
-	}
-	if _, ok := c.g.sessionOf(tx.World()); !ok {
-		o.Error(i18n.T(i18n.Of(p), "menu.needSave"))
+	p, _, ok := c.g.playerSession(src, o, tx)
+	if !ok {
 		return
 	}
 	if p.Inventory().ContainsItemFunc(1, screens.IsMenuItem) {
@@ -94,13 +96,8 @@ func (c menuItemCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 type statsCmd struct{ g *Game }
 
 func (c statsCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
-	p, ok := src.(*player.Player)
-	if !ok || tx == nil {
-		return
-	}
-	s, ok := c.g.sessionOf(tx.World())
+	p, s, ok := c.g.playerSession(src, o, tx)
 	if !ok {
-		o.Error(i18n.T(i18n.Of(p), "menu.needSave"))
 		return
 	}
 	progress.Advance(s.Session, tx, advancement.Stats)
@@ -153,13 +150,8 @@ func (s *session) openCodex(p *player.Player) {
 type codexCmd struct{ g *Game }
 
 func (c codexCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
-	p, ok := src.(*player.Player)
-	if !ok || tx == nil {
-		return
-	}
-	s, ok := c.g.sessionOf(tx.World())
+	p, s, ok := c.g.playerSession(src, o, tx)
 	if !ok {
-		o.Error(i18n.T(i18n.Of(p), "menu.needSave"))
 		return
 	}
 	s.openCodex(p)

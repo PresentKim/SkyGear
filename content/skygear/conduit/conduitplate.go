@@ -21,7 +21,7 @@ import (
 //
 // with kinds the bit set of kinds with a connector (energy 1, item 2, fluid 4).
 
-// conduitKinds' indices: energy 0, item 1, fluid 2 (see bundle.go).
+// The kinds' indices: energy 0, item 1, fluid 2.
 
 var _ block.Activatable = Bundle{}
 

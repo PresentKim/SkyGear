@@ -388,14 +388,6 @@ func detailLines(lang string, st *machine.State) []string {
 	return lines
 }
 
-// stackLine is an item's name in lang with its count when more than one.
-func stackLine(lang string, it item.Stack) string {
-	if it.Count() > 1 {
-		return fmt.Sprintf("§f%s §7×%d", naming.ItemName(lang, it), it.Count())
-	}
-	return "§f" + naming.ItemName(lang, it)
-}
-
 // crafterLines say what the auto crafter does: its recipe (the first line),
 // what it lacks.
 func crafterLines(lang string, st *machine.State) []string {

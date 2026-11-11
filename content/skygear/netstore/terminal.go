@@ -285,8 +285,6 @@ func ShowTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos)
 	showTerminal(s, p, tx, pos, "")
 }
 
-var orderKeys = []string{"storage.order.countDesc", "storage.order.countAsc", "storage.order.nameAsc", "storage.order.nameDesc"}
-
 // entriesOf is every entry of n, in key order.
 func entriesOf(n *Network) []storage.Entry {
 	var ks []storagenet.Key

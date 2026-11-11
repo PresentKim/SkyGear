@@ -14,7 +14,7 @@ Dragonfly 의 동작 자체(블록 규칙, 패킷 처리, 세션 기능)를 바�
 ([bedrock-gophers/inv](https://github.com/bedrock-gophers/inv) 방식: 리스너를 감싼 연결에서 패킷 훅,
 `go:linkname` 으로 세션의 비공개 메서드, 리플렉션으로 비공개 필드). 엔티티 상자(`common/chestui`)와
 한 플레이어에게만 보내는 화면 조작(`sghook.SetCamera`·`SetCameraFOV`·`HideHUD`·`LockInputs`·`ViewFakeBlock`·`ViewChunkCentre`·`SendTitle`,
-접속 시 카메라 프리셋), 클라이언트가 보낸 이동 키(`sghook.MoveInput`), `ForgetHiddenEntities`, 실험 설정(`SendBasicVoxelShapes`, `BlockActionDebug`),
+접속 시 카메라 프리셋), `ForgetHiddenEntities`, 실험 설정(`SendBasicVoxelShapes`, `BlockActionDebug`),
 폼 응답 정리(없는 폼 ID 응답은 킥 대신 버림, 응답 `null` 은 닫기)가 이렇게 동작한다. 세션이 필요한 훅을 위해 접속한 플레이어마다 `sghook.Attach` 를 부른다(`main.go`).
 `sghook` 이 이름으로 기대는 내부는 `TestInternals` 가 검사한다(업그레이드 후 깨지면 여기서 보인다).
 

@@ -174,15 +174,6 @@ func (m *Monster) Close() error {
 	return m.Handle.Close()
 }
 
-// MobTypes are the world.EntityTypes of the mobs' base variants.
-var MobTypes = func() map[string]monsterType {
-	out := map[string]monsterType{}
-	for mob := range MonsterTable {
-		out[mob] = monsterType{Mob: mob}
-	}
-	return out
-}()
-
 // VariantType is the world.EntityType of variant v of mob: an entity type has
 // a single vanilla look, so every variant has its own.
 func VariantType(mob string, v int) monsterType { return monsterType{Mob: mob, Variant: v} }

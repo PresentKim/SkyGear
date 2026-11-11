@@ -397,9 +397,6 @@ type FluidConduit struct{ Tier int }
 // NetConduit is the network conduit item; it has one tier.
 type NetConduit struct{}
 
-// conduitKinds are the kinds in the order of conduitItemHashes.
-var conduitKinds = [3]string{"energy", "item", "fluid"}
-
 var conduitItemHashes = func() (h [3][Tiers + 1]uint64) {
 	for k := range h {
 		for t := 1; t <= Tiers; t++ {

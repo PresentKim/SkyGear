@@ -205,18 +205,6 @@ func ViewChunkCentre(p *player.Player, pos mgl64.Vec3) {
 	})
 }
 
-// MoveInput returns the movement keys p's client last held, as sent in
-// PlayerAuthInput before input permissions apply (so also while immobile):
-// Y is forward (+1) and back, X is left (+1) and right.
-func MoveInput(p *player.Player) mgl64.Vec2 {
-	if c := Of(p); c != nil {
-		if v := c.moveInput.Load(); v != nil {
-			return *v
-		}
-	}
-	return mgl64.Vec2{}
-}
-
 // SendTitle is p.SendTitle with the subtitle sent before the title: the
 // client shows a subtitle with the next title, so one sent after its title
 // (as Dragonfly does) comes a title late. If rawJSON, the title text is raw
