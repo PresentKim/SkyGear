@@ -262,9 +262,6 @@ type Def struct {
 	FluidCap               int
 	fluidSource, fluidSink bool
 	fluidOnly              fluidnet.Kind
-	// Controller marks the drawer controller and the drawer interface, which
-	// show the controller's storage (storage.go).
-	Controller bool
 	// cell makes the machine an energy store: it takes energy from the network and
 	// gives it back, without working (energyCap is its capacity).
 	Cell bool
@@ -343,15 +340,15 @@ var Kinds = map[string]*Def{
 		helpKeys: []string{"machine.alloy.help.1", "machine.alloy.help.2"},
 	},
 	KindDrawerController: {
-		ID: idDrawerController, nameKey: "machine.controller.name", Interval: 1, Indicator: 10, Controller: true, NoDisplay: true,
+		ID: idDrawerController, Owner: "storage", nameKey: "machine.controller.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		helpKeys: []string{"machine.controller.help.1", "machine.controller.help.2"},
 	},
 	KindDrawerTrim: {
-		ID: idDrawerTrim, nameKey: "machine.link.name", Interval: 1, Indicator: 10, NoDisplay: true,
+		ID: idDrawerTrim, Owner: "storage", nameKey: "machine.link.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		helpKeys: []string{"machine.link.help.1"},
 	},
 	KindDrawerInterface: {
-		ID: idDrawerInterface, nameKey: "machine.drawer_interface.name", Interval: 1, Indicator: 10, Controller: true, NoDisplay: true,
+		ID: idDrawerInterface, Owner: "storage", nameKey: "machine.drawer_interface.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		helpKeys: []string{"machine.drawer_interface.help.1", "machine.drawer_interface.help.2"},
 	},
 	KindTinker: {
@@ -1575,9 +1572,6 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 		return true
 	}
 	if c := m.State.Def.Click; c != nil && c(s, p, tx, pos) {
-		return true
-	}
-	if m.Kind == KindDrawerTrim {
 		return true
 	}
 	if m.Kind == KindTinker {

@@ -9,7 +9,9 @@ import (
 // kindOwners are the machine kinds whose behaviour another feature supplies
 // (machine.Register), by kind: the feature named is the kind's Owner. A kind
 // that is not here is the machine feature's own.
-var kindOwners = map[string]string{}
+var kindOwners = map[string]string{
+	machine.KindDrawerController: "storage", machine.KindDrawerTrim: "storage", machine.KindDrawerInterface: "storage",
+}
 
 // TestKindOwners: every kind of machine.Order has the owner kindOwners says,
 // each owner is a listed feature, and every owned kind was registered by the

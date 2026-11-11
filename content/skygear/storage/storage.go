@@ -447,17 +447,3 @@ func Sort(lang string, list []Entry, o storageOrder) []Entry {
 	}
 	return sorted
 }
-
-// The drawer controller and the drawer interface are machine kinds whose
-// clicks and item I/O are the storage's.
-func init() {
-	for _, k := range []string{machine.KindDrawerController, machine.KindDrawerInterface} {
-		def := machine.Kinds[k]
-		def.Click = func(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
-			UseController(s, p, tx, pos)
-			return true
-		}
-		def.Insert, def.Peek, def.Extract = ControllerInsert, ControllerPeek, ControllerExtract
-		def.Lines = Lines
-	}
-}

@@ -12,9 +12,16 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/storagenet"
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/storage"
 )
 
-func init() { world.DefaultBlockRegistry.Finalize() }
+// The tests of this package run without the game's feature list: the storage
+// feature is set up here, so the drawer controller the external storage
+// reads has its behaviour (machine.Register).
+func init() {
+	world.DefaultBlockRegistry.Finalize()
+	storage.Feature.Setup()
+}
 
 func TestKeyOfCount(t *testing.T) {
 	a, b := item.NewStack(block.Stone{}, 5), item.NewStack(block.Stone{}, 1)

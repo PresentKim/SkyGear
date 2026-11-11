@@ -10,6 +10,7 @@ func subscribe() {
 	subscribeDisplays()
 	subscribeBlocks()
 	subscribeSneakUse()
+	registerKinds()
 }
 
 // The drawer displays are removed when the save closes.

@@ -124,7 +124,7 @@ func MachineLines(lang string, m Machine) ([]string, *waila.ItemLine) {
 		return GeneratorLines(lang, st), nil
 	case IsNatureGenerator(m.Kind):
 		return NatureLines(lang, st), nil
-	case m.Kind == KindDrawerTrim, m.Kind == KindTinker, m.Kind == KindRelicTable:
+	case m.Kind == KindTinker, m.Kind == KindRelicTable:
 		return nil, nil
 	case st.Def.Lines != nil:
 		// the kind's owner describes it (Machine.Waila)
@@ -195,11 +195,10 @@ func crafterLines(lang string, st *State) []string {
 }
 
 // outputContainer is the output slots of the machine st as a chest's slots,
-// each item with its count under it, or nil for a machine with no output or
-// a drawer controller (whose lines count the drawers instead), and nil while
-// the output is empty.
+// each item with its count under it, or nil for a machine with no output, and
+// nil while the output is empty.
 func outputContainer(st *State) *waila.Container {
-	if st == nil || st.Def.Controller || len(st.Def.Output) == 0 {
+	if st == nil || len(st.Def.Output) == 0 {
 		return nil
 	}
 	var items []item.Stack
