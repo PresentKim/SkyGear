@@ -1,8 +1,7 @@
 package sghook
 
 // Client views Dragonfly has no API for: they only send packets to one
-// player (camera, HUD, input locks, blocks only that player sees) or read
-// what its client sends (held movement keys).
+// player (camera, HUD, input locks, blocks only that player sees).
 
 import (
 	"sync"
@@ -34,15 +33,6 @@ func init() {
 				Name:          "minecraft:free",
 				ControlScheme: protocol.Option(byte(packet.ControlSchemeCameraRelativeStrafe)),
 			}}})
-		}
-		return false
-	})
-	OnClientPacket(func(c *Conn, pk packet.Packet) bool {
-		if in, ok := pk.(*packet.PlayerAuthInput); ok {
-			v := mgl64.Vec2{float64(in.RawMoveVector[0]), float64(in.RawMoveVector[1])}
-			if last := c.moveInput.Load(); last == nil || *last != v {
-				c.moveInput.Store(&v)
-			}
 		}
 		return false
 	})

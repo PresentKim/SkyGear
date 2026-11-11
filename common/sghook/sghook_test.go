@@ -137,25 +137,6 @@ func TestCameraPresetsOnSpawn(t *testing.T) {
 	}
 }
 
-func TestMoveInput(t *testing.T) {
-	f := &fakeConn{in: []packet.Packet{&packet.PlayerAuthInput{RawMoveVector: [2]float32{1, -1}}}}
-	c := &Conn{Conn: f}
-	_, _ = c.ReadPacket()
-	if v := c.moveInput.Load(); v == nil || v[0] != 1 || v[1] != -1 {
-		t.Fatalf("move input %v", v)
-	}
-	first := c.moveInput.Load()
-	f.in = []packet.Packet{&packet.PlayerAuthInput{RawMoveVector: [2]float32{1, -1}}, &packet.PlayerAuthInput{RawMoveVector: [2]float32{0, 0.5}}}
-	_, _ = c.ReadPacket()
-	if c.moveInput.Load() != first {
-		t.Fatal("unchanged move input stored again")
-	}
-	_, _ = c.ReadPacket()
-	if v := c.moveInput.Load(); v == nil || v[0] != 0 || v[1] != 0.5 {
-		t.Fatalf("move input %v", v)
-	}
-}
-
 func TestVoxelShapesOnSpawn(t *testing.T) {
 	defer func(v bool) { SendBasicVoxelShapes = v }(SendBasicVoxelShapes)
 	SendBasicVoxelShapes = true

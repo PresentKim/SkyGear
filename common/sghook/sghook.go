@@ -21,7 +21,6 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/session"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/go-gl/mathgl/mgl64"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
@@ -32,7 +31,6 @@ type Conn struct {
 
 	sess      atomic.Pointer[session.Session]
 	closeOnce sync.Once
-	moveInput atomic.Pointer[mgl64.Vec2]
 	join      joinMarks
 }
 
