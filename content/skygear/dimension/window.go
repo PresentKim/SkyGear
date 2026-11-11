@@ -159,10 +159,14 @@ func Watching(s *core.Session, p *player.Player) bool {
 }
 
 // Watch takes p over the hunting ground as a spectator of the run under way.
+// A player another feature's takeover holds is only told it cannot go.
 func Watch(s *core.Session, tx *world.Tx, p *player.Player) {
 	r := RunOf(s)
 	l := runPart.Of(s)
 	if r == nil || r.Hunter == p.H() || Watching(s, p) {
+		return
+	}
+	if heldElsewhere(s, p) {
 		return
 	}
 	if l.watchers == nil {
@@ -177,6 +181,19 @@ func Watch(s *core.Session, tx *world.Tx, p *player.Player) {
 	over := arenaStart().Add(mgl64.Vec3{0, 8, 0})
 	p.Teleport(over)
 	instance.PlaceAt(p, over, over)
+}
+
+// heldElsewhere reports whether a takeover of another feature holds p
+// (core.Takeover), and then tells p it cannot go to the hunting ground. The
+// dimension's own takeovers (hunting, watching) are left to the callers'
+// own rules.
+func heldElsewhere(s *core.Session, p *player.Player) bool {
+	t := core.Takeover(s, p)
+	if t == "" || t == "dimension" || strings.HasPrefix(t, "dimension.") {
+		return false
+	}
+	ui.Notify(p, "%s", i18n.T(i18n.Of(p), "dimension.window.refused"))
+	return true
 }
 
 // StopWatching brings a watcher back where it was, as it was.

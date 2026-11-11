@@ -180,10 +180,14 @@ func Hunting(s *core.Session, p *player.Player) bool {
 }
 
 // Begin sends p into the hunting ground to hunt mob. It fails when a run is
-// under way or mob has no hunt.
+// under way, mob has no hunt, or another feature's takeover holds p (p is
+// told so).
 func Begin(s *core.Session, tx *world.Tx, p *player.Player, mob string) bool {
 	h, ok := huntOf(mob)
 	if !ok || RunOf(s) != nil {
+		return false
+	}
+	if heldElsewhere(s, p) {
 		return false
 	}
 	buildArena(tx)

@@ -83,10 +83,15 @@ func Of(s *core.Session, p *player.Player) (*expansion, bool) {
 }
 
 // Show starts expansion mode, or shows its screen again if already in
-// it.
+// it. A player another takeover holds (core.Takeover) is only told that
+// the island cannot be expanded now.
 func Show(s *core.Session, p *player.Player) {
 	if e, ok := Of(s, p); ok {
 		showExpandPlane(s, p, e)
+		return
+	}
+	if core.Takeover(s, p) != "" {
+		p.SendTip(i18n.T(i18n.Of(p), "expand.refused"))
 		return
 	}
 	at := island.ChunkOf(cube.PosFromVec3(p.Position()))

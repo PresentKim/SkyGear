@@ -15,3 +15,10 @@ func ResetHooks() {
 
 // SetInstalling sets the feature name Install would set.
 func SetInstalling(feature string) { installing = feature }
+
+// resetTakeovers removes every registered takeover.
+func resetTakeovers() {
+	takeoversMu.Lock()
+	defer takeoversMu.Unlock()
+	takeovers = nil
+}

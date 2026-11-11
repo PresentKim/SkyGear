@@ -14,7 +14,7 @@ Dragonfly 자체를 확장하는 방법은 [dragonfly.md](dragonfly.md) 에 있�
 | Dragonfly 패치 | `third_party/dragonfly` | Dragonfly 의 동작 자체. 패치 규칙은 [dragonfly.md](dragonfly.md) |
 | `sghook` | `common/sghook` | 패킷 훅, 세션 내부 접근, 클라이언트에 보내는 아이템·블록 항목 고치기(`EditCustomItems`, `EditCustomBlocks`, `ApplyEntryEdits`). Dragonfly 내부는 여기서만 건드린다 |
 | `clientdef` | `common/clientdef` | 커스텀 아이템·블록이 클라이언트에 보내는 컴포넌트. 공개 레지스트리만 쓰고 게임을 모른다 |
-| `core` | `content/skygear/core` | 기능의 커널. `Session`과 그 파트(`Part`, `Players`, `Saved`), 훅(`Hook`)과 이벤트, 핸들러(`PlayerHandler`, `WorldHandler`), 수명 호출(`Lifecycle`), 기능 서술자(`Feature`)와 `Install`, 창작 목록 순서(`CreativeItem`, `CreativeItems`), 기능의 명령어(`Commands`, `PlayerSession`) |
+| `core` | `content/skygear/core` | 기능의 커널. `Session`과 그 파트(`Part`, `Players`, `Saved`), 훅(`Hook`)과 이벤트, 핸들러(`PlayerHandler`, `WorldHandler`), 수명 호출(`Lifecycle`), 기능 서술자(`Feature`)와 `Install`, 창작 목록 순서(`CreativeItem`, `CreativeItems`), 기능의 명령어(`Commands`, `PlayerSession`), 플레이어를 붙잡는 모드(`RegisterTakeover`, `Takeover`) |
 | 기능 패키지 | `content/skygear/<기능>` | 한 기능의 블록·아이템·화면·규칙과, 그 기능이 훅에 거는 구독자 |
 | 루트 | `content/skygear` | 기능 목록(`features.go`)과 플랫폼 접착제(`Game`, `session`), 운영자 도구 |
 
@@ -334,6 +334,14 @@ core.Death.On(30, "tinker.keepFood", func(e core.PlayerEvent) {
     keptFood.Of(e.S)[e.P.H()] = e.P.Food()
 })
 ```
+
+### 플레이어를 붙잡는 모드
+
+한 기능이 플레이어의 게임 모드, 카메라, 몸을 맡아 두었다가 모드가 끝날 때 돌려주는 모드를 붙잡는 모드(takeover)라 한다. 섬 확장 모드(`expand`), 사냥(`dimension.hunt`), 사냥 관전(`dimension.watch`)이 그렇다. 둘은 겹치지 않는다. 저마다 시작할 때 돌려줄 것을 저장해 두므로, 겹치면 끝날 때 엉뚱한 모드로 돌아간다.
+
+- 기능은 `Setup` 에서 `core.RegisterTakeover(name, holds)` 로 자기 모드를 등록한다. 이름은 `"<기능>"` 또는 `"<기능>.<모드>"` 이고, `holds` 는 플레이어가 그 모드에 있는지 알려 준다. 빈 이름, 겹치는 이름, nil `holds` 는 패닉한다.
+- 모드를 시작하기 전에 `core.Takeover(s, p)` 를 묻는다. 다른 기능의 모드 이름이 돌아오면 시작하지 않고 플레이어에게 알리기만 한다. 여럿이 붙잡고 있으면 먼저 등록된 이름이 돌아온다.
+- 등록은 `Setup` 에서만 하고 묻기는 그 뒤에 하므로, `Takeover` 는 잠금 없이 읽는다.
 
 ## 기능의 테스트
 

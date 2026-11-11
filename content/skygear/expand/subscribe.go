@@ -7,8 +7,12 @@ import (
 	"github.com/presentkim/skygear/content/skygear/look"
 )
 
-// subscribe registers the steps of expand on the kernel's hooks.
+// subscribe registers the takeover and the steps of expand on the kernel.
 func subscribe() {
+	core.RegisterTakeover("expand", func(s *core.Session, p *player.Player) bool {
+		_, ok := Of(s, p)
+		return ok
+	})
 	subscribeHold()
 	subscribeLeave()
 	subscribeGuard()

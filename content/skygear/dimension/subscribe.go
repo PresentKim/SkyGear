@@ -7,8 +7,10 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
-// subscribe registers the steps of dimension on the kernel's hooks.
+// subscribe registers the takeovers and the steps of dimension on the kernel.
 func subscribe() {
+	core.RegisterTakeover("dimension.hunt", Hunting)
+	core.RegisterTakeover("dimension.watch", Watching)
 	subscribeLife()
 	subscribeHurt()
 	subscribeTicks()
