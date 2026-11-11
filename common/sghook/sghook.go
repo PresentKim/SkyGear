@@ -175,8 +175,8 @@ func Of(p *player.Player) *Conn {
 }
 
 // Attach makes the hooks of p's connection know its session. Call it for
-// every player that joins; hooks that need the session (forms) skip
-// connections without one.
+// every player that joins; hooks that need the session (the falling block's
+// block registry) fall back to the defaults on connections without one.
 func Attach(p *player.Player) { Of(p) }
 
 // WritePacket queues pk for the client of s.

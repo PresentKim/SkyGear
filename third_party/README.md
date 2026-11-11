@@ -15,7 +15,7 @@ Dragonfly 의 동작 자체(블록 규칙, 패킷 처리, 세션 기능)를 바�
 `go:linkname` 으로 세션의 비공개 메서드, 리플렉션으로 비공개 필드). 엔티티 상자(`common/chestui`)와
 한 플레이어에게만 보내는 화면 조작(`sghook.SetCamera`·`SetCameraFOV`·`HideHUD`·`LockInputs`·`ViewFakeBlock`·`ViewChunkCentre`·`SendTitle`,
 접속 시 카메라 프리셋), `ForgetHiddenEntities`, 실험 설정(`SendBasicVoxelShapes`, `BlockActionDebug`),
-폼 응답 정리(없는 폼 ID 응답은 킥 대신 버림, 응답 `null` 은 닫기), `minecraft:falling_block` 으로 보내는 떠 있는 글자(변형이 없으면 공기 블록 지정)가 이렇게 동작한다. 세션이 필요한 훅을 위해 접속한 플레이어마다 `sghook.Attach` 를 부른다(`main.go`).
+`minecraft:falling_block` 으로 보내는 떠 있는 글자(변형이 없으면 공기 블록 지정)가 이렇게 동작한다. 세션이 필요한 훅을 위해 접속한 플레이어마다 `sghook.Attach` 를 부른다(`main.go`).
 `sghook` 이 이름으로 기대는 내부는 `TestInternals` 가 검사한다(업그레이드 후 깨지면 여기서 보인다).
 
 클라이언트가 접속 때 받는 커스텀 아이템·블록 항목은 `sghook.EditCustomItems`·`sghook.EditCustomBlocks` 로 고친다.

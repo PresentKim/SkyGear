@@ -9,7 +9,6 @@ import (
 	"github.com/df-mc/dragonfly/server"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item/inventory"
-	"github.com/df-mc/dragonfly/server/player/form"
 	"github.com/df-mc/dragonfly/server/session"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/google/uuid"
@@ -30,12 +29,6 @@ func TestInternals(t *testing.T) {
 	field[map[uuid.UUID]struct{}](s, "hiddenEntities")
 	field[world.BlockRegistry](s, "br")
 	field[int32](s, "chunkRadius")
-	if !reflect.ValueOf(s).Elem().FieldByName("handlers").IsValid() {
-		t.Fatal("no field handlers")
-	}
-	fh := &session.ModalFormResponseHandler{}
-	field[sync.Mutex](fh, "mu")
-	field[map[uint32]form.Form](fh, "forms")
 	field[[]protocol.ItemEntry](&server.Server{}, "customItems")
 	if sf, ok := reflect.TypeFor[server.Server]().FieldByName("customBlocks"); !ok || sf.Type != reflect.TypeFor[[]protocol.BlockEntry]() {
 		t.Fatal("server.Server has no field customBlocks []protocol.BlockEntry: Dragonfly moved the custom block entries, update EditCustomBlocks")
@@ -152,17 +145,6 @@ func TestVoxelShapesOnSpawn(t *testing.T) {
 	}
 	if !ids[packet.IDVoxelShapes] || !ids[packet.IDAvailableActorIdentifiers] {
 		t.Fatalf("written %T", f.out)
-	}
-}
-
-func TestFormResponse(t *testing.T) {
-	r := &packet.ModalFormResponse{FormID: 1, ResponseData: protocol.Option([]byte(" null\n"))}
-	f := &fakeConn{in: []packet.Packet{r}}
-	if pk, _ := (&Conn{Conn: f}).ReadPacket(); pk != r {
-		t.Fatal("dropped without a session")
-	}
-	if _, ok := r.ResponseData.Value(); ok {
-		t.Fatal("null response not turned into a cancel")
 	}
 }
 
