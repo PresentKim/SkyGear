@@ -64,7 +64,7 @@ Dragonfly 의 동작 자체(블록 규칙, 패킷 처리, 세션 기능)를 바�
 | `server/block/dirt.go` | 잔디·균사체 퍼짐(`spreadDirt`): 위에 꽉 찬 고체 블록(`model.Solid`)이 있으면 그 아래 잔디는 흙으로 돌아가고, 그런 곳의 흙으로는 퍼지지 않음(바닐라와 같게). 업스트림은 빛만 봐서 빛을 막지 않는 커스텀 블록 아래에서도 잔디가 남고 퍼진다 |
 | `server/player/player.go` | `SetRecipeFilter`, `ViewFakeChunk`, `ClearFakeChunk`. 블록 `Activate` 성공 후 주변 블록 재전송(클라이언트가 예측 설치한 유령 블록 제거), **`Activate` 뒤 손 아이템을 다시 읽어 차감**(업스트림은 `Activate` 전 값을 되써서 서랍·납품함에 넣은 아이템이 복사된다). **커스텀 블록은 부수기 시간이 지나면 서버가 직접 부순다**(`tickCustomBreak`: 실제 클라이언트는 금 가기를 끝내도 파괴 동작을 보내지 않는다). 같은 블록을 계속 캐는 동안(ContinueDestroyBlock 반복) 시작 시각은 유지 |
 
-패치한 곳에는 `skygear patch` 주석을 단다. 자동 팩 아이콘(`server/internal/packbuilder/pack_icon.png`)은 새로 그린 그림으로 바꿨다(패치 파일에는 없다).
+패치한 곳에는 `skygear patch` 주석을 단다.
 
 ### 업그레이드 절차
 
@@ -72,7 +72,7 @@ Dragonfly 의 동작 자체(블록 규칙, 패킷 처리, 세션 기능)를 바�
 2. `.github` 를 지우고 `third_party/dragonfly` 를 교체한다.
 3. `cd third_party/dragonfly && patch -p1 < ../dragonfly.patch` 로 패치를 얹고, 충돌은 손으로 고친다.
 4. 루트 `go.mod` 의 `require` 버전을 맞추고 `go mod tidy`, `go vet ./...`, `go test ./...` 를 돌린다.
-5. 원본(`base`)과 다시 비교해 `dragonfly.patch` 를 갱신한다: `cp -r base a; cp -r <저장소>/third_party/dragonfly b; diff -ruN -x pack_icon.png a b > dragonfly.patch`. 확인: `cp -r base c; (cd c && patch -p1 -s < ../dragonfly.patch); diff -r -x pack_icon.png c <저장소>/third_party/dragonfly` 가 아무것도 출력하지 않고 `grep -c '^diff ' dragonfly.patch` 가 파일 수와 같아야 한다.
+5. 원본(`base`)과 다시 비교해 `dragonfly.patch` 를 갱신한다: `cp -r base a; cp -r <저장소>/third_party/dragonfly b; diff -ruN a b > dragonfly.patch`. 확인: `cp -r base c; (cd c && patch -p1 -s < ../dragonfly.patch); diff -r c <저장소>/third_party/dragonfly` 가 아무것도 출력하지 않고 `grep -c '^diff ' dragonfly.patch` 가 파일 수와 같아야 한다.
 6. 패치 시험은 `cd third_party/dragonfly && go test ./server/...` 로 돌린다.
 
 ## EnderIO 리소스 (도관 텍스처)
