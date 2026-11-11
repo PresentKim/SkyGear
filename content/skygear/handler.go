@@ -176,16 +176,19 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 	}
 }
 func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face cube.Face, clickPos mgl64.Vec3) {
+	core.Mark("dimension.hunting")
 	if dimension.Hunting(h.s.Session, ctx.Player()) {
 		ctx.Cancel()
 		return
 	}
 	held, _ := ctx.Player().HeldItems()
+	core.Mark("screens.menuItem")
 	if screens.IsMenuItem(held) {
 		ctx.Cancel()
 		h.useHeldScreen(ctx.Player(), held)
 		return
 	}
+	core.Mark("dimension.stone")
 	if h.useStone(ctx, held) {
 		return
 	}
@@ -193,10 +196,12 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		return
 	}
 	p, tx := ctx.Player(), ctx.Player().Tx()
+	core.Mark("machine.noteFace")
 	if m, ok := held.Item().(machine.Machine); ok && (machine.NetShaped(m.Kind) || m.Kind == machine.KindMiner) {
 		machine.NotePlaceFace(h.s.Session, p, face)
 	}
 	// The configuration copier copies and pastes settings and does nothing else.
+	core.Mark("copier.use")
 	if _, ok := held.Item().(sgitem.ConfigCopier); ok {
 		ctx.Cancel()
 		_, off := p.HeldItems()
@@ -204,11 +209,13 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		return
 	}
 	// The construction wand builds out the face clicked and does nothing else.
+	core.Mark("wand.use")
 	if _, ok := sgitem.WandOf(held); ok {
 		ctx.Cancel()
 		wand.Use(h.s.Session, p, tx, pos, face, held)
 		return
 	}
+	core.Mark("storage.sneakUse")
 	if storage.SneakUse(h.s.Session, p, tx, pos, held) {
 		ctx.Cancel()
 		return
@@ -217,26 +224,32 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 	// opens its settings, whatever they hold, unless the held conduit goes into
 	// that conduit (a click on the conduit itself is ConduitBundle.Activate).
 	// Sneaking places blocks instead.
+	core.Mark("conduit.plate")
 	if !p.Sneaking() && conduit.UsePlate(h.s.Session, p, tx, pos, face, clickPos, held) {
 		ctx.Cancel()
 		return
 	}
+	core.Mark("handwork.stick")
 	if handwork.UseStickOnChest(h.s.Session, p, tx, pos, held) || handwork.UseStick(h.s.Session, p, tx, pos, face, held) {
 		ctx.Cancel()
 		return
 	}
+	core.Mark("farm.composter")
 	if !p.Sneaking() && farm.UseComposter(h.s.Session, p, tx, pos, held) {
 		ctx.Cancel()
 		return
 	}
+	core.Mark("handwork.gather")
 	handwork.StripFiber(h.s.Session, p, tx, pos, face, held)
 	handwork.TillSeeds(h.s.Session, p, tx, pos, face, held)
+	core.Mark("fairy.time")
 	if fairy.UseFairyTime(h.s.Session, p, tx, pos, held) {
 		ctx.Cancel()
 		return
 	}
 	// Using a crop shows its time or harvests it, and places nothing;
 	// sneaking uses it as usual (placing blocks, bone meal).
+	core.Mark("farm.crop")
 	if !ctx.Player().Sneaking() && farm.UseCrop(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos) {
 		ctx.Cancel()
 		return
@@ -247,19 +260,23 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 // HandleItemUseOnEntity and HandleAttackEntity take the gift of a visiting
 // fairy, whichever way the player touches it.
 func (h *handler) HandleItemUseOnEntity(ctx *player.Context, e world.Entity) {
+	core.Mark("dimension.hunting")
 	if dimension.Hunting(h.s.Session, ctx.Player()) {
 		ctx.Cancel()
 		return
 	}
+	core.Mark("fairy.touch")
 	h.touchFairy(ctx, e)
 }
 
 func (h *handler) HandleAttackEntity(ctx *player.Context, e world.Entity, _, _ *float64, _ *bool) {
+	core.Mark("dimension.hunter")
 	if _, ok := e.(*dimension.Monster); ok || dimension.Hunting(h.s.Session, ctx.Player()) {
 		// a hunter only moves: its weapons strike on their own (dimension/gear.go)
 		ctx.Cancel()
 		return
 	}
+	core.Mark("fairy.touch")
 	h.touchFairy(ctx, e)
 }
 
@@ -273,31 +290,38 @@ func (h *handler) touchFairy(ctx *player.Context, e world.Entity) {
 func (h *handler) HandleItemUse(ctx *player.Context) {
 	held, off := ctx.Player().HeldItems()
 	// a thrown snowball, egg or pearl may be the last of the stack
+	core.Mark("autofill.use")
 	if held.Count() == 1 {
 		core.RefillHandLater(ctx.Player(), ctx.Player().Tx(), held)
 	}
+	core.Mark("screens.menuItem")
 	if screens.IsMenuItem(held) {
 		ctx.Cancel()
 		h.useHeldScreen(ctx.Player(), held)
 		return
 	}
+	core.Mark("dimension.hunting")
 	if dimension.Hunting(h.s.Session, ctx.Player()) {
 		// a hunter only moves; the menu item is the way out
 		ctx.Cancel()
 		return
 	}
+	core.Mark("dimension.stone")
 	if h.useStone(ctx, held) {
 		return
 	}
+	core.Mark("copier.clear")
 	if _, ok := held.Item().(sgitem.ConfigCopier); ok {
 		copier.ClearCopier(h.s.Session, ctx.Player(), held, off)
 	}
 	// The construction wand used on the air while sneaking shows its settings.
+	core.Mark("wand.options")
 	if _, ok := sgitem.WandOf(held); ok && ctx.Player().Sneaking() && !h.s.Debounced(ctx.Player()) {
 		wand.ShowOptions(h.s.Session, ctx.Player())
 	}
 	// The iron hammer used on the air while sneaking switches diagonal vein
 	// mining.
+	core.Mark("tinker.veinToggle")
 	if sgitem.IsIronHammer(held) && ctx.Player().Sneaking() && !h.s.Debounced(ctx.Player()) {
 		tinker.ToggleVeinDiagonal(h.s.Session, ctx.Player())
 	}
