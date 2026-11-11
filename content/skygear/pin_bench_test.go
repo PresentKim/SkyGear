@@ -11,6 +11,8 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/island"
+	"github.com/presentkim/skygear/content/skygear/look"
+	"github.com/presentkim/skygear/content/skygear/machine"
 )
 
 // BenchmarkHandleMove moves one player by one block through the session's
@@ -81,6 +83,60 @@ func BenchmarkUse(b *testing.B) {
 		b.ResetTimer()
 		for range b.N {
 			hd.HandleItemUse(ctx)
+		}
+	})
+}
+
+// BenchmarkLookMachine updates the WAILA panel of a player who looks at a
+// working crusher: the trace to the block, the panel's lines and the title.
+func BenchmarkLookMachine(b *testing.B) {
+	s := benchSession(b)
+	h := spawnPlayer(s)
+	target := cube.Pos{4, island.IslandY + 3, 8}
+	m := machine.New(machine.KindCrusher)
+	m.State.Insert(item.NewStack(block.Cobblestone{}, 5))
+	m.State.Progress = m.State.Def.Interval / 2
+	b.ReportAllocs()
+	withPlayer(b, s, h, func(p *player.Player, tx *world.Tx) {
+		tx.SetBlock(target, m, nil)
+		pos, rot := eyeAt(p, target, 3)
+		if at, _, ok := look.LookedAt(p, tx, pos, rot); !ok || at != target {
+			b.Fatalf("the player looks at %v, want the crusher at %v", at, target)
+		}
+		b.ResetTimer()
+		for range b.N {
+			look.Update(s.Session, p, tx, pos, rot, true)
+		}
+	})
+}
+
+// BenchmarkLookInfoMachine builds the panel of a working crusher (look.Info).
+func BenchmarkLookInfoMachine(b *testing.B) {
+	s := benchSession(b)
+	h := spawnPlayer(s)
+	target := cube.Pos{4, island.IslandY + 3, 8}
+	m := machine.New(machine.KindCrusher)
+	m.State.Insert(item.NewStack(block.Cobblestone{}, 5))
+	m.State.Progress = m.State.Def.Interval / 2
+	b.ReportAllocs()
+	withPlayer(b, s, h, func(p *player.Player, tx *world.Tx) {
+		b.ResetTimer()
+		for range b.N {
+			look.Info(s.Session, p, tx, target, m)
+		}
+	})
+}
+
+// BenchmarkLookInfoStone builds the panel of a block the game adds nothing to.
+func BenchmarkLookInfoStone(b *testing.B) {
+	s := benchSession(b)
+	h := spawnPlayer(s)
+	target := cube.Pos{4, island.IslandY + 3, 8}
+	b.ReportAllocs()
+	withPlayer(b, s, h, func(p *player.Player, tx *world.Tx) {
+		b.ResetTimer()
+		for range b.N {
+			look.Info(s.Session, p, tx, target, block.Stone{})
 		}
 	})
 }
