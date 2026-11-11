@@ -1,6 +1,7 @@
 package wire
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"path/filepath"
@@ -14,9 +15,12 @@ import (
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item/creative"
 	"github.com/df-mc/dragonfly/server/item/recipe"
+	"github.com/df-mc/dragonfly/server/session"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/common/sghook"
 	"github.com/presentkim/skygear/common/sghook/hooktest"
 	"github.com/presentkim/skygear/content/skygear"
+	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/platform/db"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
@@ -34,7 +38,7 @@ func join(t *testing.T) (*hooktest.Client, *packet.ItemRegistry, *packet.Craftin
 	var conf server.Config
 	conf.Entities = entity.DefaultRegistry.Config().New(skygear.EntityTypes())
 	c := hooktest.Join(t, conf, func(srv *server.Server) {
-		skygear.EditEntries(srv)
+		core.EditEntries(srv)
 		skygear.New(slog.New(slog.DiscardHandler), d, nil, "test")
 	})
 	var (
@@ -556,4 +560,47 @@ func cloneValue(v any) any {
 		panic(fmt.Sprintf("cloneValue: unsupported %T in %s", v, strings.TrimSpace(fmt.Sprint(rv.Kind()))))
 	}
 	return v
+}
+
+// idleListener is a listener that never accepts a connection.
+type idleListener struct{ done chan struct{} }
+
+func (l idleListener) Accept() (session.Conn, error) {
+	<-l.done
+	return nil, errors.New("listener closed")
+}
+func (idleListener) Disconnect(c session.Conn, reason string) error { return c.Close() }
+func (l idleListener) Close() error {
+	select {
+	case <-l.done:
+	default:
+		close(l.done)
+	}
+	return nil
+}
+
+// TestCheckEntries: the edits of the game's item and block entries, the ones
+// cmd/skygear checks right after Listen, run on every entry without a panic, so
+// a bad block or item declaration fails here and not at startup. The server
+// has no skygear.New and no client, so it is not a second join.
+func TestCheckEntries(t *testing.T) {
+	var conf server.Config
+	conf.Log = slog.New(slog.DiscardHandler)
+	conf.DisableResourceBuilding = true
+	conf.Entities = entity.DefaultRegistry.Config().New(skygear.EntityTypes())
+	conf.Generator = func(world.Dimension) world.Generator { return world.NopGenerator{} }
+	conf.Listeners = []func(server.Config) (server.Listener, error){
+		func(server.Config) (server.Listener, error) { return idleListener{done: make(chan struct{})}, nil },
+	}
+	sghook.Wrap(&conf)
+	srv := conf.New()
+	core.EditEntries(srv)
+	srv.Listen()
+	t.Cleanup(func() { _ = srv.Close() })
+	if err := core.CheckEntries(); err != nil {
+		t.Fatal(err)
+	}
+	if n := len(world.CustomBlocks()); n == 0 {
+		t.Fatal("no custom block is registered: the check covers nothing")
+	}
 }

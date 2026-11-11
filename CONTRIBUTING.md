@@ -115,7 +115,7 @@ small and extend Dragonfly from the outside first, in this order:
 - `common/clientdef`: components a client gets in the item and block entries
   (digger, fuel, tool tags, collision boxes, bone visibility, render methods).
   A custom item or block implements the `clientdef` interface; the game installs
-  it once in `EditEntries` (`content/skygear/names.go`) through
+  it once in `core.EditEntries` (`content/skygear/core`) through
   `sghook.EditCustomItems` and `sghook.EditCustomBlocks`. Client components do
   not belong in a patch.
 - `common/sghook`: packet hooks, `go:linkname` to session internals and

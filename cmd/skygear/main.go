@@ -28,6 +28,7 @@ import (
 	"github.com/presentkim/skygear/common/resourcepack"
 	"github.com/presentkim/skygear/common/sghook"
 	"github.com/presentkim/skygear/content/skygear"
+	"github.com/presentkim/skygear/content/skygear/core"
 	_ "github.com/presentkim/skygear/content/skygear/locales" // this server's texts
 	"github.com/presentkim/skygear/content/skygear/migrate"
 	"github.com/presentkim/skygear/content/skygear/naming"
@@ -159,7 +160,7 @@ func run(log *slog.Logger) error {
 	sghook.JoinLog = log
 	skygear.LogCustomBlockCounts(log)
 	srv := conf.New()
-	skygear.EditEntries(srv)
+	core.EditEntries(srv)
 	lobby := srv.World()
 	lobby.SetSpawn(platform.LobbySpawn)
 	lobby.SetDefaultGameMode(world.GameModeAdventure)
@@ -215,6 +216,11 @@ func run(log *slog.Logger) error {
 	}()
 
 	srv.Listen()
+	// The edits of the client entries run now, not at the first join: a bad
+	// block or item declaration stops the start.
+	if err := core.CheckEntries(); err != nil {
+		return err
+	}
 	for p := range srv.Accept() {
 		sghook.Attach(p)
 		if pconf.OperatorByNameOnly(p.Name(), p.XUID()) {

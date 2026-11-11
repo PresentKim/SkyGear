@@ -3,29 +3,13 @@ package skygear
 import (
 	"maps"
 
-	"github.com/df-mc/dragonfly/server"
-	"github.com/presentkim/skygear/common/clientdef"
-	"github.com/presentkim/skygear/common/sghook"
 	"github.com/presentkim/skygear/common/timed"
 	"github.com/presentkim/skygear/content/skygear/naming"
-	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 )
 
 func init() {
 	timed.Name = naming.ItemName
-}
-
-// EditEntries changes the item and block entries srv sends every player
-// (sghook.EditCustomItems, sghook.EditCustomBlocks): our items get their
-// components (clientdef), are named by their translation key and the empty
-// wooden bucket aims at liquids; our blocks get their client-side components
-// (clientdef.BlockEntry). Call it once, before players join.
-func EditEntries(srv *server.Server) {
-	sghook.EditCustomItems(srv, func(e protocol.ItemEntry) protocol.ItemEntry {
-		return sgitem.ClipWoodenBucket(localItemName(clientdef.ItemEntry(e)))
-	})
-	sghook.EditCustomBlocks(srv, clientdef.BlockEntry)
 }
 
 // localItemName makes the client name an item by its translation key

@@ -20,7 +20,7 @@ Dragonfly 의 동작 자체(블록 규칙, 패킷 처리, 세션 기능)를 바�
 
 클라이언트가 접속 때 받는 커스텀 아이템·블록 항목은 `sghook.EditCustomItems`·`sghook.EditCustomBlocks` 로 고친다.
 더하는 내용(`minecraft:digger`·`minecraft:fuel`·`minecraft:use_modifiers`, 블록의 도구 태그·상호작용 표시·충돌 상자·뼈 보임·재질 방식)은 `common/clientdef` 에 있고,
-`content/skygear/names.go` 의 `EditEntries` 가 한 번 등록한다. `content/skygear/wire` 의 `TestWire` 가 접속한 플레이어가 받는 데이터를 골든 파일로 고정한다.
+`content/skygear/core` 의 `core.EditEntries` 가 한 번 등록한다. `content/skygear/wire` 의 `TestWire` 가 접속한 플레이어가 받는 데이터를 골든 파일로 고정한다.
 패치를 바꾸거나 Dragonfly 를 올린 뒤 골든이 그대로면 클라이언트가 받는 데이터가 같다는 뜻이다. 확장 방법과 검증은 [docs/tech/dragonfly.md](../docs/tech/dragonfly.md) 에 있다.
 
 ### 패치 목록 (`dragonfly.patch`)
