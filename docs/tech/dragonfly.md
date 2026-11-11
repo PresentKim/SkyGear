@@ -47,7 +47,9 @@ Dragonfly 의 동작 자체를 바꿔야 하거나, 패치 없이 같은 결과�
 
 ## 클라이언트 데이터 검증
 
-`content/skygear/wire` 의 `TestWire` 는 서버를 `cmd/skygear` 와 같은 방식으로 세워 가짜 클라이언트를 한 번 접속시키고, 받은 블록 항목·아이템 등록·제작 데이터·창작 목록을 항목마다 해시해 `testdata/*.golden` 과 맞춘다. 접속을 흉내 내는 도구는 `common/sghook/hooktest` 다(`Join`, `Canon`, `Golden`).
+`content/skygear/wire` 의 `TestWire` 는 서버를 `cmd/skygear` 와 같은 방식으로 세워 가짜 클라이언트를 한 번 접속시키고, 받은 블록 항목·아이템 등록·제작 데이터·창작 목록을 항목마다 해시해 `testdata/*.golden` 과 맞춘다. 접속을 흉내 내는 도구는 `common/sghook/hooktest` 다(`Join`, `Canon`, `CanonWith`, `Golden`).
+
+`items.byname.golden`, `recipes.byname.golden`, `creative.byname.golden` 은 같은 항목을 아이템 id 대신 아이템 이름으로 적은 것이다(`wire/byname_test.go`, `hooktest.CanonWith`). 커스텀 아이템의 id 는 등록 순서라서 패키지 초기화 순서만 바뀌어도 앞의 세 골든은 수백 줄이 바뀌지만 이 셋은 그대로다. 확인하는 순서는 [extension.md](extension.md) 의 "id 만 바뀌는 변경"에 있다.
 
 ```sh
 go test ./content/skygear/wire/                              # 골든과 비교

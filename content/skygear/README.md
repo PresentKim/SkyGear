@@ -27,7 +27,7 @@
 | | `wintext` | 기계 창 아이템의 글(보는 사람 언어로) |
 | | `machinerecipe` | 합금 제련기·실험실·자동 제작기 레시피 |
 | | `advancement` | 발전과제 트리·장·배치 |
-| | `hopper` | 나무·역방향 호퍼 |
+| | `hopper` | 나무·역방향 호퍼와 그 등록 |
 | | `migrate` | 세이브 데이터를 실행 중인 릴리스 형식으로 올리는 패치(`Patches`)와, 이름 변경(DragonFactory → Sky Gear) 전 세이브의 한 번짜리 변환(`Namespace`) |
 | | `wire` | 접속한 플레이어가 받는 데이터(블록 항목, 아이템 등록, 제작 데이터, 크리에이티브 목록)의 골든 파일과 그 테스트 |
 | 핵심 | `core` | 기능 커널: 세이브 하나의 실행 상태(`Session`: 월드·시계·난수·세이브 정보), 기능이 자기 데이터를 두는 방법(`Part`·`Players`·`Saved`), 훅과 이벤트(`PlayerHandler`·`WorldHandler`·`Lifecycle` 이 내보낸다), 기능 서술자(`Feature`·`Install`), 창작 목록 자리(`CreativeItem`·`CreativeItems`), 기능의 명령어(`Commands`·`PlayerSession`), 공용 도우미(아이템, 메뉴 버튼, 디버그 도형) |
@@ -40,8 +40,8 @@
 | 진행 | `progress` | 연구·발전과제 규칙, 레시피 잠금, 연구대 블록 |
 | | `island` | 소유 청크, 시작 위치, 청크 구매, 보이드 복귀, 분실물 보관함 |
 | | `climate` | 날씨·해·성장 시계 |
-| 기능 | `tinker` | 팅커 도구(재료·레벨·개조), 팅커 테이블, 광맥 채굴, 자동 도구 |
-| | `machine` | 기계의 틀(블록, 창, 틱, 에너지·유체, 단계)과 모든 종류의 목록(`Kinds`, `Order`, 다른 기능의 종류는 `Owner` 와 `Register`), 체, 가공 기계, 생산 기록과 정지 알림 |
+| 기능 | `machine` | 기계의 틀(블록, 창, 틱, 에너지·유체, 단계)과 모든 종류의 목록(`Kinds`, `Order`, 다른 기능의 종류는 `Owner` 와 `Register`), 체, 가공 기계, 생산 기록과 정지 알림 |
+| | `tinker` | 팅커 도구(재료·레벨·개조), 팅커 테이블(기계 종류 `tinker_table` 의 동작), 광맥 채굴, 자동 도구 |
 | | `conduit` | 도관 묶음 블록, 연결망 잇기, 표시 엔티티, 연결판과 그 화면 |
 | | `storage` | 서랍과 아이템 거치대, 저장고 컨트롤러와 목록 화면 |
 | | `farm` | 작물, 묘목·나무, 잎, 누에와 누에 나뭇잎, 퇴비통, 배럴과 마녀물, 수확기, 마법 식물 |
@@ -56,7 +56,7 @@
 | 내용 목록 | `catalog` | 연구 트리, 게임 아이템 레시피, 공용 아이템(`sgitem`, `hopper`)의 크리에이티브 항목과 크리에이티브 목록 등록(`RegisterCreativeItems`) |
 | 화면 | `codex` | 도감(JEI 같은 레시피 보기) |
 | | `screens` | 게임 메뉴, 섬 관리, 분실물, 도움말, 연구·발전과제 화면, 사이드바와 퀘스트 판, 메뉴·메뉴 아이템·도감·도움말 명령어 |
-| 게임 | `skygear` | 기능 목록(`features.go`, `core.Install`)과 플랫폼 접착제: `Game`·`session`(플랫폼 인터페이스 구현), 세이브 상태 버전(`state.go`), 호퍼 등록(`hopper.go`), 커스텀 블록 수 기록(`blockcounts.go`), 운영자 도구(`admin.go`, `debug*.go`). 훅에 구독하는 단계와 플레이어 명령어는 두지 않는다 |
+| 게임 | `skygear` | 기능 목록(`features.go`, `core.Install`)과 플랫폼 접착제: `Game`·`session`(플랫폼 인터페이스 구현), 세이브 상태 버전(`state.go`), 커스텀 블록 수 기록(`blockcounts.go`), 운영자 도구(`admin.go`, `debug*.go`). 훅에 구독하는 단계와 플레이어 명령어는 두지 않는다 |
 
 ## 기능의 데이터
 

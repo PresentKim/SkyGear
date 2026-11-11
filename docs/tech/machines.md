@@ -59,6 +59,7 @@
 | `farm` | `harvester` | `Run` |
 | `storage` | `drawer_controller`, `drawer_interface` | `Click`, `Insert`, `Peek`, `Extract`, `Lines` |
 | `storage` | `drawer_trim` | `Click`(아무 일도 안 함), `Lines: machine.NoLines` |
+| `tinker` | `tinker_table` | `Click`, `Lines: machine.NoLines` |
 | `dimension` | `essence_collector` | `Click`, `Info`(받는 몬스터) |
 | `dimension` | `relic_table` | `Click`, `Lines: machine.NoLines` |
 | `netstore` | `net_controller` | `Click`, `Run`, `Insert`, `Peek`, `Extract` |
@@ -69,9 +70,8 @@
 | `netstore` | `net_external` | `Click`, `Run` |
 | `netstore` | `pattern_encoder` | `Click`, `Accepts` |
 | `netstore` | `net_autocrafter` | `Run`, `Accepts` |
-| 없음 | `tinker_table` | `machine/tinkertable.go` 가 정한다(`Click`, `Lines: NoLines`) |
 
-팅커 테이블은 `tinker` 가 `machine` 을 import 할 수 없어서 `machine` 이 직접 정한다. 그렇게 하면 기계 아이템이 팅커 도구보다 먼저 등록되어 클라이언트가 받는 아이템 id 가 바뀐다. `machine` 이 기능 칸의 패키지를 import 하는 곳은 이 파일 하나다.
+`machine` 은 기능 칸의 패키지를 하나도 import 하지 않는다(`TestMachineImportsNoFeature`). 종류를 소유한 기능이 `machine` 을 import 한다.
 
 ### 클라이언트 모양
 

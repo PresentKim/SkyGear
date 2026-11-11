@@ -23,7 +23,7 @@ Dragonfly 자체를 확장하는 방법은 [dragonfly.md](dragonfly.md) 에 있�
 - 데이터: `locales`, `naming`, `textfmt`, `formicon`, `blockmodel`, `netshape`, `sgitem`, `sievetable`, `wintext`, `machinerecipe`, `advancement`, `hopper`, `migrate`, `wire`
 - 핵심: `core`, `network`, `achievement`, `preview`, `look`, `autofill`, `decor`
 - 진행: `progress`, `island`, `climate`
-- 기능: `tinker`, `machine`, `conduit`, `storage`, `farm`, `fairy`, `dimension`, `handwork`, `expand`, `copier`, `wand`, `netstore`, `elevator`
+- 기능: `machine`, `tinker`, `conduit`, `storage`, `farm`, `fairy`, `dimension`, `handwork`, `expand`, `copier`, `wand`, `netstore`, `elevator`
 - 내용 목록: `catalog`
 - 화면: `codex`, `screens`
 
@@ -36,7 +36,6 @@ Dragonfly 자체를 확장하는 방법은 [dragonfly.md](dragonfly.md) 에 있�
 | `features.go` | 기능 목록 `Features` 와 `core.Install`. 루트 자신의 기능 `itemsFeature` 는 아이템 항목의 이름을 번역 키로 바꾸고(`naming.LocalItemName`) 클라이언트가 빈 나무 양동이로 액체를 겨누게 한다(`sgitem.ClipWoodenBucket`) |
 | `game.go` | `Game` 과 `session`. 플랫폼의 `instance.Game`·`instance.Session` 을 구현한다. `New` 가 기능의 명령어(`core.Commands()`)와 창작 목록(`catalog.RegisterCreativeItems`)과 운영자 명령을 등록한다 |
 | `state.go` | 세이브 상태 문서의 버전(`State`, `core.NewSaved`) |
-| `hopper.go` | `hopper` 는 기능이 아닌 데이터 칸 패키지라 루트가 `init` 에서 호퍼 블록과 아이템을 등록한다(`hopper.Register`) |
 | `blockcounts.go` | 커스텀 블록 수와 상태 수(`CustomBlockCounts`, `LogCustomBlockCounts`). 서버가 시작할 때 로그에 남긴다 |
 | `admin.go` | 운영자 명령 `/sgadmin` |
 | `debug.go`, `debug_factory.go`, `debug_oreui.go`, `debug_ui.go` | 운영자 디버그 명령 `/sgdebug` 와 그 도구 |
@@ -242,7 +241,7 @@ Dragonfly 자체를 확장하는 방법은 [dragonfly.md](dragonfly.md) 에 있�
    - 소유한 기능이 등록하지 않으면 게임이 시작하지 않는다. 기계 기능의 `Check` 인 `machine.CheckKinds` 가 `machine kinds without behaviour: …` 오류를 돌려주고 `Install` 이 그 오류로 패닉한다. 소유 기능이 기능 목록에 없을 때도 같다.
    - 기능 패키지의 테스트는 기능 목록 없이 돈다. 종류의 동작이 필요한 테스트는 테스트 파일의 `init` 에서 `coretest.Setup(<기능>.Feature)` 를 부른다(`netstore/keys_test.go`, 아래 "기능의 테스트").
 
-   팅커 테이블은 `Owner` 가 비어 있고 `machine/tinkertable.go` 가 동작을 정한다. `tinker` 가 `machine` 을 import 하면 `machine` 이 `tinker` 보다 먼저 초기화되어 기계 아이템이 팅커 도구보다 먼저 등록되고, 클라이언트가 받는 아이템 id 가 바뀌기 때문이다. 루트가 `hopper` 를 등록하는 것(`hopper.go`)과 같은 사정이다.
+   `machine` 은 기능 칸의 패키지를 하나도 import 하지 않는다. 종류를 소유한 기능이 `machine` 을 import 하므로 그 기능의 패키지는 `machine` 보다 나중에 초기화된다. 그래서 그 기능이 `init` 에서 등록하는 아이템은 기계 아이템보다 뒤의 id 를 받는다. import 를 더하거나 방향을 바꿔 초기화 순서가 달라지면 커스텀 아이템의 id 가 바뀐다(아래 "핀"의 "id 만 바뀌는 변경").
 6. 기능의 아이템에 등급이나 단계 표시가 있으면 그 아이템에 `Decor()` 메서드를 둔다(`slotdeco.Decorated`). 예는 `fairy/fairymagic.go` 의 요정 판이다.
 
    ```go
@@ -374,7 +373,7 @@ func init() { coretest.Setup(farm.Feature) }
 
 - 핀과 골든(`pin_*_test.go`), 구조 규칙(`layers_test.go`, `kinds_test.go`, `testsupport_test.go` 등), 벤치마크.
 - `catalog` 의 레시피와 연구, 도감, 리소스팩, 세이브(저장, 다시 열기, 마이그레이션)를 보는 테스트.
-- 기능 셋 이상이 설치되어야 통과하는 테스트, 루트가 등록하는 호퍼(`hopper.go`)가 필요한 테스트, 자기가 import 하지 않는 기능이 등록한 아이템이 필요한 테스트.
+- 기능 셋 이상이 설치되어야 통과하는 테스트, 자기가 import 하지 않는 기능이 등록한 아이템이 필요한 테스트.
 - 루트의 내보내지 않은 이름(`Game`, `session`, `giveItems` 등)을 쓰는 테스트와 런타임 id 를 보는 테스트.
 
 루트의 `helpers_test.go` 는 같은 도우미를 루트의 `session` 위에서 준다(`testSession`, `loadAround`, `spawnPlayer`, `withPlayer`, `tick`, `placeTestMachine`, `machinePos`). `testSession` 은 데이터베이스와 `Game` 도 만든다.
@@ -383,7 +382,7 @@ func init() { coretest.Setup(farm.Feature) }
 
 - 패키지의 테스트는 루트 패키지를 import 하지 않고, 내용 목록 아래 칸의 패키지 테스트는 `catalog`, `codex`, `screens` 를 import 하지 않는다(`TestPackageTestsStayBelow`).
 - 테스트 지원 패키지는 테스트 파일만 import 한다(`TestSupportPackagesAreTestOnly`).
-- `dimension` 의 테스트 바이너리에서는 `popup_wire_test.go` 가 서버에 접속해 `testdata/popup.golden` 의 아이템 id 를 본다. 이 패키지의 테스트에 블록이나 아이템을 등록하는 패키지를 새로 import 하면 id 가 바뀐다.
+- `dimension` 의 `popup_wire_test.go` 는 서버에 접속해 데미지 숫자의 패킷을 `testdata/popup.golden` 에 고정한다. 그 패킷에는 공기 블록의 런타임 id 가 들어 있다. 블록의 런타임 id 는 테스트 바이너리가 등록한 블록 전체로 정해진다. `dimension` 이나 그 테스트의 import 가 달라져 등록되는 블록이 늘거나 줄면 이 값이 바뀐다. 같은 패킷을 블록 이름으로 적은 `testdata/popup.byname.golden` 은 그때도 그대로다.
 
 ## 클라이언트 항목 고치기
 
@@ -413,7 +412,7 @@ func init() { coretest.Setup(farm.Feature) }
 | 기능 패키지는 루트를 import 하지 않는다(간접도). `core` 는 기능을 import 하지 않는다. `common` 은 `content/`, `platform/` 을 import 하지 않는다 | `TestFeaturesLiftable` |
 | 패키지는 `layers` 의 아래 칸만 import 하고, 같은 칸의 기능 import 는 `siblings` 가 허용한 것뿐이다. `featureLayer` 는 `layers` 의 기능 칸과 같다 | `TestLayers`, `TestFeatureSiblings` |
 | `look` 은 `core`, `naming` 만, `decor` 는 `naming` 만 import 한다. 블록과 아이템은 인터페이스로 자기를 설명한다 | `TestCapabilityImports` |
-| `machine` 은 기능 칸의 패키지를 import 하지 않는다. 예외는 `machine/tinkertable.go` 의 `tinker` 하나다(`machineFeatureImports`) | `TestMachineImportsNoFeature` |
+| `machine` 은 기능 칸의 패키지를 import 하지 않고 `siblings` 에 자기 줄이 없다 | `TestMachineImportsNoFeature` |
 | 다른 기능의 기계 종류는 `kindOwners` 의 기능이 소유하고, 그 기능은 목록에 있으며 `Setup` 에서 종류를 등록한다 | `TestKindOwners` |
 | 등록되지 않은 종류가 있으면 `machine.CheckKinds` 가 종류와 기능 이름을 든 오류를 돌려준다. `machine.Register` 는 없는 종류, 소유 기능이 없는 종류, 두 번째 등록, 검사가 끝난 뒤의 등록에 패닉한다 | `machine.TestCheckKindsNamesTheMissingOwner`, `machine.TestRegisterPanics` |
 | 기능의 `Check` 는 모든 기능의 `Setup` 이 돈 뒤에 목록 순서대로 돈다 | `core.TestInstallRunsChecksAfterEverySetup` |
@@ -452,10 +451,14 @@ go test -run xxx -bench Emit -benchmem -count 5 ./content/skygear/core
 | `content/skygear/testdata/pin/kinds.golden` | 기계 종류마다 패널 밖에서 하는 일: 서서·웅크려 클릭한 결과와 열린 화면, 창의 정보 아이콘, 창 27칸의 역할과 칸이 받는 견본 아이템, 145줄 | `TestPinKinds` |
 | `content/skygear/testdata/pin/creative.golden` | 게임이 더한 창작 목록 항목을 클라이언트가 보이는 순서대로 그룹과 함께, 243개 | `TestPinCreative` |
 | `content/skygear/wire/testdata/*.golden` | 접속한 플레이어가 받는 블록 항목, 아이템 등록, 제작 데이터, 창작 목록의 항목별 해시 | `TestWire` |
+| `content/skygear/wire/testdata/items.byname.golden`, `recipes.byname.golden`, `creative.byname.golden` | 위의 아이템 등록, 제작 데이터, 창작 목록과 같은 항목인데 아이템 id 자리에 아이템 이름을 적은 것. 커스텀 아이템 id 의 집합(`meta/custom_ids`)도 담는다 | `TestWire` |
+| `content/skygear/dimension/testdata/popup.golden`, `popup.byname.golden` | 이차원 데미지 숫자와 경험치 보석의 패킷. `byname` 은 블록 런타임 id 자리에 블록 이름을 적은 것 | `dimension.TestPopupAddActor` |
+| `content/skygear/testdata/save/oldsave.zip`, `oldsave.golden` | 2026-11-11 의 빌드가 쓴 세이브(모든 커스텀 블록 상태, 상자에 든 모든 커스텀 아이템, 아이템을 든 분쇄기·서랍·나무 호퍼, 플레이어 상태)와 그 세이브를 읽은 결과를 이름으로 적은 2,822줄 | `TestOldSaveLoads` |
 
 ```sh
 go test ./content/skygear -run 'TestPin' -count=1     # 구독 순서, 장면, 패널, 기계 종류, 창작 목록
 go test ./content/skygear/wire/                        # 클라이언트 데이터
+go test ./content/skygear -run 'TestOldSaveLoads' -count=1   # 옛 세이브 읽기
 ```
 
 골든이 달라지면 테스트가 어느 줄(장면)이 어떻게 달라졌는지 `want` 와 `got` 로 보여 준다. 디스패치 순서나 클라이언트 데이터가 바뀌면 골든 차이로 나타난다.
@@ -467,3 +470,14 @@ SKYGEAR_GOLDEN=update go test ./content/skygear/wire/
 ```
 
 다시 기록한 골든은 `git diff` 로 의도한 줄만 바뀌었는지 확인하고, 커밋 메시지에 왜 바꿨는지 적는다. 테스트를 통과시키려고 다시 기록하지 않는다.
+
+### id 만 바뀌는 변경
+
+커스텀 아이템의 숫자 id 는 아이템이 등록된 순서다. 등록 순서는 패키지가 초기화되는 순서를 따른다. 패키지 사이의 import 를 더하거나 방향을 바꾸거나 등록하는 곳을 옮기면 플레이어가 보는 것은 그대로인데 `items.golden`, `recipes.golden`, `creative.golden` 의 수백 줄이 바뀐다. 이런 변경은 다음과 같이 확인한다.
+
+1. 코드를 바꾼 뒤 다시 기록하지 않고 테스트를 돌린다. `TestWire` 의 `items`, `recipes`, `creative` 만 실패하고 `by name` 은 통과해야 한다. `TestPin…` 과 `TestOldSaveLoads` 도 통과해야 한다.
+2. `SKYGEAR_GOLDEN=update go test ./content/skygear/wire/ -run 'TestWire$' -count=1` 로 다시 기록한다. `popup.golden` 이 달라졌으면 `SKYGEAR_GOLDEN=update go test ./content/skygear/dimension/ -run 'TestPopupAddActor$' -count=1` 도 돌린다.
+3. `git status --short` 에 `*.byname.golden`, `testdata/save/`, `testdata/pin/` 의 파일이 없어야 한다. 이름으로 적은 골든이 그대로면 바뀐 것은 id 뿐이다. 하나라도 있으면 id 말고 다른 것이 바뀐 것이므로 다시 기록한 것을 되돌리고 원인을 찾는다.
+4. `git diff --numstat` 의 줄 수를 커밋 메시지에 적는다.
+
+세이브는 블록과 아이템을 이름으로 저장하므로 id 가 바뀌어도 그대로 읽힌다. `TestOldSaveLoads` 가 옛 빌드가 쓴 세이브를 지금 빌드로 읽어 이를 확인한다. `oldsave.zip` 과 `oldsave.golden` 은 세이브에 담을 것을 바꿀 때만 다시 기록한다. 게임을 바꾼 뒤 이 테스트가 실패하면 옛 세이브가 전과 다르게 읽힌다는 뜻이다.
