@@ -1,10 +1,11 @@
-package skygear
+package screens_test
 
 import (
 	"strings"
 	"testing"
 
 	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/screens"
 )
@@ -13,7 +14,7 @@ import (
 // long, are never saved, can be done without cost and keep their original's
 // texts; the grid of the split screen holds one page of them.
 func TestResearchCopiesFillTheTabs(t *testing.T) {
-	s := testSession(t)
+	s := coretest.Session(t)
 	todoBefore, _, _ := screens.ResearchEntries(s.Session)
 	for i := range 130 {
 		r := progress.Tree[i%len(progress.Tree)]

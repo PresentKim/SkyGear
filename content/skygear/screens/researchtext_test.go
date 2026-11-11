@@ -1,4 +1,4 @@
-package skygear
+package screens_test
 
 import (
 	"strings"
@@ -8,6 +8,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/screens"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
@@ -39,7 +40,7 @@ func TestEveryResearchIsExplained(t *testing.T) {
 // everything before it is done; one that is a step from open shows in grey
 // after them, and nothing further is shown.
 func TestResearchListHidesLockedResearches(t *testing.T) {
-	s := testSession(t)
+	s := coretest.Session(t)
 	split := func() (open, grey int) {
 		slots, _, _, _ := screens.ResearchSlots(s.Session, nil)
 		for _, sl := range slots {
@@ -77,7 +78,7 @@ func TestResearchListHidesLockedResearches(t *testing.T) {
 // TestResearchPreviewButton: the screen of a research that is not open has no
 // research button but one that goes to the research it needs first.
 func TestResearchPreviewButton(t *testing.T) {
-	s := testSession(t)
+	s := coretest.Session(t)
 	r, _ := progress.ByID("wood_tools")
 	need, ok := progress.Blocker(s.Session, r)
 	if !ok || need.ID != "stick" {
@@ -108,11 +109,11 @@ func TestResearchPreviewButton(t *testing.T) {
 // two sections of one list, the tooltip title is yellow and green when p has
 // all the materials.
 func TestResearchListSections(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
 	progress.StateOf(s.Session).Researched = map[string]bool{"stick": true}
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		todo, done, todoN, doneN := screens.ResearchSlots(s.Session, p)
 		if todoN != 4 || doneN != 1 || len(done) != 1 || len(todo) < todoN {
 			t.Fatalf("%d to do (%d slots), %d done (%d slots)", todoN, len(todo), doneN, len(done))
@@ -132,7 +133,7 @@ func TestResearchListSections(t *testing.T) {
 // its materials and recipes as slots; no word of what it needs first; a
 // done one shows 연구 완료 and no button.
 func TestResearchScreen(t *testing.T) {
-	s := testSession(t)
+	s := coretest.Session(t)
 	r, _ := progress.ByID("wood_tools")
 	progress.StateOf(s.Session).Researched = map[string]bool{"stick": true}
 	d, rows, opts := screens.ResearchNode(s.Session, nil, r)

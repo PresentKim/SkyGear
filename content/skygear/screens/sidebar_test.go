@@ -1,4 +1,4 @@
-package skygear
+package screens_test
 
 import (
 	"strings"
@@ -12,13 +12,14 @@ import (
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/advancement"
 	"github.com/presentkim/skygear/content/skygear/catalog"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/screens"
 	"github.com/presentkim/skygear/platform/account"
 )
 
 func TestCostRowsCountTheInventory(t *testing.T) {
-	s := testSession(t)
+	s := coretest.Session(t)
 	progress.StateOf(s.Session).Researched = map[string]bool{}
 	r, _ := progress.ByID("chest")
 	inv := inventory.New(36, nil)
@@ -37,10 +38,10 @@ func TestCostRowsCountTheInventory(t *testing.T) {
 // advancement and its hint, with the research cost for a research
 // advancement, then the next research once every advancement is done.
 func TestHUDQuestFollowsAdvancements(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		if title, rows := screens.QuestRows(s.Session, i18n.Default, nil); !strings.Contains(title, "주먹이 곧 도끼") || len(rows) != 2 {
 			t.Fatalf("quest %q %q", title, rows)
 		}
@@ -71,7 +72,7 @@ func TestHUDQuestFollowsAdvancements(t *testing.T) {
 // TestQuestShowsResearchStep: an advancement that waits on a research
 // behind others shows the research to do now with its cost.
 func TestQuestShowsResearchStep(t *testing.T) {
-	s := testSession(t)
+	s := coretest.Session(t)
 	a, _ := advancement.ByID("alloy_smelter")
 	g, ok := progress.GoalResearch(a)
 	if !ok || g.ID != "alloy_smelter" {
@@ -97,10 +98,10 @@ func TestQuestShowsResearchStep(t *testing.T) {
 // TestQuestPanelSetting: a player who turns the quest panel off sees no
 // quest rows on the HUD.
 func TestQuestPanelSetting(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		screens.UpdateBoard(s.Session, p)
 		if !strings.Contains(screens.Boards.Of(s.Session)[p.H()], hud.QuestTitle) {
 			t.Fatalf("no quest panel by default: %q", screens.Boards.Of(s.Session)[p.H()])
