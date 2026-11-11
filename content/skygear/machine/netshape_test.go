@@ -42,9 +42,9 @@ func TestNetPartsDrawEveryShape(t *testing.T) {
 			if want := netBoxes(kind, s); !reflect.DeepEqual(drawn, want) {
 				t.Fatalf("%s shape %d: bones draw %d boxes, the shape has %d", kind, s, len(drawn), len(want))
 			}
-			props := netProperties(kind, s)
-			if len(props.BoneVisibility) != len(parts) {
-				t.Fatalf("%s shape %d: bone_visibility names %d bones, the geometry has %d", kind, s, len(props.BoneVisibility), len(parts))
+			vis := netExtras(kind, s).BoneVisibility
+			if len(vis) != len(parts) {
+				t.Fatalf("%s shape %d: bone_visibility names %d bones, the geometry has %d", kind, s, len(vis), len(parts))
 			}
 		}
 	}

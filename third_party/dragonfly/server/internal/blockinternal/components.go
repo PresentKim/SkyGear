@@ -58,9 +58,7 @@ func Components(identifier string, b world.CustomBlock, blockID int32) map[strin
 // a custom permutation.
 func componentsFromProperties(props customblock.Properties) map[string]any {
 	components := make(map[string]any)
-	if len(props.CollisionBoxes) > 0 {
-		components["minecraft:collision_box"] = collisionBoxComponent(props.CollisionBoxes...)
-	} else if props.CollisionBox != (cube.BBox{}) {
+	if props.CollisionBox != (cube.BBox{}) {
 		components["minecraft:collision_box"] = collisionBoxComponent(props.CollisionBox)
 	}
 	if props.SelectionBox != (cube.BBox{}) {
@@ -70,15 +68,6 @@ func componentsFromProperties(props customblock.Properties) map[string]any {
 		components["minecraft:geometry"] = map[string]any{"identifier": props.Geometry}
 	} else if props.Cube {
 		components["minecraft:geometry"] = map[string]any{"identifier": "minecraft:geometry.full_block"}
-	}
-	if geometry, ok := components["minecraft:geometry"].(map[string]any); ok && len(props.BoneVisibility) > 0 {
-		// skygear patch: bone_visibility, each bone a Molang expression ("true" and "false" are
-		// constants) the client evaluates per block state.
-		visibility := make(map[string]any, len(props.BoneVisibility))
-		for bone, expression := range props.BoneVisibility {
-			visibility[bone] = expression
-		}
-		geometry["bone_visibility"] = visibility
 	}
 	if props.MapColour != "" {
 		components["minecraft:map_color"] = map[string]any{"value": props.MapColour}
@@ -120,22 +109,20 @@ func componentsFromProperties(props customblock.Properties) map[string]any {
 }
 
 // collisionBoxComponent returns the component data for a collision box, using absolute min/max coordinates in pixels.
-func collisionBoxComponent(boxes ...cube.BBox) map[string]any {
-	list := make([]map[string]any, 0, len(boxes))
-	for _, box := range boxes {
-		min, max := box.Min(), box.Max()
-		list = append(list, map[string]any{
-			"minX": float32(min.X() * 16),
-			"minY": float32(min.Y() * 16),
-			"minZ": float32(min.Z() * 16),
-			"maxX": float32(max.X() * 16),
-			"maxY": float32(max.Y() * 16),
-			"maxZ": float32(max.Z() * 16),
-		})
-	}
+func collisionBoxComponent(box cube.BBox) map[string]any {
+	min, max := box.Min(), box.Max()
 	return map[string]any{
 		"enabled": true,
-		"boxes":   list,
+		"boxes": []map[string]any{
+			{
+				"minX": float32(min.X() * 16),
+				"minY": float32(min.Y() * 16),
+				"minZ": float32(min.Z() * 16),
+				"maxX": float32(max.X() * 16),
+				"maxY": float32(max.Y() * 16),
+				"maxZ": float32(max.Z() * 16),
+			},
+		},
 	}
 }
 

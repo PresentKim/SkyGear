@@ -3,6 +3,7 @@ package clientdef
 import (
 	"reflect"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -149,5 +150,137 @@ func TestBlockEntryUnchanged(t *testing.T) {
 	noProps := protocol.BlockEntry{Name: "clientdef_test:data_driven", Properties: map[string]any{"components": map[string]any{}}}
 	if out := BlockEntry(noProps); len(out.Properties) != 1 {
 		t.Errorf("properties added: %v", out.Properties)
+	}
+}
+
+// extraBlk sends bones and collision boxes for itself and one permutation.
+type extraBlk struct{ blk }
+
+const extraCond = "q.block_state('t:s') == 1"
+
+func (extraBlk) ClientExtras() (Extras, map[string]Extras) {
+	return Extras{
+			CollisionBoxes: []cube.BBox{cube.Box(0, 0, 0, 1, 0.125, 1), cube.Box(0, 0, 0, 0.125, 1, 1)},
+			BoneVisibility: map[string]string{"core": "true", "arm": "false", "up": "q.block_state('t:s') == 1"},
+		}, map[string]Extras{
+			extraCond: {BoneVisibility: map[string]string{"core": "false"}},
+		}
+}
+
+// boneOnlyBlk has bones in its base only.
+type boneOnlyBlk struct{ blk }
+
+func (boneOnlyBlk) ClientExtras() (Extras, map[string]Extras) {
+	return Extras{BoneVisibility: map[string]string{"core": "false"}}, nil
+}
+
+// wrongCondBlk names a permutation condition the entry lacks.
+type wrongCondBlk struct{ blk }
+
+func (wrongCondBlk) ClientExtras() (Extras, map[string]Extras) {
+	return Extras{}, map[string]Extras{"nope": {BoneVisibility: map[string]string{"core": "false"}}}
+}
+
+func init() {
+	world.RegisterBlock(extraBlk{blk{"extra"}})
+	world.RegisterBlock(boneOnlyBlk{blk{"boneonly"}})
+	world.RegisterBlock(wrongCondBlk{blk{"wrongcond"}})
+}
+
+// extraEntry is an entry with a geometry and one permutation with its own.
+func extraEntry(name string) protocol.BlockEntry {
+	e := blockEntry(name)
+	e.Properties["components"].(map[string]any)["minecraft:geometry"] = map[string]any{"identifier": "geometry.test"}
+	e.Properties["components"].(map[string]any)["minecraft:collision_box"] = map[string]any{"enabled": true, "origin": []float32{1}}
+	e.Properties["permutations"] = []map[string]any{{
+		"condition":  extraCond,
+		"components": map[string]any{"minecraft:geometry": map[string]any{"identifier": "geometry.test"}},
+	}, {
+		"condition":  "other",
+		"components": map[string]any{"minecraft:geometry": map[string]any{"identifier": "geometry.test"}},
+	}}
+	return e
+}
+
+func geometry(components any) map[string]any {
+	return components.(map[string]any)["minecraft:geometry"].(map[string]any)
+}
+
+// TestBoneVisibilityEncoded: the bones go into minecraft:geometry as strings.
+func TestBoneVisibilityEncoded(t *testing.T) {
+	out := BlockEntry(extraEntry("clientdef_test:extra"))
+	want := map[string]any{
+		"identifier": "geometry.test",
+		"bone_visibility": map[string]any{
+			"core": "true", "arm": "false", "up": "q.block_state('t:s') == 1",
+		},
+	}
+	if got := geometry(out.Properties["components"]); !reflect.DeepEqual(got, want) {
+		t.Errorf("minecraft:geometry = %v, want %v", got, want)
+	}
+}
+
+// TestBoneVisibilityAbsentByDefault: a block with no extras keeps its
+// geometry as it was, and the input entry is not modified.
+func TestBoneVisibilityAbsentByDefault(t *testing.T) {
+	out := BlockEntry(extraEntry("clientdef_test:plain"))
+	if want := map[string]any{"identifier": "geometry.test"}; !reflect.DeepEqual(geometry(out.Properties["components"]), want) {
+		t.Errorf("minecraft:geometry = %v", geometry(out.Properties["components"]))
+	}
+	in := extraEntry("clientdef_test:extra")
+	BlockEntry(in)
+	if _, ok := geometry(in.Properties["components"])["bone_visibility"]; ok {
+		t.Error("the input entry was modified")
+	}
+	if _, ok := geometry(in.Properties["permutations"].([]map[string]any)[0]["components"])["bone_visibility"]; ok {
+		t.Error("the input permutation was modified")
+	}
+}
+
+// TestBoneVisibilityInPermutations: the base components and the permutation
+// of the same condition carry their own bone_visibility; another one none.
+func TestBoneVisibilityInPermutations(t *testing.T) {
+	out := BlockEntry(extraEntry("clientdef_test:extra"))
+	perms := out.Properties["permutations"].([]map[string]any)
+	if len(perms) != 2 {
+		t.Fatalf("%d permutations", len(perms))
+	}
+	if got := geometry(perms[0]["components"])["bone_visibility"]; !reflect.DeepEqual(got, map[string]any{"core": "false"}) {
+		t.Errorf("permutation bone_visibility = %v", got)
+	}
+	if _, ok := geometry(perms[1]["components"])["bone_visibility"]; ok {
+		t.Error("a permutation of another condition got bones")
+	}
+	if _, ok := perms[0]["components"].(map[string]any)["minecraft:collision_box"]; ok {
+		t.Error("a permutation without boxes got a collision box")
+	}
+}
+
+// TestCollisionBoxes: two boxes, in pixels as float32, enabled, replacing a
+// single box.
+func TestCollisionBoxes(t *testing.T) {
+	out := BlockEntry(extraEntry("clientdef_test:extra"))
+	want := map[string]any{"enabled": true, "boxes": []map[string]any{
+		{"minX": float32(0), "minY": float32(0), "minZ": float32(0), "maxX": float32(16), "maxY": float32(2), "maxZ": float32(16)},
+		{"minX": float32(0), "minY": float32(0), "minZ": float32(0), "maxX": float32(2), "maxY": float32(16), "maxZ": float32(16)},
+	}}
+	if got := out.Properties["components"].(map[string]any)["minecraft:collision_box"]; !reflect.DeepEqual(got, want) {
+		t.Errorf("minecraft:collision_box = %v, want %v", got, want)
+	}
+}
+
+// TestExtrasPanics: bones without a geometry, and a condition without a
+// permutation, panic naming the block.
+func TestExtrasPanics(t *testing.T) {
+	for _, name := range []string{"clientdef_test:boneonly", "clientdef_test:wrongcond"} {
+		func() {
+			defer func() {
+				r, _ := recover().(string)
+				if !strings.Contains(r, name) {
+					t.Errorf("%s: panic %q", name, r)
+				}
+			}()
+			BlockEntry(blockEntry(name))
+		}()
 	}
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/df-mc/dragonfly/server/block/customblock"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/common/clientdef"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/slotdeco"
 	"github.com/presentkim/skygear/content/skygear/conduit"
@@ -146,13 +147,13 @@ func TestPackHasBlockAssets(t *testing.T) {
 		}
 	}
 	lang := packLang(t)
-	check := func(id string, props customblock.Properties) {
+	check := func(id string, props customblock.Properties, extras clientdef.Extras) {
 		if props.Geometry != "" && !strings.HasPrefix(props.Geometry, "minecraft:") {
 			bones, ok := geometries[props.Geometry]
 			if !ok {
 				t.Errorf("%s: geometry %s not in models/blocks", id, props.Geometry)
 			}
-			for bone := range props.BoneVisibility {
+			for bone := range extras.BoneVisibility {
 				if ok && !bones[bone] {
 					t.Errorf("%s: bone_visibility names %s, not a bone of %s", id, bone, props.Geometry)
 				}
@@ -171,10 +172,15 @@ func TestPackHasBlockAssets(t *testing.T) {
 		t.Fatalf("only %d custom blocks registered", len(blocks))
 	}
 	for id, b := range blocks {
-		check(id, b.Properties())
+		var base clientdef.Extras
+		var permExtras map[string]clientdef.Extras
+		if x, ok := b.(clientdef.ExtraProperties); ok {
+			base, permExtras = x.ClientExtras()
+		}
+		check(id, b.Properties(), base)
 		if p, ok := b.(block.Permutable); ok {
 			for _, perm := range p.Permutations() {
-				check(id+" "+perm.Condition, perm.Properties)
+				check(id+" "+perm.Condition, perm.Properties, permExtras[perm.Condition])
 			}
 		}
 		if n, ok := b.(interface{ Name() string }); ok && lang["tile."+id+".name"] != n.Name() {

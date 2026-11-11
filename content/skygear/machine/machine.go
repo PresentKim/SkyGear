@@ -19,6 +19,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/chestui"
+	"github.com/presentkim/skygear/common/clientdef"
 	"github.com/presentkim/skygear/common/fluidnet"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/slotdeco"
@@ -1314,6 +1315,31 @@ func (m Machine) Permutations() []customblock.Permutation {
 		return netPermutations(m.Kind)
 	}
 	return nil
+}
+
+// ClientExtras implements clientdef.ExtraProperties for the machines whose
+// geometry has bones: the base follows Properties and the permutations follow
+// Permutations. A sieve shows its content bones, a network block its shape's
+// bones and collision boxes.
+func (m Machine) ClientExtras() (clientdef.Extras, map[string]clientdef.Extras) {
+	var base clientdef.Extras
+	switch {
+	case m.Kind == KindDrawerTrim || cubeMachines[m.Kind] || frontMachines[m.Kind]:
+	case NetShaped(m.Kind):
+		base, _ = netAllExtras(m.Kind)
+	default:
+		base, _ = sieveExtras()
+	}
+	switch {
+	case IsSieve(m.Kind):
+		_, perms := sieveExtras()
+		return base, perms
+	case TierLook(m.Kind), AnimatedKinds[m.Kind]:
+	case NetShaped(m.Kind):
+		_, perms := netAllExtras(m.Kind)
+		return base, perms
+	}
+	return base, nil
 }
 
 func (m Machine) Properties() customblock.Properties {
