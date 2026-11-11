@@ -189,10 +189,12 @@ func TestPinBlocks(t *testing.T) {
 	breakAt("expanding", pos, stoneDrop, expanding, nil)
 	breakAt("hammerCobble", pos, []item.Stack{item.NewStack(block.Cobblestone{}, 1)}, chain(blockAt(pos, block.Cobblestone{}), holding(hammer)), nil)
 	breakAt("hammerComposter", pos, stoneDrop, chain(fullComposter, holding(hammer)), nil)
-	// The seed makes the crook's roll give a sapling.
+	// The seed makes the crook's roll give a sapling. Birch leaves, because
+	// oak and dark oak leaves also roll an apple from Dragonfly's global
+	// random source, which a test cannot seed.
 	crookSeed := func(s *session, p *player.Player, tx *world.Tx) { s.Rand = rand.New(rand.NewPCG(5, 2)) }
-	breakAt("crookLeaves", pos, []item.Stack{item.NewStack(block.Leaves{Type: block.OakLeaves()}, 1)},
-		chain(crookSeed, blockAt(pos, block.Leaves{Type: block.OakLeaves()}), holding(item.NewStack(sgitem.Crook{Tier: sgitem.CrookDiamond}, 1))), nil)
+	breakAt("crookLeaves", pos, []item.Stack{item.NewStack(block.Leaves{Type: block.BirchLeaves()}, 1)},
+		chain(crookSeed, blockAt(pos, block.Leaves{Type: block.BirchLeaves()}), holding(item.NewStack(sgitem.Crook{Tier: sgitem.CrookDiamond}, 1))), nil)
 	breakAt("crookStone", pos, stoneDrop, chain(blockAt(pos, block.Stone{}), holding(item.NewStack(sgitem.Crook{Tier: sgitem.CrookDiamond}, 1))), nil)
 	breakAt("tinkerTool", pos, stoneDrop, chain(blockAt(pos, block.Stone{}),
 		toolHeld(item.NewStack(tinker.Tool{Kind: tinker.ToolPickaxe, Head: "iron", Handle: "wood"}, 1))),
