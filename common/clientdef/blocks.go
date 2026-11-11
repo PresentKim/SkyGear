@@ -28,6 +28,10 @@ import (
 //     and the visibility of its geometry's bones (bone_visibility in
 //     minecraft:geometry), in its base components and in the components of the
 //     permutation with the same condition;
+//   - for a block that implements RenderMethods, the render method of each
+//     material under minecraft:material_instances (in the base components and
+//     in every permutation) renamed as the block asks, which lets a block use
+//     a method Dragonfly has no constructor for;
 //   - the properties in the order of their names, not of the map Dragonfly
 //     iterates. The client numbers a block's states as every combination of
 //     the values, the property first by name changing slowest (the order of
@@ -55,6 +59,9 @@ func BlockEntry(e protocol.BlockEntry) protocol.BlockEntry {
 			base, perms := x.ClientExtras()
 			applyExtras(e, blockComponents(e), base)
 			applyPermutationExtras(&e, perms)
+		}
+		if x, ok := b.(RenderMethods); ok {
+			applyRenderMethods(&e, x.ClientRenderMethods())
 		}
 		if _, ok := b.(block.Activatable); ok {
 			blockComponents(e)["minecraft:custom_components"] = map[string]any{
@@ -87,6 +94,74 @@ type Extras struct {
 // base definition and for each permutation, by the permutation's condition.
 type ExtraProperties interface {
 	ClientExtras() (base Extras, permutations map[string]Extras)
+}
+
+// RenderMethods is implemented by a custom block that sends other render
+// methods than the ones customblock.Method can build.
+type RenderMethods interface {
+	// ClientRenderMethods maps a render method the block's materials have to
+	// the one the client is sent instead, such as "alpha_test" to
+	// "alpha_test_single_sided". Other fields of a material stay.
+	ClientRenderMethods() map[string]string
+}
+
+// applyRenderMethods renames the render methods of the materials of e, in its
+// base components and its permutations, on copies. It panics if a shape it
+// needs is missing.
+func applyRenderMethods(e *protocol.BlockEntry, methods map[string]string) {
+	if len(methods) == 0 {
+		return
+	}
+	e.Properties["components"] = renamedMethods(*e, e.Properties["components"], methods)
+	if perms, ok := e.Properties["permutations"]; ok {
+		list, ok := perms.([]map[string]any)
+		if !ok {
+			panic("clientdef: block entry " + e.Name + " has permutations of an unexpected type")
+		}
+		list = slices.Clone(list)
+		for i, p := range list {
+			p = maps.Clone(p)
+			p["components"] = renamedMethods(*e, p["components"], methods)
+			list[i] = p
+		}
+		e.Properties["permutations"] = list
+	}
+}
+
+// renamedMethods returns a copy of the components map comps with the render
+// methods of its materials renamed.
+func renamedMethods(e protocol.BlockEntry, comps any, methods map[string]string) map[string]any {
+	c, ok := comps.(map[string]any)
+	if !ok {
+		panic("clientdef: block entry " + e.Name + " has no components")
+	}
+	c = maps.Clone(c)
+	instances, ok := c["minecraft:material_instances"].(map[string]any)
+	if !ok {
+		return c
+	}
+	materials, ok := instances["materials"].(map[string]any)
+	if !ok {
+		panic("clientdef: block entry " + e.Name + " has material instances without materials")
+	}
+	materials = maps.Clone(materials)
+	for name, m := range materials {
+		mat, ok := m.(map[string]any)
+		if !ok {
+			panic("clientdef: material " + name + " of block entry " + e.Name + " is no compound")
+		}
+		to, ok := methods[mat["render_method"].(string)]
+		if !ok {
+			continue
+		}
+		mat = maps.Clone(mat)
+		mat["render_method"] = to
+		materials[name] = mat
+	}
+	instances = maps.Clone(instances)
+	instances["materials"] = materials
+	c["minecraft:material_instances"] = instances
+	return c
 }
 
 // applyExtras puts x into comps, a components map BlockEntry owns.

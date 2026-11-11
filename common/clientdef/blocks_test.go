@@ -284,3 +284,52 @@ func TestExtrasPanics(t *testing.T) {
 		}()
 	}
 }
+
+// renderBlk asks for alpha_test to be sent as the single-sided method.
+type renderBlk struct{ blk }
+
+func (renderBlk) ClientRenderMethods() map[string]string {
+	return map[string]string{"alpha_test": "alpha_test_single_sided"}
+}
+
+func init() { world.RegisterBlock(renderBlk{blk{"render"}}) }
+
+func materialsOf(components any) map[string]any {
+	return components.(map[string]any)["minecraft:material_instances"].(map[string]any)["materials"].(map[string]any)
+}
+
+// TestRenderMethods: only the materials with a listed method change, in the
+// base and in a permutation, other fields stay and the input is not modified.
+func TestRenderMethods(t *testing.T) {
+	mats := func() map[string]any {
+		return map[string]any{"minecraft:material_instances": map[string]any{
+			"mappings": map[string]any{},
+			"materials": map[string]any{
+				"*":    map[string]any{"texture": "a", "render_method": "alpha_test", "face_dimming": true, "ambient_occlusion": float32(1)},
+				"flat": map[string]any{"texture": "b", "render_method": "opaque", "face_dimming": true, "ambient_occlusion": float32(0)},
+			},
+		}}
+	}
+	in := blockEntry("clientdef_test:render")
+	in.Properties["components"] = mats()
+	in.Properties["permutations"] = []map[string]any{{"condition": "c", "components": mats()}}
+	out := BlockEntry(in)
+	check := func(where string, comps any) {
+		m := materialsOf(comps)
+		if got := m["*"].(map[string]any); got["render_method"] != "alpha_test_single_sided" || got["texture"] != "a" ||
+			got["face_dimming"] != true || got["ambient_occlusion"] != float32(1) {
+			t.Errorf("%s alpha_test material = %v", where, got)
+		}
+		if got := m["flat"].(map[string]any); got["render_method"] != "opaque" {
+			t.Errorf("%s opaque material = %v", where, got)
+		}
+	}
+	check("base", out.Properties["components"])
+	check("permutation", out.Properties["permutations"].([]map[string]any)[0]["components"])
+	if got := materialsOf(in.Properties["components"])["*"].(map[string]any)["render_method"]; got != "alpha_test" {
+		t.Errorf("the input entry was modified: %v", got)
+	}
+	if got := materialsOf(in.Properties["permutations"].([]map[string]any)[0]["components"])["*"].(map[string]any)["render_method"]; got != "alpha_test" {
+		t.Errorf("the input permutation was modified: %v", got)
+	}
+}

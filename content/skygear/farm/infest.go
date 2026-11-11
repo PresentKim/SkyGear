@@ -96,12 +96,19 @@ var (
 	silkwormLeavesHash = block.NextHash()
 )
 
-// leafMaterial is the look of a leaves texture: cut out, culled against its
-// neighbours (alpha test draws the back faces too, which fought with the
-// faces of the leaves beside it) and shaded with ambient occlusion like
-// vanilla leaves (without it the block looked flat and lit at night).
+// leafMaterial is the look of a leaves texture: cut out and shaded with
+// ambient occlusion like vanilla leaves (without it the block looked flat and
+// lit at night). Alpha test is sent to the client as alpha_test_single_sided
+// (see ClientRenderMethods).
 func leafMaterial(texture string) customblock.Material {
-	return customblock.NewMaterial(texture, customblock.AlphaTestSingleSidedRenderMethod()).WithAmbientOcclusion()
+	return customblock.NewMaterial(texture, customblock.AlphaTestRenderMethod()).WithAmbientOcclusion()
+}
+
+// ClientRenderMethods implements clientdef.RenderMethods: the leaves are
+// culled against their neighbours (alpha test draws the back faces too, which
+// fought with the faces of the leaves beside it).
+func (SilkwormLeaves) ClientRenderMethods() map[string]string {
+	return map[string]string{"alpha_test": "alpha_test_single_sided"}
 }
 
 // cocoonTexture is the texture of a cocoon step: four pictures of the silk
