@@ -145,6 +145,16 @@ func (r *Run) monsters(tx *world.Tx) []*Monster {
 
 func (r *Run) Owns(h *world.EntityHandle) bool { return r.Alive[h] }
 
+// monsterGone handles a monster of a run that died to p (nil when it blew
+// itself up): the run counts it. Any other monster just goes.
+func monsterGone(s *core.Session, tx *world.Tx, m *Monster, p *player.Player) {
+	if r := RunOf(s); r != nil && r.Owns(m.Handle) {
+		r.killed(s, tx, m, p)
+		return
+	}
+	_ = m.Close()
+}
+
 // fightTicks is how long the hunt has gone after the countdown.
 func (r *Run) fightTicks() int { return max(0, r.ticks-countdownTicks) }
 

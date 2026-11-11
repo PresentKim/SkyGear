@@ -7,7 +7,7 @@
 
 기능마다 패키지가 하나다. 패키지는 아래 표에서 **자기보다 위 칸**의 패키지만 import 한다(같은 칸끼리는 표의 순서대로).
 위 칸이 아래 칸을 불러야 할 때(메뉴 열기, 사이드바 갱신, 다른 기능의 기계 종류)는 위 칸이 함수 변수(훅)를 두고,
-아래 칸이 `init` 에서 채운다(예: `core.ShowMenu` 는 `screens` 가, `machine.Kinds[KindGate].Click` 은 `dimension` 이).
+아래 칸이 `init` 에서 채운다(예: `core.ShowMenu` 는 `screens` 가, `machine.Kinds[KindRelicTable].Click` 은 `dimension` 이).
 
 | 층 | 패키지 | 내용 |
 |---|---|---|

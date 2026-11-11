@@ -205,11 +205,34 @@ func rewriteWorld(log *slog.Logger, dir string, r renamer) (int, error) {
 		return 0, fmt.Errorf("open %s: %w", dir, err)
 	}
 	defer ldb.Close()
+	drops, err := dropPositions(log, dir, ldb, r)
+	if err != nil {
+		return 0, err
+	}
 	batch := new(leveldb.Batch)
 	changed := 0
 	it := ldb.NewIterator(nil, nil)
 	for it.Next() {
 		k, v := it.Key(), it.Value()
+		if n := len(k); n > 1 && k[n-1] == blockEntityTag && drops[string(k[:n-1])] != nil {
+			// The block entities of a chunk with replaced blocks that
+			// have no use for them.
+			nv, err := dropBlockEntities(v, drops[string(k[:n-1])])
+			if err != nil {
+				log.Warn("migrate: world value left as it is", "world", dir, "key", fmt.Sprintf("%x", k), "err", err)
+			} else {
+				if len(nv) == 0 {
+					batch.Delete(slices.Clone(k))
+					changed++
+					continue
+				}
+				if !bytes.Equal(nv, v) {
+					batch.Put(slices.Clone(k), nv)
+					changed++
+				}
+				v = nv
+			}
+		}
 		if !r.mentions(v) {
 			continue
 		}
@@ -217,7 +240,7 @@ func rewriteWorld(log *slog.Logger, dir string, r renamer) (int, error) {
 		if nbtrewrite.IsSubChunkKey(k) {
 			nv, err = nbtrewrite.SubChunkBlocks(v, r.rep, r.blocks)
 		} else {
-			nv, err = nbtrewrite.NBT(v, r.rep)
+			nv, err = nbtrewrite.NBTStacks(v, r.rep, r.rep, r.plain)
 		}
 		if err != nil {
 			log.Warn("migrate: world value left as it is", "world", dir, "key", fmt.Sprintf("%x", k), "err", err)
@@ -392,7 +415,7 @@ func rewriteBytes(b []byte, r renamer) ([]byte, bool) {
 		return b, false
 	}
 	if b[0] == 10 {
-		if nb, err := nbtrewrite.NBTKeys(b, r.rep, r.key); err == nil {
+		if nb, err := nbtrewrite.NBTStacks(b, r.rep, r.key, r.plain); err == nil {
 			return nb, !bytes.Equal(nb, b)
 		}
 	}
@@ -443,7 +466,7 @@ func walkJSON(v any, r renamer, changed *bool) any {
 		// []byte fields are base64 in JSON: lost items hold item NBT.
 		e := r.embedded()
 		if raw, err := base64.StdEncoding.DecodeString(v); err == nil && len(raw) > 0 && raw[0] == 10 && e.mentions(raw) {
-			if nb, err := nbtrewrite.NBTKeys(raw, e.rep, e.key); err == nil {
+			if nb, err := nbtrewrite.NBTStacks(raw, e.rep, e.key, e.plain); err == nil {
 				*changed = true
 				return base64.StdEncoding.EncodeToString(nb)
 			}

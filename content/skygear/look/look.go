@@ -334,7 +334,7 @@ func MachineLines(lang string, m machine.Machine) ([]string, *waila.ItemLine) {
 		return machine.GeneratorLines(lang, st), nil
 	case machine.IsNatureGenerator(m.Kind):
 		return machine.NatureLines(lang, st), nil
-	case m.Kind == machine.KindGate, m.Kind == machine.KindDrawerTrim, m.Kind == machine.KindTinker, m.Kind == machine.KindRelicTable:
+	case m.Kind == machine.KindDrawerTrim, m.Kind == machine.KindTinker, m.Kind == machine.KindRelicTable:
 		return nil, nil
 	case st.Def.Controller:
 		return nil, nil

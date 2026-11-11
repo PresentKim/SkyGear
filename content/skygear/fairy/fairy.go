@@ -24,10 +24,6 @@ import (
 	"github.com/presentkim/skygear/platform/instance"
 )
 
-func init() {
-	world.RegisterItem(sgitem.ResearchNote{})
-}
-
 // Gift fairy: every instance night a fairy (an allay on the client) visits a
 // player. Using it throws the gift to them; left alone for fairyStay it
 // scatters the gift and flies away. Values are drafts.

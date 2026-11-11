@@ -3,8 +3,12 @@ package skygear
 import (
 	"bytes"
 	"database/sql"
+	"encoding/base64"
+	"encoding/json"
 	"log/slog"
+	"maps"
 	"path/filepath"
+	"reflect"
 	"slices"
 	"strings"
 	"testing"
@@ -16,8 +20,10 @@ import (
 	"github.com/df-mc/dragonfly/server/world/chunk"
 	"github.com/df-mc/goleveldb/leveldb"
 	"github.com/presentkim/skygear/common/nbtrewrite"
+	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/migrate"
+	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/platform/db"
 	"github.com/sandertv/gophertunnel/minecraft/nbt"
 )
@@ -236,7 +242,9 @@ func TestPatchTargetsExist(t *testing.T) {
 		if p.Version != "26.11.9" {
 			continue
 		}
-		for from, to := range p.Rename {
+		renames := maps.Clone(p.Rename)
+		maps.Copy(renames, p.Plain)
+		for from, to := range renames {
 			if !strings.HasPrefix(to, "minecraft:") && !strings.HasPrefix(to, "skygear:") {
 				continue
 			}
@@ -246,7 +254,7 @@ func TestPatchTargetsExist(t *testing.T) {
 				t.Errorf("26.11.9: %s -> %s: not a registered block or item", from, to)
 			}
 		}
-		for from := range p.Rename {
+		for from := range renames {
 			if !strings.HasPrefix(from, "skygear:") {
 				continue
 			}
@@ -258,9 +266,376 @@ func TestPatchTargetsExist(t *testing.T) {
 			}
 		}
 		for from, b := range p.Blocks {
+			if _, ok := world.DefaultBlockRegistry.DefaultProperties(from); ok {
+				t.Errorf("26.11.9: %s is replaced but still registered as a block", from)
+			}
 			if _, ok := world.DefaultBlockRegistry.DefaultProperties(b.Name); !ok {
 				t.Errorf("26.11.9: %s -> %s: not a registered block", from, b.Name)
 			}
 		}
 	}
+}
+
+// oldStack is an item stack as 26.11.8 saved it: the NBT of a stack of base
+// with the values, name and lore a tinker tool kept, under the old name.
+func oldStack(t *testing.T, name string, count int, base world.Item, slot int) map[string]any {
+	t.Helper()
+	st := item.NewStack(base, count).WithValue("tinker_xp", 90).WithValue("tinker_mods", "reinforced").
+		WithCustomName("§r§bOld Name §7Lv.3").WithLore("Level 3", "§bReinforced I")
+	m := item.WriteNBT(st, true)
+	m["Name"] = name
+	m["Damage"] = int16(0)
+	m["tag"].(map[string]any)["Damage"] = int32(12) // the tool's durability
+	if slot >= 0 {
+		m["Slot"] = byte(slot)
+	}
+	return m
+}
+
+// retiredSubChunk is a sub chunk with stone at (1, 2, 3) renamed to name and a
+// chest at (4, 5, 6).
+func retiredSubChunk(t *testing.T, name string) []byte {
+	t.Helper()
+	c := chunk.New(world.DefaultBlockRegistry, cube.Range{0, 15})
+	c.SetBlock(1, 2, 3, 0, world.DefaultBlockRegistry.BlockRuntimeID(block.Stone{}))
+	c.SetBlock(4, 5, 6, 0, world.DefaultBlockRegistry.BlockRuntimeID(block.NewChest()))
+	old, err := nbtrewrite.SubChunkBlocks(chunk.EncodeSubChunk(c, chunk.DiskEncoding, 0), func(s string) string { return s }, func(n string) (string, map[string]any, bool) {
+		return name, map[string]any{}, n == "minecraft:stone"
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Contains(old, []byte(name)) || bytes.Contains(old, []byte("minecraft:stone")) {
+		t.Fatal("the old sub chunk was not built")
+	}
+	return old
+}
+
+// blockEntity is the NBT of a block entity at (x, y, z).
+func blockEntity(t *testing.T, id string, x, y, z int32, items ...map[string]any) []byte {
+	t.Helper()
+	m := map[string]any{"id": id, "x": x, "y": y, "z": z}
+	if len(items) > 0 {
+		var l []any
+		for _, it := range items {
+			l = append(l, it)
+		}
+		m["Items"] = l
+	}
+	b, err := nbt.MarshalEncoding(m, nbt.LittleEndian)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return b
+}
+
+// newRetiredSave makes a 26.11.8 save with one player; it returns the
+// database, its path and the saves folder.
+func newRetiredSave(t *testing.T, player []byte) (d *sql.DB, dbPath, saves string) {
+	t.Helper()
+	dir := t.TempDir()
+	dbPath = filepath.Join(dir, "platform.db")
+	pdb, err := db.Open(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pdb.Close()
+	d, err = sql.Open("sqlite", "file:"+dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { d.Close() })
+	for _, q := range []string{
+		`INSERT INTO accounts (id, name, created_at, last_seen) VALUES ('a', 'A', 0, 0)`,
+		`INSERT INTO saves (id, owner, slot, name, created_at, last_played) VALUES (1, 'a', 0, 'old', 0, 0)`,
+		`INSERT INTO save_state (save_id, key, value) VALUES (1, 'skygear.version', '26.11.8')`,
+	} {
+		if _, err := d.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := d.Exec(`INSERT INTO save_players (save_id, account_id, state) VALUES (1, 'a', ?)`, player); err != nil {
+		t.Fatal(err)
+	}
+	return d, dbPath, filepath.Join(dir, "saves")
+}
+
+// readItem reads a saved stack the way the world does.
+func readItem(t *testing.T, m map[string]any) item.Stack {
+	t.Helper()
+	st := item.ReadNBT(m, nil)
+	if st.Empty() {
+		t.Fatalf("the stack reads as empty: %v", m["Name"])
+	}
+	return st
+}
+
+// checkPlain checks that a stack that was a retired item is now a plain stack
+// of the replacement: stack-equal to a new one, with nothing left of the old
+// name, lore, durability or values, and also after saving it again.
+func checkPlain(t *testing.T, st item.Stack, want world.Item, count int) {
+	t.Helper()
+	fresh := item.NewStack(want, count)
+	if !st.Equal(fresh) || st.Count() != count {
+		t.Errorf("stack = %d x %T %q %v %v, want a plain %d x %T", st.Count(), st.Item(), st.CustomName(), st.Lore(), st.Values(), count, want)
+	}
+	back := item.ReadNBT(item.WriteNBT(st, true), nil)
+	if !back.Equal(fresh) {
+		t.Errorf("a second round trip gives %v", back)
+	}
+}
+
+func TestRetiredGateSwordNote(t *testing.T) {
+	steel := sgitem.Ingot{Metal: sgitem.MetalSteel}
+	bronze := sgitem.Ingot{Metal: sgitem.MetalBronze}
+	gate := oldStack(t, "skygear:dimension_gate", 2, block.Obsidian{}, -1)
+	gate["Block"] = map[string]any{"name": "skygear:dimension_gate", "states": map[string]any{}, "version": int32(chunk.CurrentBlockVersion)}
+	held, err := nbt.MarshalEncoding(map[string]any{"Items": []any{
+		gate,
+		oldStack(t, "skygear:tool_sword_steel_blaze", 1, item.Paper{}, -1),
+		oldStack(t, "skygear:tool_sword_flint_wood", 1, item.Paper{}, -1),
+		oldStack(t, "skygear:tool_sword_diamond_bone", 1, item.Paper{}, -1),
+		oldStack(t, "skygear:research_note", 3, item.Stick{}, -1),
+		map[string]any{"Name": "minecraft:cobblestone", "Count": byte(5), "Damage": int16(0)},
+	}}, nbt.LittleEndian)
+	if err != nil {
+		t.Fatal(err)
+	}
+	d, dbPath, saves := newRetiredSave(t, held)
+
+	// The world: a gate at (1, 2, 3) with its block entity, a chest at
+	// (4, 5, 6) that holds a sword and a note, and a block entity in another
+	// chunk that is none of that.
+	world1 := filepath.Join(saves, "1", "world")
+	subKey := []byte{0, 0, 0, 0, 0, 0, 0, 0, '/', 0}
+	entityKey := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0x31}
+	farSubKey := []byte{1, 0, 0, 0, 0, 0, 0, 0, '/', 0}
+	farEntityKey := []byte{1, 0, 0, 0, 0, 0, 0, 0, 0x31}
+	ldb, err := leveldb.OpenFile(filepath.Join(world1, "db"), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	entities := append(blockEntity(t, "SkyGearMachine", 1, 2, 3),
+		blockEntity(t, "Chest", 4, 5, 6,
+			oldStack(t, "skygear:tool_sword_bronze_wood", 1, item.Paper{}, 0),
+			oldStack(t, "skygear:research_note", 2, item.Stick{}, 4))...)
+	for k, v := range map[string][]byte{
+		string(subKey):       retiredSubChunk(t, "skygear:dimension_gate"),
+		string(entityKey):    entities,
+		string(farSubKey):    retiredSubChunk(t, "skygear:dimension_gate"),
+		string(farEntityKey): blockEntity(t, "SkyGearMachine", 16+1, 2, 3),
+	} {
+		if err := ldb.Put([]byte(k), v, nil); err != nil {
+			t.Fatal(err)
+		}
+	}
+	// A chunk without a gate keeps its machine block entity.
+	plainKey := []byte{2, 0, 0, 0, 0, 0, 0, 0, 0x31}
+	plain := blockEntity(t, "SkyGearMachine", 32+1, 2, 3)
+	if err := ldb.Put(plainKey, plain, nil); err != nil {
+		t.Fatal(err)
+	}
+	ldb.Close()
+
+	if err := migrate.Run(slog.Default(), dbPath, saves, filepath.Join(filepath.Dir(saves), "backup"), "26.11.9"); err != nil {
+		t.Fatal(err)
+	}
+
+	ldb, err = leveldb.OpenFile(filepath.Join(world1, "db"), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ldb.Close()
+
+	// The block: the real decoder loads the chunk, with obsidian where the
+	// gate was and the chest where it was.
+	for _, k := range [][]byte{subKey, farSubKey} {
+		sub, err := ldb.Get(k, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		c, err := chunk.DiskDecode(world.DefaultBlockRegistry, chunk.SerialisedData{SubChunks: [][]byte{sub}}, cube.Range{0, 15})
+		if err != nil {
+			t.Fatalf("the migrated sub chunk does not load: %v", err)
+		}
+		if b, _ := world.DefaultBlockRegistry.BlockByRuntimeID(c.Block(1, 2, 3, 0)); !reflect.DeepEqual(b, block.Obsidian{}) {
+			t.Errorf("the gate loads as %T", b)
+		}
+		if b, _ := world.DefaultBlockRegistry.BlockByRuntimeID(c.Block(4, 5, 6, 0)); !isChest(b) {
+			t.Errorf("the chest loads as %T", b)
+		}
+	}
+
+	// The block entities: the world decodes each by the block at its
+	// position and logs an error if that block has no NBT, so none may be
+	// left at the obsidian, and the chest's stays.
+	ent, err := ldb.Get(entityKey, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rd := bytes.NewReader(ent)
+	dec := nbt.NewDecoderWithEncoding(rd, nbt.LittleEndian)
+	var left []map[string]any
+	for rd.Len() > 0 {
+		var m map[string]any
+		if err := dec.Decode(&m); err != nil {
+			t.Fatal(err)
+		}
+		left = append(left, m)
+	}
+	if len(left) != 1 || left[0]["id"] != "Chest" || left[0]["x"] != int32(4) {
+		t.Fatalf("block entities left in the chunk: %v", left)
+	}
+	if _, ok := (world.Block)(block.Obsidian{}).(world.NBTer); ok {
+		t.Fatal("obsidian has NBT: a block entity at it would be fine")
+	}
+	got := block.NewChest().DecodeNBT(left[0]).(block.Chest)
+	sword, _ := got.Inventory(nil, cube.Pos{}).Item(0)
+	checkPlain(t, sword, bronze, 1)
+	note, _ := got.Inventory(nil, cube.Pos{}).Item(4)
+	checkPlain(t, note, item.Paper{}, 2)
+
+	// Another chunk's lone gate entity goes, with its key; a chunk without
+	// a gate keeps its entity as it was.
+	if _, err := ldb.Get(farEntityKey, nil); err == nil {
+		t.Error("the block entity of the gate in the other chunk is kept")
+	}
+	if v, err := ldb.Get(plainKey, nil); err != nil || !bytes.Equal(v, plain) {
+		t.Errorf("a chunk without a gate changed: %v", err)
+	}
+
+	// The items of the player.
+	var state []byte
+	if err := d.QueryRow(`SELECT state FROM save_players WHERE save_id = 1`).Scan(&state); err != nil {
+		t.Fatal(err)
+	}
+	var items struct{ Items []map[string]any }
+	if err := nbt.UnmarshalEncoding(state, &items, nbt.LittleEndian); err != nil {
+		t.Fatal(err)
+	}
+	if len(items.Items) != 6 {
+		t.Fatalf("%d stacks, want 6", len(items.Items))
+	}
+	checkPlain(t, readItem(t, items.Items[0]), block.Obsidian{}, 2)
+	checkPlain(t, readItem(t, items.Items[1]), steel, 1)
+	checkPlain(t, readItem(t, items.Items[2]), item.Flint{}, 1)
+	checkPlain(t, readItem(t, items.Items[3]), item.Diamond{}, 1)
+	checkPlain(t, readItem(t, items.Items[4]), item.Paper{}, 3)
+	if st := readItem(t, items.Items[5]); st.Count() != 5 || !reflect.DeepEqual(st.Item(), block.Cobblestone{}) {
+		t.Errorf("an unrelated stack changed: %v", st)
+	}
+}
+
+func isChest(b world.Block) bool {
+	_, ok := b.(block.Chest)
+	return ok
+}
+
+// TestRetiredStacksArePlainEverywhere: a retired item with a custom name,
+// lore, durability and values becomes a plain stack of its replacement in an
+// item entity, in the lost-and-found box and inside another stack, and a
+// stack that is not retired keeps all of its own.
+func TestRetiredStacksArePlainEverywhere(t *testing.T) {
+	player, err := nbt.MarshalEncoding(map[string]any{"Items": []any{}}, nbt.LittleEndian)
+	if err != nil {
+		t.Fatal(err)
+	}
+	d, dbPath, saves := newRetiredSave(t, player)
+
+	// A container stack (one that holds other stacks in its tag, as a
+	// bundle would) and a bystander with a name that must stay.
+	inner := oldStack(t, "skygear:tool_sword_diamond_blaze", 1, item.Paper{}, 3)
+	outer := item.WriteNBT(item.NewStack(item.Stick{}, 7).WithCustomName("bundle"), true)
+	outer["tag"].(map[string]any)["Items"] = []any{inner}
+	retiredHolder := oldStack(t, "skygear:research_note", 2, item.Stick{}, -1)
+	retiredHolder["tag"].(map[string]any)["Items"] = []any{oldStack(t, "skygear:research_note", 1, item.Stick{}, 0)}
+	bystander := item.WriteNBT(item.NewStack(item.Stick{}, 4).WithCustomName("keep me").WithLore("lore").WithValue("v", 1), true)
+	entity := map[string]any{"identifier": "minecraft:item", "Item": oldStack(t, "skygear:tool_sword_iron_bone", 1, item.Paper{}, -1)}
+	entityB, err := nbt.MarshalEncoding(entity, nbt.LittleEndian)
+	if err != nil {
+		t.Fatal(err)
+	}
+	holder, err := nbt.MarshalEncoding(map[string]any{"Items": []any{outer, bystander, retiredHolder}}, nbt.LittleEndian)
+	if err != nil {
+		t.Fatal(err)
+	}
+	world1 := filepath.Join(saves, "1", "world")
+	ldb, err := leveldb.OpenFile(filepath.Join(world1, "db"), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for k, v := range map[string][]byte{"entity": entityB, "holder": holder} {
+		if err := ldb.Put([]byte(k), v, nil); err != nil {
+			t.Fatal(err)
+		}
+	}
+	ldb.Close()
+
+	// A lost-and-found box: the JSON holds the stack NBT as base64.
+	lostItem := oldStack(t, "skygear:dimension_gate", 1, block.Obsidian{}, -1)
+	lostB, err := nbt.MarshalEncoding(lostItem, nbt.LittleEndian)
+	if err != nil {
+		t.Fatal(err)
+	}
+	state := `{"lost":[{"item":"` + base64.StdEncoding.EncodeToString(lostB) + `","count":5}]}`
+	if _, err := d.Exec(`INSERT INTO save_state (save_id, key, value) VALUES (1, 'skygear.state', ?)`, state); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := migrate.Run(slog.Default(), dbPath, saves, filepath.Join(filepath.Dir(saves), "backup"), "26.11.9"); err != nil {
+		t.Fatal(err)
+	}
+
+	ldb, err = leveldb.OpenFile(filepath.Join(world1, "db"), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ldb.Close()
+	decode := func(key string) map[string]any {
+		v, err := ldb.Get([]byte(key), nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var m map[string]any
+		if err := nbt.UnmarshalEncoding(v, &m, nbt.LittleEndian); err != nil {
+			t.Fatal(err)
+		}
+		return m
+	}
+	checkPlain(t, item.MapNBT(decode("entity"), "Item"), item.IronIngot{}, 1)
+
+	h := decode("holder")["Items"].([]any)
+	o := h[0].(map[string]any)
+	if st := readItem(t, o); st.CustomName() != "bundle" || st.Count() != 7 {
+		t.Errorf("the container changed: %v", st)
+	}
+	in := o["tag"].(map[string]any)["Items"].([]any)[0].(map[string]any)
+	checkPlain(t, readItem(t, in), item.Diamond{}, 1)
+	if in["Slot"] != byte(3) {
+		t.Errorf("the slot of a nested stack = %v", in["Slot"])
+	}
+	// A retired stack that holds stacks becomes plain and holds nothing.
+	rh := h[2].(map[string]any)
+	checkPlain(t, readItem(t, rh), item.Paper{}, 2)
+	if _, ok := rh["tag"]; ok || rh["Damage"] != int16(0) {
+		t.Errorf("the retired container keeps %v", rh)
+	}
+	if st := readItem(t, h[1].(map[string]any)); !st.Equal(item.NewStack(item.Stick{}, 4).WithCustomName("keep me").WithLore("lore").WithValue("v", 1)) {
+		t.Errorf("a stack that is not retired changed: %v", st)
+	}
+
+	var saved []byte
+	if err := d.QueryRow(`SELECT value FROM save_state WHERE save_id = 1 AND key = 'skygear.state'`).Scan(&saved); err != nil {
+		t.Fatal(err)
+	}
+	var lost struct {
+		Lost []struct {
+			Item  []byte `json:"item"`
+			Count int    `json:"count"`
+		} `json:"lost"`
+	}
+	if err := json.Unmarshal(saved, &lost); err != nil || len(lost.Lost) != 1 || lost.Lost[0].Count != 5 {
+		t.Fatalf("the lost box = %s (%v)", saved, err)
+	}
+	checkPlain(t, core.DecodeItem(lost.Lost[0].Item), block.Obsidian{}, 1)
 }

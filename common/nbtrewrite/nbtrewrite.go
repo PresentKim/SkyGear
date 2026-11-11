@@ -10,6 +10,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 
 	"github.com/sandertv/gophertunnel/minecraft/nbt"
@@ -28,7 +29,17 @@ func NBT(b []byte, rep func(string) string) ([]byte, error) {
 // key instead of rep: tag names and string values (also the string values of
 // item stacks) go through rep.
 func NBTKeys(b []byte, rep func(string) string, key func(string) string) ([]byte, error) {
-	r := &rewriter{in: b, rep: rep, key: key, out: make([]byte, 0, len(b))}
+	return NBTStacks(b, rep, key, nil)
+}
+
+// NBTStacks is NBTKeys with plain, if set, naming the item stacks (compounds
+// whose "Name" string, before rep, plain accepts) that become plain: of the
+// stack's tags only the name (through rep) and the tags that are not the
+// stack's own (Count, Slot and the like) stay, with a Damage of 0; its "tag"
+// (custom name, lore, damage, values, enchantments), "Damage" and "Block"
+// are dropped. Stacks nested in other stacks are handled as well.
+func NBTStacks(b []byte, rep func(string) string, key func(string) string, plain func(name string) bool) ([]byte, error) {
+	r := &rewriter{in: b, rep: rep, key: key, plain: plain, out: make([]byte, 0, len(b))}
 	for r.pos < len(r.in) {
 		if err := r.root(); err != nil {
 			return nil, err
@@ -166,7 +177,12 @@ type rewriter struct {
 	out []byte
 	rep func(string) string
 	key func(string) string
+	// plain, if set, says which item names make a stack plain.
+	plain func(string) bool
 }
+
+// stackTags are the tags of an item stack that a plain stack does not keep.
+var stackTags = map[string]bool{"tag": true, "Damage": true, "Block": true}
 
 func (r *rewriter) take(n int) ([]byte, error) {
 	if n < 0 || r.pos+n > len(r.in) {
@@ -279,22 +295,36 @@ func (r *rewriter) payload(t byte, name string, depth int) error {
 		}
 		return nil
 	case 10:
+		start := len(r.out)
+		var kids []tagSpan
+		stack := false
 		for {
+			begin := len(r.out) - start
 			ct, err := r.take(1)
 			if err != nil {
 				return err
 			}
 			r.out = append(r.out, ct[0])
 			if ct[0] == 0 {
+				if stack {
+					r.makePlain(start, kids)
+				}
 				return nil
 			}
-			name, err := r.str()
+			cn, err := r.str()
 			if err != nil {
 				return err
 			}
-			if err := r.payload(ct[0], name, depth+1); err != nil {
+			if r.plain != nil && ct[0] == 8 && cn == "Name" && len(r.in)-r.pos >= 2 {
+				n := int(binary.LittleEndian.Uint16(r.in[r.pos:]))
+				if len(r.in)-r.pos >= 2+n {
+					stack = r.plain(string(r.in[r.pos+2 : r.pos+2+n]))
+				}
+			}
+			if err := r.payload(ct[0], cn, depth+1); err != nil {
 				return err
 			}
+			kids = append(kids, tagSpan{cn, begin, len(r.out) - start})
 		}
 	case 11:
 		n, err := r.length()
@@ -312,6 +342,29 @@ func (r *rewriter) payload(t byte, name string, depth int) error {
 		return nil
 	}
 	return fmt.Errorf("nbt: unknown tag type %d", t)
+}
+
+// makePlain rewrites the compound written at r.out[start:], whose tags are
+// kids and whose end tag is written, as a plain stack.
+func (r *rewriter) makePlain(start int, kids []tagSpan) {
+	body := slices.Clone(r.out[start:])
+	r.out = r.out[:start]
+	for _, k := range kids {
+		if !stackTags[k.name] {
+			r.out = append(r.out, body[k.begin:k.end]...)
+		}
+	}
+	r.out = append(r.out, 2) // Damage, a short of 0
+	r.out = binary.LittleEndian.AppendUint16(r.out, uint16(len("Damage")))
+	r.out = append(r.out, "Damage"...)
+	r.out = append(r.out, 0, 0, 0) // the value, the end tag
+}
+
+// tagSpan is a tag of a compound: its name and where its bytes are in the
+// output, relative to the start of the compound.
+type tagSpan struct {
+	name       string
+	begin, end int
 }
 
 // mapValue is Dragonfly's item stack value (item/nbt.go): the values are

@@ -23,22 +23,17 @@ import (
 
 // Tool kinds.
 const (
-	ToolSword   = "sword"
 	ToolPickaxe = "pickaxe"
 	ToolAxe     = "axe"
 	ToolShovel  = "shovel"
 )
 
-// ToolKinds are every kind of tool, registered so old ones load; the tools
-// are the island's and do not fight (the second dimension's relics do), so
-// MadeKinds, the ones the table makes, have no sword.
-var (
-	ToolKinds = []string{ToolSword, ToolPickaxe, ToolAxe, ToolShovel}
-	MadeKinds = []string{ToolPickaxe, ToolAxe, ToolShovel}
-)
+// ToolKinds are every kind of tool; the tools are the island's and do not
+// fight (the second dimension's relics do).
+var ToolKinds = []string{ToolPickaxe, ToolAxe, ToolShovel}
 
 // ToolHeadCost is the ingots a head of a kind takes.
-var ToolHeadCost = map[string]int{ToolSword: 2, ToolPickaxe: 3, ToolAxe: 3, ToolShovel: 1}
+var ToolHeadCost = map[string]int{ToolPickaxe: 3, ToolAxe: 3, ToolShovel: 1}
 
 // HeadMaterial is a metal a tool head is made of.
 type HeadMaterial struct {
@@ -172,7 +167,6 @@ var toolTags = map[string][]string{
 	ToolPickaxe: {"minecraft:is_pickaxe_item_destructible", "stone", "metal", "rail"},
 	ToolAxe:     {"minecraft:is_axe_item_destructible", "wood", "pumpkin"},
 	ToolShovel:  {"minecraft:is_shovel_item_destructible", "dirt", "sand", "gravel", "grass", "snow"},
-	ToolSword:   {"minecraft:is_sword_item_destructible"},
 }
 
 // pickTierTags are the tags of the blocks a pickaxe drops nothing from

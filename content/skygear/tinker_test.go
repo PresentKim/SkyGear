@@ -21,9 +21,6 @@ func TestToolStats(t *testing.T) {
 	if axe.MaxDurability() != int(700*0.85) {
 		t.Errorf("axe durability %d", axe.MaxDurability())
 	}
-	if slices.Contains(tinker.MadeKinds, tinker.ToolSword) {
-		t.Error("the table still makes swords")
-	}
 	pick := tinker.Tool{Kind: tinker.ToolPickaxe, Head: "diamond", Handle: "wood"}
 	if sp := pick.DestroySpeedsByTag(); pick.HarvestLevel() != 4 || pick.ToolType() != item.TypePickaxe || len(sp) != 1 || sp[0].Speed != 8 {
 		t.Errorf("diamond pickaxe: level %d speeds %v", pick.HarvestLevel(), sp)

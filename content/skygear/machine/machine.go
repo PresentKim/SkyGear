@@ -46,7 +46,7 @@ func init() {
 		world.RegisterItem(EnergyGauge{Step: i})
 	}
 	world.RegisterItem(Info{})
-	for _, k := range append(Order[:len(Order):len(Order)], Retired...) {
+	for _, k := range Order {
 		Kinds[k].Hash = block.NextHash()
 		world.RegisterBlock(Machine{Kind: k})
 		world.RegisterItem(Machine{Kind: k})
@@ -160,10 +160,7 @@ const (
 	KindDrawerTrim       = "drawer_trim"
 	KindDrawerInterface  = "drawer_interface"
 	// KindTinker is the tinker table (tinkerform.go).
-	KindTinker = "tinker_table"
-	// KindGate is the retired dimension gate: it breaks into its materials
-	// (dimension/retired.go).
-	KindGate          = "dimension_gate"
+	KindTinker        = "tinker_table"
 	KindCrucible      = "crucible"
 	KindLavaGenerator = "lava_generator"
 	// KindSolarGenerator and KindHydroGenerator make energy from the
@@ -212,7 +209,6 @@ const (
 	idDrawerController
 	idDrawerTrim
 	idTinker
-	idGate
 	idCrucible
 	idLavaGenerator
 	idSimulator
@@ -407,10 +403,6 @@ var Kinds = map[string]*Def{
 		ID: idNetAutocrafter, nameKey: "machine.net_autocrafter.name", Interval: 1, Input: []int{0, 1, 2, 3, 4, 5, 6, 7, 8}, Indicator: 13,
 		helpKeys: []string{"machine.net_autocrafter.help.1"},
 	},
-	KindGate: {
-		ID: idGate, nameKey: "machine.gate.name", Interval: 1, Indicator: 10,
-		helpKeys: []string{"machine.gate.help.1"},
-	},
 	KindWasher: {
 		ID: idWasher, nameKey: "machine.washer.name", Marker: "§d§m§2", Interval: 60, Input: []int{10}, Output: []int{13, 14, 15, 16}, Indicator: 12,
 		Use: 40, EnergyCap: ConsumerBuffer,
@@ -483,10 +475,6 @@ var Kinds = map[string]*Def{
 		helpKeys: []string{"machine.lab.help.1", "machine.lab.help.2", "machine.lab.help.3"},
 	},
 }
-
-// Retired are the kinds that are registered (old islands load) but never
-// shown or made.
-var Retired = []string{KindGate}
 
 // Order is the registration and display order.
 var Order = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindTank, KindCrucible, KindLavaGenerator, KindSolarGenerator, KindHydroGenerator, KindWasher, KindDrawerController, KindDrawerTrim, KindDrawerInterface, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve, KindCollector, KindRelicTable, KindNetController, KindNetCable, KindDiskDrive, KindNetTerminal, KindNetImporter, KindNetExporter, KindNetExternal, KindPatternEncoder, KindNetAutocrafter}
@@ -1290,7 +1278,7 @@ func (Machine) Category() category.Category { return category.Items() }
 // frontMachines have a front (south), back and side textures. The sieves
 // have models.
 var (
-	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindSolarGenerator: true, KindHydroGenerator: true, KindGate: true, KindDrawerController: true, KindDrawerInterface: true, KindTinker: true, KindCollector: true, KindRelicTable: true, KindNetController: true, KindDiskDrive: true, KindNetTerminal: true, KindPatternEncoder: true}
+	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindSolarGenerator: true, KindHydroGenerator: true, KindDrawerController: true, KindDrawerInterface: true, KindTinker: true, KindCollector: true, KindRelicTable: true, KindNetController: true, KindDiskDrive: true, KindNetTerminal: true, KindPatternEncoder: true}
 	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindAlloy: true, KindSimulator: true, KindCrucible: true, KindFurnace: true, KindCrafter: true, KindLab: true, KindNetAutocrafter: true}
 )
 
@@ -1713,7 +1701,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	}
 	st.showRange(tx, pos)
 	switch st.Def.ID {
-	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idSolarGenerator, idHydroGenerator, idGate, idDrawerController, idDrawerTrim, idDrawerInterface, idTinker, idCollector, idRelicTable:
+	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idSolarGenerator, idHydroGenerator, idDrawerController, idDrawerTrim, idDrawerInterface, idTinker, idCollector, idRelicTable:
 		if st.Def.ID == idEnergyCell && st.Energy > 0 {
 			network.Energy(s).AddSource(pos)
 		}

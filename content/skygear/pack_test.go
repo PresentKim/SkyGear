@@ -108,7 +108,6 @@ var vanillaTerrain = map[string]bool{
 	"textures/blocks/huge_fungus/crimson_planks": true,
 	"textures/blocks/planks_big_oak":             true,
 	"textures/blocks/planks_oak":                 true,
-	"textures/blocks/portal_placeholder":         true,
 	"textures/blocks/water_placeholder":          true,
 }
 

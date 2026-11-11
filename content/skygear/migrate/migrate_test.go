@@ -3,10 +3,12 @@ package migrate
 import (
 	"bytes"
 	"database/sql"
+	"encoding/binary"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strconv"
 	"testing"
 
@@ -397,5 +399,217 @@ func TestBlocksAreNoOpForReleasedPatches(t *testing.T) {
 	got, err := nbtrewrite.SubChunkBlocks(sub, r.rep, r.blocks)
 	if err != nil || !bytes.Equal(got, want) {
 		t.Errorf("sub chunk differs: %v", err)
+	}
+}
+
+func TestDropBlockEntities(t *testing.T) {
+	enc := func(m map[string]any) []byte {
+		b, err := nbt.MarshalEncoding(m, nbt.LittleEndian)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return b
+	}
+	// ids returns the id of each root tag of b (the order of their keys in
+	// the bytes is not fixed).
+	ids := func(b []byte) []string {
+		var out []string
+		rd := bytes.NewReader(b)
+		dec := nbt.NewDecoderWithEncoding(rd, nbt.LittleEndian)
+		for rd.Len() > 0 {
+			var m map[string]any
+			if err := dec.Decode(&m); err != nil {
+				t.Fatal(err)
+			}
+			out = append(out, m["id"].(string))
+		}
+		return out
+	}
+	gate := enc(map[string]any{"id": "M", "x": int32(1), "y": int32(2), "z": int32(3)})
+	other := enc(map[string]any{"id": "C", "x": int32(4), "y": int32(5), "z": int32(6), "Items": []any{map[string]any{"Slot": byte(1)}}})
+	noPos := enc(map[string]any{"id": "N"})
+	drop := map[chunkPos]bool{{1, 2, 3}: true}
+
+	got, err := dropBlockEntities(slices.Concat(gate, other), drop)
+	if err != nil || !reflect.DeepEqual(ids(got), []string{"C"}) {
+		t.Errorf("gate and chest: %v, %v", ids(got), err)
+	}
+	if got, err := dropBlockEntities(gate, drop); err != nil || len(got) != 0 {
+		t.Errorf("a lone gate: %v, %v", got, err)
+	}
+	got, err = dropBlockEntities(slices.Concat(noPos, gate, other), drop)
+	if err != nil || !reflect.DeepEqual(ids(got), []string{"N", "C"}) {
+		t.Errorf("an entity without a position: %v, %v", ids(got), err)
+	}
+	if got, err := dropBlockEntities(slices.Concat(other, gate), drop); err != nil || !bytes.Equal(got, other) {
+		t.Errorf("a block entity that stays is not copied as it was: %v", err)
+	}
+	if _, err := dropBlockEntities(gate[:5], drop); err == nil {
+		t.Error("a cut value is no error")
+	}
+}
+
+// TestPlainIsNoOpForReleasedPatches: no released patch has Plain or drops
+// block entities, so a world is rewritten as before: stacks keep every tag.
+func TestPlainIsNoOpForReleasedPatches(t *testing.T) {
+	var released []Patch
+	for _, p := range Patches {
+		if Compare(p.Version, "26.11.9") >= 0 {
+			continue
+		}
+		released = append(released, p)
+		if len(p.Plain) > 0 {
+			t.Errorf("released patch %s has Plain", p.Version)
+		}
+		for n, b := range p.Blocks {
+			if b.DropEntities {
+				t.Errorf("released patch %s drops the block entities of %s", p.Version, n)
+			}
+		}
+	}
+	r := newRenamer(released)
+	if r.plain != nil || r.drops != nil {
+		t.Fatal("released patches have a plain or drop hook")
+	}
+	stack, err := nbt.MarshalEncoding(map[string]any{"Name": "skygear:storage_controller", "Count": byte(2), "Damage": int16(3),
+		"tag": map[string]any{"display": map[string]any{"Name": "named"}}}, nbt.LittleEndian)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want, err := nbtrewrite.NBTKeys(stack, r.rep, r.key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := nbtrewrite.NBTStacks(stack, r.rep, r.key, r.plain)
+	if err != nil || !bytes.Equal(got, want) || !bytes.Contains(got, []byte("named")) {
+		t.Errorf("the stack differs: %v", err)
+	}
+}
+
+// TestPlainChainsThroughPatches: a name a later patch renames further is
+// still plain, and the new name is the last one.
+func TestPlainChainsThroughPatches(t *testing.T) {
+	r := newRenamer([]Patch{
+		{Version: "26.11.1", Name: "a", Plain: map[string]string{"a:old": "a:mid"}},
+		{Version: "26.11.2", Name: "b", Rename: map[string]string{"a:mid": "a:new"}},
+	})
+	if !r.plain("a:old") || r.plain("a:mid") || r.plain("a:new") {
+		t.Error("only the first name is plain")
+	}
+	if got := r.rep("a:old"); got != "a:new" {
+		t.Errorf("rep = %q", got)
+	}
+}
+
+// bitSub is a sub chunk (version 9, y index y) with one layer of 1 bit
+// indices: the positions in uses (x, y, z in the sub chunk) use palette entry
+// 1, every other block entry 0.
+func bitSub(t *testing.T, y int8, names []string, uses ...[3]int) []byte {
+	t.Helper()
+	words := make([]uint32, 128)
+	for _, u := range uses {
+		p := u[0]<<8 | u[2]<<4 | u[1]
+		words[p/32] |= 1 << (p % 32)
+	}
+	b := []byte{9, 1, byte(y), 1 << 1}
+	for _, w := range words {
+		b = binary.LittleEndian.AppendUint32(b, w)
+	}
+	b = binary.LittleEndian.AppendUint32(b, uint32(len(names)))
+	for _, n := range names {
+		e, err := nbt.MarshalEncoding(map[string]any{"name": n, "states": map[string]any{}, "version": int32(7)}, nbt.LittleEndian)
+		if err != nil {
+			t.Fatal(err)
+		}
+		b = append(b, e...)
+	}
+	return b
+}
+
+// TestDropEntitiesPositions: the block entities dropped are those at the
+// blocks of the replaced palette entries, with the sub chunk's y (negative
+// too) and the chunk's x and z, in a chunk of any dimension; a palette entry
+// no block uses, a block entity above or beside, and another chunk are left.
+func TestDropEntitiesPositions(t *testing.T) {
+	patch := Patch{Version: "26.11.9", Name: "drop", Blocks: map[string]Block{
+		"a:gate": {Name: "a:obsidian", DropEntities: true},
+		"a:swap": {Name: "a:other"}, // replaced, but its block entity is kept
+	}}
+	withPatches(t, patch)
+	dir := t.TempDir()
+	dbPath, d := newDB(t, dir)
+	exec(t, d, `INSERT INTO accounts (id, name, created_at, last_seen) VALUES ('a', 'A', 0, 0)`)
+	exec(t, d, `INSERT INTO saves (id, owner, slot, name, created_at, last_played) VALUES (1, 'a', 0, 'x', 0, 0)`)
+	exec(t, d, `INSERT INTO save_state (save_id, key, value) VALUES (1, 'skygear.version', '26.11.8')`)
+	world := filepath.Join(dir, "saves", "1", "world")
+	ldb, err := leveldb.OpenFile(filepath.Join(world, "db"), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Chunk (-1, -2) of dimension 1: the gate is at (2, 5, 3) of sub chunk -1,
+	// which is the block (-14, -11, -29).
+	key := func(tag byte, y ...byte) []byte {
+		k := binary.LittleEndian.AppendUint32(nil, uint32(0xffffffff)) // x = -1
+		k = binary.LittleEndian.AppendUint32(k, uint32(0xfffffffe))    // z = -2
+		k = binary.LittleEndian.AppendUint32(k, 1)                     // dimension
+		return append(append(k, tag), y...)
+	}
+	ent := func(id string, x, y, z int32) []byte {
+		b, err := nbt.MarshalEncoding(map[string]any{"id": id, "x": x, "y": y, "z": z}, nbt.LittleEndian)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return b
+	}
+	put := func(k, v []byte) {
+		if err := ldb.Put(k, v, nil); err != nil {
+			t.Fatal(err)
+		}
+	}
+	put(key('/', 0xff), bitSub(t, -1, []string{"a:air", "a:gate"}, [3]int{2, 5, 3}))
+	// Sub chunk 0 lists the gate in its palette but no block uses it, and
+	// has a swapped block at (2, 5, 3) of its own.
+	put(key('/', 0), bitSub(t, 0, []string{"a:air", "a:gate"}))
+	put(key('/', 1), bitSub(t, 1, []string{"a:air", "a:swap"}, [3]int{2, 5, 3}))
+	keep := slices.Concat(ent("Chest", -14, 5, -29), ent("Chest", -14, -11, -28), ent("Chest", -13, -11, -29), ent("Chest", -14, 21, -29))
+	put(key(0x31), slices.Concat(ent("M", -14, -11, -29), keep))
+	// A chunk of the same x and z in the overworld has no gate.
+	other := ent("M", -14, -11, -29)
+	otherKey := binary.LittleEndian.AppendUint32(nil, uint32(0xffffffff))
+	otherKey = binary.LittleEndian.AppendUint32(otherKey, uint32(0xfffffffe))
+	put(append(otherKey, 0x31), other)
+	// A chunk in dimension 2 whose only block entity is its gate's.
+	loneKey := binary.LittleEndian.AppendUint32(nil, 0)
+	loneKey = binary.LittleEndian.AppendUint32(loneKey, 0)
+	loneKey = binary.LittleEndian.AppendUint32(loneKey, 2)
+	put(append(slices.Clone(loneKey), '/', 0), bitSub(t, 0, []string{"a:air", "a:gate"}, [3]int{0, 0, 0}))
+	put(append(slices.Clone(loneKey), 0x31), ent("M", 0, 0, 0))
+	ldb.Close()
+
+	backups := filepath.Join(dir, "backup")
+	for range 2 { // the second run is a no-op
+		if err := Run(slog.Default(), dbPath, filepath.Join(dir, "saves"), backups, "26.11.9"); err != nil {
+			t.Fatal(err)
+		}
+	}
+	ldb, err = leveldb.OpenFile(filepath.Join(world, "db"), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ldb.Close()
+	if got, err := ldb.Get(key(0x31), nil); err != nil || !bytes.Equal(got, keep) {
+		t.Errorf("the block entities left are not the other four: %v", err)
+	}
+	if got, err := ldb.Get(append(otherKey, 0x31), nil); err != nil || !bytes.Equal(got, other) {
+		t.Errorf("the overworld chunk changed: %v", err)
+	}
+	// A record with only the gate is deleted.
+	if _, err := ldb.Get(append(slices.Clone(loneKey), 0x31), nil); err == nil {
+		t.Error("a record left empty is kept")
+	}
+	// The palettes are replaced as before, the indices are not touched.
+	sub, err := ldb.Get(key('/', 0xff), nil)
+	if err != nil || !bytes.Contains(sub, []byte("a:obsidian")) || bytes.Contains(sub, []byte("a:gate")) {
+		t.Errorf("the gate palette: %v", err)
 	}
 }

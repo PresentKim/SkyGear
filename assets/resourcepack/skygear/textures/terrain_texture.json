@@ -583,15 +583,6 @@
     "skygear_crusher_up_t3": {
       "textures": "textures/blocks/crusher_up_t3"
     },
-    "skygear_dimension_gate_down": {
-      "textures": "textures/blocks/portal_placeholder"
-    },
-    "skygear_dimension_gate_side": {
-      "textures": "textures/blocks/portal_placeholder"
-    },
-    "skygear_dimension_gate_up": {
-      "textures": "textures/blocks/portal_placeholder"
-    },
     "skygear_disk_drive_down": {
       "textures": "textures/blocks/disk_drive_down"
     },

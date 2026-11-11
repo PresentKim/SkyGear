@@ -30,6 +30,13 @@ type Patch struct {
 	// key, or a key followed by ":" and an item meta, in block palettes,
 	// NBT, JSON and text anywhere in the worlds and the database.
 	Rename map[string]string
+	// Plain is Rename for retired items, with one more change: every item
+	// stack of such a name becomes a plain stack of the new item (same
+	// count, no custom name, lore, damage, values or other item NBT, so it
+	// stacks with a new one) wherever a stack is saved: inventories,
+	// containers, item entities, lost items. Other strings of the name are
+	// renamed as with Rename. A name is in Rename or in Plain, not both.
+	Plain map[string]string
 	// Blocks replaces whole block palette entries of sub chunks (every
 	// layer): an entry whose name is a key gets Name and States, keeping
 	// its version, instead of Rename (a block that changes into another
@@ -42,6 +49,10 @@ type Patch struct {
 type Block struct {
 	Name   string
 	States map[string]any
+	// DropEntities says the old block had a block entity the new block has
+	// no use for: the block entities at the positions of the replaced
+	// blocks are removed from the world (see dropentities.go).
+	DropEntities bool
 }
 
 // block returns the replacement of the palette entry name.
@@ -54,12 +65,24 @@ func (p Patch) rename(s string) string {
 	if n, ok := p.Rename[s]; ok {
 		return n
 	}
+	if n, ok := p.Plain[s]; ok {
+		return n
+	}
 	if i := strings.LastIndexByte(s, ':'); i > 0 {
 		if n, ok := p.Rename[s[:i]]; ok {
 			return n + s[i:]
 		}
+		if n, ok := p.Plain[s[:i]]; ok {
+			return n + s[i:]
+		}
 	}
 	return s
+}
+
+// plain reports whether the item stacks named s become plain stacks.
+func (p Patch) plain(s string) bool {
+	_, ok := p.Plain[s]
+	return ok
 }
 
 // Latest is the version of the newest patch.
@@ -138,7 +161,13 @@ type renamer struct {
 	lost     *renamer
 	// blocks, if set, replaces whole sub chunk palette entries.
 	blocks func(name string) (string, map[string]any, bool)
-	warn   bool // log the values that mention a name but could not be rewritten
+	// drops, if set, says whether the block entities of a block of the
+	// palette entry name are dropped.
+	drops func(name string) bool
+	// plain, if set, says whether the item stacks named name become plain
+	// stacks of the item they are renamed to.
+	plain func(name string) bool
+	warn  bool // log the values that mention a name but could not be rewritten
 }
 
 func (r renamer) embedded() renamer {
@@ -151,10 +180,14 @@ func (r renamer) embedded() renamer {
 // newRenamer applies the patches in order.
 func newRenamer(ps []Patch) renamer {
 	var old [][]byte
-	hasBlocks := false
+	hasBlocks, hasPlain := false, false
 	for _, p := range ps {
 		for k := range p.Rename {
 			old = append(old, []byte(k))
+		}
+		for k := range p.Plain {
+			old = append(old, []byte(k))
+			hasPlain = true
 		}
 		for k := range p.Blocks {
 			old = append(old, []byte(k))
@@ -177,6 +210,17 @@ func newRenamer(ps []Patch) renamer {
 		}
 		return false
 	}}
+	if hasPlain {
+		r.plain = func(name string) bool {
+			for _, p := range ps {
+				if p.plain(name) {
+					return true
+				}
+				name = p.rename(name)
+			}
+			return false
+		}
+	}
 	if hasBlocks {
 		// Each patch in turn: Blocks if it names the entry, else Rename.
 		r.blocks = func(name string) (string, map[string]any, bool) {
@@ -190,6 +234,19 @@ func newRenamer(ps []Patch) renamer {
 				}
 			}
 			return name, states, replaced
+		}
+		r.drops = func(name string) bool {
+			for _, p := range ps {
+				if b, ok := p.block(name); ok {
+					if b.DropEntities {
+						return true
+					}
+					name = b.Name
+				} else {
+					name = p.rename(name)
+				}
+			}
+			return false
 		}
 	}
 	return r

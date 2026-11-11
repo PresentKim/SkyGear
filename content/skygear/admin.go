@@ -114,7 +114,7 @@ func giveItems() map[string]func() item.Stack {
 		out[m+"_ore"] = func() item.Stack { return item.NewStack(sgitem.OreBlock{Metal: m}, 1) }
 		out["raw_"+m] = func() item.Stack { return item.NewStack(sgitem.RawOre{Metal: m}, 1) }
 	}
-	for _, k := range tinker.MadeKinds {
+	for _, k := range tinker.ToolKinds {
 		for _, h := range tinker.HeadMaterials {
 			for _, hd := range tinker.HandleMaterials {
 				out[fmt.Sprintf("tool_%s_%s_%s", k, h.ID, hd.ID)] = func() item.Stack {
@@ -209,7 +209,7 @@ func encodedKey(it world.Item) string {
 // are left out by their encoding instead.
 var giveSkip = []string{
 	"cycle_", "energy_gauge_", "progress_", "liquid_", "machine_info", "fairy_board", // screen icons
-	"dimension_gate", "seed_ess_", "tool_sword_", // retired (old saves still load them)
+	"seed_ess_", // retired (old saves still load them)
 }
 
 // giveEnum is the item of /sgadmin give. Completion lists every item with

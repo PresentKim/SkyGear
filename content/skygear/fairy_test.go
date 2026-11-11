@@ -17,20 +17,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
-// TestOldResearchNoteIsKept: an old research note only says it is no
-// longer used.
-func TestOldResearchNoteIsKept(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		ctx := &item.UseContext{}
-		if (sgitem.ResearchNote{}).Use(tx, p, ctx) || ctx.CountSub != 0 {
-			t.Fatal("an old research note was used up")
-		}
-	})
-}
-
 // TestGiftsAreBasics: with no research done, a gift is oak logs, oak
 // saplings or stone pebbles.
 func TestGiftsAreBasics(t *testing.T) {

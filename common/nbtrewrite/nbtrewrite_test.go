@@ -2,6 +2,7 @@ package nbtrewrite
 
 import (
 	"bytes"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -186,3 +187,65 @@ func TestSubChunkBlocksEveryLayer(t *testing.T) {
 }
 
 func nil2(s string) string { return s }
+
+// TestNBTStacks: a stack whose name plain accepts keeps its new name, its
+// count and the tags that are not the stack's own, and loses its tag, damage
+// and block; stacks inside other stacks and lists are found; with a nil plain
+// the result is NBTKeys.
+func TestNBTStacks(t *testing.T) {
+	enc := func(m map[string]any) []byte {
+		b, err := nbt.MarshalEncoding(m, nbt.LittleEndian)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return b
+	}
+	old := func(name string, slot byte) map[string]any {
+		return map[string]any{"Name": name, "Count": byte(3), "Damage": int16(9), "Slot": slot,
+			"Block": map[string]any{"name": name},
+			"tag":   map[string]any{"Damage": int32(4), "display": map[string]any{"Name": "x", "Lore": []string{"l"}}, "dragonflyData": []byte{1}}}
+	}
+	in := enc(map[string]any{
+		"Item": old("a:sword", 0),
+		"Items": []any{
+			old("a:sword", 1),
+			map[string]any{"Name": "a:keep", "Count": byte(1), "tag": map[string]any{"Items": []any{old("a:sword", 2)}}},
+		},
+	})
+	up := func(s string) string { return strings.Replace(s, "a:sword", "a:ingot", 1) }
+	out, err := NBTStacks(in, up, up, func(n string) bool { return n == "a:sword" })
+	if err != nil {
+		t.Fatal(err)
+	}
+	var m struct {
+		Item  map[string]any
+		Items []map[string]any
+	}
+	if err := nbt.UnmarshalEncoding(out, &m, nbt.LittleEndian); err != nil {
+		t.Fatal(err)
+	}
+	for i, st := range []map[string]any{m.Item, m.Items[0], m.Items[1]["tag"].(map[string]any)["Items"].([]any)[0].(map[string]any)} {
+		want := map[string]any{"Name": "a:ingot", "Count": byte(3), "Damage": int16(0), "Slot": byte(i)}
+		if !reflect.DeepEqual(st, want) {
+			t.Errorf("stack %d = %v, want %v", i, st, want)
+		}
+	}
+	if m.Items[1]["Name"] != "a:keep" || m.Items[1]["Count"] != byte(1) {
+		t.Errorf("a stack that is not plain changed: %v", m.Items[1])
+	}
+	if got, _ := NBTStacks(in, up, up, nil); !bytes.Equal(got, mustKeys(t, in, up)) {
+		t.Error("a nil plain differs from NBTKeys")
+	}
+	if _, err := NBTStacks(in[:len(in)-5], up, up, func(string) bool { return true }); err == nil {
+		t.Error("a cut value is no error")
+	}
+}
+
+func mustKeys(t *testing.T, in []byte, f func(string) string) []byte {
+	t.Helper()
+	b, err := NBTKeys(in, f, f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return b
+}
