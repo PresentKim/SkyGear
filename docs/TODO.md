@@ -27,7 +27,7 @@
 - `dimension` 은 `fairy` 가 등록하는 아이템(`sgitem.FairyDust`)을 `fairy` 를 임포트하지 않고 지급한다. 루트가 둘을 함께 링크해서 동작한다. `TestHuntRecords` 가 이 때문에 루트에 남아 있다. 요정 가루의 등록을 `sgitem` 이나 `dimension` 이 닿는 곳으로 옮기거나 `dimension` 이 `fairy` 를 임포트하게 한다. 등록 순서가 바뀌면 클라이언트 골든을 다시 기록해야 한다.
 - 한 프로세스에서 테스트를 두 번 돌리면(`-count=2`) `netstore` 의 `TestTerminalDepositGoesToTask`("craft hooks not set")와 `wire` 의 `TestWire` 가 실패한다. 테스트가 바꾼 전역 훅을 되돌리지 않기 때문이다. 되돌리게 고친다.
 - 기능 패키지로 옮긴 핸들러 테스트는 자기 기능만 설치한 채로 돈다. "취소되지 않는다"·"가져가지 않는다" 같은 단언은 다른 기능의 앞 단계가 이벤트를 건드리지 않는다는 것까지는 더 증명하지 않는다(`TestPlantingRecordsCrop`, `TestPlateClicksWithAnythingInHand`). 조합된 순서는 루트의 `order.golden` 과 시나리오 골든이 고정한다. 이 두 경우를 시나리오 골든에 더할지 정한다.
-- 루트 테스트의 `droppedItems` 와 `droppedKeys`(`helpers_test.go`)는 같은 함수다. 하나로 합친다.
+- 테스트 도우미 `droppedItems`(루트 `helpers_test.go`, `handwork`)와 `droppedKeys`(`tinker`, `farm`)는 이름만 다른 같은 함수가 패키지마다 복사돼 있다. `coretest` 로 올려 하나로 합친다.
 - `coretest.Setup` 을 `core.Install` 보다 먼저 부르는 테스트 바이너리는 같은 구독자를 두 번 등록해 패닉한다. 지금은 그런 바이너리가 없다. `Install` 이 이미 설치된 기능을 건너뛰게 할지 정한다.
 
 ### 시나리오
