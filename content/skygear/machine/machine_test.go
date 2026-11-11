@@ -233,7 +233,8 @@ func TestMineable(t *testing.T) {
 }
 
 // TestCustomBlockBareHandTime: the bare-hand time, the one the client's
-// definition carries, stays short (minetool_test.go has the tools).
+// definition carries, stays short (the root package's minetool_test.go has
+// the tools).
 func TestCustomBlockBareHandTime(t *testing.T) {
 	for _, b := range []world.Block{machine.Machine{Kind: machine.KindCrusher}, storage.Drawer{}, farm.Barrel{}} {
 		if hand := block.BreakDuration(b, item.Stack{}, block.BreakContext{}); hand > 3*time.Second {
