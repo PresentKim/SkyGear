@@ -72,7 +72,7 @@ Dragonfly 의 동작 자체(블록 규칙, 패킷 처리, 세션 기능)를 바�
 1. 새 기준 커밋(현재 `d86aefd9ff9b6a357d6dfadab2093af811545256`)을 `.github` 없이 `base` 로 받는다: `git init -q df && cd df && git fetch -q --depth 1 https://github.com/df-mc/dragonfly <전체 커밋 해시> && mkdir ../base && git archive FETCH_HEAD | tar -x -C ../base && rm -rf ../base/.github`. 릴리스 태그는 `go mod download -json github.com/df-mc/dragonfly@vX.Y.Z` 의 `Dir` 을 복사한다. 풀 리퀘스트 ref 는 움직이므로 커밋 해시로만 받는다.
 2. `.github` 를 지우고 `third_party/dragonfly` 를 교체한다.
 3. `cd third_party/dragonfly && patch -p1 < ../dragonfly.patch` 로 패치를 얹고, 충돌은 손으로 고친다.
-4. 루트 `go.mod` 의 `require` 버전을 맞추고 `go mod tidy`, `go vet ./...`, `go test ./...`, 시나리오를 돌린다.
+4. 루트 `go.mod` 의 `require` 버전을 맞추고 `go mod tidy`, `go vet ./...`, `go test ./...` 를 돌린다.
 5. 원본(`base`)과 다시 비교해 `dragonfly.patch` 를 갱신한다: `cp -r base a; cp -r <저장소>/third_party/dragonfly b; diff -ruN -x pack_icon.png a b > dragonfly.patch`. 확인: `cp -r base c; (cd c && patch -p1 -s < ../dragonfly.patch); diff -r -x pack_icon.png c <저장소>/third_party/dragonfly` 가 아무것도 출력하지 않고 `grep -c '^diff ' dragonfly.patch` 가 파일 수와 같아야 한다.
 6. 패치 시험은 `cd third_party/dragonfly && go test ./server/...` 로 돌린다.
 

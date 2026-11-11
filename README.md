@@ -91,7 +91,6 @@ assets/                         The resource packs, embedded in the binary (asse
                                 is the game's pack (textures, models, names, entities, JSON UI), the others
                                 (inventoryui, waila, slotdeco, sgui, oreui) are drawn on by common/
 tools/                          Generators for textures, models and data files used by the packs
-spike/scenarios/, spike/cmd/platformbot/  Connection scenarios and the scenario bot
 third_party/dragonfly/          Dragonfly (1.26.60) with this project's patches (third_party/README.md)
 docs/                           Design (docs/design) and technical notes (docs/tech), in Korean
 ```
@@ -103,18 +102,6 @@ go vet ./...
 go test ./...
 gofmt -l .
 ```
-
-`spike/scenarios/run.sh` checks real connection flows end to end: it builds the
-server, runs it with authentication off, drives a bot through a scenario and
-shuts everything down, failing if the server log has an `ERROR` or a panic.
-
-```sh
-spike/scenarios/run.sh spike/scenarios/advanced.sh
-```
-
-Each `spike/scenarios/*.sh` file is one scenario. The bot reads JSON UI forms only, and the menus are now
-DDUI screens, so scenarios that go through a menu need a bot that drives DDUI screens first
-([docs/TODO.md](docs/TODO.md)).
 
 ## Documentation
 

@@ -7,7 +7,7 @@
 - `common/waila`: 제목 형식(`Format`), 보내기(`Show`: 바뀐 것만, 30초마다 다시; `Clear`), 도구 아이콘(`ToolsFor`: Dragonfly `BreakInfo` 로 효과 있는 도구와 최소 등급, 손에 든 것이 맞으면 `a`·필요한데 틀리면 `b`), 부제목 꼬리(`tail.go`).
 - 리소스팩 `assets/resourcepack/waila/`: 아이콘을 부제목에서 읽는 `sg_subtitle_item_renderer`, `tile.json`(`sg_marks`·`sg_item_line`·`item_inventory`), `main.json`(위치, `sg_name_row`).
 - 스카이기어 `look.go`: 시선 추적과 블록별 정보 줄.
-- 확인: `waila_test.go`, `look_test.go`, 시나리오 `spike/scenarios/waila.sh`(`/sgdebug look 0 90` 으로 바닥을 보면 `_waila:A:` 제목이 온다).
+- 확인: `waila_test.go`, `look_test.go`.
 
 ## 제목과 부제목
 

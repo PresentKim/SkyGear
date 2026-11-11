@@ -16,9 +16,6 @@ Thanks for your interest. These are the rules the project follows; the full
   gofmt -l .
   ```
 
-- If you change a connection flow, run the matching scenario
-  (`spike/scenarios/run.sh spike/scenarios/<name>.sh`), and add a scenario for
-  a new feature.
 - Write commit messages in English.
 - One commit per change: when a piece of work covers several requests or
   fixes, commit each one separately.

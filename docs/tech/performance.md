@@ -1,6 +1,6 @@
 # 성능: Dragonfly 스레딩과 섬 공장 부하
 
-운영자 부하 표시는 [admin.md](admin.md)에 있다(`/sgadmin tps` 로 켜는 HUD 왼쪽 위 TPS·틱). 부하 시험 명령은 `/sgdebug factory <개수>`, 시나리오는 `spike/scenarios/factory.sh`(`FACTORY=<개수>`)다.
+운영자 부하 표시는 [admin.md](admin.md)에 있다(`/sgadmin tps` 로 켜는 HUD 왼쪽 위 TPS·틱). 부하 시험 명령은 `/sgdebug factory <개수>`.
 
 ## Dragonfly(v0.11, 패치본)의 스레딩
 
