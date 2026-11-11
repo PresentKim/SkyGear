@@ -153,6 +153,7 @@ func Info(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, b world
 	}
 	info.NameKey = naming.BlockNameKey(b)
 	info.Container = containerOf(tx, pos, b)
+	view := waila.View{Lang: lang, Sneaking: p.Sneaking(), Tx: tx, Pos: pos}
 	switch b := b.(type) {
 	case machine.Machine:
 		info.Lines, info.Line = MachineLines(lang, b)
@@ -204,6 +205,8 @@ func Info(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, b world
 			info.Tools = []waila.ToolIcon{{Tool: waila.Crops, Mark: waila.MarkNone}}
 			info.Lines = farm.PlantLines(s, lang, pos, b, k)
 		}
+	default:
+		info = waila.Describe(view, b, info)
 	}
 	if kind, _, ok := farm.CropOf(b); ok {
 		info.Name = i18n.T(lang, farm.CropNameKeys[kind])
