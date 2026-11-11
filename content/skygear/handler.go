@@ -1,8 +1,6 @@
 package skygear
 
 import (
-	"time"
-
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -15,13 +13,11 @@ import (
 	"github.com/presentkim/skygear/content/skygear/copier"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/dimension"
-	"github.com/presentkim/skygear/content/skygear/elevator"
 	"github.com/presentkim/skygear/content/skygear/expand"
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/handwork"
 	"github.com/presentkim/skygear/content/skygear/island"
-	"github.com/presentkim/skygear/content/skygear/look"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/netstore"
 	"github.com/presentkim/skygear/content/skygear/screens"
@@ -357,69 +353,4 @@ func (h *handler) useHeldScreen(p *player.Player, _ item.Stack) {
 		return
 	}
 	screens.OpenMenu(h.s.Session, p)
-}
-
-// HandleMove returns players that fall below the island into the void, and
-// keeps players in island expansion mode in place.
-func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, newRot cube.Rotation) {
-	core.Mark("look.update")
-	look.Update(h.s.Session, ctx.Player(), ctx.Player().Tx(), newPos, newRot, false)
-	core.Mark("expand.hold")
-	if _, expanding := expand.Of(h.s.Session, ctx.Player()); expanding {
-		ctx.Cancel()
-		return
-	}
-	core.Mark("achievement.walk")
-	achievement.CountWalk(h.s.Session, ctx.Player(), newPos)
-	core.Mark("island.void")
-	if newPos.Y() < island.VoidY {
-		ctx.Cancel()
-		island.ReturnFromVoid(h.s.Session, ctx.Player(), ctx.Player().Tx())
-	}
-}
-
-// HandleToggleSneak shows the island expansion screen again when sneaking in
-// expansion mode, rides an elevator down when standing on one, and
-// otherwise grows saplings nearby by chance (sapling.go).
-func (h *handler) HandleToggleSneak(ctx *player.Context, after bool) {
-	if after {
-		core.Mark("expand.show")
-	}
-	if _, ok := expand.Of(h.s.Session, ctx.Player()); ok && after {
-		expand.Show(h.s.Session, ctx.Player())
-		return
-	}
-	if after {
-		core.Mark("achievement.sneak")
-		achievement.Count(ctx.Player(), "sneak", 1)
-		core.Mark("elevator.down")
-		if elevator.Down(h.s.Session, ctx.Player(), ctx.Player().Tx()) {
-			return
-		}
-		core.Mark("farm.crouchGrow")
-		farm.CrouchGrow(h.s.Session, ctx.Player(), ctx.Player().Tx())
-	}
-}
-
-func (h *handler) HandleItemDrop(ctx *player.Context, _ item.Stack) {
-	core.Mark("dimension.hunting")
-	if dimension.Hunting(h.s.Session, ctx.Player()) {
-		ctx.Cancel()
-		return
-	}
-	core.Mark("achievement.drop")
-	achievement.Count(ctx.Player(), "item_drop", 1)
-}
-func (h *handler) HandleHurt(ctx *player.Context, dmg *float64, _ bool, _ *time.Duration, _ world.DamageSource) {
-	core.Mark("dimension.frozen")
-	if dimension.Frozen(h.s.Session, ctx.Player()) {
-		ctx.Cancel() // the hunt waits while the hunter chooses an upgrade
-		return
-	}
-	core.Mark("achievement.hurt")
-	achievement.Count(ctx.Player(), "hurt", 1)
-	core.Mark("dimension.fallen")
-	if dimension.Fallen(h.s.Session, ctx.Player().Tx(), ctx.Player(), *dmg) {
-		ctx.Cancel()
-	}
 }

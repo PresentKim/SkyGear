@@ -11,3 +11,10 @@ func init() {
 		elevator.Up(e.S, e.P, e.Tx)
 	})
 }
+
+// Sneaking on an elevator rides it down.
+func init() {
+	core.Sneak.Handle(30, "elevator.down", func(e core.PlayerEvent) bool {
+		return elevator.Down(e.S, e.P, e.Tx)
+	})
+}

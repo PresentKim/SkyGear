@@ -693,7 +693,7 @@ func TestPinUse(t *testing.T) {
 		t.Fatal(err)
 	}
 	text := string(src)
-	from, to := strings.Index(text, "func (h *handler) HandleItemUseOnBlock"), strings.Index(text, "func (h *handler) HandleMove")
+	from, to := strings.Index(text, "func (h *handler) HandleItemUseOnBlock"), len(text)
 	if from < 0 || to < from {
 		t.Fatal("handler.go: the methods were not found")
 	}

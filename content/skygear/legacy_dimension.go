@@ -14,3 +14,26 @@ func init() {
 		dimension.Respawned(e.S, e.P, e.Pos)
 	})
 }
+
+// The second dimension's reaction to a drop and a hurt.
+func init() {
+	core.ItemDrop.Handle(10, "dimension.hunting", func(e core.ItemEvent) bool {
+		if dimension.Hunting(e.S, e.P) {
+			e.Cancel()
+			return true
+		}
+		return false
+	})
+	core.Hurt.Handle(10, "dimension.frozen", func(e core.HurtEvent) bool {
+		if dimension.Frozen(e.S, e.P) {
+			e.Cancel() // the hunt waits while the hunter chooses an upgrade
+			return true
+		}
+		return false
+	})
+	core.Hurt.On(30, "dimension.fallen", func(e core.HurtEvent) {
+		if dimension.Fallen(e.S, e.Tx, e.P, *e.Damage) {
+			e.Cancel()
+		}
+	})
+}

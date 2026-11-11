@@ -38,3 +38,19 @@ func init() {
 		achievement.Count(e.P, "command", 1)
 	})
 }
+
+// The achievement counters of the walk, sneak, drop and hurt events.
+func init() {
+	core.Move.On(30, "achievement.walk", func(e core.MoveEvent) {
+		achievement.CountWalk(e.S, e.P, e.Pos)
+	})
+	core.Sneak.On(20, "achievement.sneak", func(e core.PlayerEvent) {
+		achievement.Count(e.P, "sneak", 1)
+	})
+	core.ItemDrop.On(20, "achievement.drop", func(e core.ItemEvent) {
+		achievement.Count(e.P, "item_drop", 1)
+	})
+	core.Hurt.On(20, "achievement.hurt", func(e core.HurtEvent) {
+		achievement.Count(e.P, "hurt", 1)
+	})
+}

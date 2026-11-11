@@ -12,6 +12,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/elevator"
 	"github.com/presentkim/skygear/content/skygear/expand"
@@ -184,5 +185,12 @@ func TestPinSimple(t *testing.T) {
 	ctxEvent("Hurt/fallen", hunting, func(hd *handler, ctx *player.Context, p *player.Player) { hurt(hd, p.Health()+100)(ctx, p) })
 
 	pinGolden(t, "testdata/pin/handler-simple.golden", lines)
-	pinCheckReached(t, pinMarksIn(t, "handler.go", "func (h *handler) HandleMove("), lines)
+	simple := map[string]bool{"Move": true, "Sneak": true, "Sprint": true, "Jump": true, "ItemDamage": true, "ItemConsume": true, "ItemPickup": true, "ItemDrop": true, "Death": true, "Respawn": true, "Hurt": true, "PunchAir": true, "Chat": true, "BlockPick": true, "HeldSlot": true, "Command": true}
+	var names []string
+	for _, sub := range core.Subscriptions() {
+		if simple[sub.Hook] {
+			names = append(names, sub.Name)
+		}
+	}
+	pinCheckReached(t, names, lines)
 }
