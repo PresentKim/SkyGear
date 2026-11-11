@@ -1,4 +1,4 @@
-package skygear
+package fairy_test
 
 import (
 	"testing"
@@ -8,8 +8,11 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/content/skygear/climate"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
+	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/machine"
 )
 
@@ -17,8 +20,8 @@ import (
 // fairyBoneMealTime ahead, the queue keeps one live update per crop, and a
 // grown crop takes none.
 func TestFairyBoneMealGrowsCropsAhead(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
 	plantAt(s, cropPos, block.Carrot{})
 	used := func() (ok bool) {
 		s.World.Do(func(tx *world.Tx) { ok = fairy.BoneMeal(s.Session, tx, cropPos) })
@@ -45,8 +48,8 @@ func TestFairyBoneMealGrowsCropsAhead(t *testing.T) {
 
 // TestFairyBoneMealBringsFruitSooner: on a grown stem it moves the next fruit.
 func TestFairyBoneMealBringsFruitSooner(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
 	plantAt(s, cropPos, block.PumpkinSeeds{})
 	advance(s, farm.GrowTime(s.Session, "pumpkin"))
 	r := farm.StateOf(s.Session).Crops[farm.CropKey(cropPos)]
@@ -64,8 +67,8 @@ func TestFairyBoneMealBringsFruitSooner(t *testing.T) {
 // TestFairyBoneMealOnPlantsAndSaplings: a magic plant blooms sooner and a
 // sapling grows into its tree.
 func TestFairyBoneMealOnPlantsAndSaplings(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
 	pos := cropPos
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(pos.Side(cube.FaceDown), block.Dirt{}, nil)
@@ -120,4 +123,33 @@ func TestFairyHourglass(t *testing.T) {
 	if machine.New(machine.KindGenerator).State.WindHourglass() {
 		t.Fatal("a generator took an hourglass")
 	}
+}
+
+var cropPos = cube.Pos{4, island.IslandY, 4}
+
+// plantAt puts a crop on farmland and records it as planted now.
+func plantAt(s core.Lifecycle, pos cube.Pos, b world.Block) {
+	s.World.Do(func(tx *world.Tx) {
+		tx.SetBlock(pos.Side(cube.FaceDown), block.Farmland{Hydration: 7}, nil)
+		tx.SetBlock(pos, b, nil)
+		kind, _, _ := farm.CropOf(b)
+		farm.PlantCrop(s.Session, pos, kind)
+	})
+}
+
+func stageOf(t *testing.T, s core.Lifecycle, pos cube.Pos) int {
+	t.Helper()
+	stage := -1
+	s.World.Do(func(tx *world.Tx) {
+		if _, g, ok := farm.CropOf(tx.Block(pos)); ok {
+			stage = g
+		}
+	})
+	return stage
+}
+
+// advance moves instance time on and runs the per-second update.
+func advance(s core.Lifecycle, d time.Duration) {
+	s.Clock.Advance(d)
+	s.World.Do(func(tx *world.Tx) { farm.GrowCrops(s.Session, tx) })
 }
