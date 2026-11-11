@@ -325,7 +325,7 @@ var Kinds = map[string]*Def{
 		helpKeys: []string{"machine.miner.help.1"},
 	},
 	KindHarvester: {
-		ID: idHarvester, nameKey: "machine.harvester.name", Marker: "§d§m§3", Interval: 40, Output: []int{13, 14, 15, 16}, Indicator: 10,
+		ID: idHarvester, Owner: "farm", nameKey: "machine.harvester.name", Marker: "§d§m§3", Interval: 40, Output: []int{13, 14, 15, 16}, Indicator: 10,
 		Use: 10, EnergyCap: ConsumerBuffer, Cycle: true,
 		helpKeys: []string{"machine.harvester.help.1", "machine.harvester.help.2"},
 	},

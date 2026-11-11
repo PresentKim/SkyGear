@@ -10,6 +10,7 @@ import (
 // (machine.Register), by kind: the feature named is the kind's Owner. A kind
 // that is not here is the machine feature's own.
 var kindOwners = map[string]string{
+	machine.KindHarvester:        "farm",
 	machine.KindDrawerController: "storage", machine.KindDrawerTrim: "storage", machine.KindDrawerInterface: "storage",
 }
 

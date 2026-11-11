@@ -19,6 +19,7 @@ func subscribe() {
 	subscribeUse()
 	registerComposterIO()
 	registerLook()
+	registerKinds()
 }
 
 // registerComposterIO lets itemio reach a composter (a vanilla block) through
