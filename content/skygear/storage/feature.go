@@ -6,4 +6,4 @@ import (
 )
 
 // Feature is the storage feature, listed in the game's feature list.
-var Feature = &core.Feature{Name: "storage", Entities: []world.EntityType{HolderType}, Setup: subscribe}
+var Feature = &core.Feature{Name: "storage", Entities: []world.EntityType{HolderType}, Creative: creativeItems, Setup: subscribe}

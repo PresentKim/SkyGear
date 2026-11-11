@@ -7,17 +7,13 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/creative"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/elevator"
 	"github.com/presentkim/skygear/content/skygear/fairy"
-	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/hopper"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/netstore"
-	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
-	"github.com/presentkim/skygear/content/skygear/storage"
 )
 
 // Creative inventory entries of the game's own items and blocks. The client
@@ -61,25 +57,6 @@ func ownCreative() []core.CreativeItem {
 		out = append(out, core.CreativeItem{Slot: slot, Category: c, Item: it})
 	}
 
-	slot = 10
-	add(construction, progress.ResearchTable{})
-
-	slot = 20
-	add(construction, storage.Drawer{})
-
-	slot = 30
-	for _, w := range farm.BarrelWoods {
-		add(construction, farm.Barrel{Wood: w})
-	}
-
-	slot = 40
-	for t := 1; t <= conduit.Tiers; t++ {
-		add(construction, conduit.EnergyConduit{Tier: t})
-		add(construction, conduit.ItemConduit{Tier: t})
-		add(construction, conduit.FluidConduit{Tier: t})
-	}
-	add(construction, conduit.NetConduit{})
-
 	slot = 50
 	for _, k := range machine.Order {
 		add(construction, machine.Machine{Kind: k})
@@ -108,10 +85,6 @@ func ownCreative() []core.CreativeItem {
 	for _, t := range sgitem.CrookTiers {
 		add(equipment, sgitem.Crook{Tier: t.Name})
 	}
-
-	slot = 90
-	add(items, farm.Silkworm{})
-	add(items, farm.CookedSilkworm{})
 
 	slot = 100
 	for _, t := range sgitem.WandTiers {
@@ -166,11 +139,6 @@ func ownCreative() []core.CreativeItem {
 	}
 	for _, c := range sgitem.PetalColours {
 		add(items, sgitem.Petal{Colour: c})
-	}
-
-	slot = 150
-	for _, sd := range farm.PlantSeeds {
-		add(items, farm.PlantSeed{Seed: sd})
 	}
 
 	slot = 160
