@@ -302,7 +302,7 @@ func TestPinBlocks(t *testing.T) {
 
 	// Every subscriber of the three hooks and every mark of their deferred
 	// work is reached.
-	names := pinMarksIn(t, "legacy_netstore.go", "package skygear")
+	names := pinMarksIn(t, "netstore/subscribe.go", "package netstore")
 	for _, sub := range core.Subscriptions() {
 		switch sub.Hook {
 		case "StartBreak", "BlockBreak", "BlockPlace":
