@@ -1,4 +1,4 @@
-package skygear
+package decor_test
 
 import (
 	"testing"

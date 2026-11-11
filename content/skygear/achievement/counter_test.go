@@ -1,4 +1,4 @@
-package skygear
+package achievement_test
 
 import (
 	"log/slog"
@@ -14,6 +14,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/achievement"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/handwork"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/platform/account"
@@ -77,10 +78,10 @@ func TestCountersCount(t *testing.T) {
 		_ = d.Close()
 	})
 	account.Init(d, slog.Default())
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		acc := instance.AccountID(p)
 		if _, err := d.TouchAccount(acc, "", p.Name()); err != nil {
 			t.Fatal(err)
