@@ -32,6 +32,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/storage"
+	"github.com/presentkim/skygear/content/skygear/tinker"
 	"github.com/presentkim/skygear/platform/account"
 	"github.com/presentkim/skygear/platform/db"
 	"github.com/presentkim/skygear/platform/instance"
@@ -261,22 +262,22 @@ func TestPinLifecycle(t *testing.T) {
 	{
 		s, _, hs := fresh(1)
 		for h, f := range map[*world.EntityHandle]int{hs[0]: 3} {
-			keptFood.Of(s.Session)[h] = f
+			tinker.KeptFood(s.Session)[h] = f
 		}
 		withPlayer(t, s, hs[0], func(p *player.Player, tx *world.Tx) {
 			pinRun(t, lines, "Leave/plain", func() string {
-				return fmt.Sprintf("diedFood=%d players=%d", len(keptFood.Of(s.Session)), players(tx))
+				return fmt.Sprintf("diedFood=%d players=%d", len(tinker.KeptFood(s.Session)), players(tx))
 			}, func() { s.Leave(p) })
 		})
 	}
 	{
 		s, _, hs := fresh(2)
 		for h, f := range map[*world.EntityHandle]int{hs[0]: 3, hs[1]: 5} {
-			keptFood.Of(s.Session)[h] = f
+			tinker.KeptFood(s.Session)[h] = f
 		}
 		withPlayer(t, s, hs[0], func(p *player.Player, tx *world.Tx) {
 			pinRun(t, lines, "Leave/withOther", func() string {
-				return fmt.Sprintf("diedFood=%d players=%d", len(keptFood.Of(s.Session)), players(tx))
+				return fmt.Sprintf("diedFood=%d players=%d", len(tinker.KeptFood(s.Session)), players(tx))
 			}, func() { s.Leave(p) })
 		})
 	}

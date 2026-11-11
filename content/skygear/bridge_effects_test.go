@@ -14,6 +14,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/content/skygear/network"
+	"github.com/presentkim/skygear/content/skygear/tinker"
 	"github.com/presentkim/skygear/platform/account"
 	"github.com/presentkim/skygear/platform/db"
 	"github.com/presentkim/skygear/platform/instance"
@@ -137,11 +138,11 @@ func TestBridgeKeptFoodLeave(t *testing.T) {
 		hd := s.Handler(p)
 		p.SetFood(4)
 		hd.HandleDeath(p, nil, new(bool))
-		if got, ok := keptFood.Of(s.Session)[h]; !ok || got != 4 {
+		if got, ok := tinker.KeptFood(s.Session)[h]; !ok || got != 4 {
 			t.Fatalf("kept food %d %v, want 4", got, ok)
 		}
 		s.Leave(p)
-		if _, ok := keptFood.Of(s.Session)[h]; ok {
+		if _, ok := tinker.KeptFood(s.Session)[h]; ok {
 			t.Fatal("kept food survived the player's leaving")
 		}
 	})
