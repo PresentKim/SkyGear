@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 
 	"github.com/presentkim/skygear/content/skygear/core"
@@ -28,7 +29,18 @@ type pinSink struct {
 	names []string
 }
 
+// pinWorldNames are the marks of the world handler (lostfound.go,
+// conduitload.go). The world fires them when it loads a column or closes an
+// entity, whatever event a scenario is running, so a sink keeps them only
+// while pinWorld is set (TestPinLifecycle).
+var pinWorldNames = map[string]bool{"conduit.load": true, "conduit.unload": true, "island.lost": true}
+
+var pinWorld atomic.Bool
+
 func (k *pinSink) add(name string) {
+	if pinWorldNames[name] && !pinWorld.Load() {
+		return
+	}
 	k.mu.Lock()
 	k.names = append(k.names, name)
 	k.mu.Unlock()

@@ -3,6 +3,7 @@ package skygear
 import (
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/island"
 )
 
@@ -16,6 +17,7 @@ type worldHandler struct {
 // closes an item entity below the world's lowest height, while a picked-up or
 // expired item despawns above it.
 func (h *worldHandler) HandleEntityDespawn(tx *world.Tx, e world.Entity) {
+	core.Mark("island.lost")
 	ent, ok := e.(*entity.Ent)
 	if !ok || e.Position().Y() >= float64(tx.Range()[0]) {
 		return
