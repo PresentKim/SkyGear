@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"reflect"
 	"slices"
 	"strings"
@@ -50,6 +51,30 @@ func TestInstallTwicePanics(t *testing.T) {
 	Install(&Feature{Name: "a"})
 	defer mustPanic(t, "twice")
 	Install(&Feature{Name: "b"})
+}
+
+// TestInstallRunsChecksAfterEverySetup: a feature's Check runs when the Setup
+// of every feature has run, in list order, so it sees what a feature listed
+// after it provided.
+func TestInstallRunsChecksAfterEverySetup(t *testing.T) {
+	ResetHooks()
+	var got []string
+	Install(
+		&Feature{Name: "a", Setup: func() { got = append(got, "setup a") }, Check: func() error { got = append(got, "check a"); return nil }},
+		&Feature{Name: "b", Setup: func() { got = append(got, "setup b") }},
+		&Feature{Name: "c", Check: func() error { got = append(got, "check c"); return nil }},
+	)
+	if want := []string{"setup a", "setup b", "check a", "check c"}; !slices.Equal(got, want) {
+		t.Fatalf("got %v, want %v", got, want)
+	}
+}
+
+// TestInstallCheckErrorPanics: Install panics with the failing feature's name
+// and the error of its Check.
+func TestInstallCheckErrorPanics(t *testing.T) {
+	ResetHooks()
+	defer mustPanic(t, `"a"`, "kind x has no behaviour")
+	Install(&Feature{Name: "a", Check: func() error { return errors.New("kind x has no behaviour") }})
 }
 
 func TestDuplicateFeatureNamePanics(t *testing.T) {

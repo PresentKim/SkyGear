@@ -37,6 +37,10 @@ type Feature struct {
 	// Setup subscribes the feature's steps to the hooks. It runs once, during
 	// Install, before any event is emitted.
 	Setup func()
+	// Check, if set, runs once at the end of Install, after the Setup of every
+	// feature: it returns an error when something another feature had to
+	// provide during its Setup is missing. Install panics with it.
+	Check func() error
 }
 
 var (
@@ -47,9 +51,10 @@ var (
 
 // Install installs fs once per process. For each feature in the given order it
 // registers the settings (account.RegisterSetting) and runs Setup with the
-// feature's name as the owner of every subscriber it adds. A second call, an
-// empty or repeated feature name, or a nil feature panics before anything of
-// that call is installed.
+// feature's name as the owner of every subscriber it adds. When every Setup
+// has run it calls each feature's Check in the same order and panics with the
+// first error. A second call, an empty or repeated feature name, or a nil
+// feature panics before anything of that call is installed.
 func Install(fs ...*Feature) {
 	featuresMu.Lock()
 	defer featuresMu.Unlock()
@@ -79,6 +84,14 @@ func Install(fs ...*Feature) {
 			installing = f.Name
 			f.Setup()
 			installing = ""
+		}
+	}
+	for _, f := range fs {
+		if f.Check == nil {
+			continue
+		}
+		if err := f.Check(); err != nil {
+			panic(fmt.Sprintf("core: Install: feature %q: %v", f.Name, err))
 		}
 	}
 }
