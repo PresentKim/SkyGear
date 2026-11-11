@@ -6,7 +6,10 @@
 ## 구조
 
 기능마다 패키지가 하나다. 패키지는 아래 표에서 **자기보다 위 칸**의 패키지만 import 한다(같은 칸끼리는 표의 순서대로).
-위 칸이 아래 칸을 불러야 할 때(메뉴 열기, 사이드바 갱신, 다른 기능의 기계 종류)는 위 칸이 함수 변수(훅)를 두고,
+서버 이벤트(블록 캐기·놓기·사용, 이동, 입장·퇴장, 매초와 빠른 틱 …)는 `core` 의 훅으로 기능에 닿고, 기능은 자기 패키지의 `feature.go`
+(`core.Feature`)의 `Setup` 에서 구독한다. 기능은 루트 패키지의 `features.go` 목록에 한 줄로 오른다. 훅, 우선순위, 새 기능을 더하는 순서는
+[docs/tech/extension.md](../../docs/tech/extension.md) 에 있다.
+위 칸이 아래 칸을 불러야 할 때 중 이벤트가 아닌 것(메뉴 열기, 사이드바 갱신, 다른 기능의 기계 종류)은 위 칸이 함수 변수를 두고,
 아래 칸이 `init` 에서 채운다(예: `core.ShowMenu` 는 `screens` 가, `machine.Kinds[KindRelicTable].Click` 은 `dimension` 이).
 
 | 층 | 패키지 | 내용 |
@@ -25,7 +28,7 @@
 | | `hopper` | 나무·역방향 호퍼 |
 | | `wire` | 접속한 플레이어가 받는 데이터(블록 항목, 아이템 등록, 제작 데이터, 크리에이티브 목록)의 골든 파일과 그 테스트 |
 | | `migrate` | 세이브 데이터를 실행 중인 릴리스 형식으로 올리는 패치(`Patches`)와, 이름 변경(DragonFactory → Sky Gear) 전 세이브의 한 번짜리 변환(`Namespace`) |
-| 핵심 | `core` | 세이브 하나의 실행 상태(`Session`: 월드·시계·난수·세이브 정보)와 기능이 자기 데이터를 두는 방법(`Part`·`Players`·`Saved`), 공용 도우미(아이템, 메뉴 버튼, 디버그 도형) |
+| 핵심 | `core` | 기능 커널: 세이브 하나의 실행 상태(`Session`: 월드·시계·난수·세이브 정보), 기능이 자기 데이터를 두는 방법(`Part`·`Players`·`Saved`), 훅과 이벤트(`PlayerHandler`·`WorldHandler`·`Lifecycle` 이 내보낸다), 기능 서술자(`Feature`·`Install`), 공용 도우미(아이템, 메뉴 버튼, 디버그 도형) |
 | | `network` | 세이브의 에너지·아이템·유체 연결망 |
 | | `achievement` | 계정 업적 목록·등록과 횟수 집계(`Count` 등) |
 | | `preview` | 보는 사람에게만 보내는 블록 미리보기: 선택·충돌 상자가 크기 0 인 16색 미리보기 유리(`Glass`, 지팡이 초록·망치 파랑)와 칸별 레이어 0·1 전송(`Set`·`Clear`). 건축 지팡이와 철 망치가 함께 쓴다 |
@@ -50,7 +53,7 @@
 | 화면 | `codex` | 도감(JEI 같은 레시피 보기) |
 | | `look` | WAILA 줄(바라보는 블록 정보) |
 | | `screens` | 게임 메뉴, 섬 관리, 분실물, 도움말, 연구·발전과제 화면, 사이드바와 퀘스트 판 |
-| 게임 | `skygear` | 위 패키지를 잇는 곳: `Game`·`session`(플랫폼 인터페이스 구현), 이벤트 훅의 구독자(`legacy_*.go`; 매초·빠른 틱 포함), 명령어, 운영자 도구(`admin.go`, `debug*.go`) |
+| 게임 | `skygear` | 기능 목록(`features.go`, `core.Install`)과 플랫폼 접착제: `Game`·`session`(플랫폼 인터페이스 구현), 명령어, 운영자 도구(`admin.go`, `debug*.go`). 훅에 구독하는 단계는 두지 않는다 |
 
 ## 기능의 데이터
 
@@ -63,7 +66,7 @@
 
 ## 파일
 
-패키지로 옮길 때 파일 이름은 그대로 두었다. 문서에 나오는 `sieve.go`, `codexsearch.go` 같은 파일은 그 기능의 패키지 안에 있다
+문서에 나오는 `sieve.go`, `codexsearch.go` 같은 파일은 그 기능의 패키지 안에 있다
 (예: `machine/sieve.go`, `codex/codexsearch.go`).
 
 ## 문서

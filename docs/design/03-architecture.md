@@ -101,9 +101,12 @@ type Session interface {
   자기 패키지에 파트를 둔다: 실행 중 데이터 `core.NewPart`, 플레이어별 데이터 `core.NewPlayers`(퇴장 때 지워짐),
   저장 데이터 `core.NewSaved`(모든 저장 파트가 세이브 상태 문서 하나의 필드라 기능을 옮겨도 세이브 형식이 그대로다).
 - 패키지는 자기보다 아래 층만 import 한다(데이터 → 핵심 → 진행 → 기능 → 내용 목록 → 화면 → 게임). 위로 불러야 할 때는
-  아래 패키지가 함수 변수(훅)를 두고 위 패키지가 `init` 에서 채운다. `layers_test.go` 가 이 방향을 검사한다.
-- 루트 패키지 `skygear` 는 잇기만 한다: 플랫폼 인터페이스를 구현하고(`Game`, `session`), `core.PlayerHandler`·`core.WorldHandler` 가 이벤트를 훅으로 내보내
-  기능의 구독자(`legacy_*.go`)를 우선순위 차례로 부르고, `core.Lifecycle` 의 `Second`·`Fast` 도 같은 식으로 기능의 틱을 부른다. 명령어와 운영자 도구도 여기 있다.
+  아래 패키지가 함수 변수를 두고 위 패키지가 `init` 에서 채운다. `layers_test.go` 가 이 방향을 검사한다.
+- 이벤트는 훅으로 기능에 닿는다. Dragonfly 가 `core.PlayerHandler`·`core.WorldHandler` 를 부르면 같은 이름의 훅이 우선순위 차례로 기능의 구독자를 부르고,
+  플랫폼이 부르는 세션 호출(`Join`, `Leave`, `NewDay`, `Second`, `Fast`, `Autosave`, `Close`)은 `core.Lifecycle` 이 같은 식으로 훅에 내보낸다.
+  기능은 자기 패키지의 `feature.go` 에서 `core.Feature` 를 선언하고 `Setup` 에서 구독자를 단다.
+- 루트 패키지 `skygear` 는 기능 목록(`features.go`, `core.Install`)과 플랫폼 접착제(`Game`, `session`)이다. 플랫폼 인터페이스를 구현하고, 명령어와 운영자 도구를 두며, 훅에 구독하지 않는다.
+- 층, 훅 목록, 새 기능을 더하는 순서, 구조를 지키는 테스트는 [docs/tech/extension.md](../tech/extension.md) 에 있다.
 
 ### 플레이어 이벤트 흐름
 모든 플레이어는 접속 내내 `instance.Handler` 하나를 가진다. 이 핸들러는 플랫폼 공통 규칙(낙하 피해 제거, 사망 시 인벤토리 유지, 보이드 복귀, 접속 종료 시 저장)을 처리하고,

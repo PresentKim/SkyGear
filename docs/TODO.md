@@ -17,6 +17,10 @@
 
 ### 정리
 - Sky Gear 이름 변경 세이브 변환(`content/skygear/migrate/namespace.go`와 그 테스트)과 그 호출(`cmd/skygear/main.go`)을 모든 서버가 한 번씩 돌린 뒤 지운다. 데이터 폴더의 `skygear-namespace.done` 플래그와 `<데이터 폴더>.before-skygear` 사본도 함께 지운다.
+- 확장 모드에서 나가는 플레이어가 보기 전용 게임 모드를 그대로 지니는 문제를 고친다. `Leave` 에서 `expand.stop`(30)이 `core.parts`(20) 뒤에 돌아 `expanding` 항목이 이미 없으므로 `expand.Stop` 이 아무것도 하지 않는다. `expand.stop` 을 `core.parts` 앞으로 옮기고, `order.golden` 과 `lifecycle.golden` 의 `Leave/expanding`(`expanding=false mode=ViewOnlyMode`)을 의도한 변경으로 다시 기록한다.
+- `UseOnBlock` 의 두 번째 확장 모드 검사 `expand.guardSide`(160)는 멈출 수 없다. 확장 모드의 플레이어는 이미 `expand.guard`(40)에서 멈춘다. 단계를 지우거나 옆 칸 검사가 의미를 갖게 고친다. 지우면 `order.golden` 과 `handler-use.golden` 에서 그 줄이 빠진다.
+- `TestHuntClear`(`content/skygear/dimension_test.go`)와 `TestKitAndLevels` 가 `TestHuntFails` 와 같은 시간 의존 방식이라 `-race` 에서 `TestHuntFails` 처럼 불안정해질 수 있다. 같은 방식으로 시간에 기대지 않게 고친다.
+- `-race` 에서 `TestPinUse` 가 가끔 테스트에만 있는 데이터 경합을 보고한다. 동기 테스트 월드가 미뤄 둔 일을 월드 큐 밖에서 돌리기 때문이다(`fairy.wander` 와 `placeAt`·`Teleport`). 테스트 월드가 미룬 일을 월드 큐에서 돌리게 하거나, 시나리오가 그 일이 끝나기를 기다리게 고친다.
 
 ### 시나리오
 - DDUI 화면(데이터 저장소 `custom_form_data_1`·`oui_event`)을 읽고 누르는 접속 봇이 필요하다. 메뉴는 모두 DDUI 화면이다.
@@ -69,6 +73,7 @@
 - 도구 자동 들기: 캐기 시작한 순간 바뀐 도구의 속도로 그 블록 캐기가 이어지는지(처음부터 다시 누르지 않아도 되는지), 핫바·위 칸 아이템이 바로 보이는지.
 - 마법 식물: 교차 모델, 개화 텍스처, 수확, 멀리서 깜빡임.
 - 엘리베이터: 점프·웅크리기 순간이동이 한 번만 일어나는지, 점프하던 힘이 도착 뒤에 남지 않는지, 16색 윗면·옆면 텍스처.
+- 취소된 클릭(섬 확장 모드, 섬 밖, 메뉴 아이템)이 유령 블록을 남기지 않는지. 사용 버튼을 누르고 있어도 메뉴와 텔레포트석이 한 번만 열리는지.
 - 압축 블록: 제작대에서 9개 → 1개, 1개 → 9개 조합이 연구 뒤에만 보이는지(레시피 책 포함), 칸의 단계 점·희귀도 색, 임시 텍스처 10종이 서로 구분되는지, 놓고 캐는 속도와 드롭, 건축 지팡이로 놓이는지.
 - 섬 확장 압축 조약돌 지불: 왼쪽 위 판의 "가진 것"이 압축 블록을 더한 값과 압축 몫을 보이는지, 낱개 조약돌이 먼저 빠지는지, 큰 단계를 깨면 거스름(낮은 단계 + 조약돌)이 인벤토리에 바로 보이는지, 인벤토리가 가득할 때 거스름이 분실물 보관함에 들어가고 알림이 뜨는지.
 

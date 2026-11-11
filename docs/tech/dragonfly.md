@@ -10,7 +10,7 @@
 | Dragonfly 패치 | `third_party/dragonfly.patch` | Dragonfly 의 동작 자체(블록 규칙, 저장, 틱, 청크 전송, 월드 훅) |
 | `sghook` | `common/sghook` | 세션과 패킷에 닿는 훅. 서버가 클라이언트에 보내는 패킷을 가로채 고치고, 세션의 비공개 메서드와 필드를 쓴다. Dragonfly 내부는 여기서만 건드린다 |
 | `clientdef` | `common/clientdef` | 클라이언트가 접속 때 받는 아이템·블록 항목에 더하는 컴포넌트. 공개 레지스트리만 쓰고 게임을 모른다 |
-| 게임 | `content/skygear` | 아이템과 블록이 `clientdef` 의 인터페이스를 구현한다. `content/skygear/core` 의 `core.EditEntries` 가 훅을 한 번 건다 |
+| 게임 | `content/skygear` | 아이템과 블록이 `clientdef` 의 인터페이스를 구현한다. `content/skygear/core` 의 `core.EditEntries` 가 항목 고치기를 한 번 건다. 그 위의 기능 커널, 기능 패키지, 루트의 층과 이벤트가 기능에 닿는 길은 [extension.md](extension.md) |
 
 위에서 아래로 시도한다. 패킷을 가로채거나 세션 내부를 읽고 쓰는 것으로 되면 `sghook` 에 둔다. 클라이언트 쪽 컴포넌트만 더하면 되면 `clientdef` 에 둔다.
 Dragonfly 의 동작 자체를 바꿔야 하거나, 패치 없이 같은 결과를 내는 것을 이 환경에서 증명할 수 없을 때만 패치한다.

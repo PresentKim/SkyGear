@@ -54,6 +54,23 @@ Thanks for your interest. These are the rules the project follows.
   (`Enter`/`ToLobby`). The instance package reaches Sky Gear only
   through the `instance.Game`/`Session` interfaces (`content/skygear`
   imports `platform/instance`, not the other way round).
+- Sky Gear features are packages under `content/skygear/<feature>`. A feature
+  declares a `core.Feature` in its `feature.go` (`Name`, `Entities`,
+  `Settings`, `ItemEntry`, `Setup`) and subscribes its steps to the kernel's
+  hooks in `Setup`, in `subscribe.go`, with subscriber names
+  `<feature>.<step>` and a priority unique within the hook. It keeps its data in
+  `core.NewPart`, `core.NewPlayers` and `core.NewSaved` parts, never in a field
+  of `Session`, and never imports the root package. Adding a feature is its
+  package, one line in the list in `content/skygear/features.go`, a row in
+  `layers` in `content/skygear/layers_test.go` and, once it subscribes, its lines
+  in `content/skygear/testdata/pin/order.golden`. The root package only lists
+  the features and holds the platform glue (`Game`, `session`), the commands and
+  the operator tools; it subscribes to nothing. See `docs/tech/extension.md`.
+- `go test ./content/skygear -run TestPin -count=1` compares the order of every
+  hook's subscribers and the steps each scenario reaches with the goldens in
+  `content/skygear/testdata/pin`. A change in dispatch order shows up as a
+  golden diff. Re-record (`SKYGEAR_GOLDEN=update`) only in a commit meant to
+  change that behaviour, and give the reason in the commit message.
 - Sky Gear session state belongs to its instance world: read and write it
   only inside that world's transactions (handlers, form submits, block ticks,
   `w.Do`).

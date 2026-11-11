@@ -21,6 +21,13 @@
 // passed, including its pointers, and an Actor to cancel the event in
 // Dragonfly; cancelling and stopping the chain are independent.
 //
+// A Feature is what a feature package hands to the game: its name, entity
+// types, settings, item entry edit and a Setup that subscribes its steps. The
+// root package lists the features and passes them to Install, which runs each
+// Setup under the feature's name; a subscriber is named "<feature>.<step>".
+// EditEntries and CheckEntries compose the client entry edits of the features.
+// The kernel imports no feature package.
+//
 // A feature declares its parts as package variables and reads them with
 // Of(s); it never adds fields to Session.
 package core
