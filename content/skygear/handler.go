@@ -310,12 +310,16 @@ func (h *handler) useHeldScreen(p *player.Player, _ item.Stack) {
 // HandleMove returns players that fall below the island into the void, and
 // keeps players in island expansion mode in place.
 func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, newRot cube.Rotation) {
+	core.Mark("look.update")
 	look.Update(h.s.Session, ctx.Player(), ctx.Player().Tx(), newPos, newRot, false)
+	core.Mark("expand.hold")
 	if _, expanding := expand.Of(h.s.Session, ctx.Player()); expanding {
 		ctx.Cancel()
 		return
 	}
+	core.Mark("achievement.walk")
 	achievement.CountWalk(h.s.Session, ctx.Player(), newPos)
+	core.Mark("island.void")
 	if newPos.Y() < island.VoidY {
 		ctx.Cancel()
 		island.ReturnFromVoid(h.s.Session, ctx.Player(), ctx.Player().Tx())
@@ -326,37 +330,48 @@ func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, newRot cube
 // expansion mode, rides an elevator down when standing on one, and
 // otherwise grows saplings nearby by chance (sapling.go).
 func (h *handler) HandleToggleSneak(ctx *player.Context, after bool) {
+	if after {
+		core.Mark("expand.show")
+	}
 	if _, ok := expand.Of(h.s.Session, ctx.Player()); ok && after {
 		expand.Show(h.s.Session, ctx.Player())
 		return
 	}
 	if after {
+		core.Mark("achievement.sneak")
 		achievement.Count(ctx.Player(), "sneak", 1)
+		core.Mark("elevator.down")
 		if elevator.Down(h.s.Session, ctx.Player(), ctx.Player().Tx()) {
 			return
 		}
+		core.Mark("farm.crouchGrow")
 		farm.CrouchGrow(h.s.Session, ctx.Player(), ctx.Player().Tx())
 	}
 }
 
 func (h *handler) HandleToggleSprint(ctx *player.Context, after bool) {
 	if after {
+		core.Mark("achievement.sprint")
 		achievement.Count(ctx.Player(), "sprint", 1)
 	}
 }
 
 // HandleJump rides an elevator up when the player jumps on one.
 func (h *handler) HandleJump(p *player.Player) {
+	core.Mark("achievement.jump")
 	achievement.Count(p, "jump", 1)
+	core.Mark("elevator.up")
 	elevator.Up(h.s.Session, p, p.Tx())
 }
 
 // HandleItemDamage keeps the iron hammer whole: its vein mining costs food
 // instead (vein.go).
 func (h *handler) HandleItemDamage(ctx *player.Context, it item.Stack, damage *int) {
+	core.Mark("tinker.ironHammer")
 	if sgitem.IsIronHammer(it) {
 		*damage = 0
 	}
+	core.Mark("autofill.broken")
 	// a held tool that breaks is replaced by another of its kind
 	if held, _ := ctx.Player().HeldItems(); *damage > 0 && it.Durability() >= 0 && *damage >= it.Durability() && sameItemName(held, it) {
 		core.RefillHandLater(ctx.Player(), ctx.Player().Tx(), it)
@@ -370,60 +385,78 @@ func sameItemName(a, b item.Stack) bool {
 	return !a.Empty() && !b.Empty() && n1 == n2 && m1 == m2
 }
 func (h *handler) HandlePunchAir(ctx *player.Context) {
+	core.Mark("achievement.punchAir")
 	achievement.Count(ctx.Player(), "punch_air", 1)
 }
 func (h *handler) HandleChat(ctx *player.Context, _ *string) {
+	core.Mark("achievement.chat")
 	achievement.Count(ctx.Player(), "chat", 1)
 }
 func (h *handler) HandleItemConsume(ctx *player.Context, it item.Stack) {
+	core.Mark("achievement.eat")
 	achievement.Count(ctx.Player(), "eat", 1)
+	core.Mark("autofill.consume")
 	core.RefillHandLater(ctx.Player(), ctx.Player().Tx(), it)
 }
 func (h *handler) HandleItemPickup(ctx *player.Context, i *item.Stack) {
+	core.Mark("achievement.pickup")
 	achievement.Count(ctx.Player(), "pickup", int64(i.Count()))
 }
 
 // HandleDeath and HandleRespawn keep the food level through death: dying
 // does not fill the food bar (it would make vein mining's food cost free).
 func (h *handler) HandleDeath(p *player.Player, _ world.DamageSource, _ *bool) {
+	core.Mark("achievement.death")
 	achievement.Count(p, "death", 1)
+	core.Mark("dimension.died")
 	dimension.Died(h.s.Session, p.Tx(), p)
+	core.Mark("tinker.keepFood")
 	if h.s.diedFood == nil {
 		h.s.diedFood = map[*world.EntityHandle]int{}
 	}
 	h.s.diedFood[p.H()] = p.Food()
 }
 func (h *handler) HandleRespawn(p *player.Player, pos *mgl64.Vec3, _ **world.World) {
+	core.Mark("dimension.respawned")
 	dimension.Respawned(h.s.Session, p, pos)
+	core.Mark("tinker.restoreFood")
 	if food, ok := h.s.diedFood[p.H()]; ok {
 		delete(h.s.diedFood, p.H())
 		p.SetFood(food)
 	}
 }
 func (h *handler) HandleBlockPick(ctx *player.Context, _ cube.Pos, _ world.Block) {
+	core.Mark("achievement.blockPick")
 	achievement.Count(ctx.Player(), "block_pick", 1)
 }
 func (h *handler) HandleHeldSlotChange(ctx *player.Context, _, _ int) {
+	core.Mark("achievement.heldSlot")
 	achievement.Count(ctx.Player(), "hotbar", 1)
 }
 
 func (h *handler) HandleItemDrop(ctx *player.Context, _ item.Stack) {
+	core.Mark("dimension.hunting")
 	if dimension.Hunting(h.s.Session, ctx.Player()) {
 		ctx.Cancel()
 		return
 	}
+	core.Mark("achievement.drop")
 	achievement.Count(ctx.Player(), "item_drop", 1)
 }
 func (h *handler) HandleHurt(ctx *player.Context, dmg *float64, _ bool, _ *time.Duration, _ world.DamageSource) {
+	core.Mark("dimension.frozen")
 	if dimension.Frozen(h.s.Session, ctx.Player()) {
 		ctx.Cancel() // the hunt waits while the hunter chooses an upgrade
 		return
 	}
+	core.Mark("achievement.hurt")
 	achievement.Count(ctx.Player(), "hurt", 1)
+	core.Mark("dimension.fallen")
 	if dimension.Fallen(h.s.Session, ctx.Player().Tx(), ctx.Player(), *dmg) {
 		ctx.Cancel()
 	}
 }
 func (h *handler) HandleCommandExecution(ctx *player.Context, _ cmd.Command, _ []string) {
+	core.Mark("achievement.command")
 	achievement.Count(ctx.Player(), "command", 1)
 }
