@@ -9,6 +9,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/wintext"
 )
 
 // The kinds of other features. A kind's name, its place in Order, its block
@@ -39,6 +40,9 @@ type Behaviour struct {
 	// Lines are the kind's panel lines in place of the machine's own
 	// (Machine.Waila); NoLines is a kind without lines.
 	Lines func(lang string, tx *world.Tx, pos cube.Pos) []string
+	// Info are the lines the kind adds to the info icon of its window, after
+	// the lines that explain it (State.InfoItem).
+	Info func(st *State) []wintext.Text
 }
 
 // NoLines is the Lines of a kind whose panel has no lines.

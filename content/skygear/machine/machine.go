@@ -357,11 +357,11 @@ var Kinds = map[string]*Def{
 	},
 	KindCollector: {
 		// The harvester's window: four output slots, no energy.
-		ID: idCollector, nameKey: "machine.collector.name", Marker: "§d§m§3", Interval: 1, Output: []int{13, 14, 15, 16}, Indicator: 10, NoDisplay: true,
+		ID: idCollector, Owner: "dimension", nameKey: "machine.collector.name", Marker: "§d§m§3", Interval: 1, Output: []int{13, 14, 15, 16}, Indicator: 10, NoDisplay: true,
 		helpKeys: []string{"machine.collector.help.1", "machine.collector.help.2"},
 	},
 	KindRelicTable: {
-		ID: idRelicTable, nameKey: "machine.relictable.name", Interval: 1, Indicator: 10, NoDisplay: true,
+		ID: idRelicTable, Owner: "dimension", nameKey: "machine.relictable.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		helpKeys: []string{"machine.relictable.help.1"},
 	},
 	KindNetController: {
@@ -776,12 +776,8 @@ func (st *State) InfoItem() item.Stack {
 	for _, k := range st.Def.helpKeys {
 		lore = append(lore, wintext.Text{wintext.Key(k)})
 	}
-	if st.Def.ID == idCollector {
-		if st.Mob != "" {
-			lore = append(lore, wintext.Text{wintext.Key("machine.collector.mob", wintext.Key("mob."+st.Mob))})
-		} else {
-			lore = append(lore, wintext.Text{wintext.Key("machine.collector.none")})
-		}
+	if st.Def.Info != nil {
+		lore = append(lore, st.Def.Info(st)...)
 	}
 	if st.Tier > 0 {
 		spec := st.spec()
@@ -801,7 +797,7 @@ func (st *State) InfoItem() item.Stack {
 }
 
 // SetMob sets what the machine works with (the monster an essence
-// collector receives) and shows it in its window.
+// collector receives) and redraws the info icon of its window.
 func (st *State) SetMob(mob string) {
 	st.Mob = mob
 	_ = st.Inv().SetItem(infoSlot, st.InfoItem())

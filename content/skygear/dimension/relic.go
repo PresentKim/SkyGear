@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/df-mc/dragonfly/server/block"
-	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/player"
@@ -15,7 +14,6 @@ import (
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/formicon"
-	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
@@ -82,12 +80,6 @@ func init() {
 		item.NewStack(sgitem.Ingot{Metal: sgitem.MetalSteel}, 1), item.NewStack(sgitem.Ingot{Metal: sgitem.MetalSteel}, 1),
 		item.NewStack(item.Stick{}, 1),
 	}, sgitem.RelicStack(sgitem.RelicBlade, 1), "crafting_table"))
-	machine.Kinds[machine.KindRelicTable].Click = func(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
-		if !s.Debounced(p) {
-			ShowRelicTable(s, p, "")
-		}
-		return true
-	}
 }
 
 // relicKinds are every relic, the weapons first.

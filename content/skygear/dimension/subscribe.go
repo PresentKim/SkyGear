@@ -14,6 +14,7 @@ func subscribe() {
 	subscribeTicks()
 	subscribePresence()
 	subscribeUse()
+	registerKinds()
 }
 
 // The second dimension's reaction to a death and a respawn.

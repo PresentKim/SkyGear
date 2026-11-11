@@ -227,13 +227,3 @@ func ShowCollector(s *core.Session, p *player.Player, pos cube.Pos) {
 		Size:  "collector",
 	})
 }
-
-// A click opens the collector's window.
-func init() {
-	machine.Kinds[machine.KindCollector].Click = func(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
-		if !s.Debounced(p) {
-			ShowCollector(s, p, pos)
-		}
-		return true
-	}
-}
