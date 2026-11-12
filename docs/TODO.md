@@ -17,7 +17,12 @@
 
 ### 정리
 - Sky Gear 이름 변경 세이브 변환(`content/skygear/migrate/namespace.go`와 그 테스트)과 그 호출(`cmd/skygear/main.go`)을 모든 서버가 한 번씩 돌린 뒤 지운다. 데이터 폴더의 `skygear-namespace.done` 플래그와 `<데이터 폴더>.before-skygear` 사본도 함께 지운다.
-- `UseOnBlock` 의 두 번째 확장 모드 검사 `expand.guardSide`(160)는 멈출 수 없다. 확장 모드의 플레이어는 이미 `expand.guard`(40)에서 멈춘다. 단계를 지우거나 옆 칸 검사가 의미를 갖게 고친다. 지우면 `order.golden` 과 `handler-use.golden` 에서 그 줄이 빠진다.
+- `UseOnBlock` 의 두 번째 확장 모드 검사 `expand.guardSide`(HIGHEST)는 멈출 수 없다. 확장 모드의 플레이어는 이미 `expand.guard`(LOWEST)에서 멈춘다. 단계를 지우거나 옆 칸 검사가 의미를 갖게 고친다. 지우면 `order.golden` 과 `handler-use.golden` 에서 그 줄이 빠진다.
+- 훅 순서의 예외 넷([extension.md](tech/extension.md) "예외")을 어떻게 풀지 정한다. 지금은 모두 예전 동작 그대로 둔다. 풀면 플레이어가 보는 동작이 바뀌므로 장면 골든을 다시 기록한다. 쌍을 지우면 `orderKept`(루트 `tierorder_test.go`)에서도 뺀다.
+  - `Sneak` 의 `achievement.sneak`(LOW): MONITOR 에 `Always` 로 달아 웅크리기를 모두 센다(확장 모드의 웅크리기도 센다). 아니면 멈춘 구독자의 티어를 `Always` 구독자에게 알려 LOWEST·LOW 에서 멈춘 것만 빼고 센다(API 가 넓어진다).
+  - `UseOnBlock` 의 `storage.sneakUse`, `conduit.plate` 다음 `handwork.stick`: 흙·잔디가 아닌 블록에 막대기를 쓰면 언제나 `stick_other` 를 세고, 세는 일을 MONITOR 구독자로 뗀다(서랍 메뉴나 판 설정을 막대기로 열어도 센다). 아니면 API 에 "누구 뒤" 제약을 더한다.
+  - `UseOnBlock` 의 `conduit.plate` 다음 `fairy.time`: `fairy.time` 을 든 도구처럼 LOW 에 두고 `island.CanBuild` 조건을 단다(모래시계가 판보다 먼저 기계를 감는다). 아니면 "누구 뒤" 제약을 더한다.
+  - `Join` 의 `dimension.joined`(HIGH): 역할대로 LOW 로 옮긴다. 서버가 멈출 때 사냥 중이던 플레이어가 요정 가루를 잃지 않고 메뉴 아이템 이름도 고쳐진다.
 - `TestHuntClear`(`content/skygear/dimension/dimension_test.go`)와 `TestKitAndLevels` 가 `TestHuntFails` 와 같은 시간 의존 방식이라 `-race` 에서 `TestHuntFails` 처럼 불안정해질 수 있다. 같은 방식으로 시간에 기대지 않게 고친다.
 - `-race` 에서 `TestPinUse` 가 가끔 테스트에만 있는 데이터 경합을 보고한다. 동기 테스트 월드가 미뤄 둔 일을 월드 큐 밖에서 돌리기 때문이다(`fairy.wander` 와 `placeAt`·`Teleport`). 테스트 월드가 미룬 일을 월드 큐에서 돌리게 하거나, 시나리오가 그 일이 끝나기를 기다리게 고친다.
 - `machine.Register` 는 부르는 기능이 그 종류의 `Owner` 인지 확인하지 않는다. 다른 기능이 남의 종류를 등록해도 `TestKindOwners` 와 골든은 통과한다. 커널이 지금 설치 중인 기능 이름을 알려 주면 막을 수 있다. 기능 패키지의 테스트는 `core.Install` 없이 `coretest.Setup` 으로 설치하므로(`netstore/keys_test.go`) 그 경우를 어떻게 볼지 먼저 정한다.

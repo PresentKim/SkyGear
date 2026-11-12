@@ -59,7 +59,8 @@ Thanks for your interest. These are the rules the project follows.
   `Settings`, `ItemEntry`, `Creative`, `Commands`, `Setup`) and subscribes
   its steps to the kernel's hooks in `Setup`, in `subscribe.go`, with
   subscriber names
-  `<feature>.<step>` and a priority unique within the hook. It keeps its data in
+  `<feature>.<step>` and the tier (`core.Lowest` to `core.Monitor`) of what the
+  step does; inside a tier no step may depend on its place. It keeps its data in
   `core.NewPart`, `core.NewPlayers` and `core.NewSaved` parts, never in a field
   of `Session`, and never imports the root package. Its blocks fill in their
   own WAILA lines (`Waila`, in `look.go`) and its items their slot decoration

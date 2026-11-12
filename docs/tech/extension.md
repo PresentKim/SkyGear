@@ -62,20 +62,53 @@ Dragonfly 자체를 확장하는 방법은 [dragonfly.md](dragonfly.md) 에 있�
 
 세션 타입은 `core.Lifecycle` 을 품고 있어 이 호출들이 `Lifecycle` 의 메서드로 간다. 메서드마다 이벤트를 만들어 훅의 `Emit` 을 한 번 부르고, 아래 꼬리 일을 한다.
 
+- `Leave`: 구독자가 끝나면 플레이어 클라이언트의 도형을 지우고(`RemoveAllDebugShapes`) 플레이어별 파트 항목을 지운다(`Session.Leave`). 구독자가 이벤트를 멈춰도 한다.
 - `Second`: 구독자가 끝나면 바뀐 상태를 저장 주기에 맞을 때만 쓴다(`FlushIfDue`).
 - `Autosave`: 구독자가 끝나면 바뀐 상태를 쓴다(`Flush`).
 - `Close`: 구독자가 끝나면 저장 파트를 쓰고 쓰기 고루틴을 멈추고(`Session.Close`), 세션 등록을 지운다(`Unregister`). 루트의 `session.Close` 는 그 뒤에 `Game` 의 세션 표에서도 지운다.
 - `NewDay`: 구독자가 끝나면 모든 플레이어에게 `game.newDay` 를 알린다.
 
-`Emit` 은 구독자를 우선순위가 작은 것부터 차례로 부른다.
+`Emit` 은 구독자를 티어 순서대로 부른다.
 
-### On 과 Handle
+### 티어
 
-- `On(prio, name, f)` 로 단 구독자는 이벤트를 멈추지 못한다.
-- `Handle(prio, name, f)` 로 단 구독자가 true 를 돌려주면 뒤의 구독자는 돌지 않는다. `Emit` 도 true 를 돌려주지만 핸들러와 수명 호출은 그 값을 쓰지 않는다.
+구독자는 티어(`core.Priority`)에 선다. 티어는 여섯이고 표의 순서대로 돈다. 티어가 정하는 것은 역할뿐이다. 구독자는 다른 구독자의 앞이나 뒤가 아니라 자기가 하는 일에 맞는 티어를 고른다.
 
-멈춤과 취소는 다르다. 멈춤은 훅의 일이고 뒤의 구독자만 건너뛴다. 취소는 Dragonfly 의 일이고 플레이어가 한 행동이 일어나지 않게 한다. `Actor.Cancel()`(`e.Cancel()`)이 취소하며, 취소해도 뒤의 구독자는 계속 돈다.
-구독자는 둘 중 하나만 하거나 둘 다 하거나 아무것도 안 할 수 있다. `Jump`, `Death`, `Respawn` 은 Dragonfly 가 취소할 수 없는 이벤트라 `Ctx` 가 nil 이고 `Cancel()` 은 아무 일도 하지 않는다.
+| 티어 | 상수 | 역할 |
+|---|---|---|
+| LOWEST | `core.Lowest` | 전처리 - 먼저 이벤트 자체를 가공하거나 차단해야 할 때 사용합니다. |
+| LOW | `core.Low` | 전처리 이후 처리되어도 될 이벤트 가공이나 차단에 사용합니다. |
+| NORMAL | `core.Normal` | 전처리 이후에 처리되어도 될 일반 우선순위에 사용합니다. |
+| HIGH | `core.High` | 후처리에 해당하진 않지만, 우선순위가 낮은 작업에 사용합니다. |
+| HIGHEST | `core.Highest` | 이벤트를 가공할 수 있는 마지막 후처리 작업에 사용합니다. |
+| MONITOR | `core.Monitor` | 이벤트를 가공하거나 취소하지 않는 결과 처리(기록, 업적 처리 등)에 사용합니다. |
+
+이벤트가 취소되어도 수신할지를 선택할 수 있다(전통적인 handleCancelled 옵션). 기본은 받지 않는 것이고, `Always` 로 단 구독자만 받는다. 여기서 취소된 이벤트는 앞의 `Handle` 구독자가 멈춘 이벤트를 말한다(다음 절).
+
+같은 훅의 같은 티어 안에서는 등록한 순서대로 돈다. 기능 목록(`features.go`)의 순서이고, 한 기능 안에서는 `subscribe()` 가 단 순서다. 이 순서는 실행이 매번 같게 할 뿐이다. 구독자는 같은 티어 안의 자리에 기대면 안 된다. 같은 티어의 두 구독자는 어느 쪽이 먼저 돌아도 결과가 같아야 한다. 순서가 필요하면 티어를 나누거나, 구독자의 조건에 그 사실을 적거나, 한 구독자로 합친다. `TestTierOrder` 가 이 규칙을 지킨다(아래 "핀").
+
+MONITOR 구독자는 이벤트를 가공하지도 취소하지도 않는다. MONITOR 에 `Handle` 을 달면 패닉이다. MONITOR 구독자의 함수가 `Cancel()` 을 부르거나 이벤트의 포인터에 쓰면 `TestMonitorSubscribersDoNotShape` 가 실패한다. Bukkit 의 MONITOR 와 역할은 같고 기본값이 다르다. 여기서는 MONITOR 구독자도 멈춘 이벤트를 받지 않는다. 받으려면 `Always` 로 단다.
+
+수명 훅(`Join`, `Leave`, `Second`, `Fast`, `Autosave`, `Close` 따위)에는 가공하거나 취소할 것이 없다. 거기서는 티어를 일의 차례로 읽는다.
+
+- LOWEST, LOW: 뒤의 일이 바꾸기 전에 상태를 읽어 두는 일(`Second` 의 `progress.checkHeld`).
+- NORMAL: 기능이 그때 하는 일.
+- HIGH: 다른 기능의 일이 끝난 뒤에 해도 되는 일.
+- HIGHEST: 마지막 정리.
+- MONITOR: 결과를 보여 주거나 세는 일(사이드바, 패널, 업적).
+
+틱 훅(`Second`, `Fast`)에서 같은 티어의 구독자는 서로의 이번 틱 결과를 읽지 않는다. 읽어야 하면 티어를 나눈다.
+
+### On, Handle, Always
+
+- `On(티어, name, f)` 로 단 구독자는 이벤트를 멈추지 못하고, 멈춘 이벤트를 받지 않는다.
+- `Handle(티어, name, f)` 로 단 구독자가 true 를 돌려주면 이벤트가 멈춘다. 뒤의 구독자는 돌지 않고(`Always` 로 단 구독자는 돈다) `Emit` 이 true 를 돌려준다. 핸들러와 수명 호출은 그 값을 쓰지 않는다. MONITOR 에는 달 수 없다.
+- `Always(티어, name, f)` 로 단 구독자는 `On` 과 같되 앞에서 멈춘 이벤트도 받는다. 함수는 `func(e E, cancelled bool)` 이고, 멈춘 이벤트면 `cancelled` 가 true 다. 스스로 멈추지는 못한다. 어느 훅, 어느 티어에나 달 수 있고, `Handle` 구독자가 없는 훅에서는 `cancelled` 가 늘 false 다. 지금은 `Move` 의 `look.update` 가 쓴다. 섬 확장 모드가 이동을 멈춰도 패널을 갱신한다.
+
+멈춤과 취소는 다르다. 멈춤은 훅의 일이고 뒤의 구독자를 건너뛴다. 취소는 Dragonfly 의 일이고 플레이어가 한 행동이 일어나지 않게 한다. `Actor.Cancel()`(`e.Cancel()`)이 취소하며, 취소만 하면 뒤의 구독자는 계속 돈다. `e.Cancelled()` 가 취소됐는지 알려 준다.
+구독자는 둘 중 하나만 하거나 둘 다 하거나 아무것도 안 할 수 있다. `Jump`, `Death`, `Respawn` 은 Dragonfly 가 취소할 수 없는 이벤트라 `Ctx` 가 nil 이고 `Cancel()` 은 아무 일도 하지 않으며 `Cancelled()` 는 false 다.
+
+handleCancelled 옵션이 멈춤을 기준으로 삼는 까닭은 구독자들이 실제로 그렇게 쓰기 때문이다. `Handle` 구독자 31개 가운데 29개는 멈추면서 `Cancel()` 도 한다. 2개(`Sneak` 의 `expand.show`, `elevator.down`)는 멈추기만 한다. 웅크리기를 취소하면 플레이어가 웅크리지 못하기 때문이다. `Cancel()` 만 하고 멈추지 않는 구독자는 넷(`storage.break`, `island.void`, `dimension.fallen`, `fairy.touch`)이고, 그 뒤의 구독자는 `On` 으로 달았어도 그대로 돈다. `Cancelled()` 를 보고 일을 건너뛰는 구독자는 없다.
 
 ### 이벤트의 값
 
@@ -157,13 +190,13 @@ Dragonfly 자체를 확장하는 방법은 [dragonfly.md](dragonfly.md) 에 있�
    }
 
    func subscribeJump() {
-       core.Jump.On(20, "elevator.up", func(e core.PlayerEvent) {
+       core.Jump.On(core.Normal, "elevator.up", func(e core.PlayerEvent) {
            Up(e.S, e.P, e.Tx)
        })
    }
 
    func subscribeSneak() {
-       core.Sneak.Handle(30, "elevator.down", func(e core.PlayerEvent) bool {
+       core.Sneak.Handle(core.Normal, "elevator.down", func(e core.PlayerEvent) bool {
            return Down(e.S, e.P, e.Tx)
        })
    }
@@ -298,38 +331,71 @@ Dragonfly 자체를 확장하는 방법은 [dragonfly.md](dragonfly.md) 에 있�
 11. 커스텀 아이템 항목을 고치는 함수는 서술자의 `ItemEntry` 에 둔다(아래 "클라이언트 항목 고치기"). 지금은 루트의 `itemsFeature`(`features.go`)만 쓴다. 클라이언트가 받는 항목이 바뀌므로 `content/skygear/wire/testdata/items.golden`(`TestWire`)이 달라진다.
 12. 루트의 `content/skygear/features.go` 의 `Features` 에 `<기능>.Feature` 를 한 줄 더하고 import 를 더한다. 설정, 아이템 항목 고치기, 창작 항목, 명령어는 목록 순서대로 모이고 `Setup` 도 그 순서대로 돈다.
 13. `content/skygear/layers_test.go` 에 기능을 알린다. `layers` 에서 칸을 정하고(자기보다 아래 칸에 든 패키지만 import 할 수 있다), 기능 칸이면 `featureLayer` 에도 이름을 더한다(`featureLayer` 가 `layers` 의 기능 칸과 다르면 `TestFeatureSiblings` 가 실패한다). 같은 칸의 기능을 import 하면 `siblings` 에 행을 더한다. 기능의 순서는 `TestFeatureNames` 의 `want` 목록에도 적혀 있으니 `Features` 에 더한 자리에 같이 더한다.
-14. 구독자를 달았으면 골든이 달라진다. `order.golden` 에는 새 줄(`<훅> <우선순위> <이름>`)이 생기고, 그 훅을 거치는 장면이 있으면 `handler-simple.golden`, `handler-blocks.golden`, `handler-use.golden`, `lifecycle.golden` 의 그 장면 줄에도 새 이름이 들어간다. 의도한 변경이므로 `SKYGEAR_GOLDEN=update go test ./content/skygear -run TestPin -count=1` 로 다시 기록하고 `git diff` 로 새 단계의 이름만 늘었는지 확인한다. 커밋 메시지에 어느 단계를 더했는지 적는다.
+14. 구독자를 달았으면 골든이 달라진다. `order.golden` 에는 새 줄(`<훅> <티어> <이름>`)이 생기고, 그 훅을 거치는 장면이 있으면 `handler-simple.golden`, `handler-blocks.golden`, `handler-use.golden`, `lifecycle.golden` 의 그 장면 줄에도 새 이름이 들어간다. 의도한 변경이므로 `SKYGEAR_GOLDEN=update go test ./content/skygear -run TestPin -count=1` 로 다시 기록하고 `git diff` 로 새 단계의 이름만 늘었는지 확인한다. 커밋 메시지에 어느 단계를 더했는지 적는다.
 15. `go test ./content/skygear -run 'TestLayers|TestFeature|TestCapability|TestLook|TestCreative|TestItemDecor|TestEvery|TestRoot|TestPin|TestHandlerMethodsOneWay|TestKind|TestMachine' -count=1` 로 확인한다. 위 순서를 빠뜨리면 이 테스트들이 `TestLayers`(`package <기능> is not in layers`), `TestFeatureNames`, `TestPinOrder`, `TestEverySubscriberHasItsFeature`, `TestPinSimple`, `TestCreativeListNamesNoFeature`, `TestFeatureCommands` 따위로 어긋난 곳을 알려 준다.
 
-### 우선순위 고르기
+### 티어 고르기
 
-우선순위는 한 훅 안에서 겹치면 안 되고, 이름도 한 훅 안에서 겹치면 안 된다(이름은 훅이 다르면 같아도 된다). 겹치면 `Install` 이 패닉한다.
-기존 단계는 10, 20, 30처럼 10씩 띄워 두었다. 둘 사이에 끼우려면 그 사이의 수를 쓴다(15 등). 현재 순서는 `order.golden` 에 훅별로 모여 있으니 먼저 거기서 이웃 단계를 확인한다.
-무엇보다 앞에서 도는지, 어느 단계가 멈추면 내 단계가 건너뛰어도 되는지를 본다(다음 절).
+이름은 한 훅 안에서 겹치면 안 된다(훅이 다르면 같아도 된다). 겹치면 `Install` 이 패닉한다. 티어는 겹쳐도 된다.
+다른 구독자의 자리를 보고 고르지 않는다. 내 구독자가 하는 일을 보고 고른다.
 
-### 순서가 중요한 곳
+1. 이벤트를 가공하지도 취소하지도 않고 결과를 세거나 보여 주기만 한다: MONITOR. 멈춘 이벤트도 봐야 하면 `Always` 로 단다.
+2. 플레이어를 붙잡은 모드처럼 무엇보다 먼저 막아야 한다: LOWEST. 다른 구독자가 읽을 값을 고치거나 그 뒤에 막아도 된다: LOW.
+3. 다른 구독자가 다 고친 뒤의 값을 보고 마지막으로 가공하거나 취소한다: HIGHEST.
+4. 다른 구독자가 이벤트를 쓰고 남았을 때만 하는 일, 다른 기능이 일을 마친 뒤에 하는 일: HIGH.
+5. 그 밖의 일: NORMAL.
 
-지금 순서에서 알아 둘 사실이다.
+같은 티어에 이미 있는 구독자와 겹치는지 본다. 같은 클릭을 둘 다 가져갈 수 있으면 누가 먼저 돌아도 결과가 같게 조건을 적는다(든 아이템, 블록 종류, 웅크림, `island.CanBuild`). 조건으로 가를 수 없으면 티어를 나눈다. 구독자를 달고 `go test ./content/skygear -run TestTierOrder -count=1` 을 돌린다.
 
-- `StartBreak`, `BlockBreak`, `BlockPlace` 에서는 `expand.guard`(10)와 `island.guard`(20)가 맨 앞이다. 월드를 바꾸는 단계는 모두 그 뒤에 선다. 가드는 `Handle` 로 멈추면서 `Cancel()` 도 한다.
-- `UseOnBlock` 에서는 `dimension.hunting`(10), `screens.menuItem`(20), `dimension.stone`(30)이 두 가드(`expand.guard` 40, `island.guard` 50)보다 앞이고, 블록을 쓰는 단계(`copier.use` 70부터)는 가드 뒤다. `fairy.time`(140) 다음에 `farm.crop`(150)이 돌고, 옆 칸 가드(`expand.guardSide` 160, `island.guardSide` 170)는 그 뒤다.
-- `UseOnBlock` 에서는 사냥 검사(`dimension.hunting`)가 메뉴 아이템(`screens.menuItem`)보다 앞이고, `Use` 에서는 메뉴 아이템(20)이 사냥 검사(30)보다 앞이다. `Use` 의 `autofill.use`(10)는 메뉴 아이템보다 앞이다.
-- `Second` 에서 `progress.checkHeld`(20)는 `dimension.second`(60)보다 앞이다. 앞의 것이 플레이어가 든 아이템을 읽어 파트에 두고, 뒤의 것이 `RetireItems` 로 아이템을 정리한다. `progress.collection`(120)이 그 파트를 읽는다.
-- `Leave` 에서 `dimension.leave`(10)와 `expand.stop`(15)은 `core.parts`(20)보다 앞이다. `expand.stop` 은 `expanding` 항목에 둔 게임 모드를 되돌리므로 항목이 지워지기 전에 돈다. `core.parts` 는 `Players` 의 플레이어 항목을 지우므로, 그 뒤(`look.clear` 40 등)에 도는 구독자는 `Players` 에서 그 플레이어의 항목을 찾지 못한다. 플레이어별 데이터를 읽어야 하는 퇴장 단계는 20 앞에 둔다.
-- `Close` 에서는 구독자 뒤에 저장 파트 쓰기와 세션 등록 해제가 온다. 구독자는 세션이 아직 등록된 상태에서 돈다.
+### 순서를 지키는 것
+
+지금 순서가 필요한 곳과 그것을 지키는 방법이다. 같은 티어 안의 자리나 역할에 맞지 않는 티어로 지키는 곳은 "예외"의 넷뿐이다.
+
+티어가 지키는 것:
+
+- `StartBreak`, `BlockBreak`, `BlockPlace`, `UseOnBlock`: `expand.guard`(LOWEST)가 `island.guard`(LOW)보다 먼저다. 확장 모드에서 섬 밖을 누르면 확장 모드가 막고 지도를 다시 보여 준다. 월드를 바꾸는 단계는 모두 NORMAL 이후다. 가드는 `Handle` 로 멈추면서 `Cancel()` 도 한다.
+- `UseOnBlock`: 든 도구가 클릭을 가져가는 단계(`copier.use`, `wand.use`, LOW)가 블록에 하는 일(NORMAL, HIGH)보다 먼저다. 든 아이템을 쓰는 단계(`handwork.stick`, `fairy.time`, NORMAL)가 블록 자체의 동작(`farm.composter`, `farm.crop`, HIGH)보다 먼저다. 옆 칸 가드(`expand.guardSide`, `island.guardSide`, HIGHEST)는 아무도 클릭을 가져가지 않았을 때 마지막에 막는다.
+- `Sneak`: `expand.show`(LOWEST), `achievement.sneak`(LOW), `elevator.down`(NORMAL), `farm.crouchGrow`(HIGH) 순서다. 엘리베이터가 웅크리기를 쓰면 묘목은 자라지 않는다.
+- `Hurt`: `dimension.frozen`(LOWEST)이 먼저 막고, `dimension.fallen`(HIGHEST)이 남은 피해로 사냥꾼이 쓰러지는지 본다. `Move` 의 `island.void`(HIGHEST)도 마지막에 취소한다.
+- `ItemDamage`: `tinker.ironHammer`(LOW)가 피해를 0 으로 고친 뒤에 `autofill.broken`(HIGH)이 읽는다.
+- `BlockPlace`: `netstore.place`(HIGH)는 `machine.place`(NORMAL)가 블록 설치를 미뤄 둔 뒤에 망을 버린다.
+- `Leave`: 기능이 퇴장 때 하는 일(`dimension.leave`, `expand.stop`, NORMAL)이 클라이언트에 남은 것을 지우는 정리(`look.clear`, `screens.board`, `progress.recipes`, HIGHEST)보다 먼저다. 확장 모드가 끝나면 사이드바를 다시 그리고, 사냥이 끝나면 레시피를 다시 보낼 수 있다.
+- `Second`: `progress.checkHeld`(LOW)가 플레이어가 든 아이템을 읽어 파트에 둔 뒤에 `dimension.second`(NORMAL)가 `RetireItems` 로 아이템을 정리한다. `progress.collection`(MONITOR)이 그 파트를 읽는다.
+
+구독자의 조건이 지키는 것:
+
+- 사냥 중인 플레이어가 블록을 누르면 무엇을 들었든 `dimension.hunting` 이 막는다. `screens.menuItem`(`UseOnBlock`)과 `dimension.stone` 은 사냥 중이면 클릭을 가져가지 않는다. 공중에서는 메뉴 아이템이 사냥에서 나가는 길이라 `dimension.hunting`(`Use`)이 메뉴 아이템을 든 클릭을 막지 않는다.
+- 메뉴 아이템과 이차원석은 어디서나 자기 화면을 연다. `expand.guard`(`UseOnBlock`)는 그런 아이템(`sgitem.OpensScreen`)을 든 클릭을 막지 않는다.
+- `copier.use` 와 `wand.use` 는 섬이 짓기를 허락하는 곳(`island.CanBuild`)에서만 클릭을 가져간다. 섬 밖에서는 `island.guard` 가 막는다.
+
+커널이 지키는 것:
+
+- `Leave`: 플레이어 클라이언트의 도형 지우기와 `Players` 항목 지우기는 구독자가 아니다. `Lifecycle.Leave` 가 모든 구독자 뒤에 한다. 퇴장 구독자는 어느 티어에 서든 플레이어별 데이터를 읽을 수 있다.
+- `Second`, `Autosave`, `Close`, `NewDay` 의 꼬리 일도 구독자 뒤다. `Close` 의 구독자는 세션이 아직 등록된 상태에서 돈다.
+- `Move`: 이벤트의 `From` 은 이벤트를 만들 때 플레이어가 서 있던 곳이다. `island.void` 가 플레이어를 옮긴 뒤에 돌아도 `achievement.walk` 는 같은 거리를 센다.
+- 커널의 구독자는 `Join` 의 `core.shapes` 하나다(NORMAL). `core` 가 목록의 처음이라 그 티어에서 먼저 돌지만, 다른 구독자와 같은 규칙을 따른다.
+
+### 예외
+
+여섯 티어로 풀리지 않아 같은 티어 안의 자리(기능 목록 순서)나 역할에 맞지 않는 티어로 지키는 곳이다. 자리로 지키는 쌍은 루트의 `orderKept` 에 있고 `TestTierOrder` 가 그 쌍만 순서를 지킨 채 섞는다. 목록은 늘리지 않는다.
+
+- `UseOnBlock` 의 `storage.sneakUse`, `conduit.plate` 다음 `handwork.stick`(모두 NORMAL): `handwork.stick` 은 흙·잔디가 아닌 블록에 막대기를 쓴 횟수(`stick_other`)도 센다. 서랍 메뉴나 도관 판이 클릭을 가져가면 세지 않는다.
+- `UseOnBlock` 의 `conduit.plate` 다음 `fairy.time`(둘 다 NORMAL): 기계에 붙은 도관 판을 요정의 모래시계로 누르면 판 설정이 열리고 모래시계는 쓰이지 않는다.
+- `Sneak` 의 `achievement.sneak`(LOW): 세기만 하는 구독자라 역할은 MONITOR 다. 엘리베이터를 탄 웅크리기는 세고 섬 확장 모드의 웅크리기는 세지 않으려고 `expand.show` 와 `elevator.down` 사이에 둔다.
+- `Join` 의 `dimension.joined`(HIGH): 서버가 멈출 때 사냥 중이던 플레이어의 소지품을 되돌리는 일이라 역할로는 다른 입장 단계보다 먼저(LOW)다. 지금 순서를 지키려고 뒤에 둔다. 앞의 입장 단계가 그 플레이어의 인벤토리에 넣거나 고친 것(`fairy.backfillDust` 의 가루, `screens.menuItem` 이 고친 메뉴 아이템 이름)은 사냥 장비와 함께 사라진다.
 
 ## 기능의 데이터
 
 기능은 `Session` 에 필드를 더하지 않고 `core` 의 파트를 패키지 변수로 둔다.
 
 - `core.NewPart[T](mk)`: 세션마다 하나, 처음 `Of(s)` 를 부를 때 만든다. 저장하지 않는다. 예: `progress` 의 `held`.
-- `core.NewPlayers[T]()`: 세션 안에서 플레이어마다 하나. `Of(s)` 는 `map[*world.EntityHandle]T` 를 돌려준다. 플레이어가 나갈 때 `Leave` 의 `core.parts` 단계(`Session.Leave`)가 항목을 지운다. 예: `tinker` 의 `keptFood`.
+- `core.NewPlayers[T]()`: 세션 안에서 플레이어마다 하나. `Of(s)` 는 `map[*world.EntityHandle]T` 를 돌려준다. 플레이어가 나갈 때 `Lifecycle.Leave` 가 구독자가 모두 돈 뒤에 항목을 지운다(`Session.Leave`). 예: `tinker` 의 `keptFood`.
 - `core.NewSaved[T](mk)`: 저장하는 데이터. 모든 `Saved` 파트는 세이브 상태 문서(`skygear.state`) 하나의 JSON 필드이고, 필드 이름은 파트끼리 겹치지 않는다.
 
 ```go
 var keptFood = core.NewPlayers[int]()
 
-core.Death.On(30, "tinker.keepFood", func(e core.PlayerEvent) {
+core.Death.On(core.Normal, "tinker.keepFood", func(e core.PlayerEvent) {
     keptFood.Of(e.S)[e.P.H()] = e.P.Food()
 })
 ```
@@ -425,8 +491,14 @@ func init() { coretest.Setup(farm.Feature) }
 | 테스트 지원 패키지(`core/coretest`, `machine/machinetest`)는 테스트 파일만 import 한다 | `TestSupportPackagesAreTestOnly` |
 | 패키지의 테스트는 루트를 import 하지 않는다(`wire` 는 예외). 내용 목록 아래 칸의 테스트는 `catalog`, `codex`, `screens` 를 import 하지 않는다. `core` 밖의 테스트는 `core.Install` 이나 기능의 `Setup` 을 직접 부르지 않고 `coretest.Setup` 을 쓴다 | `TestPackageTestsStayBelow` |
 | 플레이어 핸들러의 모든 메서드가 `core.PlayerHandler` 에 있고 훅마다 구독자가 있으며, 루트가 같은 이름의 메서드를 두지 않는다 | `TestHandlerMethodsOneWay` |
-| 핫 경로는 할당하지 않는다. 이벤트마다 `AllocsPerRun` 으로 0 을 확인한다 | `core.TestEmitAllocatesNothing`, `core.TestEventsEmitAllocateNothing` |
-| 구독자는 `Install` 동안에만 단다. 첫 `Emit` 뒤의 등록, 같은 훅 안의 이름·우선순위 겹침은 패닉이다 | `core.TestRegisterAfterEmitPanics`, `core.TestSamePriorityPanics`, `core.TestSameNamePanics` |
+| 핫 경로는 할당하지 않는다. 이벤트마다 `AllocsPerRun` 으로 0 을 확인한다. 멈춘 뒤 `Always` 구독자를 도는 길도 같다 | `core.TestEmitAllocatesNothing`, `core.TestEmitAllocatesNothingAfterCancel`, `core.TestEventsEmitAllocateNothing` |
+| 구독자는 `Install` 동안에만 단다. 첫 `Emit` 뒤의 등록, 같은 훅 안의 이름 겹침, 없는 티어는 패닉이다 | `core.TestRegisterAfterEmitPanics`, `core.TestSameNamePanics`, `core.TestNotATierPanics` |
+| 티어는 상수의 순서대로 돌고, 같은 티어 안에서는 등록한 순서대로 돈다 | `core.TestRunsInTierOrder`, `core.TestSameTierRunsInRegistrationOrder` |
+| 구독자는 같은 티어 안의 자리에 기대지 않는다. 티어 안의 순서를 뒤집고 섞어도 모든 테스트가 통과하고 장면의 결과와 업적 카운터가 같다 | `TestTierOrder` |
+| MONITOR 구독자는 멈추지도 취소하지도 가공하지도 않는다 | `core.TestHandleAtMonitorPanics`, `TestMonitorSubscribersDoNotShape` |
+| `Always` 구독자는 멈춘 이벤트도 받고 `cancelled` 로 구별한다. `On` 구독자는 받지 않는다. Dragonfly 의 취소만으로는 아무도 건너뛰지 않는다 | `core.TestAlways`, `core.TestAlwaysAfterCancelRunsOnlyAlways`, `core.TestCancelledTellsTheContext` |
+| `Leave` 의 구독자가 모두 돈 뒤에, 멈췄어도, 플레이어별 파트 항목을 지운다 | `core.TestLeaveDropsThePlayersEntriesLast` |
+| 구독자의 조건이 지키는 순서: 사냥꾼의 이차원석, 섬 밖의 복사기와 지팡이, 공허로 떨어진 걸음 | `TestHunterStoneOpensNothing`, `TestToolsLeaveTheClickOutsideTheIsland`, `TestWalkCountsTheMoveIntoTheVoid` |
 
 핫 경로(이동, 매초, 빠른 틱)를 건드리면 벤치마크로 재 본다. 이벤트 하나의 비용은 `core` 의 `BenchmarkEmit`, `BenchmarkEmitMove` 와 루트의 `BenchmarkHandleMove`, `BenchmarkSecond`, `BenchmarkUseOnBlock`, `BenchmarkUse` 가 잰다. 패널 하나의 비용은 루트의 `BenchmarkLookMachine`(시선 추적과 패널 보내기), `BenchmarkLookInfoMachine`, `BenchmarkLookInfoStone`(패널 만들기)이 잰다. 다른 기능이 동작을 등록한 기계의 틱 한 번은 `BenchmarkTickHarvester`, `BenchmarkTickDrawerController` 가 잰다.
 
@@ -443,7 +515,7 @@ go test -run xxx -bench Emit -benchmem -count 5 ./content/skygear/core
 
 | 파일 | 담는 것 | 테스트 |
 |---|---|---|
-| `content/skygear/testdata/pin/order.golden` | 모든 훅의 구독자를 도는 순서대로 `<훅> <우선순위> <이름>` | `TestPinOrder` |
+| `content/skygear/testdata/pin/order.golden` | 모든 훅의 구독자를 도는 순서대로 `<훅> <티어> <이름>`. `Always` 로 단 구독자는 끝에 ` always` 가 붙는다 | `TestPinOrder` |
 | `content/skygear/testdata/pin/handler-simple.golden`, `handler-blocks.golden`, `handler-use.golden` | 장면마다 이벤트가 거친 구독자 이름과 결과(취소 여부, 효과) | `TestPinSimple`, `TestPinBlocks`, `TestPinUse` |
 | `content/skygear/testdata/pin/lifecycle.golden` | 입장·퇴장·매초·빠른 틱·새 날·자동 저장·닫기·시작의 구독자 이름과 결과 | `TestPinLifecycle` |
 | `content/skygear/testdata/pin/settings.golden` | 설정이 등록된 순서 | `TestPinSettings` |
@@ -462,7 +534,22 @@ go test ./content/skygear -run 'TestOldSaveLoads' -count=1   # 옛 세이브 읽
 ```
 
 골든이 달라지면 테스트가 어느 줄(장면)이 어떻게 달라졌는지 `want` 와 `got` 로 보여 준다. 디스패치 순서나 클라이언트 데이터가 바뀌면 골든 차이로 나타난다.
-골든은 동작을 바꾸려는 변경에서만 다시 기록한다.
+
+장면 골든의 한 줄은 `<장면>: <거친 구독자 이름> | <결과>` 다. `|` 앞은 등록한 순서로 돌았을 때의 자취이고 뒤가 결과다.
+`TestTierOrder` 는 루트의 테스트 바이너리를 여섯 번 다시 돌린다. 한 번은 등록한 순서 그대로, 다섯 번은 모든 훅의 구독자를 티어 안에서 뒤집거나 섞어서다(`SKYGEAR_HOOK_ORDER=reverse`, `shuffle:1` 부터 `shuffle:4`). 섞은 실행에서 확인하는 것은 셋이다.
+
+- 루트의 모든 테스트가 통과한다. 장면 골든은 `|` 뒤의 결과만 견주고, `order.golden` 은 한 훅의 한 티어에 든 줄을 집합으로 견준다.
+- 장면 234개의 결과가 골든과 글자 하나까지 같다.
+- 장면마다 플레이어의 업적 카운터가 늘어난 양이 등록한 순서로 돈 실행과 같다. 카운터는 골든에 없어서 따로 견준다.
+
+플레이어가 받는 팁·글·소리와 어느 장면도 읽지 않는 상태는 이 테스트가 보지 못한다. "예외"의 쌍(`orderKept`)은 섞어도 순서를 지킨다.
+기능 패키지의 테스트도 같은 변수로 섞어서 돌릴 수 있다. `coretest.Session` 이 처음 불릴 때 섞는다.
+
+```sh
+go test ./content/skygear -run TestTierOrder -count=1 -v
+SKYGEAR_HOOK_ORDER=reverse go test ./content/skygear/... -count=1
+```
+골든은 동작을 바꾸려는 변경에서만 다시 기록한다. 같은 티어에 구독자를 더하면 그 훅을 거치는 장면의 자취(`|` 앞)가 달라지므로 그때도 다시 기록하고, `|` 뒤가 그대로인지 `git diff` 로 본다.
 
 ```sh
 SKYGEAR_GOLDEN=update go test ./content/skygear -run 'TestPin' -count=1
