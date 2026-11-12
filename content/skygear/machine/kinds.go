@@ -43,6 +43,9 @@ type Behaviour struct {
 	// Info are the lines the kind adds to the info icon of its window, after
 	// the lines that explain it (State.InfoItem).
 	Info func(st *State) []wintext.Text
+	// Broken is told when a machine of the kind was broken and is gone, by a
+	// player or by an explosion, after the machine took itself down (Break).
+	Broken func(s *core.Session, tx *world.Tx, pos cube.Pos)
 }
 
 // NoLines is the Lines of a kind whose panel has no lines.

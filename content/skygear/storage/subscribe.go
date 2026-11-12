@@ -24,8 +24,10 @@ func subscribeDisplays() {
 // Hitting a drawer's front takes items out and never mines it: the break
 // that ends such a hit is refused before any step works on the block (Low),
 // where the island allows building (elsewhere the island's guard refuses it).
-// A drawer that does break loses its display. A set machine breaking or
-// placed invalidates the networks; a placed drawer is set up.
+// A drawer that does break loses its display and a broken set machine
+// invalidates the networks through the block itself (Drawer.BreakInfo, the
+// set kinds' Broken). A placed set machine invalidates the networks; a
+// placed drawer is set up.
 func subscribeBlocks() {
 	core.BlockBreak.On(core.Low, "storage.front", func(e core.BlockBreakEvent) {
 		if _, ok := e.Block.(Drawer); !ok {
@@ -33,16 +35,6 @@ func subscribeBlocks() {
 		}
 		if lp, ok := LastPunch.Of(e.S)[e.P.H()]; ok && lp.Pos == e.Pos && lp.Front && island.CanBuild(e.S, e.Pos) {
 			e.Cancel()
-		}
-	})
-	core.BlockBreak.On(core.Normal, "storage.break", func(e core.BlockBreakEvent) {
-		switch b := e.Block.(type) {
-		case Drawer:
-			RemoveDisplay(e.S, e.Tx, e.Pos)
-		case machine.Machine:
-			if IsSetMachine(b.Kind) {
-				InvalidateNetworks(e.S)
-			}
 		}
 	})
 	core.BlockPlace.On(core.Normal, "storage.place", func(e core.BlockPlaceEvent) {

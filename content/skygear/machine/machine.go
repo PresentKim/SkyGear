@@ -1898,12 +1898,16 @@ func Place(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, b Mach
 	})
 }
 
-// Break takes down a machine that was broken: the monitor forgets it and its
-// windows close. The machine's BreakInfo calls it when the block is gone.
+// Break takes down a machine that was broken: the monitor forgets it, its
+// windows close and the feature that owns its kind is told (Behaviour.Broken).
+// The machine's BreakInfo calls it when the block is gone.
 func Break(s *core.Session, tx *world.Tx, pos cube.Pos, m Machine) {
 	delete(FactoryOf(s).machines, pos)
 	if m.State != nil {
 		m.State.storage.CloseAll()
+	}
+	if broken := m.Def().hooks.Broken; broken != nil {
+		broken(s, tx, pos)
 	}
 }
 

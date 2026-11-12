@@ -118,6 +118,13 @@ func (d Drawer) BreakInfo() block.BreakInfo {
 		Harvestable: func(item.Tool) bool { return true },
 		Effective:   blockmodel.AxeEffective,
 		Drops:       func(item.Tool, []item.Enchantment) []item.Stack { return []item.Stack{d.ToItem()} },
+		// A drawer that was broken, by a player or by an explosion, loses
+		// its display.
+		BreakHandler: func(pos cube.Pos, tx *world.Tx, _ item.User) {
+			if s, ok := core.Of(tx); ok {
+				RemoveDisplay(s, tx, pos)
+			}
+		},
 	}
 }
 
