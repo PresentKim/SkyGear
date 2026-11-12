@@ -7,7 +7,7 @@ import (
 
 // subscribe registers the achievement counters on the hooks they count. A
 // counter records what happened and changes nothing: it is a Monitor
-// subscriber, except the sneak counter (subscribeMoves).
+// subscriber.
 func subscribe() {
 	subscribeSimple()
 	subscribeMoves()
@@ -51,18 +51,14 @@ func subscribeSimple() {
 
 // The achievement counters of the walk, sneak, drop and hurt events. The walk
 // counts from where the player stood when the event was built (e.From), so a
-// step that moved the player meanwhile does not change it.
-//
-// The sneak counter is in the Low tier, not in Monitor: a sneak counts when
-// the elevator then rides (elevator.down, Normal, cancels the event for the
-// later tiers) and does not count in island expansion mode (expand.show,
-// Lowest). No tier after Normal sees the first and no option tells the two
-// apart, so the counter stands between them.
+// step that moved the player meanwhile does not change it. Every sneak
+// counts, whatever else it did (an elevator ride, the screen of island
+// expansion mode).
 func subscribeMoves() {
 	core.Move.On(core.Monitor, "achievement.walk", func(e core.MoveEvent) {
 		CountWalk(e.S, e.P, e.From, e.Pos)
 	})
-	core.Sneak.On(core.Low, "achievement.sneak", func(e core.PlayerEvent) {
+	core.Sneak.On(core.Monitor, "achievement.sneak", func(e core.PlayerEvent) {
 		Count(e.P, "sneak", 1)
 	})
 	core.ItemDrop.On(core.Monitor, "achievement.drop", func(e core.ItemEvent) {

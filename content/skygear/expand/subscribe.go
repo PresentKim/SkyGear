@@ -22,7 +22,9 @@ func subscribe() {
 }
 
 // A player in island expansion mode stays in place and sees the expansion
-// screen again when sneaking.
+// screen again when sneaking. The sneak stays a sneak for everyone else: it
+// is not cancelled, and the subscribers that have no business with a player
+// in a mode say so themselves (core.Takeover).
 func subscribeHold() {
 	core.Move.Handle(core.Lowest, "expand.hold", func(e core.MoveEvent) bool {
 		if _, expanding := Of(e.S, e.P); expanding {
@@ -31,12 +33,10 @@ func subscribeHold() {
 		}
 		return false
 	})
-	core.Sneak.Handle(core.Lowest, "expand.show", func(e core.PlayerEvent) bool {
+	core.Sneak.On(core.Normal, "expand.show", func(e core.PlayerEvent) {
 		if _, ok := Of(e.S, e.P); ok {
 			Show(e.S, e.P)
-			return true
 		}
-		return false
 	})
 }
 

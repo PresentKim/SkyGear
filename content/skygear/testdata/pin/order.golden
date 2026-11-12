@@ -52,10 +52,10 @@ Move LOWEST expand.hold
 Move HIGHEST island.void
 Move MONITOR achievement.walk
 Move MONITOR look.update always
-Sneak LOWEST expand.show
-Sneak LOW achievement.sneak
+Sneak NORMAL expand.show
 Sneak NORMAL elevator.down
 Sneak HIGH farm.crouchGrow
+Sneak MONITOR achievement.sneak
 Sprint MONITOR achievement.sprint
 Jump NORMAL elevator.up
 Jump MONITOR achievement.jump
