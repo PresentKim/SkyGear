@@ -63,6 +63,7 @@ func pinRun(t *testing.T, lines map[string]string, scenario string, outcome func
 		t.Fatalf("pin scenario %q recorded twice", scenario)
 	}
 	var k pinSink
+	counted := pinCounters()
 	core.Trace = k.add
 	func() {
 		defer func() { core.Trace = nil }()
@@ -73,6 +74,11 @@ func pinRun(t *testing.T, lines map[string]string, scenario string, outcome func
 		out = outcome()
 	}
 	lines[scenario] = strings.Join(k.take(), " ") + " | " + out
+	if pinDump != "" {
+		pinDumpMu.Lock()
+		pinDumpLines[scenario] = pinCountersSince(counted)
+		pinDumpMu.Unlock()
+	}
 }
 
 // pinGolden compares lines with the text file (one "scenario: names |
@@ -90,6 +96,7 @@ func pinGolden(t *testing.T, file string, lines map[string]string) {
 	for _, name := range keys {
 		fmt.Fprintf(&b, "%s: %s\n", name, lines[name])
 	}
+	pinWriteDump(t, lines)
 	if os.Getenv("SKYGEAR_GOLDEN") == "update" {
 		if err := os.MkdirAll(filepath.Dir(file), 0o755); err != nil {
 			t.Fatal(err)
@@ -120,6 +127,8 @@ func pinGolden(t *testing.T, file string, lines map[string]string) {
 		case !ok:
 			t.Errorf("golden %s: scenario %s is not recorded any more\nwant: %s", file, name, want[name])
 			failed = true
+		case hookOrder != "" && pinResults(got) == pinResults(want[name]):
+			// a reordered run: the trace may differ, the results may not
 		case got != want[name]:
 			t.Errorf("golden %s: scenario %s\nwant: %s\ngot:  %s", file, name, want[name], got)
 			failed = true

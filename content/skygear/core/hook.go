@@ -56,6 +56,7 @@ type Hook[E any] struct {
 
 type anyHook interface {
 	subscriptions() []Subscription
+	reorder(order func(hook string, subs []Subscription) []int)
 	reset()
 }
 

@@ -32,6 +32,9 @@ func TestPinOrder(t *testing.T) {
 		fmt.Fprintf(&b, "%s %d %s\n", s.Hook, s.Prio, s.Name)
 	}
 	got := b.String()
+	if hookOrder != "" {
+		return // a reordered run (TestTierOrder) lists another order on purpose
+	}
 	const file = "testdata/pin/order.golden"
 	if os.Getenv("SKYGEAR_GOLDEN") == "update" {
 		if err := os.WriteFile(file, []byte(got), 0o644); err != nil {

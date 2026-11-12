@@ -53,7 +53,11 @@ func init() { world.DefaultBlockRegistry.Finalize() }
 
 func loadAround(s *session) { coretest.LoadAround(s.Lifecycle) }
 
-func spawnPlayer(s *session) *world.EntityHandle { return coretest.SpawnPlayer(s.Lifecycle) }
+func spawnPlayer(s *session) *world.EntityHandle {
+	h := coretest.SpawnPlayer(s.Lifecycle)
+	pinNotePlayer(h)
+	return h
+}
 
 // withPlayer runs f with the player in a transaction. A panic in f fails
 // the test (Dragonfly would only log it).
