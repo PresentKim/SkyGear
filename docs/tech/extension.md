@@ -14,7 +14,7 @@ Dragonfly 자체를 확장하는 방법은 [dragonfly.md](dragonfly.md) 에 있�
 | Dragonfly 패치 | `third_party/dragonfly` | Dragonfly 의 동작 자체. 패치 규칙은 [dragonfly.md](dragonfly.md) |
 | `sghook` | `common/sghook` | 패킷 훅, 세션 내부 접근, 클라이언트에 보내는 아이템·블록 항목 고치기(`EditCustomItems`, `EditCustomBlocks`, `ApplyEntryEdits`). Dragonfly 내부는 여기서만 건드린다 |
 | `clientdef` | `common/clientdef` | 커스텀 아이템·블록이 클라이언트에 보내는 컴포넌트. 공개 레지스트리만 쓰고 게임을 모른다 |
-| `core` | `content/skygear/core` | 기능의 커널. `Session`과 그 파트(`Part`, `Players`, `Saved`), 훅(`Hook`)과 이벤트, 핸들러(`PlayerHandler`, `WorldHandler`), 수명 호출(`Lifecycle`), 기능 서술자(`Feature`)와 `Install`, 창작 목록 순서(`CreativeItem`, `CreativeItems`), 기능의 명령어(`Commands`, `PlayerSession`), 플레이어를 붙잡는 모드(`RegisterTakeover`, `Takeover`) |
+| `core` | `content/skygear/core` | 기능의 커널. `Session`과 그 파트(`Part`, `Players`, `Saved`), 훅(`Hook`, `CancelHook`)과 이벤트, 핸들러(`PlayerHandler`, `WorldHandler`), 수명 호출(`Lifecycle`), 기능 서술자(`Feature`)와 `Install`, 창작 목록 순서(`CreativeItem`, `CreativeItems`), 기능의 명령어(`Commands`, `PlayerSession`), 플레이어를 붙잡는 모드(`RegisterTakeover`, `Takeover`) |
 | 기능 패키지 | `content/skygear/<기능>` | 한 기능의 블록·아이템·화면·규칙과, 그 기능이 훅에 거는 구독자 |
 | 루트 | `content/skygear` | 기능 목록(`features.go`)과 플랫폼 접착제(`Game`, `session`), 운영자 도구 |
 
@@ -62,7 +62,7 @@ Dragonfly 자체를 확장하는 방법은 [dragonfly.md](dragonfly.md) 에 있�
 
 세션 타입은 `core.Lifecycle` 을 품고 있어 이 호출들이 `Lifecycle` 의 메서드로 간다. 메서드마다 이벤트를 만들어 훅의 `Emit` 을 한 번 부르고, 아래 꼬리 일을 한다.
 
-- `Leave`: 구독자가 끝나면 플레이어 클라이언트의 도형을 지우고(`RemoveAllDebugShapes`) 플레이어별 파트 항목을 지운다(`Session.Leave`). 구독자가 이벤트를 멈춰도 한다.
+- `Leave`: 구독자가 끝나면 플레이어 클라이언트의 도형을 지우고(`RemoveAllDebugShapes`) 플레이어별 파트 항목을 지운다(`Session.Leave`).
 - `Second`: 구독자가 끝나면 바뀐 상태를 저장 주기에 맞을 때만 쓴다(`FlushIfDue`).
 - `Autosave`: 구독자가 끝나면 바뀐 상태를 쓴다(`Flush`).
 - `Close`: 구독자가 끝나면 저장 파트를 쓰고 쓰기 고루틴을 멈추고(`Session.Close`), 세션 등록을 지운다(`Unregister`). 루트의 `session.Close` 는 그 뒤에 `Game` 의 세션 표에서도 지운다.
@@ -83,11 +83,9 @@ Dragonfly 자체를 확장하는 방법은 [dragonfly.md](dragonfly.md) 에 있�
 | HIGHEST | `core.Highest` | 이벤트를 가공할 수 있는 마지막 후처리 작업에 사용합니다. |
 | MONITOR | `core.Monitor` | 이벤트를 가공하거나 취소하지 않는 결과 처리(기록, 업적 처리 등)에 사용합니다. |
 
-이벤트가 취소되어도 수신할지를 선택할 수 있다(전통적인 handleCancelled 옵션). 기본은 받지 않는 것이고, `Always` 로 단 구독자만 받는다. 여기서 취소된 이벤트는 앞의 `Handle` 구독자가 멈춘 이벤트를 말한다(다음 절).
+같은 훅의 같은 티어에 선 구독자 사이에는 순서가 없다. 실제로는 등록한 순서(기능 목록 `features.go` 의 순서, 한 기능 안에서는 `subscribe()` 가 단 순서)로 돌지만, 그 순서는 실행이 매번 같게 할 뿐이고 거기에 기대는 코드는 쓰지 않는다. 같은 티어의 두 구독자는 어느 쪽이 먼저 돌아도 결과가 같아야 한다. 앞뒤가 필요하면 역할에 맞게 티어를 나누거나, 구독자의 조건에 그 사실을 적거나, 한 구독자로 합친다. 순서를 지켜 주는 예외 목록은 없다. `TestTierOrder` 가 이 규칙을 지킨다(아래 "핀").
 
-같은 훅의 같은 티어 안에서는 등록한 순서대로 돈다. 기능 목록(`features.go`)의 순서이고, 한 기능 안에서는 `subscribe()` 가 단 순서다. 이 순서는 실행이 매번 같게 할 뿐이다. 구독자는 같은 티어 안의 자리에 기대면 안 된다. 같은 티어의 두 구독자는 어느 쪽이 먼저 돌아도 결과가 같아야 한다. 순서가 필요하면 티어를 나누거나, 구독자의 조건에 그 사실을 적거나, 한 구독자로 합친다. `TestTierOrder` 가 이 규칙을 지킨다(아래 "핀").
-
-MONITOR 구독자는 이벤트를 가공하지도 취소하지도 않는다. MONITOR 에 `Handle` 을 달면 패닉이다. MONITOR 구독자의 함수가 `Cancel()` 을 부르거나 이벤트의 포인터에 쓰면 `TestMonitorSubscribersDoNotShape` 가 실패한다. Bukkit 의 MONITOR 와 역할은 같고 기본값이 다르다. 여기서는 MONITOR 구독자도 멈춘 이벤트를 받지 않는다. 받으려면 `Always` 로 단다.
+MONITOR 구독자는 이벤트를 가공하지도 취소하지도 않는다. MONITOR 구독자의 함수가 `Cancel()` 을 부르거나 이벤트의 포인터에 쓰면 `TestMonitorSubscribersDoNotShape` 가 실패한다. 함수가 부른 도우미 안에서 취소하면 장면을 도는 테스트에서 `Emit` 이 패닉한다(`core.Trace` 가 켜진 동안만 검사한다). MONITOR 구독자도 기본으로는 취소된 이벤트를 받지 않는다. 막힌 일은 일어나지 않은 일이라 세지 않는다. 취소된 이벤트도 봐야 하면 `core.HandleCancelled` 를 준다(다음 절).
 
 수명 훅(`Join`, `Leave`, `Second`, `Fast`, `Autosave`, `Close` 따위)에는 가공하거나 취소할 것이 없다. 거기서는 티어를 일의 차례로 읽는다.
 
@@ -99,16 +97,56 @@ MONITOR 구독자는 이벤트를 가공하지도 취소하지도 않는다. MON
 
 틱 훅(`Second`, `Fast`)에서 같은 티어의 구독자는 서로의 이번 틱 결과를 읽지 않는다. 읽어야 하면 티어를 나눈다.
 
-### On, Handle, Always
+### 구독자와 취소
 
-- `On(티어, name, f)` 로 단 구독자는 이벤트를 멈추지 못하고, 멈춘 이벤트를 받지 않는다.
-- `Handle(티어, name, f)` 로 단 구독자가 true 를 돌려주면 이벤트가 멈춘다. 뒤의 구독자는 돌지 않고(`Always` 로 단 구독자는 돈다) `Emit` 이 true 를 돌려준다. 핸들러와 수명 호출은 그 값을 쓰지 않는다. MONITOR 에는 달 수 없다.
-- `Always(티어, name, f)` 로 단 구독자는 `On` 과 같되 앞에서 멈춘 이벤트도 받는다. 함수는 `func(e E, cancelled bool)` 이고, 멈춘 이벤트면 `cancelled` 가 true 다. 스스로 멈추지는 못한다. 어느 훅, 어느 티어에나 달 수 있고, `Handle` 구독자가 없는 훅에서는 `cancelled` 가 늘 false 다. 지금은 `Move` 의 `look.update` 가 쓴다. 섬 확장 모드가 이동을 멈춰도 패널을 갱신한다.
+어느 구독자도 다른 구독자를 멈추지 못한다. 훅의 구독자는 티어 순서대로 모두 불린다. 구독자가 불리지 않는 경우는 하나뿐이다. 이벤트가 취소됐고, 그 구독자가 취소된 이벤트도 받겠다고 하지 않았을 때다.
 
-멈춤과 취소는 다르다. 멈춤은 훅의 일이고 뒤의 구독자를 건너뛴다. 취소는 Dragonfly 의 일이고 플레이어가 한 행동이 일어나지 않게 한다. `Actor.Cancel()`(`e.Cancel()`)이 취소하며, 취소만 하면 뒤의 구독자는 계속 돈다. `e.Cancelled()` 가 취소됐는지 알려 준다.
-구독자는 둘 중 하나만 하거나 둘 다 하거나 아무것도 안 할 수 있다. `Jump`, `Death`, `Respawn` 은 Dragonfly 가 취소할 수 없는 이벤트라 `Ctx` 가 nil 이고 `Cancel()` 은 아무 일도 하지 않으며 `Cancelled()` 는 false 다.
+- `On(티어, name, f)` 로 단 구독자는 취소된 이벤트를 받지 않는다. 이것이 기본이다.
+- `On(티어, name, f, core.HandleCancelled)` 로 단 구독자는 취소된 이벤트도 받는다(전통적인 handleCancelled 옵션). 함수 모양은 같고, 취소됐는지는 `e.Cancelled()` 로 읽는다. 지금은 `Move` 의 `look.update` 가 쓴다. 섬 확장 모드가 이동을 취소해도, 섬이 공허에서 플레이어를 되돌려도 패널을 갱신한다.
+- 취소는 이벤트로 한다. `e.Cancel()` 을 부르면 플레이어가 한 행동이 Dragonfly 에서 일어나지 않고, 뒤에 선 기본 구독자가 불리지 않는다. 취소된 이벤트는 Dragonfly 가 준 컨텍스트가 취소된 이벤트다. 그 밖의 뜻은 없고, 취소를 되돌릴 수도 없다.
+- `Emit` 은 값을 돌려주지 않는다. Dragonfly 는 자기가 준 컨텍스트를 읽는다.
 
-handleCancelled 옵션이 멈춤을 기준으로 삼는 까닭은 구독자들이 실제로 그렇게 쓰기 때문이다. `Handle` 구독자 31개 가운데 29개는 멈추면서 `Cancel()` 도 한다. 2개(`Sneak` 의 `expand.show`, `elevator.down`)는 멈추기만 한다. 웅크리기를 취소하면 플레이어가 웅크리지 못하기 때문이다. `Cancel()` 만 하고 멈추지 않는 구독자는 넷(`storage.break`, `island.void`, `dimension.fallen`, `fairy.touch`)이고, 그 뒤의 구독자는 `On` 으로 달았어도 그대로 돈다. `Cancelled()` 를 보고 일을 건너뛰는 구독자는 없다.
+취소할 수 있는 이벤트는 `Actor`(`S`, `P`, `Tx`, `Ctx`)를 품은 이벤트이고, 그 훅은 `core.CancelHook` 이다. `Jump`, `Death`, `Respawn` 과 세션·월드 훅의 이벤트는 취소할 수 없다. 이 이벤트에는 `Cancel()` 과 `Cancelled()` 가 없고(`Jump`·`Death` 의 `NoticeEvent` 와 `RespawnEvent` 는 `Who` 만 품는다), 훅이 `core.Hook` 이라 `On` 이 옵션을 받지 않는다. 취소할 수 없는 이벤트를 취소하는 코드와 그런 훅에 handleCancelled 를 다는 코드는 컴파일되지 않는다. 이런 훅에서는 모든 구독자가 언제나 불린다.
+
+구독자는 다음 둘 중 하나로 쓴다.
+
+- 어떤 상태에서만 처리하고 취소한다. 자기 조건(기능의 상태, 든 아이템, 블록, 플레이어가 든 모드)이 맞을 때만 일하고 `e.Cancel()` 을 부른다. 바닐라 동작이나 뒤의 기본 구독자가 일어나면 안 될 때 쓴다. 든 복사기가 클릭을 쓰면 블록이 열리면 안 되고(`copier.use`), 섬 밖에는 짓지 못한다(`island.guard`).
+- 기능은 처리하되 불필요하면 취소하지 않는다. 막을 것이 없으면 일만 하고 이벤트는 그대로 둔다. 다른 구독자도 계속 일한다. 엘리베이터는 웅크리면 내려가지만 웅크리기를 취소하지 않는다(`elevator.down`). 그래서 그 웅크리기도 세어지고 묘목도 자랄 기회를 얻는다.
+
+"앞에서 아무도 가져가지 않았으니 내가 한다"는 조건은 쓰지 않는다. 구독자는 자기 조건으로 정한다. 다른 모드가 플레이어를 붙잡고 있을 때 하지 않는 일은 `core.Takeover(s, p) == ""` 로 적는다(`elevator.down`, `farm.crouchGrow`).
+
+같은 티어에서 한 구독자가 취소하고 다른 기본 구독자가 같은 이벤트에 일할 수 있으면, 도는 순서에 따라 뒤 구독자가 불리기도 하고 불리지 않기도 한다. 그런 쌍은 조건이 겹치지 않게 적거나(든 아이템, 블록 종류, 웅크림, `island.CanBuild`) 역할에 맞게 다른 티어에 둔다.
+
+### 훅과 블록·아이템의 메서드
+
+클릭과 캐기는 훅으로만 오지 않는다. Dragonfly 는 핸들러(훅)를 먼저 부르고, 아무도 취소하지 않으면 눌린 블록에 묻고, 그다음 든 아이템에 묻는다.
+
+| 플레이어가 한 일 | 훅 다음에 Dragonfly 가 부르는 것 |
+|---|---|
+| 블록을 누른다 | 눌린 블록의 `Activate`(`block.Activatable`). 웅크리고 아이템을 들었으면 건너뛴다. 블록이 false 를 돌려주면 든 아이템의 `UseOnBlock`(`item.UsableOnBlock`), 그것도 없으면 든 블록을 놓는다 |
+| 공중을 누른다 | 든 아이템의 `Use`(`item.Usable`) |
+| 블록을 친다 | 블록의 `Punch`(`block.Punchable`). 캐기를 막지는 못한다 |
+| 블록을 다 캔다 | 블록을 지운 뒤 `BreakInfo().BreakHandler`. 폭발과 액체가 블록을 없앨 때도 부른다 |
+| 블록이 바뀐다 | 블록의 `BlockChanged`(`world.BlockChangeHook`). 누가 바꿨든 `SetBlock` 마다 부른다 |
+
+이 메서드로 할 수 있는 일은 구독자로 만들지 않는다. 블록이나 아이템이 이 저장소의 타입이고, 눌린 블록보다 먼저 클릭을 써야 할 까닭이 없으면 메서드에 둔다.
+
+- 기계는 자기를 누른 클릭을 `Machine.Activate` 에서 받는다. 창을 열고, 든 등급 키트(`sgitem.TierKit`)와 요정의 모래시계를 쓴다. 웅크린 플레이어의 모래시계는 `sgitem.FairyHourglass` 의 `UseOnBlock` 이 받는다.
+- 기계 아이템은 `Machine.UseOnBlock` 이 놓는다. 누른 면을 놓이는 블록에 실어 `machine.place` 에 넘기므로 자동 자원 채굴기와 저장망의 입력기·출력기가 누른 블록을 향한다. 도관 아이템과 `hopper.FlowHopper` 도 자기 `UseOnBlock` 으로 놓인다.
+- 서랍을 친 일은 `Drawer.Punch` 가, 도관 묶음이 없어질 때의 정리는 `Bundle.BlockChanged` 가 한다.
+- 공중에서 쓰는 아이템은 자기 `Use` 에서 일한다. 요정 판(`fairy.Board`)은 화면을 열고, 복사기는 비워지고, 건축 지팡이는 웅크리면 설정을 보이고, 철 망치는 웅크리면 대각선 광맥 캐기를 바꾸고, 이차원 텔레포트석은 이차원 창을 연다. 뒤의 넷은 타입이 `sgitem` 에 있어서 기능을 부를 수 없다. `sgitem/airuse.go` 가 아이템마다 함수 변수(`CopierUsed`, `WandUsed`, `HammerUsed`, `StoneUsed`)를 두고, 기능이 `Setup` 에서 채운다. 이 `Use` 는 언제나 false 를 돌려준다. true 를 돌려주면 Dragonfly 가 `Use` 전에 읽어 둔 묶음을 손에 다시 써서 `Use` 가 바꾼 손이 되돌아간다.
+- `item.Usable` 인 커스텀 아이템은 클라이언트 항목에 `minecraft:use_modifiers` 를 받는다(`clientdef.ItemEntry`). 클라이언트는 쓸 수 있다고 아는 아이템만 공중 클릭을 보낸다.
+
+구독자로 두는 경우는 넷이다.
+
+- 가드: 어느 블록을 무엇으로 누르든 플레이어가 있는 곳이나 든 모드를 보고 막는 일(`island.guard`, `expand.guard`, `dimension.hunting`).
+- 눌린 블록보다 먼저 클릭을 써야 하는 든 도구: 복사기와 건축 지팡이(LOW), 메뉴 아이템과 이차원 텔레포트석(LOWEST). Dragonfly 는 블록에 먼저 물으므로 아이템의 메서드로는 상자나 기계 위에서 블록이 먼저 열린다. 공중에는 먼저 물을 블록이 없어서 같은 아이템도 공중 클릭은 메서드로 받는다.
+- 메서드를 달 수 없는 Dragonfly 의 블록과 아이템: 막대기, 도끼, 뼛가루, 작물, 퇴비통. 눌린 블록이 그 기능의 블록이 아닌 경우도 같다. 도관 판은 도관 옆 블록의 면에 그려져 있어서, 판을 누르면 기계나 상자가 눌린다(`conduit.plate`).
+- 기록: 종류를 가리지 않고 세는 일(업적, 자동 채움).
+
+메서드는 구독자가 모두 돈 뒤에 불린다. 그래서 가드가 막은 클릭은 메서드에 닿지 않는다. 섬 끝줄에 놓인 기계의 바깥쪽 면은 옆 칸 가드(`island.guardSide`)가 막으므로 거기서는 기계 창이 열리지 않고 모래시계도 쓰이지 않는다. 사냥꾼의 공중 클릭은 `dimension.hunting` 이 취소하므로 사냥꾼이 든 복사기, 지팡이, 망치, 텔레포트석은 아무 일도 하지 않는다. 섬 확장 모드에는 공중 클릭을 막는 가드가 없다.
+
+장면 골든은 핸들러만 부르므로 메서드가 한 일을 보지 못한다. 메서드로 하는 일은 `Player.UseItemOnBlock`, `Player.BreakBlock` 처럼 Dragonfly 를 거쳐 누르고 캐는 테스트로 확인한다(`hourglass_test.go`, `machineface_test.go`, `airuse_test.go`).
 
 ### 이벤트의 값
 
@@ -122,47 +160,47 @@ handleCancelled 옵션이 멈춤을 기준으로 삼는 까닭은 구독자들�
 ## 훅 목록
 
 훅은 35개이고 `content/skygear/core/events.go` 에 선언되어 있다. 플레이어 훅 23개와 세션·월드 훅 12개다.
-"멈춤" 칸은 지금 그 훅에 `Handle` 구독자가 있는지를 나타낸다. 없는 훅에도 `Handle` 을 달 수 있다.
+"취소" 칸은 그 훅의 이벤트를 취소할 수 있는지를 나타낸다. "됨" 인 훅은 `core.CancelHook` 이고 나머지는 `core.Hook` 이다.
 
-| 훅 | 내보내는 때 | 이벤트 | 멈춤 |
+| 훅 | 내보내는 때 | 이벤트 | 취소 |
 |---|---|---|---|
-| `StartBreak` | 블록 캐기를 시작할 때 | `StartBreakEvent` | 있음 |
-| `BlockBreak` | 블록을 캘 때 | `BlockBreakEvent` | 있음 |
-| `BlockPlace` | 블록을 놓을 때 | `BlockPlaceEvent` | 있음 |
-| `UseOnBlock` | 블록에 아이템을 쓸 때 | `UseOnBlockEvent` | 있음 |
-| `UseOnEntity` | 엔티티에 아이템을 쓸 때 | `EntityEvent` | 있음 |
-| `AttackEntity` | 엔티티를 때릴 때 | `EntityEvent` | 있음 |
-| `Use` | 공중에서 아이템을 쓸 때 | `UseEvent` | 있음 |
-| `Move` | 움직일 때 | `MoveEvent` | 있음 |
-| `Sneak` | 웅크리기를 시작할 때 | `PlayerEvent` | 있음 |
-| `Sprint` | 달리기를 시작할 때 | `PlayerEvent` | 없음 |
-| `Jump` | 점프할 때 | `PlayerEvent` | 없음 |
-| `ItemDamage` | 아이템이 내구도를 잃을 때 | `ItemDamageEvent` | 없음 |
-| `ItemConsume` | 아이템을 먹거나 마실 때 | `ItemEvent` | 없음 |
-| `ItemPickup` | 아이템을 주울 때 | `ItemEvent` | 없음 |
-| `ItemDrop` | 아이템을 버릴 때 | `ItemEvent` | 있음 |
-| `Death` | 죽을 때 | `PlayerEvent` | 없음 |
-| `Respawn` | 되살아날 때 | `RespawnEvent` | 없음 |
-| `Hurt` | 피해를 입기 전 | `HurtEvent` | 있음 |
-| `PunchAir` | 허공을 칠 때 | `PlayerEvent` | 없음 |
-| `Chat` | 채팅을 보낼 때 | `PlayerEvent` | 없음 |
-| `BlockPick` | 블록을 집어 들 때 | `PlayerEvent` | 없음 |
-| `HeldSlot` | 들고 있는 칸을 바꿀 때 | `PlayerEvent` | 없음 |
-| `Command` | 명령어를 실행할 때 | `PlayerEvent` | 없음 |
-| `Load` | 세이브의 첫 트랜잭션 앞(`Tx` 는 nil) | `Tick` | 없음 |
-| `Start` | 세이브의 첫 트랜잭션 안 | `Tick` | 없음 |
-| `Join` | 플레이어가 입장한 뒤 | `Presence` | 없음 |
-| `Leave` | 플레이어가 나가기 전 | `Presence` | 없음 |
-| `NewDay` | 인스턴스 날짜가 바뀔 때 | `DayEvent` | 없음 |
-| `Second` | 약 1초마다 | `Tick` | 없음 |
-| `Fast` | 0.2초마다 | `Tick` | 없음 |
-| `Autosave` | 자동 저장 주기마다 | `Tick` | 없음 |
-| `Close` | 세이브를 닫을 때 | `Tick` | 없음 |
-| `ColumnLoad` | 청크 칼럼이 월드에 더해질 때 | `ColumnEvent` | 없음 |
-| `ColumnUnload` | 청크 칼럼이 월드에서 빠질 때 | `ColumnEvent` | 없음 |
-| `EntityDespawn` | 엔티티가 월드를 떠날 때 | `DespawnEvent` | 없음 |
+| `StartBreak` | 블록 캐기를 시작할 때 | `StartBreakEvent` | 됨 |
+| `BlockBreak` | 블록을 캘 때 | `BlockBreakEvent` | 됨 |
+| `BlockPlace` | 블록을 놓을 때 | `BlockPlaceEvent` | 됨 |
+| `UseOnBlock` | 블록에 아이템을 쓸 때 | `UseOnBlockEvent` | 됨 |
+| `UseOnEntity` | 엔티티에 아이템을 쓸 때 | `EntityEvent` | 됨 |
+| `AttackEntity` | 엔티티를 때릴 때 | `EntityEvent` | 됨 |
+| `Use` | 공중에서 아이템을 쓸 때 | `UseEvent` | 됨 |
+| `Move` | 움직일 때 | `MoveEvent` | 됨 |
+| `Sneak` | 웅크리기를 시작할 때 | `PlayerEvent` | 됨 |
+| `Sprint` | 달리기를 시작할 때 | `PlayerEvent` | 됨 |
+| `Jump` | 점프할 때 | `NoticeEvent` | 안 됨 |
+| `ItemDamage` | 아이템이 내구도를 잃을 때 | `ItemDamageEvent` | 됨 |
+| `ItemConsume` | 아이템을 먹거나 마실 때 | `ItemEvent` | 됨 |
+| `ItemPickup` | 아이템을 주울 때 | `ItemEvent` | 됨 |
+| `ItemDrop` | 아이템을 버릴 때 | `ItemEvent` | 됨 |
+| `Death` | 죽을 때 | `NoticeEvent` | 안 됨 |
+| `Respawn` | 되살아날 때 | `RespawnEvent` | 안 됨 |
+| `Hurt` | 피해를 입기 전 | `HurtEvent` | 됨 |
+| `PunchAir` | 허공을 칠 때 | `PlayerEvent` | 됨 |
+| `Chat` | 채팅을 보낼 때 | `PlayerEvent` | 됨 |
+| `BlockPick` | 블록을 집어 들 때 | `PlayerEvent` | 됨 |
+| `HeldSlot` | 들고 있는 칸을 바꿀 때 | `PlayerEvent` | 됨 |
+| `Command` | 명령어를 실행할 때 | `PlayerEvent` | 됨 |
+| `Load` | 세이브의 첫 트랜잭션 앞(`Tx` 는 nil) | `Tick` | 안 됨 |
+| `Start` | 세이브의 첫 트랜잭션 안 | `Tick` | 안 됨 |
+| `Join` | 플레이어가 입장한 뒤 | `Presence` | 안 됨 |
+| `Leave` | 플레이어가 나가기 전 | `Presence` | 안 됨 |
+| `NewDay` | 인스턴스 날짜가 바뀔 때 | `DayEvent` | 안 됨 |
+| `Second` | 약 1초마다 | `Tick` | 안 됨 |
+| `Fast` | 0.2초마다 | `Tick` | 안 됨 |
+| `Autosave` | 자동 저장 주기마다 | `Tick` | 안 됨 |
+| `Close` | 세이브를 닫을 때 | `Tick` | 안 됨 |
+| `ColumnLoad` | 청크 칼럼이 월드에 더해질 때 | `ColumnEvent` | 안 됨 |
+| `ColumnUnload` | 청크 칼럼이 월드에서 빠질 때 | `ColumnEvent` | 안 됨 |
+| `EntityDespawn` | 엔티티가 월드를 떠날 때 | `DespawnEvent` | 안 됨 |
 
-`PlayerEvent` 는 인자가 없는 이벤트이고, `Actor`(`S`, `P`, `Tx`, `Ctx`)만 든다. 위치와 방향, 대상 같은 인자는 이벤트 종류마다 `core/events.go` 에서 본다.
+`PlayerEvent` 는 인자가 없는 취소할 수 있는 이벤트이고 `Actor`(`S`, `P`, `Tx`, `Ctx`)만 든다. `NoticeEvent` 는 Dragonfly 가 알리기만 하는 이벤트(`Jump`, `Death`)이고 `Who`(`S`, `P`, `Tx`)만 든다. 위치와 방향, 대상 같은 인자는 이벤트 종류마다 `core/events.go` 에서 본다.
 이벤트에 없는 Dragonfly 인자(채팅 글, 사망의 `keepInv`, 공격의 힘과 치명타 따위)는 구독자가 받지 못한다.
 
 ## 새 기능 더하기
@@ -190,14 +228,16 @@ handleCancelled 옵션이 멈춤을 기준으로 삼는 까닭은 구독자들�
    }
 
    func subscribeJump() {
-       core.Jump.On(core.Normal, "elevator.up", func(e core.PlayerEvent) {
+       core.Jump.On(core.Normal, "elevator.up", func(e core.NoticeEvent) {
            Up(e.S, e.P, e.Tx)
        })
    }
 
    func subscribeSneak() {
-       core.Sneak.Handle(core.Normal, "elevator.down", func(e core.PlayerEvent) bool {
-           return Down(e.S, e.P, e.Tx)
+       core.Sneak.On(core.Normal, "elevator.down", func(e core.PlayerEvent) {
+           if core.Takeover(e.S, e.P) == "" {
+               Down(e.S, e.P, e.Tx)
+           }
        })
    }
    ```
@@ -337,53 +377,53 @@ handleCancelled 옵션이 멈춤을 기준으로 삼는 까닭은 구독자들�
 ### 티어 고르기
 
 이름은 한 훅 안에서 겹치면 안 된다(훅이 다르면 같아도 된다). 겹치면 `Install` 이 패닉한다. 티어는 겹쳐도 된다.
+먼저 구독자로 할 일인지 본다. 블록이나 아이템의 메서드로 할 수 있으면 구독자를 달지 않는다(위 "훅과 블록·아이템의 메서드").
 다른 구독자의 자리를 보고 고르지 않는다. 내 구독자가 하는 일을 보고 고른다.
 
-1. 이벤트를 가공하지도 취소하지도 않고 결과를 세거나 보여 주기만 한다: MONITOR. 멈춘 이벤트도 봐야 하면 `Always` 로 단다.
-2. 플레이어를 붙잡은 모드처럼 무엇보다 먼저 막아야 한다: LOWEST. 다른 구독자가 읽을 값을 고치거나 그 뒤에 막아도 된다: LOW.
+1. 이벤트를 가공하지도 취소하지도 않고 결과를 세거나 보여 주기만 한다: MONITOR. 취소된 이벤트도 봐야 하면 `core.HandleCancelled` 를 준다.
+2. 플레이어를 붙잡은 모드처럼 무엇보다 먼저 막아야 한다: LOWEST. 다른 구독자가 읽을 값을 고치거나 그 뒤에 막아도 된다: LOW. 든 도구가 블록보다 먼저 클릭을 쓰는 일도 LOW 다.
 3. 다른 구독자가 다 고친 뒤의 값을 보고 마지막으로 가공하거나 취소한다: HIGHEST.
-4. 다른 구독자가 이벤트를 쓰고 남았을 때만 하는 일, 다른 기능이 일을 마친 뒤에 하는 일: HIGH.
+4. 다른 구독자의 일이 끝난 뒤의 상태를 읽어서 하는 일: HIGH.
 5. 그 밖의 일: NORMAL.
 
-같은 티어에 이미 있는 구독자와 겹치는지 본다. 같은 클릭을 둘 다 가져갈 수 있으면 누가 먼저 돌아도 결과가 같게 조건을 적는다(든 아이템, 블록 종류, 웅크림, `island.CanBuild`). 조건으로 가를 수 없으면 티어를 나눈다. 구독자를 달고 `go test ./content/skygear -run TestTierOrder -count=1` 을 돌린다.
+그다음 취소할지 정한다. 내 일 때문에 바닐라 동작이나 뒤의 구독자가 일어나면 안 되면, 조건이 맞을 때만 일하고 취소한다. 그렇지 않으면 취소하지 않는다.
+
+마지막으로 같은 티어에 이미 있는 구독자와 겹치는지 본다. 한쪽이 취소하고 다른 쪽이 같은 이벤트에 일할 수 있으면 조건이 겹치지 않게 적는다(든 아이템, 블록 종류, 웅크림, `island.CanBuild`, `core.Takeover`). 조건으로 가를 수 없으면 티어를 나눈다. 구독자를 달고 `go test ./content/skygear -run TestTierOrder -count=1` 을 돌린다.
 
 ### 순서를 지키는 것
 
-지금 순서가 필요한 곳과 그것을 지키는 방법이다. 같은 티어 안의 자리나 역할에 맞지 않는 티어로 지키는 곳은 "예외"의 넷뿐이다.
+지금 순서가 필요한 곳과 그것을 지키는 방법이다. 같은 티어 안의 자리로 지키는 곳은 없고, 역할에 맞지 않는 티어에 둔 구독자도 없다.
 
 티어가 지키는 것:
 
-- `StartBreak`, `BlockBreak`, `BlockPlace`, `UseOnBlock`: `expand.guard`(LOWEST)가 `island.guard`(LOW)보다 먼저다. 확장 모드에서 섬 밖을 누르면 확장 모드가 막고 지도를 다시 보여 준다. 월드를 바꾸는 단계는 모두 NORMAL 이후다. 가드는 `Handle` 로 멈추면서 `Cancel()` 도 한다.
-- `UseOnBlock`: 든 도구가 클릭을 가져가는 단계(`copier.use`, `wand.use`, LOW)가 블록에 하는 일(NORMAL, HIGH)보다 먼저다. 든 아이템을 쓰는 단계(`handwork.stick`, `fairy.time`, NORMAL)가 블록 자체의 동작(`farm.composter`, `farm.crop`, HIGH)보다 먼저다. 옆 칸 가드(`expand.guardSide`, `island.guardSide`, HIGHEST)는 아무도 클릭을 가져가지 않았을 때 마지막에 막는다.
-- `Sneak`: `expand.show`(LOWEST), `achievement.sneak`(LOW), `elevator.down`(NORMAL), `farm.crouchGrow`(HIGH) 순서다. 엘리베이터가 웅크리기를 쓰면 묘목은 자라지 않는다.
-- `Hurt`: `dimension.frozen`(LOWEST)이 먼저 막고, `dimension.fallen`(HIGHEST)이 남은 피해로 사냥꾼이 쓰러지는지 본다. `Move` 의 `island.void`(HIGHEST)도 마지막에 취소한다.
+- `StartBreak`, `BlockBreak`, `BlockPlace`, `UseOnBlock`: `expand.guard`(LOWEST)가 `island.guard`(LOW)보다 먼저다. 확장 모드에서 섬 밖을 누르면 확장 모드가 막고 지도를 다시 보여 준다. 월드를 바꾸는 단계는 모두 NORMAL 이후다. 가드는 조건이 맞으면 취소하고, 취소된 이벤트는 뒤의 기본 구독자에게 가지 않는다.
+- `BlockBreak`: `storage.front`(LOW)가 서랍 앞면을 친 캐기를 취소한다. 취소된 캐기는 세지 않고 도구 경험치도 광맥 캐기도 없다.
+- `UseOnBlock`: 든 도구가 클릭을 쓰는 단계(`copier.use`, `wand.use`, LOW)가 블록에 하는 일(NORMAL, HIGH)보다 먼저다. 든 아이템을 쓰는 단계(`handwork.stick`, `fairy.time`, NORMAL)가 블록 자체의 동작(`farm.composter`, `farm.crop`, HIGH)보다 먼저다. 옆 칸 가드(`expand.guardSide`, `island.guardSide`, HIGHEST)는 아무도 취소하지 않았을 때 마지막에 막는다. `handwork.stickOther`(MONITOR)는 취소되지 않고 끝까지 간 클릭만 받는다.
+- `UseOnBlock` 의 구독자가 모두 돈 뒤에 Dragonfly 가 눌린 블록의 `Activate` 를, 그다음 든 아이템의 `UseOnBlock` 을 부른다. 서서 도관 판을 누르면 `conduit.plate` 가 취소하므로 판 뒤의 기계는 열리지 않고, 든 등급 키트와 요정의 모래시계도 쓰이지 않는다. 웅크리면 판이 클릭을 쓰지 않아 모래시계가 기계를 감는다.
+- `Sneak`: `expand.show`, `elevator.down`(NORMAL), `farm.crouchGrow`(HIGH), `achievement.sneak`(MONITOR) 순서다. 웅크리기는 아무도 취소하지 않으므로 모두 불린다. 엘리베이터가 플레이어를 옮긴 뒤에 `farm.crouchGrow` 가 플레이어 둘레의 묘목을 본다.
+- `Hurt`: `dimension.frozen`(LOWEST)이 강화를 고르는 사냥꾼의 피해를 취소한다. 사냥꾼을 죽이는 타격은 막지 않는다. 사냥꾼은 실제로 죽고 `achievement.hurt` 가 그 타격을 센다. `Move` 의 `island.void`(HIGHEST)는 마지막에 취소한다. 취소된 피해와 이동은 `achievement.hurt`, `achievement.walk`(MONITOR)가 세지 않는다.
+- `Death`, `Respawn`: 사냥꾼이 죽으면 `dimension.died`(NORMAL)가 판을 실패로 끝낸다. 맡겨 둔 소지품과 보상이 그때 돌아오고 `achievement.death`(MONITOR)가 죽음을 센다. 부활할 때 `dimension.respawned`(LOW)가 부활할 자리를 들어왔던 자리로 고친 뒤에 `tinker.restoreFood`(NORMAL)가 허기를 되돌린다. 인벤토리는 플랫폼의 핸들러가 모든 죽음에서 지킨다(`platform/instance` 의 `HandleDeath`).
 - `ItemDamage`: `tinker.ironHammer`(LOW)가 피해를 0 으로 고친 뒤에 `autofill.broken`(HIGH)이 읽는다.
 - `BlockPlace`: `netstore.place`(HIGH)는 `machine.place`(NORMAL)가 블록 설치를 미뤄 둔 뒤에 망을 버린다.
 - `Leave`: 기능이 퇴장 때 하는 일(`dimension.leave`, `expand.stop`, NORMAL)이 클라이언트에 남은 것을 지우는 정리(`look.clear`, `screens.board`, `progress.recipes`, HIGHEST)보다 먼저다. 확장 모드가 끝나면 사이드바를 다시 그리고, 사냥이 끝나면 레시피를 다시 보낼 수 있다.
-- `Join`: `screens.menuItem`(LOWEST)이 처음 들어온 플레이어의 8번 칸에 메뉴 아이템을 둔 뒤에 아이템을 주는 입장 단계(`fairy.backfillDust`, NORMAL)가 돈다. 쌓아 둔 요정 가루가 여덟 묶음을 넘어도 메뉴 아이템이 가루를 덮어쓰지 않는다.
+- `Join`: `screens.menuItem`(LOWEST)이 처음 들어온 플레이어의 8번 칸에 메뉴 아이템을 둔 뒤에 아이템을 주는 입장 단계(`fairy.backfillDust`, NORMAL)가 돈다. 쌓아 둔 요정 가루가 여덟 묶음을 넘어도 메뉴 아이템이 가루를 덮어쓰지 않는다. `dimension.joined`(LOW)도 그 단계보다 먼저다. 서버가 멈출 때 이차원에 있던 플레이어는 맡겨 둔 소지품을 먼저 돌려받고, 가루는 돌려받은 인벤토리에 들어간다.
 - `Second`: `progress.checkHeld`(LOW)가 플레이어가 든 아이템을 읽어 파트에 둔 뒤에 `dimension.second`(NORMAL)가 `RetireItems` 로 아이템을 정리한다. `progress.collection`(MONITOR)이 그 파트를 읽는다.
 
 구독자의 조건이 지키는 것:
 
-- 사냥 중인 플레이어가 블록을 누르면 무엇을 들었든 `dimension.hunting` 이 막는다. `screens.menuItem`(`UseOnBlock`)과 `dimension.stone` 은 사냥 중이면 클릭을 가져가지 않는다. 공중에서는 메뉴 아이템이 사냥에서 나가는 길이라 `dimension.hunting`(`Use`)이 메뉴 아이템을 든 클릭을 막지 않는다.
-- 메뉴 아이템과 이차원석은 어디서나 자기 화면을 연다. `expand.guard`(`UseOnBlock`)는 그런 아이템(`sgitem.OpensScreen`)을 든 클릭을 막지 않는다.
-- `copier.use` 와 `wand.use` 는 섬이 짓기를 허락하는 곳(`island.CanBuild`)에서만 클릭을 가져간다. 섬 밖에서는 `island.guard` 가 막는다.
+- 사냥 중인 플레이어가 블록을 누르면 무엇을 들었든 `dimension.hunting` 이 취소한다. `screens.menuItem`(`UseOnBlock`)과 `dimension.stone` 은 사냥 중이면 클릭을 쓰지 않는다. 공중에서는 메뉴 아이템이 사냥에서 나가는 길이라 `dimension.hunting`(`Use`)이 메뉴 아이템을 든 클릭을 취소하지 않는다.
+- 메뉴 아이템과 이차원석은 어디서나 자기 화면을 연다. `expand.guard`(`UseOnBlock`)는 그런 아이템(`sgitem.OpensScreen`)을 든 클릭을 취소하지 않는다.
+- `copier.use`, `wand.use` 는 섬이 짓기를 허락하는 곳(`island.CanBuild`)에서만 클릭을 쓴다. 섬 밖에서는 `island.guard` 가 취소한다. `storage.front` 도 같은 조건을 단다.
+- `UseOnBlock` 의 NORMAL 구독자는 블록과 든 아이템과 웅크림으로 갈린다. `conduit.plate` 는 서서 누른 도관 판, `storage.sneakUse` 는 웅크리고 누른 서랍, `handwork.stick` 은 막대기로 누른 흙·잔디와 웅크리고 누른 상자, `handwork.gather` 는 도끼로 누른 원목과 괭이로 누른 흙, `fairy.time` 은 요정의 뼛가루로 누른 작물·묘목·마법 식물과 웅크리고 뼛가루로 누른 작물이다. 도관 판은 아이템이나 에너지, 액체를 주고받는 블록에만 붙으므로 `conduit.plate` 와 `fairy.time` 이 같은 클릭에 일하는 때는 없다.
+- `Sneak` 의 `expand.show` 는 섬 확장 모드에서만 화면을 다시 보여 준다. `elevator.down` 과 `farm.crouchGrow` 는 다른 모드가 플레이어를 붙잡고 있으면(`core.Takeover`) 일하지 않는다.
+- `handwork.stickOther` 는 막대기로 흙도 잔디도 아닌 블록을 눌렀고 아무도 그 클릭을 취소하지 않았을 때 `stick_other` 를 센다. 서랍 메뉴, 도관 판, 작물, 가득 찬 퇴비통이 쓴 클릭은 세지 않는다.
 
 커널이 지키는 것:
 
 - `Leave`: 플레이어 클라이언트의 도형 지우기와 `Players` 항목 지우기는 구독자가 아니다. `Lifecycle.Leave` 가 모든 구독자 뒤에 한다. 퇴장 구독자는 어느 티어에 서든 플레이어별 데이터를 읽을 수 있다.
 - `Second`, `Autosave`, `Close`, `NewDay` 의 꼬리 일도 구독자 뒤다. `Close` 의 구독자는 세션이 아직 등록된 상태에서 돈다.
-- `Move`: 이벤트의 `From` 은 이벤트를 만들 때 플레이어가 서 있던 곳이다. `island.void` 가 플레이어를 옮긴 뒤에 돌아도 `achievement.walk` 는 같은 거리를 센다.
-- 커널의 구독자는 `Join` 의 `core.shapes` 하나다(NORMAL). `core` 가 목록의 처음이라 그 티어에서 먼저 돌지만, 다른 구독자와 같은 규칙을 따른다.
-
-### 예외
-
-여섯 티어로 풀리지 않아 같은 티어 안의 자리(기능 목록 순서)나 역할에 맞지 않는 티어로 지키는 곳이다. 자리로 지키는 쌍은 루트의 `orderKept` 에 있고 `TestTierOrder` 가 그 쌍만 순서를 지킨 채 섞는다. 목록은 늘리지 않는다.
-
-- `UseOnBlock` 의 `storage.sneakUse`, `conduit.plate` 다음 `handwork.stick`(모두 NORMAL): `handwork.stick` 은 흙·잔디가 아닌 블록에 막대기를 쓴 횟수(`stick_other`)도 센다. 서랍 메뉴나 도관 판이 클릭을 가져가면 세지 않는다.
-- `UseOnBlock` 의 `conduit.plate` 다음 `fairy.time`(둘 다 NORMAL): 기계에 붙은 도관 판을 요정의 모래시계로 누르면 판 설정이 열리고 모래시계는 쓰이지 않는다.
-- `Sneak` 의 `achievement.sneak`(LOW): 세기만 하는 구독자라 역할은 MONITOR 다. 엘리베이터를 탄 웅크리기는 세고 섬 확장 모드의 웅크리기는 세지 않으려고 `expand.show` 와 `elevator.down` 사이에 둔다.
-- `Join` 의 `dimension.joined`(HIGH): 서버가 멈출 때 사냥 중이던 플레이어의 소지품을 되돌리는 일이라 역할로는 다른 입장 단계보다 먼저(LOW)다. 지금 순서를 지키려고 뒤에 둔다. 앞의 입장 단계가 그 플레이어의 인벤토리에 넣거나 고친 것(`fairy.backfillDust` 의 가루, `screens.menuItem` 이 고친 메뉴 아이템 이름)은 사냥 장비와 함께 사라진다.
+- `Move`: 이벤트의 `From` 은 이벤트를 만들 때 플레이어가 서 있던 곳이다. 앞의 구독자가 플레이어를 옮겨도 `achievement.walk` 는 같은 거리를 센다.
+- 커널의 구독자는 `Join` 의 `core.shapes` 하나다(NORMAL). 다른 구독자와 같은 규칙을 따른다.
 
 ## 기능의 데이터
 
@@ -473,7 +513,7 @@ func init() { coretest.Setup(farm.Feature) }
 
 | 규칙 | 테스트 |
 |---|---|
-| 루트는 아무것도 구독하지 않는다. 루트 패키지의 비테스트 파일에는 훅의 `On`·`Handle` 호출, `core.Mark` 호출, `Handle...` 메서드가 없다 | `TestRootSubscribesToNothing` |
+| 루트는 아무것도 구독하지 않는다. 루트 패키지의 비테스트 파일에는 훅의 `On` 호출, `core.Mark` 호출, `Handle...` 메서드가 없다 | `TestRootSubscribesToNothing` |
 | 모든 구독자는 목록에 오른 기능이 `Setup` 에서 단다. 이름의 접두어가 그 기능 이름이다 | `TestEverySubscriberHasItsFeature`, `core.TestInstallingPrefix` |
 | `feature.go` 가 있는 패키지는 `Features` 에 정확히 한 번 오르고 `Name` 이 패키지 이름이다 | `TestEveryFeatureListed`, `TestFeatureNames` |
 | 기능 패키지는 루트를 import 하지 않는다(간접도). `core` 는 기능을 import 하지 않는다. `common` 은 `content/`, `platform/` 을 import 하지 않는다 | `TestFeaturesLiftable` |
@@ -492,19 +532,26 @@ func init() { coretest.Setup(farm.Feature) }
 | 테스트 지원 패키지(`core/coretest`, `machine/machinetest`)는 테스트 파일만 import 한다 | `TestSupportPackagesAreTestOnly` |
 | 패키지의 테스트는 루트를 import 하지 않는다(`wire` 는 예외). 내용 목록 아래 칸의 테스트는 `catalog`, `codex`, `screens` 를 import 하지 않는다. `core` 밖의 테스트는 `core.Install` 이나 기능의 `Setup` 을 직접 부르지 않고 `coretest.Setup` 을 쓴다 | `TestPackageTestsStayBelow` |
 | 플레이어 핸들러의 모든 메서드가 `core.PlayerHandler` 에 있고 훅마다 구독자가 있으며, 루트가 같은 이름의 메서드를 두지 않는다 | `TestHandlerMethodsOneWay` |
-| 핫 경로는 할당하지 않는다. 이벤트마다 `AllocsPerRun` 으로 0 을 확인한다. 멈춘 뒤 `Always` 구독자를 도는 길도 같다 | `core.TestEmitAllocatesNothing`, `core.TestEmitAllocatesNothingAfterCancel`, `core.TestEventsEmitAllocateNothing` |
+| 핫 경로는 할당하지 않는다. 이벤트마다 `AllocsPerRun` 으로 0 을 확인한다. 취소된 이벤트를 도는 길도 같다 | `core.TestEmitAllocatesNothing`, `core.TestEmitAllocatesNothingAfterCancel`, `core.TestEventsEmitAllocateNothing` |
 | 구독자는 `Install` 동안에만 단다. 첫 `Emit` 뒤의 등록, 같은 훅 안의 이름 겹침, 없는 티어는 패닉이다 | `core.TestRegisterAfterEmitPanics`, `core.TestSameNamePanics`, `core.TestNotATierPanics` |
-| 티어는 상수의 순서대로 돌고, 같은 티어 안에서는 등록한 순서대로 돈다 | `core.TestRunsInTierOrder`, `core.TestSameTierRunsInRegistrationOrder` |
-| 구독자는 같은 티어 안의 자리에 기대지 않는다. 티어 안의 순서를 뒤집고 섞어도 모든 테스트가 통과하고 장면의 결과와 업적 카운터가 같다 | `TestTierOrder` |
-| MONITOR 구독자는 멈추지도 취소하지도 가공하지도 않는다 | `core.TestHandleAtMonitorPanics`, `TestMonitorSubscribersDoNotShape` |
-| `Always` 구독자는 멈춘 이벤트도 받고 `cancelled` 로 구별한다. `On` 구독자는 받지 않는다. Dragonfly 의 취소만으로는 아무도 건너뛰지 않는다 | `core.TestAlways`, `core.TestAlwaysAfterCancelRunsOnlyAlways`, `core.TestCancelledTellsTheContext` |
-| `Leave` 의 구독자가 모두 돈 뒤에, 멈췄어도, 플레이어별 파트 항목을 지운다 | `core.TestLeaveDropsThePlayersEntriesLast` |
-| 구독자의 조건이 지키는 순서: 사냥꾼의 이차원석, 섬 밖의 복사기와 지팡이, 공허로 떨어진 걸음 | `TestHunterStoneOpensNothing`, `TestToolsLeaveTheClickOutsideTheIsland`, `TestWalkCountsTheMoveIntoTheVoid` |
+| 티어는 상수의 순서대로 돈다. 같은 티어 안에서는 등록한 순서로 돌지만 구독자는 그 순서에 기대지 않는다 | `core.TestRunsInTierOrder`, `core.TestSameTierRunsInRegistrationOrder` |
+| 같은 티어의 구독자 사이에는 순서가 없다. 티어 안의 순서를 뒤집고 섞어도 모든 테스트가 통과하고 장면의 결과, 업적 카운터, 플레이어의 인벤토리가 같다. 순서를 지켜 주는 쌍은 없다 | `TestTierOrder` |
+| 어느 구독자도 다른 구독자를 멈추지 못한다. 취소할 수 없는 이벤트의 훅에서는 모두 불린다 | `core.TestNoSubscriberStopsAnother`, `core.TestOnlyActorEventsCancel` |
+| 취소된 이벤트는 기본 구독자에게 가지 않고 `core.HandleCancelled` 구독자에게만 간다. 취소는 Dragonfly 의 컨텍스트 하나다 | `core.TestCancelSkipsDefaultSubscribers`, `core.TestAfterCancelOnlyHandleCancelledRuns`, `core.TestCancelIsDragonflysCancel`, `core.TestCancelledTellsTheContext` |
+| MONITOR 구독자는 취소하지도 가공하지도 않는다 | `TestMonitorSubscribersDoNotShape`, `core.TestMonitorCancelPanicsWhileTraced` |
+| `Leave` 의 구독자가 모두 돈 뒤에 플레이어별 파트 항목을 지운다 | `core.TestLeaveDropsThePlayersEntriesLast` |
+| 구독자의 조건이 지키는 것: 사냥꾼의 이차원석, 섬 밖의 복사기와 지팡이, 모드에 붙잡힌 플레이어의 웅크리기 | `TestHunterStoneOpensNothing`, `TestToolsLeaveTheClickOutsideTheIsland`, `elevator.TestHeldPlayerDoesNotRideDown`, `farm.TestHeldPlayerGrowsNoSapling` |
+| 취소된 일은 일어나지 않은 일이다: 공허로 떨어진 걸음과 서랍 앞면을 친 캐기는 세지 않는다. 웅크리기는 언제나 센다 | `TestMoveIntoTheVoidIsNotWalked`, `TestDrawerFrontHitIsNoBreak`, `TestEverySneakCounts`, `TestSneakRideGrowsSaplingsWhereItArrives` |
+| 사냥꾼을 죽이는 타격은 취소하지 않는다. 사냥꾼은 죽고, 판은 한 번 실패로 끝나고, 소지품과 경험치는 그대로이고, 부활하면 들어왔던 자리로 간다. 죽음과 부활 사이에 나가도 같다. 섬에서 죽는 일은 달라지지 않는다 | `TestHunterDiesAndComesBack`, `TestDeadHunterWhoLeavesIsBackOnTheIsland`, `TestHitThatKillsLeavesNoEffect`, `TestBlastThatKillsDoesNotThrowTheHunter`, `TestDeathOnTheIslandIsUntouched`, `instance.TestDeathKeepsTheInventoryEverywhere` |
+| 공중에서 쓰는 아이템은 `item.Usable` 이고 자기 `Use` 에서 일한다. 사냥꾼의 공중 클릭은 아무 일도 하지 않는다 | `TestAirItemsAreUsable`, `TestItemsUsedOnTheAir`, `TestHunterUsesNothingOnTheAir` |
+| 막대기로 다른 블록을 두드린 기록은 아무도 취소하지 않은 클릭만 센다 | `TestStickOtherCountsTheTapNothingTook` |
+| 블록과 아이템의 메서드로 하는 일은 Dragonfly 를 거친 클릭으로 확인한다. 요정의 모래시계는 기계가 쓰고, 도관 판과 옆 칸 가드가 그보다 먼저다. 기계 아이템은 누른 면을 자기 설치에 넘기고, 클릭 없이 놓인 기계는 기본 방향을 본다 | `TestHourglassThroughTheMachine`, `TestHourglassOnTheOutwardFaceIsRefused`, `machine.TestHourglassIsUsedByTheMachine`, `TestMachineItemPlacesAndFaces`, `TestMachinePlacedWithoutAClickFacesItsDefault` |
+| 서버가 멈출 때 이차원에 있던 플레이어는 입장 때 소지품을 먼저 돌려받고, 그 뒤에 받은 요정 가루를 지닌다 | `TestStrandedPlayerKeepsBackfilledDust` |
 
-핫 경로(이동, 매초, 빠른 틱)를 건드리면 벤치마크로 재 본다. 이벤트 하나의 비용은 `core` 의 `BenchmarkEmit`, `BenchmarkEmitMove` 와 루트의 `BenchmarkHandleMove`, `BenchmarkSecond`, `BenchmarkUseOnBlock`, `BenchmarkUse` 가 잰다. 패널 하나의 비용은 루트의 `BenchmarkLookMachine`(시선 추적과 패널 보내기), `BenchmarkLookInfoMachine`, `BenchmarkLookInfoStone`(패널 만들기)이 잰다. 다른 기능이 동작을 등록한 기계의 틱 한 번은 `BenchmarkTickHarvester`, `BenchmarkTickDrawerController` 가 잰다.
+핫 경로(이동, 매초, 빠른 틱)를 건드리면 벤치마크로 재 본다. 이벤트 하나의 비용은 `core` 의 `BenchmarkEmit`, `BenchmarkEmitMove` 와 루트의 `BenchmarkHandleMove`, `BenchmarkSecond`, `BenchmarkUseOnBlock`, `BenchmarkUse`, `BenchmarkBlockBreak`, `BenchmarkBlockPlace` 가 잰다. 구독자는 취소되지 않은 이벤트마다 모두 불리므로, 조건은 싼 것부터 본다(든 아이템의 종류, 그다음 맵 조회나 블록 읽기). 패널 하나의 비용은 루트의 `BenchmarkLookMachine`(시선 추적과 패널 보내기), `BenchmarkLookInfoMachine`, `BenchmarkLookInfoStone`(패널 만들기)이 잰다. 다른 기능이 동작을 등록한 기계의 틱 한 번은 `BenchmarkTickHarvester`, `BenchmarkTickDrawerController` 가 잰다.
 
 ```sh
-go test -run xxx -bench 'HandleMove|Second|UseOnBlock|Use$|LookMachine|LookInfo|TickHarvester|TickDrawerController' -benchmem -count 5 ./content/skygear
+go test -run xxx -bench 'HandleMove|Second|UseOnBlock|Use$|BlockBreak|BlockPlace|LookMachine|LookInfo|TickHarvester|TickDrawerController' -benchmem -count 5 ./content/skygear
 go test -run xxx -bench Emit -benchmem -count 5 ./content/skygear/core
 ```
 
@@ -516,7 +563,7 @@ go test -run xxx -bench Emit -benchmem -count 5 ./content/skygear/core
 
 | 파일 | 담는 것 | 테스트 |
 |---|---|---|
-| `content/skygear/testdata/pin/order.golden` | 모든 훅의 구독자를 도는 순서대로 `<훅> <티어> <이름>`. `Always` 로 단 구독자는 끝에 ` always` 가 붙는다 | `TestPinOrder` |
+| `content/skygear/testdata/pin/order.golden` | 모든 훅의 구독자를 훅과 티어 순서대로 `<훅> <티어> <이름>`. 한 티어 안은 이름순이다(순서가 없으므로). `core.HandleCancelled` 로 단 구독자는 끝에 ` handleCancelled` 가 붙는다 | `TestPinOrder` |
 | `content/skygear/testdata/pin/handler-simple.golden`, `handler-blocks.golden`, `handler-use.golden` | 장면마다 이벤트가 거친 구독자 이름과 결과(취소 여부, 효과) | `TestPinSimple`, `TestPinBlocks`, `TestPinUse` |
 | `content/skygear/testdata/pin/lifecycle.golden` | 입장·퇴장·매초·빠른 틱·새 날·자동 저장·닫기·시작의 구독자 이름과 결과 | `TestPinLifecycle` |
 | `content/skygear/testdata/pin/settings.golden` | 설정이 등록된 순서 | `TestPinSettings` |
@@ -537,13 +584,14 @@ go test ./content/skygear -run 'TestOldSaveLoads' -count=1   # 옛 세이브 읽
 골든이 달라지면 테스트가 어느 줄(장면)이 어떻게 달라졌는지 `want` 와 `got` 로 보여 준다. 디스패치 순서나 클라이언트 데이터가 바뀌면 골든 차이로 나타난다.
 
 장면 골든의 한 줄은 `<장면>: <거친 구독자 이름> | <결과>` 다. `|` 앞은 등록한 순서로 돌았을 때의 자취이고 뒤가 결과다.
+장면은 핸들러만 부른다. 블록의 `Activate` 나 아이템의 `UseOnBlock` 처럼 Dragonfly 가 핸들러 뒤에 부르는 메서드가 한 일은 장면에 나오지 않는다(위 "훅과 블록·아이템의 메서드").
 `TestTierOrder` 는 루트의 테스트 바이너리를 여섯 번 다시 돌린다. 한 번은 등록한 순서 그대로, 다섯 번은 모든 훅의 구독자를 티어 안에서 뒤집거나 섞어서다(`SKYGEAR_HOOK_ORDER=reverse`, `shuffle:1` 부터 `shuffle:4`). 섞은 실행에서 확인하는 것은 셋이다.
 
-- 루트의 모든 테스트가 통과한다. 장면 골든은 `|` 뒤의 결과만 견주고, `order.golden` 은 한 훅의 한 티어에 든 줄을 집합으로 견준다.
+- 루트의 모든 테스트가 통과한다. 장면 골든은 `|` 뒤의 결과만 견준다.
 - 장면 234개의 결과가 골든과 글자 하나까지 같다.
-- 장면마다 플레이어의 업적 카운터가 늘어난 양이 등록한 순서로 돈 실행과 같다. 카운터는 골든에 없어서 따로 견준다.
+- 장면마다 플레이어의 업적 카운터가 늘어난 양과, 장면의 플레이어가 든 아이템(칸, 종류, 개수)이 등록한 순서로 돈 실행과 같다. 둘 다 골든에 없어서 따로 견준다.
 
-플레이어가 받는 팁·글·소리와 어느 장면도 읽지 않는 상태는 이 테스트가 보지 못한다. "예외"의 쌍(`orderKept`)은 섞어도 순서를 지킨다.
+플레이어가 받는 팁·글·소리와 어느 장면도 읽지 않는 상태는 이 테스트가 보지 못한다. 순서를 지켜 주는 쌍은 없다. 모든 구독자를 티어 안에서 섞는다.
 기능 패키지의 테스트도 같은 변수로 섞어서 돌릴 수 있다. `coretest.Session` 이 처음 불릴 때 섞는다.
 
 ```sh

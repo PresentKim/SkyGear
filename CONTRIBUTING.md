@@ -60,7 +60,10 @@ Thanks for your interest. These are the rules the project follows.
   its steps to the kernel's hooks in `Setup`, in `subscribe.go`, with
   subscriber names
   `<feature>.<step>` and the tier (`core.Lowest` to `core.Monitor`) of what the
-  step does; inside a tier no step may depend on its place. It keeps its data in
+  step does; the steps of one tier have no order. No step stops another: a step
+  acts by its own conditions and cancels the event (`e.Cancel()`) only when the
+  action or the later steps must not happen; a cancelled event reaches only the
+  steps registered with `core.HandleCancelled`. It keeps its data in
   `core.NewPart`, `core.NewPlayers` and `core.NewSaved` parts, never in a field
   of `Session`, and never imports the root package. Its blocks fill in their
   own WAILA lines (`Waila`, in `look.go`) and its items their slot decoration
