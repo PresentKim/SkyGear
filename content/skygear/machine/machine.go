@@ -16,6 +16,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/particle"
+	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/chestui"
 	"github.com/presentkim/skygear/common/fluidnet"
@@ -1465,7 +1466,8 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 	return n
 }
 
-// Activate opens the machine window, or uses a sieve.
+// Activate opens the machine window, or uses a sieve. A held tier kit or
+// fairy hourglass is used on the machine instead.
 func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, ctx *item.UseContext) bool {
 	p, ok := u.(*player.Player)
 	s, ok2 := core.Of(tx)
@@ -1476,6 +1478,13 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 	if held, off := p.HeldItems(); !held.Empty() {
 		if kit, ok := held.Item().(sgitem.TierKit); ok {
 			UseKit(s, p, tx, pos, m, kit, held, off)
+			return true
+		}
+		// A fairy hourglass winds the machine; one the machine does not take
+		// leaves the click to the machine.
+		if _, ok := held.Item().(sgitem.FairyHourglass); ok && m.State.WindHourglass() {
+			ctx.SubtractFromCount(1)
+			tx.PlaySound(pos.Vec3Centre(), sound.ItemAdd{})
 			return true
 		}
 	}
@@ -1872,3 +1881,11 @@ func Break(s *core.Session, tx *world.Tx, pos cube.Pos, m Machine) {
 }
 
 func Item(kind string) item.Stack { return item.NewStack(Machine{Kind: kind}, 1) }
+
+// WindHourglass implements sgitem.HourglassWound: the hourglass of a sneaking
+// player, whose click Dragonfly does not hand to Activate, winds the machine
+// through the item.
+func (m Machine) WindHourglass(pos cube.Pos, tx *world.Tx) bool {
+	s, ok := core.Of(tx)
+	return ok && island.CanBuild(s, pos) && m.State != nil && m.State.WindHourglass()
+}

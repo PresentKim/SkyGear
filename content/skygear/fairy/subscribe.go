@@ -23,13 +23,12 @@ func subscribeJoin() {
 	})
 }
 
-// The fairy's time is told by the item it is used with; a visiting fairy
-// gives its gift to a player who touches it, whichever way.
-//
-// conduit.plate is in the same tier, is registered before fairy.time and
-// takes a click on a connector plate first, hourglass in hand or not: that
-// order is one of the exceptions the tier order guard keeps (the root's
-// orderKept).
+// Fairy bone meal grows the plant it is used on, and plain bone meal is kept
+// off a timed crop: fairy.time acts before the crop's own click (farm.crop,
+// High) and before the block is asked. It acts on crops, saplings and magic
+// plants only, none of which carries a connector plate, so it and
+// conduit.plate never act on the same click. A visiting fairy gives its gift
+// to a player who touches it, whichever way.
 func subscribeTouch() {
 	core.UseOnBlock.Handle(core.Normal, "fairy.time", func(e core.UseOnBlockEvent) bool {
 		if UseFairyTime(e.S, e.P, e.Tx, e.Pos, e.Held) {

@@ -93,7 +93,7 @@ var siblings = map[string][]string{
 	"conduit":   {"machine"},
 	"storage":   {"machine"},
 	"farm":      {"machine"},
-	"fairy":     {"farm", "machine"},
+	"fairy":     {"farm"},
 	"dimension": {"machine"},
 	"copier":    {"conduit", "machine", "storage"},
 	"netstore":  {"conduit", "machine", "storage"},

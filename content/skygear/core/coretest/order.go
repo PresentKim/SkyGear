@@ -24,22 +24,22 @@ var reorder sync.Once
 
 // ReorderHooks reorders the subscribers of every hook inside their tiers as
 // the environment asks (HookOrderEnv), once per test binary; without the
-// variable it does nothing. kept are the pairs "<Hook> <first> <second>" of
-// one tier that keep their order (the exceptions the root package lists).
+// variable it does nothing. No pair of subscribers keeps its order: the
+// subscribers of one tier have none.
 //
 // Session calls it, so the tests of a feature package run reordered as soon
-// as the variable is set. The root package calls it from TestMain with its
-// exceptions, before any event.
-func ReorderHooks(kept ...string) {
+// as the variable is set. The root package calls it from TestMain, before any
+// event.
+func ReorderHooks() {
 	reorder.Do(func() {
 		if mode := os.Getenv(HookOrderEnv); mode != "" {
-			core.Reorder(orderFor(mode, kept))
+			core.Reorder(orderFor(mode))
 		}
 	})
 }
 
 // orderFor returns the reordering of mode for core.Reorder.
-func orderFor(mode string, kept []string) func(hook string, subs []core.Subscription) []int {
+func orderFor(mode string) func(hook string, subs []core.Subscription) []int {
 	kind, arg, _ := strings.Cut(mode, ":")
 	var seed uint64
 	switch kind {
@@ -72,34 +72,6 @@ func orderFor(mode string, kept []string) func(hook string, subs []core.Subscrip
 			}
 			idx = append(idx, tier...)
 			from = to
-		}
-		// Put the kept pairs back in their order: a first that ended up after
-		// its second moves to just before it.
-		for moved := true; moved; {
-			moved = false
-			for _, k := range kept {
-				f := strings.Fields(k)
-				if len(f) != 3 {
-					panic("coretest: kept pair " + k)
-				}
-				if f[0] != hook {
-					continue
-				}
-				a := slices.IndexFunc(idx, func(i int) bool { return subs[i].Name == f[1] })
-				b := slices.IndexFunc(idx, func(i int) bool { return subs[i].Name == f[2] })
-				if a < 0 || b < 0 {
-					continue // a test binary that did not set up both features
-				}
-				if subs[idx[a]].Tier != subs[idx[b]].Tier {
-					panic("coretest: kept pair " + k + ": the two are not in one tier, their tiers order them")
-				}
-				if a > b {
-					v := idx[a]
-					idx = slices.Delete(idx, a, a+1)
-					idx = slices.Insert(idx, b, v)
-					moved = true
-				}
-			}
 		}
 		return idx
 	}

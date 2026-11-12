@@ -25,7 +25,8 @@ import (
 // subscriber may depend on where it stands. TestTierOrder proves it: it runs
 // this test binary again with the subscribers of every hook reordered inside
 // their tiers (coretest.HookOrderEnv: reversed, and shuffled with a few seeds)
-// and compares what every pin scenario did.
+// and compares what every pin scenario did. No pair of subscribers is kept in
+// its order: there is no list of exceptions.
 
 // hookOrder is the reordering of this process: "" (the order of
 // registration), "reverse" or "shuffle:<seed>".
@@ -35,18 +36,6 @@ var hookOrder = os.Getenv(coretest.HookOrderEnv)
 // one line "<scenario> | <results> | <counters> | <inventories>" each
 // (pinDumpLines).
 var pinDump = os.Getenv("SKYGEAR_PIN_DUMP")
-
-// orderKept are the exceptions: the pairs of one tier whose order still
-// matters, "<Hook> <first> <second>". The kernel runs first before second
-// because first's feature is installed earlier (features.go), and a reordered
-// run keeps them so. Each is a known dependency on the place inside a tier,
-// kept until it is decided how to remove it (docs/tech/extension.md); the
-// list does not grow.
-var orderKept = []string{
-	// a connector plate's settings open before the hourglass in hand winds
-	// the machine the plate is on
-	"UseOnBlock conduit.plate fairy.time",
-}
 
 // pinAccounts are the accounts of the players the tests spawned, in a run
 // that dumps (spawnPlayer).
@@ -60,7 +49,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	coretest.ReorderHooks(orderKept...)
+	coretest.ReorderHooks()
 	if pinDump != "" {
 		dir, err := os.MkdirTemp("", "pindump")
 		if err != nil {

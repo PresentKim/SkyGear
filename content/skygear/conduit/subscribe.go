@@ -49,11 +49,9 @@ func subscribeBlocks() {
 // A player who clicks a conduit's connector plate on the block it touches
 // opens its settings, whatever they hold, unless the held conduit goes into
 // that conduit (a click on the conduit itself is ConduitBundle.Activate).
-// Sneaking places blocks instead.
-//
-// conduit.plate is registered before fairy.time, which is in the same tier,
-// and takes the click first: an hourglass on a plate opens the settings. That
-// order is the exception the tier order guard keeps (the root's orderKept).
+// Sneaking places blocks instead. The plate takes the click before the block
+// behind it is asked (Activate) and before the held item is used: a tier kit
+// or a fairy hourglass on a plate opens the settings.
 func subscribePlate() {
 	core.UseOnBlock.Handle(core.Normal, "conduit.plate", func(e core.UseOnBlockEvent) bool {
 		if !e.P.Sneaking() && UsePlate(e.S, e.P, e.Tx, e.Pos, e.Face, e.Click, e.Held) {
