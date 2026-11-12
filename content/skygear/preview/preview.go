@@ -6,8 +6,10 @@
 // A cell to be filled gets Glass (in the feature's colour) on layer 0 and the block it would get on
 // layer 1. Glass has no selection or collision box, so the crosshair, the
 // clicks and the player go through the cell to what is behind it, and the
-// block still shows. A block to be broken keeps its layer 0 and gets Glass
-// on layer 1.
+// block still shows. A block to be broken keeps its layer 0 and gets the
+// vanilla stained glass of the colour on layer 1: the client does not draw
+// a custom block (Glass) on layer 1 under a solid block, the vanilla glass
+// it does.
 package preview
 
 import (
@@ -87,8 +89,11 @@ type Look struct {
 func Fill(c item.Colour, b world.Block) Look { return Look{Block: Glass{Colour: c}, Liquid: b} }
 
 // Mark is the look of a block that is marked (to be broken): the block
-// itself, with the glass of colour c on the liquid layer.
-func Mark(c item.Colour) Look { return Look{Liquid: Glass{Colour: c}} }
+// itself, with the vanilla stained glass of colour c on the liquid layer.
+// It is not Glass: the client does not draw a custom block on the liquid
+// layer of a solid block. The liquid layer is not aimed at, so the vanilla
+// glass's boxes do not matter there.
+func Mark(c item.Colour) Look { return Look{Liquid: block.StainedGlass{Colour: c}} }
 
 // View is a block a player is sent on one layer of a cell.
 type View struct {

@@ -208,7 +208,8 @@ func TestWandPreview(t *testing.T) {
 
 // TestPreviewOverlap: where two previews show the same cell, hiding one
 // shows the other's look again, and hiding both shows the real blocks; the
-// vein marks a block on layer 1 only.
+// vein marks a block on layer 1 only, with the vanilla stained glass (the
+// client does not draw the custom preview glass there).
 func TestPreviewOverlap(t *testing.T) {
 	s := coretest.Session(t)
 	coretest.LoadAround(s)
@@ -218,12 +219,12 @@ func TestPreviewOverlap(t *testing.T) {
 		tx.SetBlock(stone, block.Stone{}, nil)
 		cell := stone.Side(cube.FaceUp)
 		vein := tinker.VeinLooks([]cube.Pos{stone})
-		if l := vein[stone]; l.Block != nil || l.Liquid != (preview.Glass{Colour: preview.VeinColour}) {
-			t.Fatalf("vein look %+v, want glass on the liquid layer only", l)
+		if l := vein[stone]; l.Block != nil || l.Liquid != (block.StainedGlass{Colour: preview.VeinColour}) {
+			t.Fatalf("vein look %+v, want the vanilla stained glass on the liquid layer only", l)
 		}
 		got := sentViews(t, func() { preview.Set(s.Session, p, tx, "vein", vein) })
-		if len(got) != 1 || got[0].Layer != 1 || got[0].Block != (preview.Glass{Colour: preview.VeinColour}) {
-			t.Fatalf("vein sent %v, want the glass on layer 1", got)
+		if len(got) != 1 || got[0].Layer != 1 || got[0].Block != (block.StainedGlass{Colour: preview.VeinColour}) {
+			t.Fatalf("vein sent %v, want the vanilla stained glass on layer 1", got)
 		}
 
 		plank := block.Planks{Wood: block.OakWood()}

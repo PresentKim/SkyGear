@@ -33,7 +33,7 @@
 | 핵심 | `core` | 기능 커널: 세이브 하나의 실행 상태(`Session`: 월드·시계·난수·세이브 정보), 기능이 자기 데이터를 두는 방법(`Part`·`Players`·`Saved`), 훅과 이벤트(`PlayerHandler`·`WorldHandler`·`Lifecycle` 이 내보낸다), 기능 서술자(`Feature`·`Install`), 창작 목록 자리(`CreativeItem`·`CreativeItems`), 기능의 명령어(`Commands`·`PlayerSession`), 공용 도우미(아이템, 메뉴 버튼, 디버그 도형) |
 | | `network` | 세이브의 에너지·아이템·유체 연결망 |
 | | `achievement` | 계정 업적 목록·등록과 횟수 집계(`Count` 등) |
-| | `preview` | 보는 사람에게만 보내는 블록 미리보기: 선택·충돌 상자가 크기 0 인 16색 미리보기 유리(`Glass`, 지팡이 초록·망치 파랑)와 칸별 레이어 0·1 전송(`Set`·`Clear`). 건축 지팡이와 철 망치가 함께 쓴다 |
+| | `preview` | 보는 사람에게만 보내는 블록 미리보기: 선택·충돌 상자가 크기 0 인 16색 미리보기 유리(`Glass`, 지팡이 초록), 망치가 부술 블록 레이어 1 의 바닐라 파란 색유리(`Mark`), 칸별 레이어 0·1 전송(`Set`·`Clear`). 건축 지팡이와 철 망치가 함께 쓴다 |
 | | `look` | WAILA 패널: 시선 추적과 기본 정보, 블록이 자기 줄을 채운다(`waila.Provider`, 어댑터). 패널 숨기기(`Hidden`)와 갱신 따라가기(`Follow`) |
 | | `autofill` | 손에 든 묶음이 떨어지면 인벤토리의 같은 아이템으로 다시 채우기(`RefillHand`, 설정 `autofill`). 체와 건축 지팡이도 부른다 |
 | | `decor` | 아이템 칸 장식(희귀도·단계 표시)과 툴팁 이름. 등급과 단계는 아이템의 `Decor` 메서드(`slotdeco.Decorated`)에서 읽는다 |
