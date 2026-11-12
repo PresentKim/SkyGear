@@ -50,7 +50,7 @@ func subscribeSimple() {
 // The achievement counters of the walk, sneak, drop and hurt events.
 func subscribeMoves() {
 	core.Move.On(30, "achievement.walk", func(e core.MoveEvent) {
-		CountWalk(e.S, e.P, e.Pos)
+		CountWalk(e.S, e.P, e.From, e.Pos)
 	})
 	core.Sneak.On(20, "achievement.sneak", func(e core.PlayerEvent) {
 		Count(e.P, "sneak", 1)

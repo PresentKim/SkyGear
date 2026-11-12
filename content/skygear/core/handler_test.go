@@ -177,6 +177,7 @@ func rows() []row {
 		rowOf("Move", Move, func(x *fix) { x.h.HandleMove(x.ctx, vec, rot) },
 			func(t *testing.T, x *fix, e MoveEvent) {
 				actorIs(t, x, e.Actor, true)
+				is(t, "From", e.From, x.p.Position())
 				is(t, "Pos", e.Pos, vec)
 				is(t, "Rot", e.Rot, rot)
 			}),

@@ -71,7 +71,8 @@ func (h *PlayerHandler) HandleItemUse(ctx *player.Context) {
 }
 
 func (h *PlayerHandler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, newRot cube.Rotation) {
-	Move.Emit(MoveEvent{Actor: h.actor(ctx), Pos: newPos, Rot: newRot})
+	a := h.actor(ctx)
+	Move.Emit(MoveEvent{Actor: a, From: a.P.Position(), Pos: newPos, Rot: newRot})
 }
 
 // HandleToggleSneak emits Sneak when sneaking starts; nothing happens when it

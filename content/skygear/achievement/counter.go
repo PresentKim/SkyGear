@@ -68,11 +68,10 @@ func CountBreak(p *player.Player, b world.Block, hammer bool) {
 // block was counted.
 var Walked = core.NewPlayers[float64]()
 
-// CountWalk counts the blocks p walks to newPos: the horizontal distance of
-// a move, kept as a fraction until it adds up to a block. A jump of more
-// than a few blocks is a teleport, not walking.
-func CountWalk(s *core.Session, p *player.Player, newPos mgl64.Vec3) {
-	from := p.Position()
+// CountWalk counts the blocks p walks from from to newPos: the horizontal
+// distance of a move, kept as a fraction until it adds up to a block. A jump
+// of more than a few blocks is a teleport, not walking.
+func CountWalk(s *core.Session, p *player.Player, from, newPos mgl64.Vec3) {
 	d := math.Hypot(newPos[0]-from[0], newPos[2]-from[2])
 	if d == 0 || d > 4 {
 		return

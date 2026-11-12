@@ -36,9 +36,10 @@ func (a Actor) Cancel() {
 // Pointer fields (Drops, XP, Damage, Pos, Pick) are the pointers Dragonfly
 // passed to the handler, not copies: a subscriber that writes through one
 // changes what Dragonfly does, exactly as a direct handler would. The other
-// fields (Held, Off, Block, Item) are copies taken when the event was built:
-// when a subscriber changes the hand or the world, later subscribers still see
-// the old value and must ask the player or the Tx for the new one.
+// fields (Held, Off, Block, Item, From) are copies taken when the event was
+// built: when a subscriber changes the hand, the world or the player's place,
+// later subscribers still see the old value and must ask the player or the Tx
+// for the new one.
 
 // StartBreakEvent is a player starting to break the block at Pos.
 type StartBreakEvent struct {
@@ -89,11 +90,14 @@ type UseEvent struct {
 	Held, Off item.Stack
 }
 
-// MoveEvent is a player moving to Pos, turned to Rot.
+// MoveEvent is a player moving from From to Pos, turned to Rot. From is
+// where the player stood when the event was built: a subscriber that moves
+// the player (a teleport) does not change it.
 type MoveEvent struct {
 	Actor
-	Pos mgl64.Vec3
-	Rot cube.Rotation
+	From mgl64.Vec3
+	Pos  mgl64.Vec3
+	Rot  cube.Rotation
 }
 
 // PlayerEvent is an event that has no arguments of its own (Sneak, Sprint,

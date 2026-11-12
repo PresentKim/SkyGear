@@ -96,7 +96,7 @@ Use NORMAL wand.options
 Use NORMAL tinker.veinToggle
 Move LOWEST look.update
 Move LOWEST expand.hold
-Move HIGH achievement.walk
+Move MONITOR achievement.walk
 Move HIGHEST island.void
 Sneak LOWEST expand.show
 Sneak LOW achievement.sneak
