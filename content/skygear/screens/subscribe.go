@@ -22,12 +22,14 @@ func subscribeBoards() {
 	})
 }
 
-// The menu item and the scoreboard are given on join (the scoreboard shows
-// what the other join steps made: Monitor); the scoreboard goes on leave,
-// after the features' own leave steps, which may draw it again (island
+// The menu item and the scoreboard are given on join. The menu item sets the
+// fixed slot of a new player's inventory before any join step hands out
+// items, which would otherwise land in that slot: Lowest. The scoreboard
+// shows what the other join steps made: Monitor. The scoreboard goes on
+// leave, after the features' own leave steps, which may draw it again (island
 // expansion mode redraws it when it ends): the last clean-up, Highest.
 func subscribePresence() {
-	core.Join.On(core.Normal, "screens.menuItem", func(e core.Presence) {
+	core.Join.On(core.Lowest, "screens.menuItem", func(e core.Presence) {
 		if e.First {
 			// Bare hands: only the menu item.
 			_ = e.P.Inventory().SetItem(8, MenuItem(i18n.Of(e.P)))

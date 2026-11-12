@@ -82,12 +82,12 @@ Command MONITOR achievement.command
 Load NORMAL farm.loadCrops
 Start NORMAL island.keepLoaded
 Start NORMAL climate.apply
+Join LOWEST screens.menuItem
 Join NORMAL core.shapes
 Join NORMAL progress.sendRecipes
 Join NORMAL island.purgeLost
 Join NORMAL climate.showWeather
 Join NORMAL fairy.backfillDust
-Join NORMAL screens.menuItem
 Join HIGH dimension.joined
 Join MONITOR screens.board
 Leave NORMAL dimension.leave

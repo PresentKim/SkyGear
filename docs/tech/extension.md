@@ -91,7 +91,7 @@ MONITOR 구독자는 이벤트를 가공하지도 취소하지도 않는다. MON
 
 수명 훅(`Join`, `Leave`, `Second`, `Fast`, `Autosave`, `Close` 따위)에는 가공하거나 취소할 것이 없다. 거기서는 티어를 일의 차례로 읽는다.
 
-- LOWEST, LOW: 뒤의 일이 바꾸기 전에 상태를 읽어 두는 일(`Second` 의 `progress.checkHeld`).
+- LOWEST, LOW: 뒤의 일이 바꾸기 전에 상태를 읽어 두거나 먼저 갖춰 두는 일(`Second` 의 `progress.checkHeld`, `Join` 의 `screens.menuItem` 이 처음 들어온 플레이어의 고정 칸에 메뉴 아이템을 두는 일).
 - NORMAL: 기능이 그때 하는 일.
 - HIGH: 다른 기능의 일이 끝난 뒤에 해도 되는 일.
 - HIGHEST: 마지막 정리.
@@ -360,6 +360,7 @@ handleCancelled 옵션이 멈춤을 기준으로 삼는 까닭은 구독자들�
 - `ItemDamage`: `tinker.ironHammer`(LOW)가 피해를 0 으로 고친 뒤에 `autofill.broken`(HIGH)이 읽는다.
 - `BlockPlace`: `netstore.place`(HIGH)는 `machine.place`(NORMAL)가 블록 설치를 미뤄 둔 뒤에 망을 버린다.
 - `Leave`: 기능이 퇴장 때 하는 일(`dimension.leave`, `expand.stop`, NORMAL)이 클라이언트에 남은 것을 지우는 정리(`look.clear`, `screens.board`, `progress.recipes`, HIGHEST)보다 먼저다. 확장 모드가 끝나면 사이드바를 다시 그리고, 사냥이 끝나면 레시피를 다시 보낼 수 있다.
+- `Join`: `screens.menuItem`(LOWEST)이 처음 들어온 플레이어의 8번 칸에 메뉴 아이템을 둔 뒤에 아이템을 주는 입장 단계(`fairy.backfillDust`, NORMAL)가 돈다. 쌓아 둔 요정 가루가 여덟 묶음을 넘어도 메뉴 아이템이 가루를 덮어쓰지 않는다.
 - `Second`: `progress.checkHeld`(LOW)가 플레이어가 든 아이템을 읽어 파트에 둔 뒤에 `dimension.second`(NORMAL)가 `RetireItems` 로 아이템을 정리한다. `progress.collection`(MONITOR)이 그 파트를 읽는다.
 
 구독자의 조건이 지키는 것:

@@ -27,11 +27,11 @@ Fast/11: network.step dimension.watchdog look.updateAll | fastCount=11
 Fast/noPlayers: network.step dimension.watchdog look.updateAll | fastCount=1
 Fast/twoPlayers: network.step dimension.watchdog look.updateAll | fastCount=1 players=2
 Fast/watchdog: network.step dimension.watchdog look.updateAll | inArena=false
-Join/again: core.shapes progress.sendRecipes island.purgeLost climate.showWeather fairy.backfillDust screens.menuItem dimension.joined screens.board | slot8=none players=1
-Join/first: core.shapes progress.sendRecipes island.purgeLost climate.showWeather fairy.backfillDust screens.menuItem dimension.joined screens.board | slot8=minecraft:nether_star players=1
-Join/purge: core.shapes progress.sendRecipes island.purgeLost climate.showWeather fairy.backfillDust screens.menuItem dimension.joined screens.board | lost=1
-Join/spectator: core.shapes progress.sendRecipes island.purgeLost climate.showWeather fairy.backfillDust screens.menuItem dimension.joined screens.board | mode=world.survival
-Join/withOther: core.shapes progress.sendRecipes island.purgeLost climate.showWeather fairy.backfillDust screens.menuItem dimension.joined screens.board | slot8=none players=2
+Join/again: screens.menuItem core.shapes progress.sendRecipes island.purgeLost climate.showWeather fairy.backfillDust dimension.joined screens.board | slot8=none players=1
+Join/first: screens.menuItem core.shapes progress.sendRecipes island.purgeLost climate.showWeather fairy.backfillDust dimension.joined screens.board | slot8=minecraft:nether_star players=1
+Join/purge: screens.menuItem core.shapes progress.sendRecipes island.purgeLost climate.showWeather fairy.backfillDust dimension.joined screens.board | lost=1
+Join/spectator: screens.menuItem core.shapes progress.sendRecipes island.purgeLost climate.showWeather fairy.backfillDust dimension.joined screens.board | mode=world.survival
+Join/withOther: screens.menuItem core.shapes progress.sendRecipes island.purgeLost climate.showWeather fairy.backfillDust dimension.joined screens.board | slot8=none players=2
 Leave/expanding: dimension.leave expand.stop progress.recipes look.clear screens.board core.shapes core.parts | expanding=false mode=world.survival
 Leave/hunting: dimension.leave island.lost expand.stop progress.recipes look.clear screens.board core.shapes core.parts | hunting=false run=false inArena=false
 Leave/plain: dimension.leave expand.stop progress.recipes look.clear screens.board core.shapes core.parts | diedFood=0 players=1
