@@ -23,6 +23,7 @@ const (
 	iconSettings = "textures/ui/sg/menu_settings"
 	iconExit     = "textures/ui/sg/icon_exit"
 	iconHead     = "textures/ui/icon_steve"
+	iconLogo     = "textures/ui/sg/logo"
 	iconConsole  = "textures/items/book_writable"
 	iconDecline  = "textures/ui/sg/icon_decline"
 	iconExpand   = "textures/ui/sg/menu_expand"

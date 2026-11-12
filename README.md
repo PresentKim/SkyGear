@@ -1,3 +1,8 @@
+<p align="center">
+  <img src="docs/images/logo-1024.png" alt="Sky Gear logo" width="256" height="256">
+  <img src="docs/images/logo.png" alt="Sky Gear logo, 16 px" width="16" height="16">
+</p>
+
 # Sky Gear
 
 The **Sky Gear** (스카이기어) server for **Minecraft: Bedrock Edition**, built on

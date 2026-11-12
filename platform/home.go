@@ -175,7 +175,9 @@ func (pf *Platform) home(p *player.Player) ui.Home {
 func (pf *Platform) homeProfile(p *player.Player) ui.HomeProfile {
 	lang := i18n.Of(p)
 	id := instance.AccountID(p)
-	pr := ui.HomeProfile{Face: faceOf(p), Icon: iconHead, Name: p.Name(), Title: i18n.T(lang, "platform.home.noTitle"), Run: homeRun(pf.showCosmetics)}
+	// The card shows the game's logo where the player's face goes until
+	// reading the face from the skin (faceOf) works on every client.
+	pr := ui.HomeProfile{Icon: iconLogo, Name: p.Name(), Title: i18n.T(lang, "platform.home.noTitle"), Run: homeRun(pf.showCosmetics)}
 	if acc, err := pf.db.Account(id); err == nil {
 		pr.Name = account.ColorOf(acc.NameColor).Code + p.Name()
 		if a, ok := account.Get(acc.Title); ok && a.Title(lang) != "" {
