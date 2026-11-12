@@ -13,6 +13,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/netstore"
 	"github.com/presentkim/skygear/content/skygear/storage"
 )
 
@@ -186,6 +187,45 @@ func TestBrokenTrimCutsTheDrawerSet(t *testing.T) {
 			}
 			if n := len(storage.Network(tx, ctl)); n != 0 {
 				t.Errorf("%s: the controller still reaches %d drawers", c.name, n)
+			}
+		})
+	}
+}
+
+// TestBrokenNodeLeavesItsNetwork: a storage network node that was broken, by
+// a player or by an explosion, is out of its network at once and its setting
+// is forgotten. The node kinds tell the storage network that one of them was
+// broken (machine.Behaviour.Broken); no subscriber of the player's break
+// does.
+func TestBrokenNodeLeavesItsNetwork(t *testing.T) {
+	pos := cube.Pos{4, island.IslandY + 2, 4}
+	next := pos.Side(cube.FaceEast)
+	for _, c := range []struct {
+		name   string
+		remove func(p *player.Player, tx *world.Tx)
+	}{
+		{"broken by hand", func(p *player.Player, _ *world.Tx) { p.BreakBlock(pos) }},
+		{"removed as an explosion removes it", func(_ *player.Player, tx *world.Tx) { explode(tx, pos) }},
+	} {
+		s, h := brokenSession(t, pos)
+		placeTestMachine(s, pos, machine.KindNetCable)
+		placeTestMachine(s, next, machine.KindNetCable)
+		withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+			netstore.Config(s.Session, pos).Filter = []string{"kept"}
+			if n := netstore.At(tx, next); n == nil || n.Size() != 2 {
+				t.Fatalf("%s: the two cables are not one network", c.name)
+			}
+			c.remove(p, tx)
+			if _, still := tx.Block(pos).(machine.Machine); still {
+				t.Fatalf("%s: the node is still there", c.name)
+			}
+		})
+		withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+			if n := netstore.At(tx, next); n == nil || n.Size() != 1 {
+				t.Errorf("%s: the cable left behind is not a network of its own", c.name)
+			}
+			if n := len(netstore.Config(s.Session, pos).Filter); n != 0 {
+				t.Errorf("%s: the broken node's setting is still there (%d filter entries)", c.name, n)
 			}
 		})
 	}

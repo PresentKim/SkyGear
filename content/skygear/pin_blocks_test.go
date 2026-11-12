@@ -32,9 +32,9 @@ import (
 // testdata/pin/handler-blocks.golden.
 //
 // Work the handler hands to Tx.Defer runs after the transaction callback, not
-// where the Defer line is: the netstore steps mark inside their deferred
-// function (netstore.breakDeferred, netstore.placeDeferred), so the golden
-// shows them after every step that ran in the callback. A scenario runs the
+// where the Defer line is: the netstore step marks inside its deferred
+// function (netstore.placeDeferred), so the golden shows it after every step
+// that ran in the callback. A scenario runs the
 // whole transaction inside the traced call, so deferred work is part of the
 // line. Deferred work of the feature functions (machine.Place, PlaceDrawer,
 // RefillHandLater) has no mark; the outcome reads its effect after the
@@ -172,8 +172,9 @@ func TestPinBlocks(t *testing.T) {
 			tx.Block(pos).(storage.Drawer).Punch(pos, face, tx, p)
 		})
 	}
-	// nodeConfig gives the node at pos a setting; the deferred step of a
-	// break or place forgets it.
+	// nodeConfig gives the node at pos a setting; a placed node forgets it.
+	// A broken node forgets it through the block (blockbroken_test.go), which
+	// the handler alone does not reach: the break scenario keeps it.
 	nodeConfig := func(s *session, p *player.Player, tx *world.Tx) {
 		netstore.Config(s.Session, pos).Filter = []string{"pin"}
 	}
@@ -277,7 +278,7 @@ func TestPinBlocks(t *testing.T) {
 	// reorders the subscribers (TestTierOrder) has other traces.
 	rows := map[string]string{
 		"StartBreak/own":   "expand.guard island.guard tinker.autoTool",
-		"BlockBreak/stone": "expand.guard island.guard storage.front tinker.break farm.break netstore.break achievement.break",
+		"BlockBreak/stone": "expand.guard island.guard storage.front tinker.break farm.break achievement.break",
 		"BlockPlace/dirt":  "expand.guard island.guard machine.place storage.place farm.plant autofill.place netstore.place achievement.place progress.dragonEgg conduit.place",
 	}
 	for name, row := range rows {

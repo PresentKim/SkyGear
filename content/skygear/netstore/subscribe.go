@@ -24,25 +24,15 @@ func subscribeFlush() {
 	})
 }
 
-// A network node breaking drops its network once the block is gone; a placed
-// node forgets the setting a node broken by an explosion left and drops the
-// network after machine.place's deferred set: netstore.place is in the High
-// tier, after the machine is set up (Normal).
+// A node that was broken drops its network through the block itself (the
+// node kinds' Broken, kinds.go). A placed node forgets the setting a node
+// left that went without being broken (another block was set in its place)
+// and drops the network after machine.place's deferred set: netstore.place
+// is in the High tier, after the machine is set up (Normal).
 func subscribeBlocks() {
-	core.BlockBreak.On(core.Normal, "netstore.break", func(e core.BlockBreakEvent) {
-		if b, ok := e.Block.(machine.Machine); ok && IsNode(b.Kind) {
-			// The block goes after this handler: drop the network once it is gone.
-			s, pos := e.S, e.Pos
-			e.Tx.Defer(func(tx *world.Tx) {
-				core.Mark("netstore.breakDeferred")
-				Invalidate(tx, pos)
-				Forget(s, pos)
-			})
-		}
-	})
 	core.BlockPlace.On(core.High, "netstore.place", func(e core.BlockPlaceEvent) {
 		if b, ok := e.Block.(machine.Machine); ok && IsNode(b.Kind) {
-			Forget(e.S, e.Pos) // a node broken by an explosion left its setting
+			Forget(e.S, e.Pos) // a node that went without being broken left its setting
 			// machine.Place sets the block in a deferred call; this one runs after it.
 			pos := e.Pos
 			e.Tx.Defer(func(tx *world.Tx) {
