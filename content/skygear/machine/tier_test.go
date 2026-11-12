@@ -237,3 +237,31 @@ func TestTierLooks(t *testing.T) {
 		t.Fatal("wrong machines show tiers")
 	}
 }
+
+// TestRangeUse: a machine that works on an area spends by the blocks of the
+// area it is set to: its Use for a basic machine's whole area, more for a
+// tier that reaches further, less for a smaller range, and never nothing.
+func TestRangeUse(t *testing.T) {
+	for _, kind := range []string{machine.KindHarvester, machine.KindVacuum, machine.KindFeller} {
+		st := &machine.State{Def: machine.Kinds[kind]}
+		if got := st.UseTotal(); got != st.Def.Use {
+			t.Fatalf("%s: basic uses %d, want %d", kind, got, st.Def.Use)
+		}
+		prev := st.UseTotal()
+		for tier := 1; tier <= machine.MaxTier; tier++ {
+			st.Tier = tier
+			if got := st.UseTotal(); got <= prev {
+				t.Fatalf("%s: tier %d uses %d, not more than %d", kind, tier, got, prev)
+			}
+			prev = st.UseTotal()
+		}
+		st.RangeX, st.RangeZ = 1, 1
+		if got := st.UseTotal(); got >= prev || got < 1 {
+			t.Fatalf("%s: a 3-wide range uses %d, want between 1 and %d", kind, got, prev)
+		}
+		st.Tier, st.RangeY = 0, 1
+		if got := st.UseTotal(); got < 1 {
+			t.Fatalf("%s: the smallest range uses %d, want at least 1", kind, got)
+		}
+	}
+}

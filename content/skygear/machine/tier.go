@@ -94,14 +94,43 @@ func (st *State) EnergyCap() int {
 	return k.EnergyCap * st.spec().Buffer
 }
 
-// useCost is the RE one run of the work takes (rounded up).
+// useCost is the RE one run of the work takes (rounded up). A machine that
+// works on an area spends by the size of the area it is set to instead
+// (rangeUse).
 func (st *State) useCost() int {
 	if st.Def.Use == 0 {
 		return 0
 	}
-	per := 10 * st.Reps()
+	reps := st.Reps()
+	if kind, ok := st.rangeKind(); ok {
+		return (st.rangeUse(kind) + reps - 1) / reps
+	}
+	per := 10 * reps
 	return (st.Def.Use*st.spec().use10 + per - 1) / per
 }
+
+// rangeUse is the RE a tick a machine of kind that works on an area spends:
+// its Use for the whole area of a basic machine, and as much more or less as
+// the area it is set to has more or fewer blocks (at least 1). A bigger tier
+// reaches further and spends more; a smaller range set on the screen spends
+// less.
+func (st *State) rangeUse(kind string) int {
+	base := baseArea(kind).blocks()
+	if base == 0 {
+		return st.Def.Use
+	}
+	return max(1, (st.Def.Use*st.Area(kind).blocks()+base-1)/base)
+}
+
+// baseArea is the area of a basic (tier 0) machine of kind.
+func baseArea(kind string) Area {
+	down, up := rangeHeight(kind)
+	r := tierRanges[kind][0]
+	return Area{X: r, Z: r, Down: down, Up: up}
+}
+
+// blocks is how many blocks the area holds.
+func (a Area) blocks() int { return (2*a.X + 1) * (2*a.Z + 1) * (a.Down + a.Up + 1) }
 
 // useTotal is the RE a tick of work takes.
 func (st *State) UseTotal() int { return st.useCost() * st.Reps() }
