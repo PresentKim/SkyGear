@@ -46,10 +46,12 @@ func subscribeHurt() {
 		}
 		return false
 	})
-	core.Hurt.On(core.Highest, "dimension.fallen", func(e core.HurtEvent) {
+	core.Hurt.Handle(core.Highest, "dimension.fallen", func(e core.HurtEvent) bool {
 		if Fallen(e.S, e.Tx, e.P, *e.Damage) {
-			e.Cancel()
+			e.Cancel() // no hurt for the subscribers after it: the run ended instead
+			return true
 		}
+		return false
 	})
 }
 

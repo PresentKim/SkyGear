@@ -3,7 +3,7 @@ Chat/plain: achievement.chat | cancelled=false
 Command/plain: achievement.command | cancelled=false
 Death/plain: tinker.keepFood dimension.died achievement.death | 
 HeldSlot/plain: achievement.heldSlot | cancelled=false
-Hurt/fallen: dimension.frozen dimension.fallen achievement.hurt | cancelled=true
+Hurt/fallen: dimension.frozen dimension.fallen | cancelled=true
 Hurt/frozen: dimension.frozen | cancelled=true
 Hurt/plain: dimension.frozen dimension.fallen achievement.hurt | cancelled=false
 ItemConsume/plain: autofill.consume achievement.eat | cancelled=false
@@ -16,7 +16,7 @@ ItemPickup/plain: achievement.pickup | cancelled=false
 Jump/elevator: elevator.up achievement.jump | 
 Jump/plain: elevator.up achievement.jump | 
 Move/expanding: expand.hold look.update | cancelled=true
-Move/void: expand.hold island.void achievement.walk look.update | cancelled=true
+Move/void: expand.hold island.void look.update | cancelled=true
 Move/walk: expand.hold island.void achievement.walk look.update | cancelled=false
 PunchAir/plain: achievement.punchAir | cancelled=false
 Respawn/afterDeath: dimension.respawned tinker.restoreFood | food=5

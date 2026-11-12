@@ -17,13 +17,16 @@ func subscribe() {
 }
 
 // A player that falls below the island returns from the void: the last step
-// that may cancel the move, Highest.
+// that may cancel the move, Highest. The cancelled move is no move for the
+// subscribers after it (the walk counter).
 func subscribeVoid() {
-	core.Move.On(core.Highest, "island.void", func(e core.MoveEvent) {
+	core.Move.Handle(core.Highest, "island.void", func(e core.MoveEvent) bool {
 		if e.Pos.Y() < VoidY {
 			e.Cancel()
 			ReturnFromVoid(e.S, e.P, e.Tx)
+			return true
 		}
+		return false
 	})
 }
 

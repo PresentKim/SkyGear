@@ -13,12 +13,11 @@ import (
 	"github.com/presentkim/skygear/platform/instance"
 )
 
-// TestWalkCountsTheMoveIntoTheVoid: the move that takes a player below the
-// island counts the distance of that move, from where the player stood to
-// where it moved, although the island brings the player back in the same
-// event. It counts the same wherever achievement.walk stands relative to
-// island.void: the event carries where the player stood (MoveEvent.From).
-func TestWalkCountsTheMoveIntoTheVoid(t *testing.T) {
+// TestMoveIntoTheVoidIsNotWalked: the move that takes a player below the
+// island is cancelled (the island brings the player back), and a cancelled
+// move is not a walk: the walk counter is not called for it. The next move
+// counts from where the island put the player.
+func TestMoveIntoTheVoidIsNotWalked(t *testing.T) {
 	d := bridgeAccount(t)
 	s := testSession(t)
 	loadAround(s)
@@ -38,11 +37,19 @@ func TestWalkCountsTheMoveIntoTheVoid(t *testing.T) {
 		if !ctx.Cancelled() {
 			t.Fatal("the move into the void was not cancelled")
 		}
-		if got := p.Position(); got.X() != 3.5 || got.Y() != island.VoidReturnY {
-			t.Fatalf("the player was put at %v", got)
+		back := p.Position()
+		if back.X() != 3.5 || back.Y() != island.VoidReturnY {
+			t.Fatalf("the player was put at %v", back)
 		}
+		if got := account.Counter(acc, "walk"); got != 0 {
+			t.Errorf("walk counted %d for the cancelled move into the void, want 0", got)
+		}
+		if got := account.Counter(acc, "void_return"); got != 1 {
+			t.Errorf("void_return counted %d, want 1", got)
+		}
+		s.Handler(p).HandleMove(player.NewEventContext(tx, p), back.Add(mgl64.Vec3{1, 0, 0}), cube.Rotation{})
 		if got := account.Counter(acc, "walk"); got != 1 {
-			t.Errorf("walk counted %d for a move of one block, want 1", got)
+			t.Errorf("walk counted %d after a move of one block from where the island put the player, want 1", got)
 		}
 	})
 }
