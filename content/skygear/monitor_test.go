@@ -12,12 +12,14 @@ import (
 )
 
 // TestMonitorSubscribersDoNotShape: a Monitor subscriber handles the result
-// of an event and neither shapes nor cancels it. The kernel refuses Handle in
-// the Monitor tier (core.TestHandleAtMonitorPanics); this test reads the
-// function literal of every subscriber registered with core.Monitor in a
-// feature package and fails when it calls Cancel or assigns through one of the
+// of an event and neither shapes nor cancels it. This test reads the function
+// literal of every subscriber registered with core.Monitor in a feature
+// package and fails when it calls Cancel or assigns through one of the
 // event's pointers (*e.Drops, *e.XP, *e.Damage, *e.Pos, *e.Pick). It sees the
-// literal only, not what the literal calls.
+// literal only, not what the literal calls. A cancel anywhere below the
+// literal is caught when it happens: while a test traces (every pin
+// scenario), the kernel's Emit panics when a Monitor subscriber cancelled the
+// event (core.TestMonitorCancelPanicsWhileTraced).
 func TestMonitorSubscribersDoNotShape(t *testing.T) {
 	files, err := filepath.Glob(filepath.Join("*", "*.go"))
 	if err != nil {
@@ -35,7 +37,7 @@ func TestMonitorSubscribersDoNotShape(t *testing.T) {
 		}
 		ast.Inspect(f, func(n ast.Node) bool {
 			call, ok := n.(*ast.CallExpr)
-			if !ok || len(call.Args) != 3 {
+			if !ok || (len(call.Args) != 3 && len(call.Args) != 4) {
 				return true
 			}
 			if tier, ok := call.Args[0].(*ast.SelectorExpr); !ok || tier.Sel.Name != "Monitor" {

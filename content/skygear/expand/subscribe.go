@@ -26,12 +26,10 @@ func subscribe() {
 // is not cancelled, and the subscribers that have no business with a player
 // in a mode say so themselves (core.Takeover).
 func subscribeHold() {
-	core.Move.Handle(core.Lowest, "expand.hold", func(e core.MoveEvent) bool {
+	core.Move.On(core.Lowest, "expand.hold", func(e core.MoveEvent) {
 		if _, expanding := Of(e.S, e.P); expanding {
 			e.Cancel()
-			return true
 		}
-		return false
 	})
 	core.Sneak.On(core.Normal, "expand.show", func(e core.PlayerEvent) {
 		if _, ok := Of(e.S, e.P); ok {
@@ -54,41 +52,38 @@ func subscribeLeave() {
 // the server resend the real blocks, so the map chunk is shown again. The mode
 // refuses before anything else looks at the event: Lowest.
 func subscribeGuard() {
-	core.StartBreak.Handle(core.Lowest, "expand.guard", func(e core.StartBreakEvent) bool {
-		return guard(e.S, e.Ctx, e.Pos)
+	core.StartBreak.On(core.Lowest, "expand.guard", func(e core.StartBreakEvent) {
+		guard(e.Actor, e.Pos)
 	})
-	core.BlockBreak.Handle(core.Lowest, "expand.guard", func(e core.BlockBreakEvent) bool {
-		return guard(e.S, e.Ctx, e.Pos)
+	core.BlockBreak.On(core.Lowest, "expand.guard", func(e core.BlockBreakEvent) {
+		guard(e.Actor, e.Pos)
 	})
-	core.BlockPlace.Handle(core.Lowest, "expand.guard", func(e core.BlockPlaceEvent) bool {
-		return guard(e.S, e.Ctx, e.Pos)
+	core.BlockPlace.On(core.Lowest, "expand.guard", func(e core.BlockPlaceEvent) {
+		guard(e.Actor, e.Pos)
 	})
 }
 
-// guard cancels the action at pos and reports true for a player in island
-// expansion mode.
-func guard(s *core.Session, ctx *player.Context, pos cube.Pos) bool {
-	if _, expanding := Of(s, ctx.Player()); expanding {
-		ctx.Cancel()
-		RestoreMapNear(s, ctx.Player(), pos)
-		return true
+// guard cancels the action at pos for a player in island expansion mode and
+// shows the map chunk there again.
+func guard(a core.Actor, pos cube.Pos) {
+	if _, expanding := Of(a.S, a.P); expanding {
+		a.Cancel()
+		RestoreMapNear(a.S, a.P, pos)
 	}
-	return false
 }
 
 // The block clicked and the block next to its face are guarded alike. An
 // item that opens its screen wherever it is used (the menu item, the dimension
 // stone) keeps its click: its own step takes it. The side is refused last,
-// when no step took the click: Highest.
+// when no subscriber cancelled the click: Highest.
 func subscribeSide() {
-	core.UseOnBlock.Handle(core.Lowest, "expand.guard", func(e core.UseOnBlockEvent) bool {
-		if sgitem.OpensScreen(e.Held) {
-			return false
+	core.UseOnBlock.On(core.Lowest, "expand.guard", func(e core.UseOnBlockEvent) {
+		if !sgitem.OpensScreen(e.Held) {
+			guard(e.Actor, e.Pos)
 		}
-		return guard(e.S, e.Ctx, e.Pos)
 	})
-	core.UseOnBlock.Handle(core.Highest, "expand.guardSide", func(e core.UseOnBlockEvent) bool {
-		return guard(e.S, e.Ctx, e.Pos.Side(e.Face))
+	core.UseOnBlock.On(core.Highest, "expand.guardSide", func(e core.UseOnBlockEvent) {
+		guard(e.Actor, e.Pos.Side(e.Face))
 	})
 }
 

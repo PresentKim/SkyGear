@@ -23,8 +23,8 @@ func (l Lifecycle) Join(p *player.Player, first bool) {
 
 // Leave emits Leave, then clears the shapes on the player's client and drops
 // the player's Players entries (Session.Leave). Both come after every
-// subscriber, whatever its tier and whether or not one cancelled the event: a
-// subscriber still finds the player's entries, and what it drew is cleared.
+// subscriber, whatever its tier: a subscriber still finds the player's
+// entries, and what it drew is cleared.
 func (l Lifecycle) Leave(p *player.Player) {
 	Leave.Emit(Presence{S: l.Session, P: p, Tx: p.Tx()})
 	Mark("core.shapes")

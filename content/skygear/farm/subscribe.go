@@ -100,18 +100,14 @@ func subscribeBlocks() {
 // harvests, and places nothing. What the block does with a click comes after
 // what the held item does with it (Normal: a stick, the fairy's items): High.
 func subscribeUse() {
-	core.UseOnBlock.Handle(core.High, "farm.composter", func(e core.UseOnBlockEvent) bool {
+	core.UseOnBlock.On(core.High, "farm.composter", func(e core.UseOnBlockEvent) {
 		if !e.P.Sneaking() && UseComposter(e.S, e.P, e.Tx, e.Pos, e.Held) {
 			e.Cancel()
-			return true
 		}
-		return false
 	})
-	core.UseOnBlock.Handle(core.High, "farm.crop", func(e core.UseOnBlockEvent) bool {
+	core.UseOnBlock.On(core.High, "farm.crop", func(e core.UseOnBlockEvent) {
 		if !e.P.Sneaking() && UseCrop(e.S, e.P, e.Tx, e.Pos) {
 			e.Cancel()
-			return true
 		}
-		return false
 	})
 }

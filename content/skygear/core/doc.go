@@ -12,17 +12,20 @@
 //     document per save (the "skygear.state" key of the save's state), so
 //     each part owns some of its fields and a field belongs to one part only.
 //
-// Hooks are how a feature reacts to the server. A Hook is a typed event with
+// Hooks are how a feature reacts to the server. A hook is a typed event with
 // subscribers in six tiers (Priority: Lowest to Monitor), each tier with one
-// role; inside a tier no subscriber depends on its place. On never cancels
-// the event for the subscribers that follow, Handle does by returning true,
-// and Always also receives an event that was cancelled so. PlayerHandler and
-// WorldHandler are the Dragonfly handlers that emit the player and world
-// hooks, and Lifecycle makes the session calls of the instance (join, leave,
-// new day, every second, fast, autosave, close) emit theirs. The events carry
-// the arguments Dragonfly passed, including its pointers, and an Actor to
-// cancel the event in Dragonfly, which is independent of cancelling it for
-// the subscribers.
+// role; the subscribers of one tier have no order among themselves. No
+// subscriber can stop the others: every subscriber of a Hook is called. A
+// CancelHook is the hook of an event that can be cancelled (it embeds Actor):
+// a subscriber cancels it with e.Cancel(), which keeps the action from
+// happening in Dragonfly, and from then on only the subscribers registered
+// with the HandleCancelled option are called. So a subscriber acts by its own
+// conditions, and cancels only when the action or the later subscribers must
+// not happen. PlayerHandler and WorldHandler are the Dragonfly handlers that
+// emit the player and world hooks, and Lifecycle makes the session calls of
+// the instance (join, leave, new day, every second, fast, autosave, close)
+// emit theirs. The events carry the arguments Dragonfly passed, including its
+// pointers.
 //
 // A Feature is what a feature package hands to the game: its name, entity
 // types, settings, item entry edit, creative items, commands, a Setup that

@@ -3,7 +3,6 @@ package island
 import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
-	"github.com/df-mc/dragonfly/server/player"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/core"
 )
@@ -18,15 +17,13 @@ func subscribe() {
 
 // A player that falls below the island returns from the void: the last step
 // that may cancel the move, Highest. The cancelled move is no move for the
-// subscribers after it (the walk counter).
+// subscribers after it (the walk counter is not called).
 func subscribeVoid() {
-	core.Move.Handle(core.Highest, "island.void", func(e core.MoveEvent) bool {
+	core.Move.On(core.Highest, "island.void", func(e core.MoveEvent) {
 		if e.Pos.Y() < VoidY {
 			e.Cancel()
 			ReturnFromVoid(e.S, e.P, e.Tx)
-			return true
 		}
-		return false
 	})
 }
 
@@ -61,38 +58,37 @@ func subscribeLost() {
 // the modes that hold a player (Lowest) and before any step works on the
 // block: Low.
 func subscribeGuard() {
-	core.StartBreak.Handle(core.Low, "island.guard", func(e core.StartBreakEvent) bool {
-		return guard(e.S, e.Ctx, e.Pos)
+	core.StartBreak.On(core.Low, "island.guard", func(e core.StartBreakEvent) {
+		guard(e.Actor, e.Pos)
 	})
-	core.BlockBreak.Handle(core.Low, "island.guard", func(e core.BlockBreakEvent) bool {
-		return guard(e.S, e.Ctx, e.Pos)
+	core.BlockBreak.On(core.Low, "island.guard", func(e core.BlockBreakEvent) {
+		guard(e.Actor, e.Pos)
 	})
-	core.BlockPlace.Handle(core.Low, "island.guard", func(e core.BlockPlaceEvent) bool {
-		return guard(e.S, e.Ctx, e.Pos)
+	core.BlockPlace.On(core.Low, "island.guard", func(e core.BlockPlaceEvent) {
+		guard(e.Actor, e.Pos)
 	})
 }
 
-// guard reports whether the action at pos is refused because pos is not the
-// island's to build on; it cancels the action then.
-func guard(s *core.Session, ctx *player.Context, pos cube.Pos) bool {
-	if CanBuild(s, pos) {
-		return false
+// guard cancels the action at pos when pos is not the island's to build on,
+// and tells the player so.
+func guard(a core.Actor, pos cube.Pos) {
+	if CanBuild(a.S, pos) {
+		return
 	}
-	ctx.Cancel()
+	a.Cancel()
 	if core.InArena(pos.Vec3()) {
-		return true // the hunting ground is no one's to build on
+		return // the hunting ground is no one's to build on
 	}
-	ctx.Player().SendTip(i18n.T(i18n.Default, "island.outside"))
-	return true
+	a.P.SendTip(i18n.T(i18n.Default, "island.outside"))
 }
 
 // The block clicked and the block next to its face are guarded alike. The side
-// is refused last, when no step took the click: Highest.
+// is refused last, when no subscriber cancelled the click: Highest.
 func subscribeSide() {
-	core.UseOnBlock.Handle(core.Low, "island.guard", func(e core.UseOnBlockEvent) bool {
-		return guard(e.S, e.Ctx, e.Pos)
+	core.UseOnBlock.On(core.Low, "island.guard", func(e core.UseOnBlockEvent) {
+		guard(e.Actor, e.Pos)
 	})
-	core.UseOnBlock.Handle(core.Highest, "island.guardSide", func(e core.UseOnBlockEvent) bool {
-		return guard(e.S, e.Ctx, e.Pos.Side(e.Face))
+	core.UseOnBlock.On(core.Highest, "island.guardSide", func(e core.UseOnBlockEvent) {
+		guard(e.Actor, e.Pos.Side(e.Face))
 	})
 }

@@ -15,34 +15,30 @@ import (
 	"testing"
 
 	"github.com/presentkim/skygear/content/skygear/core"
-	"github.com/presentkim/skygear/content/skygear/core/coretest"
 )
 
 // TestPinOrder compares the kernel's subscriptions with
 // testdata/pin/order.golden: one line "<Hook> <TIER> <name>" per subscriber,
-// with " always" after the name of a subscriber that also receives a
-// cancelled event (Hook.Always), hooks in declaration order, each hook's
-// subscribers in the order they run. It names no feature, so it does not
-// change when a step moves to its feature.
+// with " handleCancelled" after the name of a subscriber that also receives
+// a cancelled event (core.HandleCancelled), hooks in declaration order, each
+// hook's tiers in order. The subscribers of one tier have no order: their
+// lines are sorted by name, in the file and in the comparison. It names no
+// feature, so it does not change when a step moves to its feature.
 //
 // Re-record it (SKYGEAR_GOLDEN=update) only when a step is added, removed or
-// moved to another tier on purpose. In a run that reorders the subscribers
-// inside their tiers (TestTierOrder) the lines of one tier of one hook are
-// compared as a set.
+// moved to another tier on purpose.
 func TestPinOrder(t *testing.T) {
 	var lines []string
 	for _, s := range core.Subscriptions() {
 		ln := fmt.Sprintf("%s %s %s", s.Hook, s.Tier, s.Name)
-		if s.Always {
-			ln += " always"
+		if s.HandleCancelled {
+			ln += " handleCancelled"
 		}
 		lines = append(lines, ln)
 	}
+	sortTiers(lines)
 	const file = "testdata/pin/order.golden"
 	if os.Getenv("SKYGEAR_GOLDEN") == "update" {
-		if hookOrder != "" {
-			t.Fatal("record order.golden in the order of registration, without " + coretest.HookOrderEnv)
-		}
 		if err := os.WriteFile(file, []byte(strings.Join(lines, "\n")+"\n"), 0o644); err != nil {
 			t.Fatal(err)
 		}
@@ -53,11 +49,6 @@ func TestPinOrder(t *testing.T) {
 		t.Fatal(err)
 	}
 	wl := strings.Split(strings.TrimSuffix(string(raw), "\n"), "\n")
-	if hookOrder != "" {
-		// The tiers stay in order; inside "<Hook> <TIER>" the order is free.
-		sortTiers(wl)
-		sortTiers(lines)
-	}
 	for i := 0; i < len(wl) || i < len(lines); i++ {
 		var w, g string
 		if i < len(wl) {
@@ -125,7 +116,7 @@ func rootSources(t *testing.T) map[string]*ast.File {
 }
 
 // TestRootSubscribesToNothing: no non-test file of the root package calls a
-// hook's On, Handle or Always, calls core.Mark, declares a Handle* method or is named
+// hook's On, calls core.Mark, declares a Handle* method or is named
 // legacy_*.go. A step belongs in the Setup of the feature that owns it.
 func TestRootSubscribesToNothing(t *testing.T) {
 	const hint = "a step belongs in the Setup of its feature package (content/skygear/<feature>/feature.go); the root package only lists features and holds platform glue"
@@ -147,8 +138,8 @@ func TestRootSubscribesToNothing(t *testing.T) {
 				if id, ok := sel.X.(*ast.Ident); ok && id.Name == "core" && sel.Sel.Name == "Mark" {
 					t.Errorf("%s: core.Mark call: %s", name, hint)
 				}
-				if (sel.Sel.Name == "On" || sel.Sel.Name == "Handle" || sel.Sel.Name == "Always") && len(n.Args) == 3 {
-					t.Errorf("%s: %s(tier, name, f) subscribes to a hook: %s", name, sel.Sel.Name, hint)
+				if sel.Sel.Name == "On" && (len(n.Args) == 3 || len(n.Args) == 4) {
+					t.Errorf("%s: On(tier, name, f) subscribes to a hook: %s", name, hint)
 				}
 			}
 			return true

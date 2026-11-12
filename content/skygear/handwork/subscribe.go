@@ -12,12 +12,10 @@ func subscribe() {
 // is recorded when the click went through (nothing cancelled it): the record
 // handles the result, Monitor.
 func subscribeUse() {
-	core.UseOnBlock.Handle(core.Normal, "handwork.stick", func(e core.UseOnBlockEvent) bool {
+	core.UseOnBlock.On(core.Normal, "handwork.stick", func(e core.UseOnBlockEvent) {
 		if UseStickOnChest(e.S, e.P, e.Tx, e.Pos, e.Held) || UseStick(e.S, e.P, e.Tx, e.Pos, e.Face, e.Held) {
 			e.Cancel()
-			return true
 		}
-		return false
 	})
 	core.UseOnBlock.On(core.Normal, "handwork.gather", func(e core.UseOnBlockEvent) {
 		StripFiber(e.S, e.P, e.Tx, e.Pos, e.Face, e.Held)

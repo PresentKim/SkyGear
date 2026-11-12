@@ -53,11 +53,9 @@ func subscribeBlocks() {
 // behind it is asked (Activate) and before the held item is used: a tier kit
 // or a fairy hourglass on a plate opens the settings.
 func subscribePlate() {
-	core.UseOnBlock.Handle(core.Normal, "conduit.plate", func(e core.UseOnBlockEvent) bool {
+	core.UseOnBlock.On(core.Normal, "conduit.plate", func(e core.UseOnBlockEvent) {
 		if !e.P.Sneaking() && UsePlate(e.S, e.P, e.Tx, e.Pos, e.Face, e.Click, e.Held) {
 			e.Cancel()
-			return true
 		}
-		return false
 	})
 }

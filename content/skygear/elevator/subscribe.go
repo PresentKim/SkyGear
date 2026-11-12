@@ -10,7 +10,7 @@ func subscribe() {
 
 // A jump on an elevator rides it up.
 func subscribeJump() {
-	core.Jump.On(core.Normal, "elevator.up", func(e core.PlayerEvent) {
+	core.Jump.On(core.Normal, "elevator.up", func(e core.NoticeEvent) {
 		Up(e.S, e.P, e.Tx)
 	})
 }

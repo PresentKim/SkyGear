@@ -8,37 +8,50 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 )
 
-// Actor is what every player event carries: the session, the player, the
-// player's transaction and the Dragonfly context of the event.
+// Who is the session, the player and the player's transaction. It is all a
+// player event carries that Dragonfly does not let a handler cancel (Jump,
+// Death, Respawn): such an event has no Cancel.
+type Who struct {
+	S  *Session
+	P  *player.Player
+	Tx *world.Tx
+}
+
+// Actor is what a player event that can be cancelled carries: Who and the
+// Dragonfly context of the event.
 //
-// Ctx is nil for the events Dragonfly cannot cancel (Jump, Death, Respawn);
-// Cancel then does nothing.
-//
-// Cancelling has two sides. Cancel is Dragonfly's: the action the player
-// asked for does not happen, and the subscribers go on (Cancelled tells). The
-// hook's is a Handle subscriber returning true: the event is cancelled for
-// the subscribers that follow, which do not run unless they were registered
-// with Always, and Dragonfly's action is not cancelled by it. A subscriber
-// does either, both or neither.
+// Cancel cancels the event: the action the player asked for does not happen
+// in Dragonfly, and the subscribers that follow are not called for it, except
+// those registered with the HandleCancelled option (CancelHook). Cancelled
+// tells the state. A subscriber cancels only when the action or the later
+// subscribers must not happen; otherwise it does its work and leaves the
+// event alone.
 type Actor struct {
-	S   *Session
-	P   *player.Player
-	Tx  *world.Tx
+	Who
 	Ctx *player.Context
 }
 
-// Cancel cancels the event in Dragonfly. It does not keep the later
-// subscribers from running.
+// Cancel cancels the event. It does nothing for an event built without a
+// context (a test).
 func (a Actor) Cancel() {
 	if a.Ctx != nil {
 		a.Ctx.Cancel()
 	}
 }
 
-// Cancelled reports whether the event is cancelled in Dragonfly. It is false
-// for the events Dragonfly cannot cancel.
+// Cancelled reports whether the event is cancelled: by a subscriber that ran
+// before, or by Dragonfly.
 func (a Actor) Cancelled() bool {
 	return a.Ctx != nil && a.Ctx.Cancelled()
+}
+
+// cancelState is where the event's cancel state is kept, nil for an event
+// built without a context.
+func (a Actor) cancelState() *world.Context {
+	if a.Ctx == nil {
+		return nil
+	}
+	return a.Ctx.Context
 }
 
 // Pointer fields (Drops, XP, Damage, Pos, Pick) are the pointers Dragonfly
@@ -108,10 +121,16 @@ type MoveEvent struct {
 	Rot  cube.Rotation
 }
 
-// PlayerEvent is an event that has no arguments of its own (Sneak, Sprint,
-// Jump, Death, PunchAir, Chat, BlockPick, HeldSlot, Command).
+// PlayerEvent is a cancellable event that has no arguments of its own (Sneak,
+// Sprint, PunchAir, Chat, BlockPick, HeldSlot, Command).
 type PlayerEvent struct {
 	Actor
+}
+
+// NoticeEvent is a player event Dragonfly only gives notice of (Jump, Death):
+// it cannot be cancelled.
+type NoticeEvent struct {
+	Who
 }
 
 // ItemEvent is a player consuming, picking up or dropping Item. For ItemPickup
@@ -136,9 +155,9 @@ type HurtEvent struct {
 	Damage *float64
 }
 
-// RespawnEvent is a player respawning at *Pos.
+// RespawnEvent is a player respawning at *Pos. It cannot be cancelled.
 type RespawnEvent struct {
-	Actor
+	Who
 	Pos *mgl64.Vec3
 }
 
@@ -182,35 +201,37 @@ type DespawnEvent struct {
 }
 
 // Player hooks, one per method of PlayerHandler. Their subscribers run tier
-// by tier; see Hook for cancelling.
+// by tier. A CancelHook is an event Dragonfly lets a handler cancel; Jump,
+// Death and Respawn are not.
 var (
-	StartBreak   = NewHook[StartBreakEvent]("StartBreak")
-	BlockBreak   = NewHook[BlockBreakEvent]("BlockBreak")
-	BlockPlace   = NewHook[BlockPlaceEvent]("BlockPlace")
-	UseOnBlock   = NewHook[UseOnBlockEvent]("UseOnBlock")
-	UseOnEntity  = NewHook[EntityEvent]("UseOnEntity")
-	AttackEntity = NewHook[EntityEvent]("AttackEntity")
-	Use          = NewHook[UseEvent]("Use")
-	Move         = NewHook[MoveEvent]("Move")
+	StartBreak   = NewCancelHook[StartBreakEvent]("StartBreak")
+	BlockBreak   = NewCancelHook[BlockBreakEvent]("BlockBreak")
+	BlockPlace   = NewCancelHook[BlockPlaceEvent]("BlockPlace")
+	UseOnBlock   = NewCancelHook[UseOnBlockEvent]("UseOnBlock")
+	UseOnEntity  = NewCancelHook[EntityEvent]("UseOnEntity")
+	AttackEntity = NewCancelHook[EntityEvent]("AttackEntity")
+	Use          = NewCancelHook[UseEvent]("Use")
+	Move         = NewCancelHook[MoveEvent]("Move")
 	// Sneak and Sprint are emitted when sneaking or sprinting starts only.
-	Sneak       = NewHook[PlayerEvent]("Sneak")
-	Sprint      = NewHook[PlayerEvent]("Sprint")
-	Jump        = NewHook[PlayerEvent]("Jump")
-	ItemDamage  = NewHook[ItemDamageEvent]("ItemDamage")
-	ItemConsume = NewHook[ItemEvent]("ItemConsume")
-	ItemPickup  = NewHook[ItemEvent]("ItemPickup")
-	ItemDrop    = NewHook[ItemEvent]("ItemDrop")
-	Death       = NewHook[PlayerEvent]("Death")
+	Sneak       = NewCancelHook[PlayerEvent]("Sneak")
+	Sprint      = NewCancelHook[PlayerEvent]("Sprint")
+	Jump        = NewHook[NoticeEvent]("Jump")
+	ItemDamage  = NewCancelHook[ItemDamageEvent]("ItemDamage")
+	ItemConsume = NewCancelHook[ItemEvent]("ItemConsume")
+	ItemPickup  = NewCancelHook[ItemEvent]("ItemPickup")
+	ItemDrop    = NewCancelHook[ItemEvent]("ItemDrop")
+	Death       = NewHook[NoticeEvent]("Death")
 	Respawn     = NewHook[RespawnEvent]("Respawn")
-	Hurt        = NewHook[HurtEvent]("Hurt")
-	PunchAir    = NewHook[PlayerEvent]("PunchAir")
-	Chat        = NewHook[PlayerEvent]("Chat")
-	BlockPick   = NewHook[PlayerEvent]("BlockPick")
-	HeldSlot    = NewHook[PlayerEvent]("HeldSlot")
-	Command     = NewHook[PlayerEvent]("Command")
+	Hurt        = NewCancelHook[HurtEvent]("Hurt")
+	PunchAir    = NewCancelHook[PlayerEvent]("PunchAir")
+	Chat        = NewCancelHook[PlayerEvent]("Chat")
+	BlockPick   = NewCancelHook[PlayerEvent]("BlockPick")
+	HeldSlot    = NewCancelHook[PlayerEvent]("HeldSlot")
+	Command     = NewCancelHook[PlayerEvent]("Command")
 )
 
-// Session and world hooks, emitted by Lifecycle and WorldHandler.
+// Session and world hooks, emitted by Lifecycle and WorldHandler. None of
+// their events can be cancelled: every subscriber is called.
 var (
 	// Load is emitted before the save's first transaction, Start inside it
 	// (Tx is nil for Load).

@@ -35,7 +35,7 @@ func subscribeFood() {
 			*e.Damage = 0
 		}
 	})
-	core.Death.On(core.Normal, "tinker.keepFood", func(e core.PlayerEvent) {
+	core.Death.On(core.Normal, "tinker.keepFood", func(e core.NoticeEvent) {
 		keptFood.Of(e.S)[e.P.H()] = e.P.Food()
 	})
 	core.Respawn.On(core.Normal, "tinker.restoreFood", func(e core.RespawnEvent) {

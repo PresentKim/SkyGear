@@ -30,12 +30,10 @@ func subscribeJoin() {
 // conduit.plate never act on the same click. A visiting fairy gives its gift
 // to a player who touches it, whichever way.
 func subscribeTouch() {
-	core.UseOnBlock.Handle(core.Normal, "fairy.time", func(e core.UseOnBlockEvent) bool {
+	core.UseOnBlock.On(core.Normal, "fairy.time", func(e core.UseOnBlockEvent) {
 		if UseFairyTime(e.S, e.P, e.Tx, e.Pos, e.Held) {
 			e.Cancel()
-			return true
 		}
-		return false
 	})
 	core.UseOnEntity.On(core.Normal, "fairy.touch", touchFairy)
 	core.AttackEntity.On(core.Normal, "fairy.touch", touchFairy)

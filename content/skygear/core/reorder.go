@@ -2,8 +2,8 @@ package core
 
 import "fmt"
 
-// Reorder is a seam for the tests that prove no subscriber depends on its
-// place inside its tier. It changes the order the subscribers of every hook
+// Reorder is a seam for the tests that prove the subscribers of one tier
+// have no order. It changes the order the subscribers of every hook
 // run in: order is called once per hook that has subscribers, with the hook's
 // name and its subscribers in the order they run, and returns the new order
 // as indexes into subs. The new order may only move a subscriber inside its
@@ -44,5 +44,4 @@ func (h *Hook[E]) reorder(order func(hook string, subs []Subscription) []int) {
 		}
 	}
 	h.steps = steps
-	h.index()
 }

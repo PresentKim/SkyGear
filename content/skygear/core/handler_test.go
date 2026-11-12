@@ -70,6 +70,7 @@ type row struct {
 	nop   func()
 }
 
+// rowOf makes the row of the hook h; for a CancelHook h is the Hook inside it.
 func rowOf[E any](name string, h *Hook[E], call func(x *fix), check func(t *testing.T, x *fix, e E)) row {
 	return row{
 		name: name,
@@ -103,16 +104,17 @@ func sameStack(t *testing.T, what string, got, want item.Stack) {
 	}
 }
 
-func actorIs(t *testing.T, x *fix, a Actor, ctx bool) {
+func whoIs(t *testing.T, x *fix, w Who) {
 	t.Helper()
-	is(t, "S", a.S, x.s)
-	is(t, "P", a.P, x.p)
-	is(t, "Tx", a.Tx, x.tx)
-	if ctx {
-		is(t, "Ctx", a.Ctx, x.ctx)
-	} else {
-		is(t, "Ctx", a.Ctx, (*player.Context)(nil))
-	}
+	is(t, "S", w.S, x.s)
+	is(t, "P", w.P, x.p)
+	is(t, "Tx", w.Tx, x.tx)
+}
+
+func actorIs(t *testing.T, x *fix, a Actor) {
+	t.Helper()
+	whoIs(t, x, a.Who)
+	is(t, "Ctx", a.Ctx, x.ctx)
 }
 
 var (
@@ -133,106 +135,106 @@ func rows() []row {
 	respawn := mgl64.Vec3{9, 9, 9}
 	picked := stack
 	return []row{
-		rowOf("StartBreak", StartBreak, func(x *fix) { x.h.HandleStartBreak(x.ctx, pos) },
-			func(t *testing.T, x *fix, e StartBreakEvent) { actorIs(t, x, e.Actor, true); is(t, "Pos", e.Pos, pos) }),
-		rowOf("BlockBreak", BlockBreak, func(x *fix) { x.h.HandleBlockBreak(x.ctx, pos, &drops, &xp) },
+		rowOf("StartBreak", &StartBreak.hook, func(x *fix) { x.h.HandleStartBreak(x.ctx, pos) },
+			func(t *testing.T, x *fix, e StartBreakEvent) { actorIs(t, x, e.Actor); is(t, "Pos", e.Pos, pos) }),
+		rowOf("BlockBreak", &BlockBreak.hook, func(x *fix) { x.h.HandleBlockBreak(x.ctx, pos, &drops, &xp) },
 			func(t *testing.T, x *fix, e BlockBreakEvent) {
-				actorIs(t, x, e.Actor, true)
+				actorIs(t, x, e.Actor)
 				is(t, "Pos", e.Pos, pos)
 				is(t, "Block", e.Block, x.tx.Block(pos))
 				sameStack(t, "Held", e.Held, stack)
 				is(t, "Drops", e.Drops, &drops)
 				is(t, "XP", e.XP, &xp)
 			}),
-		rowOf("BlockPlace", BlockPlace, func(x *fix) { x.h.HandleBlockPlace(x.ctx, pos, stone) },
+		rowOf("BlockPlace", &BlockPlace.hook, func(x *fix) { x.h.HandleBlockPlace(x.ctx, pos, stone) },
 			func(t *testing.T, x *fix, e BlockPlaceEvent) {
-				actorIs(t, x, e.Actor, true)
+				actorIs(t, x, e.Actor)
 				is(t, "Pos", e.Pos, pos)
 				is(t, "Block", e.Block, stone)
 				sameStack(t, "Held", e.Held, stack)
 			}),
-		rowOf("UseOnBlock", UseOnBlock, func(x *fix) { x.h.HandleItemUseOnBlock(x.ctx, pos, cube.FaceEast, vec) },
+		rowOf("UseOnBlock", &UseOnBlock.hook, func(x *fix) { x.h.HandleItemUseOnBlock(x.ctx, pos, cube.FaceEast, vec) },
 			func(t *testing.T, x *fix, e UseOnBlockEvent) {
-				actorIs(t, x, e.Actor, true)
+				actorIs(t, x, e.Actor)
 				is(t, "Pos", e.Pos, pos)
 				is(t, "Face", e.Face, cube.FaceEast)
 				is(t, "Click", e.Click, vec)
 				sameStack(t, "Held", e.Held, stack)
 			}),
-		rowOf("UseOnEntity", UseOnEntity, func(x *fix) { x.h.HandleItemUseOnEntity(x.ctx, x.p) },
+		rowOf("UseOnEntity", &UseOnEntity.hook, func(x *fix) { x.h.HandleItemUseOnEntity(x.ctx, x.p) },
 			func(t *testing.T, x *fix, e EntityEvent) {
-				actorIs(t, x, e.Actor, true)
+				actorIs(t, x, e.Actor)
 				is[world.Entity](t, "Target", e.Target, x.p)
 			}),
-		rowOf("AttackEntity", AttackEntity, func(x *fix) { x.h.HandleAttackEntity(x.ctx, x.p, nil, nil, nil) },
+		rowOf("AttackEntity", &AttackEntity.hook, func(x *fix) { x.h.HandleAttackEntity(x.ctx, x.p, nil, nil, nil) },
 			func(t *testing.T, x *fix, e EntityEvent) {
-				actorIs(t, x, e.Actor, true)
+				actorIs(t, x, e.Actor)
 				is[world.Entity](t, "Target", e.Target, x.p)
 			}),
-		rowOf("Use", Use, func(x *fix) { x.h.HandleItemUse(x.ctx) },
+		rowOf("Use", &Use.hook, func(x *fix) { x.h.HandleItemUse(x.ctx) },
 			func(t *testing.T, x *fix, e UseEvent) {
-				actorIs(t, x, e.Actor, true)
+				actorIs(t, x, e.Actor)
 				sameStack(t, "Held", e.Held, stack)
 				sameStack(t, "Off", e.Off, off)
 			}),
-		rowOf("Move", Move, func(x *fix) { x.h.HandleMove(x.ctx, vec, rot) },
+		rowOf("Move", &Move.hook, func(x *fix) { x.h.HandleMove(x.ctx, vec, rot) },
 			func(t *testing.T, x *fix, e MoveEvent) {
-				actorIs(t, x, e.Actor, true)
+				actorIs(t, x, e.Actor)
 				is(t, "From", e.From, x.p.Position())
 				is(t, "Pos", e.Pos, vec)
 				is(t, "Rot", e.Rot, rot)
 			}),
-		rowOf("Sneak", Sneak, func(x *fix) { x.h.HandleToggleSneak(x.ctx, true) },
-			func(t *testing.T, x *fix, e PlayerEvent) { actorIs(t, x, e.Actor, true) }),
-		rowOf("Sprint", Sprint, func(x *fix) { x.h.HandleToggleSprint(x.ctx, true) },
-			func(t *testing.T, x *fix, e PlayerEvent) { actorIs(t, x, e.Actor, true) }),
+		rowOf("Sneak", &Sneak.hook, func(x *fix) { x.h.HandleToggleSneak(x.ctx, true) },
+			func(t *testing.T, x *fix, e PlayerEvent) { actorIs(t, x, e.Actor) }),
+		rowOf("Sprint", &Sprint.hook, func(x *fix) { x.h.HandleToggleSprint(x.ctx, true) },
+			func(t *testing.T, x *fix, e PlayerEvent) { actorIs(t, x, e.Actor) }),
 		rowOf("Jump", Jump, func(x *fix) { x.h.HandleJump(x.p) },
-			func(t *testing.T, x *fix, e PlayerEvent) { actorIs(t, x, e.Actor, false) }),
-		rowOf("ItemDamage", ItemDamage, func(x *fix) { x.h.HandleItemDamage(x.ctx, stack, &dmg) },
+			func(t *testing.T, x *fix, e NoticeEvent) { whoIs(t, x, e.Who) }),
+		rowOf("ItemDamage", &ItemDamage.hook, func(x *fix) { x.h.HandleItemDamage(x.ctx, stack, &dmg) },
 			func(t *testing.T, x *fix, e ItemDamageEvent) {
-				actorIs(t, x, e.Actor, true)
+				actorIs(t, x, e.Actor)
 				sameStack(t, "Item", e.Item, stack)
 				is(t, "Damage", e.Damage, &dmg)
 			}),
-		rowOf("ItemConsume", ItemConsume, func(x *fix) { x.h.HandleItemConsume(x.ctx, stack) },
+		rowOf("ItemConsume", &ItemConsume.hook, func(x *fix) { x.h.HandleItemConsume(x.ctx, stack) },
 			func(t *testing.T, x *fix, e ItemEvent) {
-				actorIs(t, x, e.Actor, true)
+				actorIs(t, x, e.Actor)
 				sameStack(t, "Item", e.Item, stack)
 				is(t, "Pick", e.Pick, (*item.Stack)(nil))
 			}),
-		rowOf("ItemPickup", ItemPickup, func(x *fix) { x.h.HandleItemPickup(x.ctx, &picked) },
+		rowOf("ItemPickup", &ItemPickup.hook, func(x *fix) { x.h.HandleItemPickup(x.ctx, &picked) },
 			func(t *testing.T, x *fix, e ItemEvent) {
-				actorIs(t, x, e.Actor, true)
+				actorIs(t, x, e.Actor)
 				sameStack(t, "Item", e.Item, stack)
 				is(t, "Pick", e.Pick, &picked)
 			}),
-		rowOf("ItemDrop", ItemDrop, func(x *fix) { x.h.HandleItemDrop(x.ctx, stack) },
+		rowOf("ItemDrop", &ItemDrop.hook, func(x *fix) { x.h.HandleItemDrop(x.ctx, stack) },
 			func(t *testing.T, x *fix, e ItemEvent) {
-				actorIs(t, x, e.Actor, true)
+				actorIs(t, x, e.Actor)
 				sameStack(t, "Item", e.Item, stack)
 			}),
 		rowOf("Death", Death, func(x *fix) { x.h.HandleDeath(x.p, nil, nil) },
-			func(t *testing.T, x *fix, e PlayerEvent) { actorIs(t, x, e.Actor, false) }),
+			func(t *testing.T, x *fix, e NoticeEvent) { whoIs(t, x, e.Who) }),
 		rowOf("Respawn", Respawn, func(x *fix) { x.h.HandleRespawn(x.p, &respawn, nil) },
 			func(t *testing.T, x *fix, e RespawnEvent) {
-				actorIs(t, x, e.Actor, false)
+				whoIs(t, x, e.Who)
 				is(t, "Pos", e.Pos, &respawn)
 			}),
-		rowOf("Hurt", Hurt, func(x *fix) { x.h.HandleHurt(x.ctx, &hurt, false, nil, nil) },
+		rowOf("Hurt", &Hurt.hook, func(x *fix) { x.h.HandleHurt(x.ctx, &hurt, false, nil, nil) },
 			func(t *testing.T, x *fix, e HurtEvent) {
-				actorIs(t, x, e.Actor, true)
+				actorIs(t, x, e.Actor)
 				is(t, "Damage", e.Damage, &hurt)
 			}),
-		rowOf("PunchAir", PunchAir, func(x *fix) { x.h.HandlePunchAir(x.ctx) },
-			func(t *testing.T, x *fix, e PlayerEvent) { actorIs(t, x, e.Actor, true) }),
-		rowOf("Chat", Chat, func(x *fix) { x.h.HandleChat(x.ctx, nil) },
-			func(t *testing.T, x *fix, e PlayerEvent) { actorIs(t, x, e.Actor, true) }),
-		rowOf("BlockPick", BlockPick, func(x *fix) { x.h.HandleBlockPick(x.ctx, pos, stone) },
-			func(t *testing.T, x *fix, e PlayerEvent) { actorIs(t, x, e.Actor, true) }),
-		rowOf("HeldSlot", HeldSlot, func(x *fix) { x.h.HandleHeldSlotChange(x.ctx, 1, 2) },
-			func(t *testing.T, x *fix, e PlayerEvent) { actorIs(t, x, e.Actor, true) }),
-		rowOf("Command", Command, func(x *fix) { x.h.HandleCommandExecution(x.ctx, cmd.Command{}, nil) },
-			func(t *testing.T, x *fix, e PlayerEvent) { actorIs(t, x, e.Actor, true) }),
+		rowOf("PunchAir", &PunchAir.hook, func(x *fix) { x.h.HandlePunchAir(x.ctx) },
+			func(t *testing.T, x *fix, e PlayerEvent) { actorIs(t, x, e.Actor) }),
+		rowOf("Chat", &Chat.hook, func(x *fix) { x.h.HandleChat(x.ctx, nil) },
+			func(t *testing.T, x *fix, e PlayerEvent) { actorIs(t, x, e.Actor) }),
+		rowOf("BlockPick", &BlockPick.hook, func(x *fix) { x.h.HandleBlockPick(x.ctx, pos, stone) },
+			func(t *testing.T, x *fix, e PlayerEvent) { actorIs(t, x, e.Actor) }),
+		rowOf("HeldSlot", &HeldSlot.hook, func(x *fix) { x.h.HandleHeldSlotChange(x.ctx, 1, 2) },
+			func(t *testing.T, x *fix, e PlayerEvent) { actorIs(t, x, e.Actor) }),
+		rowOf("Command", &Command.hook, func(x *fix) { x.h.HandleCommandExecution(x.ctx, cmd.Command{}, nil) },
+			func(t *testing.T, x *fix, e PlayerEvent) { actorIs(t, x, e.Actor) }),
 
 		rowOf("Load", Load, func(x *fix) { Load.Emit(Tick{S: x.s}) },
 			func(t *testing.T, x *fix, e Tick) { is(t, "S", e.S, x.s); is(t, "Tx", e.Tx, (*world.Tx)(nil)) }),
@@ -378,25 +380,25 @@ func TestSneakAndSprintEmitOnStartOnly(t *testing.T) {
 	})
 }
 
-// TestCancelAndStopAreIndependent: a subscriber may cancel without stopping
-// and stop without cancelling, and neither implies the other.
-func TestCancelAndStopAreIndependent(t *testing.T) {
-	for _, c := range []struct{ cancel, stop bool }{{false, false}, {true, false}, {false, true}, {true, true}} {
+// TestCancelIsDragonflysCancel: a subscriber's Cancel cancels the context
+// Dragonfly passed, and that one state is what keeps the later default
+// subscribers from being called; without a Cancel all of them run.
+func TestCancelIsDragonflysCancel(t *testing.T) {
+	for _, cancel := range []bool{false, true} {
 		withFix(t, nil, func(x *fix) {
 			ran := false
-			UseOnBlock.Handle(Normal, "t.first", func(e UseOnBlockEvent) bool {
-				if c.cancel {
+			UseOnBlock.On(Low, "t.first", func(e UseOnBlockEvent) {
+				if cancel {
 					e.Cancel()
 				}
-				return c.stop
 			})
 			UseOnBlock.On(Normal, "t.second", func(UseOnBlockEvent) { ran = true })
 			x.h.HandleItemUseOnBlock(x.ctx, pos, cube.FaceUp, vec)
-			if got := x.ctx.Cancelled(); got != c.cancel {
-				t.Errorf("cancel=%v stop=%v: cancelled = %v", c.cancel, c.stop, got)
+			if got := x.ctx.Cancelled(); got != cancel {
+				t.Errorf("cancel=%v: the context is cancelled = %v", cancel, got)
 			}
-			if ran == c.stop {
-				t.Errorf("cancel=%v stop=%v: second subscriber ran = %v", c.cancel, c.stop, ran)
+			if ran == cancel {
+				t.Errorf("cancel=%v: the second subscriber ran = %v", cancel, ran)
 			}
 		})
 	}
@@ -404,58 +406,44 @@ func TestCancelAndStopAreIndependent(t *testing.T) {
 
 // TestLeaveDropsThePlayersEntriesLast: Leave drops the player's Players
 // entries when every subscriber has run, so a subscriber of any tier finds
-// them, and a subscriber that cancels the event does not keep them from
-// being dropped.
+// them.
 func TestLeaveDropsThePlayersEntriesLast(t *testing.T) {
 	part := NewPlayers[int]()
-	for _, stop := range []bool{false, true} {
-		withFix(t, nil, func(x *fix) {
-			part.Of(x.s)[x.p.H()] = 7
-			var seen []int
-			var traced []string
-			see := func(e Presence) { seen = append(seen, part.Of(e.S)[e.P.H()]) }
-			Leave.On(Lowest, "t.first", see)
-			Leave.Handle(Normal, "t.stop", func(e Presence) bool { see(e); return stop })
-			Leave.Always(Monitor, "t.last", func(e Presence, _ bool) { see(e) })
-			traceInto(&traced)
-			x.l.Leave(x.p)
-			Trace = nil
-			if !slices.Equal(seen, []int{7, 7, 7}) {
-				t.Errorf("stop=%t: the subscribers saw %v", stop, seen)
-			}
-			if _, ok := part.Of(x.s)[x.p.H()]; ok {
-				t.Errorf("stop=%t: the player's entry was not dropped", stop)
-			}
-			if want := []string{"t.first", "t.stop", "t.last", "core.shapes", "core.parts"}; !slices.Equal(traced, want) {
-				t.Errorf("stop=%t: traced %v, want %v", stop, traced, want)
-			}
-		})
-	}
-}
-
-// TestCancelledTellsTheContext: Cancelled reports Dragonfly's cancel, and is
-// false for an event that has no context.
-func TestCancelledTellsTheContext(t *testing.T) {
 	withFix(t, nil, func(x *fix) {
-		var before, after, jump bool
-		Sneak.On(Low, "t.before", func(e PlayerEvent) { before = e.Cancelled() })
-		Sneak.On(Normal, "t.cancel", func(e PlayerEvent) { e.Cancel() })
-		Sneak.On(High, "t.after", func(e PlayerEvent) { after = e.Cancelled() })
-		Jump.On(Normal, "t.jump", func(e PlayerEvent) { e.Cancel(); jump = e.Cancelled() })
-		x.h.HandleToggleSneak(x.ctx, true)
-		x.h.HandleJump(x.p)
-		if before || !after || jump {
-			t.Fatalf("Cancelled: before=%t after=%t jump=%t", before, after, jump)
+		part.Of(x.s)[x.p.H()] = 7
+		var seen []int
+		var traced []string
+		see := func(e Presence) { seen = append(seen, part.Of(e.S)[e.P.H()]) }
+		Leave.On(Lowest, "t.first", see)
+		Leave.On(Normal, "t.middle", see)
+		Leave.On(Monitor, "t.last", see)
+		traceInto(&traced)
+		x.l.Leave(x.p)
+		Trace = nil
+		if !slices.Equal(seen, []int{7, 7, 7}) {
+			t.Errorf("the subscribers saw %v", seen)
+		}
+		if _, ok := part.Of(x.s)[x.p.H()]; ok {
+			t.Error("the player's entry was not dropped")
+		}
+		if want := []string{"t.first", "t.middle", "t.last", "core.shapes", "core.parts"}; !slices.Equal(traced, want) {
+			t.Errorf("traced %v, want %v", traced, want)
 		}
 	})
 }
 
-// TestCancelWithoutContext: Cancel on an event Dragonfly cannot cancel does
-// nothing.
-func TestCancelWithoutContext(t *testing.T) {
+// TestCancelledTellsTheContext: Cancelled reports the cancel of the context
+// Dragonfly passed, for a subscriber that still runs after it.
+func TestCancelledTellsTheContext(t *testing.T) {
 	withFix(t, nil, func(x *fix) {
-		Jump.On(Normal, "t.cancel", func(e PlayerEvent) { e.Cancel() })
-		x.h.HandleJump(x.p)
+		var before, after bool
+		Sneak.On(Low, "t.before", func(e PlayerEvent) { before = e.Cancelled() })
+		Sneak.On(Normal, "t.cancel", func(e PlayerEvent) { e.Cancel() })
+		Sneak.On(High, "t.after", func(e PlayerEvent) { after = e.Cancelled() }, HandleCancelled)
+		x.h.HandleToggleSneak(x.ctx, true)
+		if before || !after || !x.ctx.Cancelled() {
+			t.Fatalf("Cancelled: before=%t after=%t context=%t", before, after, x.ctx.Cancelled())
+		}
 	})
 }
 

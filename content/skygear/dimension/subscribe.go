@@ -21,7 +21,7 @@ func subscribe() {
 
 // The second dimension's reaction to a death and a respawn.
 func subscribeLife() {
-	core.Death.On(core.Normal, "dimension.died", func(e core.PlayerEvent) {
+	core.Death.On(core.Normal, "dimension.died", func(e core.NoticeEvent) {
 		Died(e.S, e.P.Tx(), e.P)
 	})
 	core.Respawn.On(core.Low, "dimension.respawned", func(e core.RespawnEvent) {
@@ -32,26 +32,20 @@ func subscribeLife() {
 // The second dimension's reaction to a drop and a hurt. Whether a hit would
 // kill the hunter is asked last, of the damage the other steps left: Highest.
 func subscribeHurt() {
-	core.ItemDrop.Handle(core.Lowest, "dimension.hunting", func(e core.ItemEvent) bool {
+	core.ItemDrop.On(core.Lowest, "dimension.hunting", func(e core.ItemEvent) {
 		if Hunting(e.S, e.P) {
 			e.Cancel()
-			return true
 		}
-		return false
 	})
-	core.Hurt.Handle(core.Lowest, "dimension.frozen", func(e core.HurtEvent) bool {
+	core.Hurt.On(core.Lowest, "dimension.frozen", func(e core.HurtEvent) {
 		if Frozen(e.S, e.P) {
 			e.Cancel() // the hunt waits while the hunter chooses an upgrade
-			return true
 		}
-		return false
 	})
-	core.Hurt.Handle(core.Highest, "dimension.fallen", func(e core.HurtEvent) bool {
+	core.Hurt.On(core.Highest, "dimension.fallen", func(e core.HurtEvent) {
 		if Fallen(e.S, e.Tx, e.P, *e.Damage) {
 			e.Cancel() // no hurt for the subscribers after it: the run ended instead
-			return true
 		}
-		return false
 	})
 }
 
@@ -91,53 +85,44 @@ func subscribePresence() {
 // and the stone's window come before everything else: Lowest. They exclude
 // each other and the menu item's step by their own conditions.
 func subscribeUse() {
-	core.UseOnBlock.Handle(core.Lowest, "dimension.hunting", func(e core.UseOnBlockEvent) bool {
+	core.UseOnBlock.On(core.Lowest, "dimension.hunting", func(e core.UseOnBlockEvent) {
 		if Hunting(e.S, e.P) {
 			e.Cancel()
-			return true
 		}
-		return false
 	})
-	core.UseOnBlock.Handle(core.Lowest, "dimension.stone", func(e core.UseOnBlockEvent) bool {
-		return useStone(e.Actor, e.Held)
+	core.UseOnBlock.On(core.Lowest, "dimension.stone", func(e core.UseOnBlockEvent) {
+		useStone(e.Actor, e.Held)
 	})
-	core.Use.Handle(core.Lowest, "dimension.hunting", func(e core.UseEvent) bool {
+	core.Use.On(core.Lowest, "dimension.hunting", func(e core.UseEvent) {
 		// the menu item in the air is the hunter's way out (screens.menuItem)
 		if Hunting(e.S, e.P) && !sgitem.IsMenuItem(e.Held) {
 			e.Cancel()
-			return true
 		}
-		return false
 	})
-	core.Use.Handle(core.Lowest, "dimension.stone", func(e core.UseEvent) bool {
-		return useStone(e.Actor, e.Held)
+	core.Use.On(core.Lowest, "dimension.stone", func(e core.UseEvent) {
+		useStone(e.Actor, e.Held)
 	})
-	core.UseOnEntity.Handle(core.Lowest, "dimension.hunting", func(e core.EntityEvent) bool {
+	core.UseOnEntity.On(core.Lowest, "dimension.hunting", func(e core.EntityEvent) {
 		if Hunting(e.S, e.P) {
 			e.Cancel()
-			return true
 		}
-		return false
 	})
-	core.AttackEntity.Handle(core.Lowest, "dimension.hunter", func(e core.EntityEvent) bool {
+	core.AttackEntity.On(core.Lowest, "dimension.hunter", func(e core.EntityEvent) {
 		if _, ok := e.Target.(*Monster); ok || Hunting(e.S, e.P) {
 			e.Cancel()
-			return true
 		}
-		return false
 	})
 }
 
 // useStone opens the second dimension's window for a held teleport stone,
-// on a block or the air; it reports whether it took the click. A hunter's
-// stone opens nothing: the hunter's use is refused (dimension.hunting).
-func useStone(a core.Actor, held item.Stack) bool {
+// on a block or the air, and cancels the click it took. A hunter's stone
+// opens nothing: the hunter's use is refused (dimension.hunting).
+func useStone(a core.Actor, held item.Stack) {
 	if _, ok := held.Item().(sgitem.DimensionStone); !ok || Hunting(a.S, a.P) {
-		return false
+		return
 	}
 	a.Cancel()
 	if !a.S.Debounced(a.P) {
 		ShowWindow(a.S, a.P, "")
 	}
-	return true
 }

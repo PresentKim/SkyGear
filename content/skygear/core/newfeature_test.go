@@ -11,13 +11,13 @@ import "testing"
 func TestNewFeatureNeedsOnlyTheList(t *testing.T) {
 	ResetHooks()
 	defer ResetHooks()
-	var got []PlayerEvent
+	var got []NoticeEvent
 	fake := &Feature{Name: "fake", Setup: func() {
-		Jump.On(Normal, "fake.jump", func(e PlayerEvent) { got = append(got, e) })
+		Jump.On(Normal, "fake.jump", func(e NoticeEvent) { got = append(got, e) })
 	}}
 	Install(fake)
 
-	Jump.Emit(PlayerEvent{})
+	Jump.Emit(NoticeEvent{})
 	if len(got) != 1 {
 		t.Fatalf("the fake feature received %d events, want 1", len(got))
 	}

@@ -19,13 +19,11 @@ func subscribe() {
 // A held tool takes the click away from what the block itself would do with
 // it: the Low tier.
 func subscribeUse() {
-	core.UseOnBlock.Handle(core.Low, "wand.use", func(e core.UseOnBlockEvent) bool {
+	core.UseOnBlock.On(core.Low, "wand.use", func(e core.UseOnBlockEvent) {
 		if _, ok := sgitem.WandOf(e.Held); ok && island.CanBuild(e.S, e.Pos) {
 			e.Cancel()
 			Use(e.S, e.P, e.Tx, e.Pos, e.Face, e.Held)
-			return true
 		}
-		return false
 	})
 	core.Use.On(core.Normal, "wand.options", func(e core.UseEvent) {
 		if _, ok := sgitem.WandOf(e.Held); ok && e.P.Sneaking() && !e.S.Debounced(e.P) {

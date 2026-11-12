@@ -49,21 +49,17 @@ func subscribePresence() {
 // the hunter holds; in the air the menu item is the hunter's way out. The menu
 // item takes its click before anything else looks at it: Lowest.
 func subscribeUse() {
-	core.UseOnBlock.Handle(core.Lowest, "screens.menuItem", func(e core.UseOnBlockEvent) bool {
+	core.UseOnBlock.On(core.Lowest, "screens.menuItem", func(e core.UseOnBlockEvent) {
 		if IsMenuItem(e.Held) && !dimension.Hunting(e.S, e.P) {
 			e.Cancel()
 			useHeldScreen(e.S, e.P)
-			return true
 		}
-		return false
 	})
-	core.Use.Handle(core.Lowest, "screens.menuItem", func(e core.UseEvent) bool {
+	core.Use.On(core.Lowest, "screens.menuItem", func(e core.UseEvent) {
 		if IsMenuItem(e.Held) {
 			e.Cancel()
 			useHeldScreen(e.S, e.P)
-			return true
 		}
-		return false
 	})
 }
 

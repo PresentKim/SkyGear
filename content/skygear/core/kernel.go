@@ -1,8 +1,7 @@
 package core
 
-// KernelFeature is the kernel's own feature; the game lists it first, so its
-// subscriber is the first of its tier. It is a subscriber like any other: it
-// does not depend on its place inside the tier.
+// KernelFeature is the kernel's own feature; the game lists it first. Its
+// subscriber is one like any other: the subscribers of its tier have no order.
 var KernelFeature = &Feature{Name: "core", Setup: subscribeKernel}
 
 // Shapes are sent when a player joins. What the kernel does when a player

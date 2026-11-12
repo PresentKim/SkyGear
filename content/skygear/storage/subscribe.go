@@ -27,15 +27,13 @@ func subscribeDisplays() {
 // A drawer that does break loses its display. A set machine breaking or
 // placed invalidates the networks; a placed drawer is set up.
 func subscribeBlocks() {
-	core.BlockBreak.Handle(core.Low, "storage.front", func(e core.BlockBreakEvent) bool {
+	core.BlockBreak.On(core.Low, "storage.front", func(e core.BlockBreakEvent) {
 		if _, ok := e.Block.(Drawer); !ok {
-			return false
+			return
 		}
 		if lp, ok := LastPunch.Of(e.S)[e.P.H()]; ok && lp.Pos == e.Pos && lp.Front && island.CanBuild(e.S, e.Pos) {
 			e.Cancel()
-			return true
 		}
-		return false
 	})
 	core.BlockBreak.On(core.Normal, "storage.break", func(e core.BlockBreakEvent) {
 		switch b := e.Block.(type) {
@@ -61,11 +59,9 @@ func subscribeBlocks() {
 
 // A sneaking player uses a drawer with a held item that is no block.
 func subscribeSneakUse() {
-	core.UseOnBlock.Handle(core.Normal, "storage.sneakUse", func(e core.UseOnBlockEvent) bool {
+	core.UseOnBlock.On(core.Normal, "storage.sneakUse", func(e core.UseOnBlockEvent) {
 		if SneakUse(e.S, e.P, e.Tx, e.Pos, e.Held) {
 			e.Cancel()
-			return true
 		}
-		return false
 	})
 }

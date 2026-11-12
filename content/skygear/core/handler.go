@@ -21,17 +21,20 @@ var (
 // handles into the hook of the same name. S is read as a field, so an event
 // costs no lookup. The other Handle methods are Dragonfly's no-ops.
 //
-// Each method builds its event once, before the first subscriber runs, and
-// ignores Emit's result: a stop ends the chain, and only a subscriber's
-// Cancel cancels the event.
+// Each method builds its event once, before the first subscriber runs. Emit
+// returns nothing: a subscriber cancels through the event, and Dragonfly
+// reads the context it passed.
 type PlayerHandler struct {
 	player.NopHandler
 	S *Session
 }
 
+func (h *PlayerHandler) who(p *player.Player) Who {
+	return Who{S: h.S, P: p, Tx: p.Tx()}
+}
+
 func (h *PlayerHandler) actor(ctx *player.Context) Actor {
-	p := ctx.Player()
-	return Actor{S: h.S, P: p, Tx: p.Tx(), Ctx: ctx}
+	return Actor{Who: h.who(ctx.Player()), Ctx: ctx}
 }
 
 func (h *PlayerHandler) HandleStartBreak(ctx *player.Context, pos cube.Pos) {
@@ -92,7 +95,7 @@ func (h *PlayerHandler) HandleToggleSprint(ctx *player.Context, after bool) {
 }
 
 func (h *PlayerHandler) HandleJump(p *player.Player) {
-	Jump.Emit(PlayerEvent{Actor{S: h.S, P: p, Tx: p.Tx()}})
+	Jump.Emit(NoticeEvent{h.who(p)})
 }
 
 func (h *PlayerHandler) HandleItemDamage(ctx *player.Context, it item.Stack, damage *int) {
@@ -116,11 +119,11 @@ func (h *PlayerHandler) HandleItemPickup(ctx *player.Context, i *item.Stack) {
 }
 
 func (h *PlayerHandler) HandleDeath(p *player.Player, _ world.DamageSource, _ *bool) {
-	Death.Emit(PlayerEvent{Actor{S: h.S, P: p, Tx: p.Tx()}})
+	Death.Emit(NoticeEvent{h.who(p)})
 }
 
 func (h *PlayerHandler) HandleRespawn(p *player.Player, pos *mgl64.Vec3, _ **world.World) {
-	Respawn.Emit(RespawnEvent{Actor: Actor{S: h.S, P: p, Tx: p.Tx()}, Pos: pos})
+	Respawn.Emit(RespawnEvent{Who: h.who(p), Pos: pos})
 }
 
 func (h *PlayerHandler) HandleBlockPick(ctx *player.Context, _ cube.Pos, _ world.Block) {

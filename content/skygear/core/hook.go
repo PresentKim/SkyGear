@@ -5,11 +5,16 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+
+	"github.com/df-mc/dragonfly/server/world"
 )
 
 // Trace, when set, is called with a subscriber's name just before Emit runs
 // it, and with every Mark. It is nil outside tests and costs one nil check per
 // Emit. Set it only while no Emit is running.
+//
+// While Trace is set, a CancelHook also checks its Monitor subscribers: Emit
+// panics when one of them cancelled the event.
 var Trace func(name string)
 
 // Mark reports a step that is not a subscriber to Trace. It does nothing when
@@ -58,49 +63,50 @@ func (p Priority) String() string {
 	return fmt.Sprintf("Priority(%d)", uint8(p))
 }
 
+// Option changes how a subscriber of a CancelHook is called.
+type Option uint8
+
+// HandleCancelled makes a subscriber also receive a cancelled event (the
+// handleCancelled option of other event systems). Without it a subscriber is
+// not called once the event is cancelled. The subscriber reads the state from
+// the event: e.Cancelled().
+const HandleCancelled Option = 1
+
 // Subscription is one registered subscriber, as Subscriptions lists it.
-// Always is set for a subscriber that also receives a cancelled event
-// (Hook.Always).
+// HandleCancelled is set for a subscriber that also receives a cancelled
+// event (the HandleCancelled option).
 type Subscription struct {
-	Hook    string
-	Name    string
-	Feature string
-	Tier    Priority
-	Always  bool
+	Hook            string
+	Name            string
+	Feature         string
+	Tier            Priority
+	HandleCancelled bool
 }
 
-// A step has exactly one of on and handle. An Always step has on (the
-// subscriber told that the event is live) and always set; what it is called
-// with for a cancelled event is in Hook.after.
+// A step is one subscriber. cancelled is set when it also receives a
+// cancelled event.
 type step[E any] struct {
-	tier    Priority
-	always  bool
-	name    string
-	feature string
-	on      func(E)
-	handle  func(E) bool
+	tier      Priority
+	cancelled bool
+	name      string
+	feature   string
+	f         func(E)
 }
 
-// afterStep is an Always subscriber as the walk after a cancel calls it: at is
-// its index in Hook.steps.
-type afterStep[E any] struct {
-	at   int
-	name string
-	f    func(E, bool)
-}
-
-// Hook is a typed event with subscribers in tiers. The event is passed by
-// value, so Emit allocates nothing.
+// Hook is a typed event with subscribers in tiers, for an event that cannot
+// be cancelled: every subscriber is called for every event. The event is
+// passed by value, so Emit allocates nothing. CancelHook is the hook of an
+// event that can be cancelled.
 //
-// The tiers run in the order of the Priority constants. Inside a tier the
-// subscribers run in the order they were registered (the features in
-// installation order, each feature's calls in the order it made them). That
-// order only makes a run repeatable: a subscriber must not depend on its
-// place inside its tier.
+// The tiers run in the order of the Priority constants. The subscribers of
+// one tier have no order among themselves: nothing may be written against
+// the order they happen to run in (it is the order of registration, which
+// only makes a run repeatable, and the tests run them in others). What must
+// come before or after belongs in another tier, by its role.
 //
-// An event is cancelled, as far as its hook is concerned, when a Handle
-// subscriber returned true. The subscribers after it do not run, except those
-// registered with Always.
+// No subscriber can keep another from being called. A subscriber acts when
+// its own conditions hold (its state, the item in hand, the block, the mode
+// the player is in), not because no subscriber before it acted.
 //
 // Subscribers are registered at startup, before the first Emit; registering
 // afterwards panics. Once registered, Emit only reads the hook, so any number
@@ -108,16 +114,9 @@ type afterStep[E any] struct {
 // panic in a subscriber propagates to the caller unchanged and later
 // subscribers do not run.
 type Hook[E any] struct {
-	name  string
-	steps []step[E] // ascending tier, registration order inside a tier
-	// alwaysF are the functions of the Always subscribers by name; after are
-	// the same subscribers in the order they run, and lastAlways is the index
-	// in steps of the last of them, -1 when there is none (index keeps the two
-	// up to date).
-	alwaysF    map[string]func(E, bool)
-	after      []afterStep[E]
-	lastAlways int
-	sealed     atomic.Bool
+	name   string
+	steps  []step[E] // ascending tier, registration order inside a tier
+	sealed atomic.Bool
 }
 
 type anyHook interface {
@@ -135,50 +134,23 @@ var (
 // from package-level variable declarations, so hooks list in declaration
 // order.
 func NewHook[E any](name string) *Hook[E] {
-	h := &Hook[E]{name: name, lastAlways: -1}
+	h := &Hook[E]{name: name}
 	hooksMu.Lock()
 	hooks = append(hooks, h)
 	hooksMu.Unlock()
 	return h
 }
 
-// On subscribes f in tier prio. A subscriber added with On never cancels the
-// event, and does not run for an event an earlier subscriber cancelled.
+// On subscribes f in tier prio. f is called for every event.
 func (h *Hook[E]) On(prio Priority, name string, f func(E)) {
-	if f == nil {
-		panic(fmt.Sprintf("core: hook %q: subscriber %q has a nil func", h.name, name))
-	}
-	h.add(step[E]{tier: prio, name: name, on: f}, nil)
+	h.add(step[E]{tier: prio, name: name, f: f})
 }
 
-// Handle subscribes f in tier prio. When f returns true the event is
-// cancelled: later subscribers do not run, except those registered with
-// Always, and Emit returns true. Handle panics for the Monitor tier, whose
-// subscribers do not cancel.
-func (h *Hook[E]) Handle(prio Priority, name string, f func(E) bool) {
-	if f == nil {
-		panic(fmt.Sprintf("core: hook %q: subscriber %q has a nil func", h.name, name))
+// add registers s.
+func (h *Hook[E]) add(s step[E]) {
+	if s.f == nil {
+		panic(fmt.Sprintf("core: hook %q: subscriber %q has a nil func", h.name, s.name))
 	}
-	if prio == Monitor {
-		panic(fmt.Sprintf("core: hook %q: subscriber %q: a Monitor subscriber does not cancel the event; use On or Always", h.name, name))
-	}
-	h.add(step[E]{tier: prio, name: name, handle: f}, nil)
-}
-
-// Always subscribes f in tier prio like On, and f also receives the event
-// when an earlier subscriber cancelled it (the handleCancelled option of
-// other event systems): cancelled then is true, and false for a live event.
-// Like On, f never cancels the event itself.
-func (h *Hook[E]) Always(prio Priority, name string, f func(e E, cancelled bool)) {
-	if f == nil {
-		panic(fmt.Sprintf("core: hook %q: subscriber %q has a nil func", h.name, name))
-	}
-	h.add(step[E]{tier: prio, always: true, name: name, on: func(e E) { f(e, false) }}, f)
-}
-
-// add registers s; always is the function of an Always subscriber, nil for
-// the others.
-func (h *Hook[E]) add(s step[E], always func(E, bool)) {
 	if h.sealed.Load() {
 		panic(fmt.Sprintf("core: hook %q: subscriber %q registered after the first Emit", h.name, s.name))
 	}
@@ -191,7 +163,7 @@ func (h *Hook[E]) add(s step[E], always func(E, bool)) {
 		}
 		s.feature = installing
 	}
-	// After the last subscriber of its tier: registration order inside a tier.
+	// After the last subscriber of its tier.
 	at := len(h.steps)
 	for i := range h.steps {
 		o := &h.steps[i]
@@ -205,85 +177,123 @@ func (h *Hook[E]) add(s step[E], always func(E, bool)) {
 	h.steps = append(h.steps, step[E]{})
 	copy(h.steps[at+1:], h.steps[at:])
 	h.steps[at] = s
-	if always != nil {
-		if h.alwaysF == nil {
-			h.alwaysF = map[string]func(E, bool){}
-		}
-		h.alwaysF[s.name] = always
-	}
-	h.index()
 }
 
-// index lists the Always steps in the order they run.
-func (h *Hook[E]) index() {
-	h.after, h.lastAlways = nil, -1
-	for i := range h.steps {
-		if s := &h.steps[i]; s.always {
-			h.after = append(h.after, afterStep[E]{at: i, name: s.name, f: h.alwaysF[s.name]})
-			h.lastAlways = i
-		}
-	}
-}
-
-// Emit runs the subscribers tier by tier and reports whether a Handle
-// subscriber cancelled the event. After a cancel only the Always subscribers
-// still to come run. It is safe to call from many goroutines at once.
-func (h *Hook[E]) Emit(e E) bool {
+// Emit calls every subscriber, tier by tier. It is safe to call from many
+// goroutines at once.
+func (h *Hook[E]) Emit(e E) {
 	if !h.sealed.Load() {
 		h.sealed.Store(true)
 	}
 	tr := Trace
-	i := 0
-	for ; i < len(h.steps); i++ {
+	for i := range h.steps {
 		s := &h.steps[i]
 		if tr != nil {
 			tr(s.name)
 		}
-		if s.on != nil {
-			s.on(e)
-		} else if s.handle(e) {
-			break
-		}
-	}
-	if i == len(h.steps) {
-		return false
-	}
-	if i < h.lastAlways {
-		h.emitCancelled(e, i)
-	}
-	return true
-}
-
-// emitCancelled runs the Always subscribers that stand after the step at
-// index stop, for an event that step cancelled.
-//
-//go:noinline
-func (h *Hook[E]) emitCancelled(e E, stop int) {
-	tr := Trace
-	for i := range h.after {
-		s := &h.after[i]
-		if s.at <= stop {
-			continue
-		}
-		if tr != nil {
-			tr(s.name)
-		}
-		s.f(e, true)
+		s.f(e)
 	}
 }
 
 func (h *Hook[E]) subscriptions() []Subscription {
 	out := make([]Subscription, len(h.steps))
 	for i, s := range h.steps {
-		out[i] = Subscription{Hook: h.name, Name: s.name, Feature: s.feature, Tier: s.tier, Always: s.always}
+		out[i] = Subscription{Hook: h.name, Name: s.name, Feature: s.feature, Tier: s.tier, HandleCancelled: s.cancelled}
 	}
 	return out
 }
 
 func (h *Hook[E]) reset() {
-	h.steps, h.alwaysF, h.after = nil, nil, nil
-	h.lastAlways = -1
+	h.steps = nil
 	h.sealed.Store(false)
+}
+
+// Cancellable is an event that can be cancelled: one that carries the
+// Dragonfly context of the event, which every event that embeds Actor does.
+// Cancel and Cancelled exist on these events only, so cancelling an event
+// that cannot be cancelled does not compile.
+type Cancellable interface {
+	Cancel()
+	Cancelled() bool
+	cancelState() *world.Context
+}
+
+// CancelHook is the hook of an event that can be cancelled. It is a Hook
+// whose subscribers are not called once the event is cancelled, unless they
+// asked for cancelled events with the HandleCancelled option.
+//
+// An event is cancelled when its Dragonfly context is: a subscriber called
+// e.Cancel(), in this walk or before it. Cancelling says two things at once:
+// the action the player asked for does not happen in Dragonfly, and the
+// subscribers that follow are not called for it. There is no other way to
+// keep a subscriber from being called. A subscriber cancels only when that is
+// what it means ("in this state I handle this, and nothing else may"); when
+// the action may go on, it does its work and leaves the event alone.
+//
+// Because cancelling skips the subscribers of the same tier that happen to
+// run later, two subscribers of one tier that could act on the same event,
+// one of them cancelling, must exclude each other by their own conditions or
+// stand in different tiers.
+type CancelHook[E Cancellable] struct {
+	hook Hook[E]
+}
+
+// NewCancelHook returns a hook for a cancellable event, named name, and lists
+// it for Subscriptions like NewHook.
+func NewCancelHook[E Cancellable](name string) *CancelHook[E] {
+	h := &CancelHook[E]{}
+	h.hook.name = name
+	hooksMu.Lock()
+	hooks = append(hooks, &h.hook)
+	hooksMu.Unlock()
+	return h
+}
+
+// On subscribes f in tier prio. f is not called for a cancelled event, unless
+// the HandleCancelled option is given: then it is called for every event and
+// reads e.Cancelled() if it cares. A Monitor subscriber does not cancel.
+func (h *CancelHook[E]) On(prio Priority, name string, f func(E), opts ...Option) {
+	s := step[E]{tier: prio, name: name, f: f}
+	for _, o := range opts {
+		if o != HandleCancelled {
+			panic(fmt.Sprintf("core: hook %q: subscriber %q: unknown option %d", h.hook.name, name, o))
+		}
+		s.cancelled = true
+	}
+	h.hook.add(s)
+}
+
+// Emit calls the subscribers tier by tier. Once the event is cancelled, only
+// the subscribers registered with HandleCancelled are still called. It is
+// safe to call from many goroutines at once.
+func (h *CancelHook[E]) Emit(e E) {
+	c := e.cancelState()
+	if c == nil {
+		// An event built without a context (a test) is never cancelled.
+		h.hook.Emit(e)
+		return
+	}
+	if !h.hook.sealed.Load() {
+		h.hook.sealed.Store(true)
+	}
+	tr := Trace
+	steps := h.hook.steps
+	for i := range steps {
+		s := &steps[i]
+		if c.Cancelled() && !s.cancelled {
+			continue
+		}
+		if tr == nil {
+			s.f(e)
+			continue
+		}
+		tr(s.name)
+		was := c.Cancelled()
+		s.f(e)
+		if s.tier == Monitor && !was && c.Cancelled() {
+			panic(fmt.Sprintf("core: hook %q: Monitor subscriber %q cancelled the event", h.hook.name, s.name))
+		}
+	}
 }
 
 // Subscriptions lists every subscriber: hooks in declaration order, then each

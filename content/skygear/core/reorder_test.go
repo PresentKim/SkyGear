@@ -77,21 +77,23 @@ func TestReorderKeepsTheTiers(t *testing.T) {
 	Reorder(func(string, []Subscription) []int { return []int{1, 0} })
 }
 
-// TestReorderKeepsAlways: after a reordering the Always subscribers still
-// receive a cancelled event, wherever they stand now.
-func TestReorderKeepsAlways(t *testing.T) {
+// TestReorderKeepsHandleCancelled: after a reordering a subscriber with
+// HandleCancelled still receives a cancelled event, wherever it stands now,
+// and a default one that now stands after the cancel does not.
+func TestReorderKeepsHandleCancelled(t *testing.T) {
 	ResetHooks()
-	h := NewHook[int]("reorder-always")
+	h := NewCancelHook[bigCancel]("reorder-cancelled")
 	var ran []string
-	h.Always(Normal, "w", func(_ int, cancelled bool) {
-		if cancelled {
+	h.On(Normal, "w", func(e bigCancel) {
+		if e.Cancelled() {
 			ran = append(ran, "w")
 		}
-	})
-	h.Handle(Normal, "stop", func(int) bool { return true })
-	h.On(Normal, "on", func(int) { ran = append(ran, "on") })
+	}, HandleCancelled)
+	h.On(Normal, "cancel", func(e bigCancel) { e.Cancel() })
+	h.On(Normal, "on", func(bigCancel) { ran = append(ran, "on") })
 	Reorder(func(string, []Subscription) []int { return []int{1, 2, 0} })
-	if !h.Emit(0) || !slices.Equal(ran, []string{"w"}) {
+	e := newBigCancel()
+	if h.Emit(e); !e.Cancelled() || !slices.Equal(ran, []string{"w"}) {
 		t.Fatalf("ran %v", ran)
 	}
 }

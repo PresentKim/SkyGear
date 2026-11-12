@@ -12,13 +12,14 @@ func subscribe() {
 	subscribeLeave()
 }
 
-// A movement updates where the player looks. It runs for every move, also
-// one that was cancelled for the other subscribers (island expansion mode
-// holds the player in place): Update then clears the hidden panel.
+// A movement updates where the player looks. It is called for every move,
+// also a cancelled one (island expansion mode holds the player in place, the
+// island brings a player back from the void): Update then clears the hidden
+// panel.
 func subscribeMove() {
-	core.Move.Always(core.Monitor, "look.update", func(e core.MoveEvent, _ bool) {
+	core.Move.On(core.Monitor, "look.update", func(e core.MoveEvent) {
 		Update(e.S, e.P, e.Tx, e.Pos, e.Rot, false)
-	})
+	}, core.HandleCancelled)
 }
 
 // Every player's panel updates on every fast tick, when the tick's work is

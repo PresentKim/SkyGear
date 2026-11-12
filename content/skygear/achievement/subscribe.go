@@ -7,7 +7,8 @@ import (
 
 // subscribe registers the achievement counters on the hooks they count. A
 // counter records what happened and changes nothing: it is a Monitor
-// subscriber.
+// subscriber. It is not called for a cancelled event: what was refused did
+// not happen.
 func subscribe() {
 	subscribeSimple()
 	subscribeMoves()
@@ -20,7 +21,7 @@ func subscribeSimple() {
 	core.Sprint.On(core.Monitor, "achievement.sprint", func(e core.PlayerEvent) {
 		Count(e.P, "sprint", 1)
 	})
-	core.Jump.On(core.Monitor, "achievement.jump", func(e core.PlayerEvent) {
+	core.Jump.On(core.Monitor, "achievement.jump", func(e core.NoticeEvent) {
 		Count(e.P, "jump", 1)
 	})
 	core.ItemConsume.On(core.Monitor, "achievement.eat", func(e core.ItemEvent) {
@@ -29,7 +30,7 @@ func subscribeSimple() {
 	core.ItemPickup.On(core.Monitor, "achievement.pickup", func(e core.ItemEvent) {
 		Count(e.P, "pickup", int64(e.Pick.Count()))
 	})
-	core.Death.On(core.Monitor, "achievement.death", func(e core.PlayerEvent) {
+	core.Death.On(core.Monitor, "achievement.death", func(e core.NoticeEvent) {
 		Count(e.P, "death", 1)
 	})
 	core.PunchAir.On(core.Monitor, "achievement.punchAir", func(e core.PlayerEvent) {
