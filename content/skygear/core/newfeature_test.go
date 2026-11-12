@@ -13,7 +13,7 @@ func TestNewFeatureNeedsOnlyTheList(t *testing.T) {
 	defer ResetHooks()
 	var got []PlayerEvent
 	fake := &Feature{Name: "fake", Setup: func() {
-		Jump.On(10, "fake.jump", func(e PlayerEvent) { got = append(got, e) })
+		Jump.On(Normal, "fake.jump", func(e PlayerEvent) { got = append(got, e) })
 	}}
 	Install(fake)
 
@@ -22,7 +22,7 @@ func TestNewFeatureNeedsOnlyTheList(t *testing.T) {
 		t.Fatalf("the fake feature received %d events, want 1", len(got))
 	}
 	subs := Subscriptions()
-	if len(subs) != 1 || subs[0] != (Subscription{Hook: "Jump", Name: "fake.jump", Feature: "fake", Prio: 10}) {
+	if len(subs) != 1 || subs[0] != (Subscription{Hook: "Jump", Name: "fake.jump", Feature: "fake", Tier: Normal}) {
 		t.Fatalf("subscriptions %v", subs)
 	}
 	if fs := Features(); len(fs) != 1 || fs[0] != fake {

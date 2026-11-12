@@ -35,30 +35,31 @@ func registerComposterIO() {
 	})
 }
 
-// Sneaking grows saplings nearby by chance.
+// Sneaking grows saplings nearby by chance, unless another step used the
+// sneak (an elevator ride cancels the event): work of low priority, High.
 func subscribeSneak() {
-	core.Sneak.On(40, "farm.crouchGrow", func(e core.PlayerEvent) {
+	core.Sneak.On(core.High, "farm.crouchGrow", func(e core.PlayerEvent) {
 		CrouchGrow(e.S, e.P, e.Tx)
 	})
 }
 
 // The crops, barrels, composters and plants grow every second.
 func subscribeSecond() {
-	core.Second.On(10, "farm.growCrops", func(e core.Tick) {
+	core.Second.On(core.Normal, "farm.growCrops", func(e core.Tick) {
 		GrowCrops(e.S, e.Tx)
 	})
-	core.Second.On(30, "farm.barrels", func(e core.Tick) {
+	core.Second.On(core.Normal, "farm.barrels", func(e core.Tick) {
 		TickBarrels(e.S, e.Tx)
 		TickComposters(e.S, e.Tx)
 	})
-	core.Second.On(90, "farm.plants", func(e core.Tick) {
+	core.Second.On(core.Normal, "farm.plants", func(e core.Tick) {
 		TickPlants(e.S, e.Tx)
 	})
 }
 
 // The crops are loaded before the world transaction of the session start.
 func subscribeLoad() {
-	core.Load.On(10, "farm.loadCrops", func(e core.Tick) {
+	core.Load.On(core.Normal, "farm.loadCrops", func(e core.Tick) {
 		LoadCrops(e.S)
 	})
 }
@@ -67,7 +68,7 @@ func subscribeLoad() {
 // silkworm (silkworm leaves drop their string themselves); a broken composter
 // and a broken barrel give back what they hold. A placed crop is planted.
 func subscribeBlocks() {
-	core.BlockBreak.On(50, "farm.break", func(e core.BlockBreakEvent) {
+	core.BlockBreak.On(core.Normal, "farm.break", func(e core.BlockBreakEvent) {
 		if c, ok := sgitem.CrookOf(e.Held); ok {
 			if l, ok := e.Block.(block.Leaves); ok {
 				*e.Drops = CrookLeafDrops(l, c, e.S.Rand.Float64)
@@ -80,7 +81,7 @@ func subscribeBlocks() {
 			BreakBarrel(e.S, e.Pos, e.Drops)
 		}
 	})
-	core.BlockPlace.On(50, "farm.plant", func(e core.BlockPlaceEvent) {
+	core.BlockPlace.On(core.Normal, "farm.plant", func(e core.BlockPlaceEvent) {
 		if kind, _, ok := CropOf(e.Block); ok {
 			achievement.Count(e.P, "crop_plant", 1)
 			PlantCrop(e.S, e.Pos, kind)
@@ -90,16 +91,17 @@ func subscribeBlocks() {
 
 // Using a composter or a crop with a free hand acts on it; sneaking uses the
 // item as usual (placing blocks, bone meal). A crop shows its time or
-// harvests, and places nothing.
+// harvests, and places nothing. What the block does with a click comes after
+// what the held item does with it (Normal: a stick, the fairy's items): High.
 func subscribeUse() {
-	core.UseOnBlock.Handle(120, "farm.composter", func(e core.UseOnBlockEvent) bool {
+	core.UseOnBlock.Handle(core.High, "farm.composter", func(e core.UseOnBlockEvent) bool {
 		if !e.P.Sneaking() && UseComposter(e.S, e.P, e.Tx, e.Pos, e.Held) {
 			e.Cancel()
 			return true
 		}
 		return false
 	})
-	core.UseOnBlock.Handle(150, "farm.crop", func(e core.UseOnBlockEvent) bool {
+	core.UseOnBlock.Handle(core.High, "farm.crop", func(e core.UseOnBlockEvent) bool {
 		if !e.P.Sneaking() && UseCrop(e.S, e.P, e.Tx, e.Pos) {
 			e.Cancel()
 			return true

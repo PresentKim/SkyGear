@@ -18,23 +18,24 @@ var Feature = &core.Feature{
 
 // A broken tool and a consumed item are replaced from the inventory, the last
 // block of a stack placed is replaced, and a thrown snowball, egg or pearl may
-// be the last of the stack.
+// be the last of the stack. Refilling follows what the other steps made of the
+// event (the damage the tool takes, a use another step took): the High tier.
 func subscribe() {
-	core.ItemDamage.On(20, "autofill.broken", func(e core.ItemDamageEvent) {
+	core.ItemDamage.On(core.High, "autofill.broken", func(e core.ItemDamageEvent) {
 		// a held tool that breaks is replaced by another of its kind
 		if held, _ := e.P.HeldItems(); *e.Damage > 0 && e.Item.Durability() >= 0 && *e.Damage >= e.Item.Durability() && sameItemName(held, e.Item) {
 			RefillHandLater(e.P, e.Tx, e.Item)
 		}
 	})
-	core.ItemConsume.On(20, "autofill.consume", func(e core.ItemEvent) {
+	core.ItemConsume.On(core.High, "autofill.consume", func(e core.ItemEvent) {
 		RefillHandLater(e.P, e.Tx, e.Item)
 	})
-	core.BlockPlace.On(40, "autofill.place", func(e core.BlockPlaceEvent) {
+	core.BlockPlace.On(core.High, "autofill.place", func(e core.BlockPlaceEvent) {
 		if e.Held.Count() == 1 {
 			RefillHandLater(e.P, e.Tx, e.Held)
 		}
 	})
-	core.Use.On(10, "autofill.use", func(e core.UseEvent) {
+	core.Use.On(core.High, "autofill.use", func(e core.UseEvent) {
 		if e.Held.Count() == 1 {
 			RefillHandLater(e.P, e.Tx, e.Held)
 		}

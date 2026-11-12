@@ -81,9 +81,13 @@ func entityTypes() []world.EntityType {
 // The result is the session as the instance sees it: its Session field is the
 // core session, its methods are the calls the instance makes (Join, Leave,
 // Second, Fast, NewDay, Autosave, Close) and Handler is a player's handler.
+//
+// The first call reorders the subscribers when the environment asks for it
+// (ReorderHooks).
 func Session(t testing.TB) core.Lifecycle {
 	t.Helper()
 	world.DefaultBlockRegistry.Finalize()
+	ReorderHooks()
 	w := world.Config{Synchronous: true, Entities: entity.DefaultRegistry.Config().New(entityTypes())}.New()
 	t.Cleanup(func() { _ = w.Close() })
 	c := core.New(core.Config{

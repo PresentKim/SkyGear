@@ -10,14 +10,15 @@ func subscribe() {
 
 // A jump on an elevator rides it up.
 func subscribeJump() {
-	core.Jump.On(20, "elevator.up", func(e core.PlayerEvent) {
+	core.Jump.On(core.Normal, "elevator.up", func(e core.PlayerEvent) {
 		Up(e.S, e.P, e.Tx)
 	})
 }
 
-// Sneaking on an elevator rides it down.
+// Sneaking on an elevator rides it down. A ride cancels the event for the
+// later tiers: the sneak was used.
 func subscribeSneak() {
-	core.Sneak.Handle(30, "elevator.down", func(e core.PlayerEvent) bool {
+	core.Sneak.Handle(core.Normal, "elevator.down", func(e core.PlayerEvent) bool {
 		return Down(e.S, e.P, e.Tx)
 	})
 }

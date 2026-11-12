@@ -14,11 +14,12 @@ import (
 // Ctx is nil for the events Dragonfly cannot cancel (Jump, Death, Respawn);
 // Cancel then does nothing.
 //
-// Cancelling and stopping are two things. Cancel is Dragonfly's: the action
-// the player asked for does not happen, and the chain of subscribers goes on.
-// Stopping is the hook's: a Handle subscriber that returns true ends the
-// chain, and the event is not cancelled by it. A subscriber does either, both
-// or neither.
+// Cancelling has two sides. Cancel is Dragonfly's: the action the player
+// asked for does not happen, and the subscribers go on (Cancelled tells). The
+// hook's is a Handle subscriber returning true: the event is cancelled for
+// the subscribers that follow, which do not run unless they were registered
+// with Always, and Dragonfly's action is not cancelled by it. A subscriber
+// does either, both or neither.
 type Actor struct {
 	S   *Session
 	P   *player.Player
@@ -26,11 +27,18 @@ type Actor struct {
 	Ctx *player.Context
 }
 
-// Cancel cancels the event in Dragonfly. It does not stop the hook's chain.
+// Cancel cancels the event in Dragonfly. It does not keep the later
+// subscribers from running.
 func (a Actor) Cancel() {
 	if a.Ctx != nil {
 		a.Ctx.Cancel()
 	}
+}
+
+// Cancelled reports whether the event is cancelled in Dragonfly. It is false
+// for the events Dragonfly cannot cancel.
+func (a Actor) Cancelled() bool {
+	return a.Ctx != nil && a.Ctx.Cancelled()
 }
 
 // Pointer fields (Drops, XP, Damage, Pos, Pick) are the pointers Dragonfly
@@ -173,8 +181,8 @@ type DespawnEvent struct {
 	Entity world.Entity
 }
 
-// Player hooks, one per method of PlayerHandler. Their subscribers run in
-// ascending priority; see Hook for stopping.
+// Player hooks, one per method of PlayerHandler. Their subscribers run tier
+// by tier; see Hook for cancelling.
 var (
 	StartBreak   = NewHook[StartBreakEvent]("StartBreak")
 	BlockBreak   = NewHook[BlockBreakEvent]("BlockBreak")

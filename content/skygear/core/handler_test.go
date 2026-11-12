@@ -1,6 +1,7 @@
 package core
 
 import (
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -75,7 +76,7 @@ func rowOf[E any](name string, h *Hook[E], call func(x *fix), check func(t *test
 		call: call,
 		arm: func() func(*testing.T, *fix) {
 			var got []E
-			h.On(10, "t.rec", func(e E) { got = append(got, e) })
+			h.On(Normal, "t.rec", func(e E) { got = append(got, e) })
 			return func(t *testing.T, x *fix) {
 				t.Helper()
 				if len(got) != 1 {
@@ -84,7 +85,7 @@ func rowOf[E any](name string, h *Hook[E], call func(x *fix), check func(t *test
 				check(t, x, got[0])
 			}
 		},
-		nop: func() { h.On(10, "t.nop", func(E) {}) },
+		nop: func() { h.On(Normal, "t.nop", func(E) {}) },
 	}
 }
 
@@ -362,8 +363,8 @@ func TestEventsEmitAllocateNothing(t *testing.T) {
 func TestSneakAndSprintEmitOnStartOnly(t *testing.T) {
 	withFix(t, nil, func(x *fix) {
 		var sneaks, sprints int
-		Sneak.On(10, "t.sneak", func(PlayerEvent) { sneaks++ })
-		Sprint.On(10, "t.sprint", func(PlayerEvent) { sprints++ })
+		Sneak.On(Normal, "t.sneak", func(PlayerEvent) { sneaks++ })
+		Sprint.On(Normal, "t.sprint", func(PlayerEvent) { sprints++ })
 		x.h.HandleToggleSneak(x.ctx, false)
 		x.h.HandleToggleSprint(x.ctx, false)
 		if sneaks != 0 || sprints != 0 {
@@ -383,13 +384,13 @@ func TestCancelAndStopAreIndependent(t *testing.T) {
 	for _, c := range []struct{ cancel, stop bool }{{false, false}, {true, false}, {false, true}, {true, true}} {
 		withFix(t, nil, func(x *fix) {
 			ran := false
-			UseOnBlock.Handle(10, "t.first", func(e UseOnBlockEvent) bool {
+			UseOnBlock.Handle(Normal, "t.first", func(e UseOnBlockEvent) bool {
 				if c.cancel {
 					e.Cancel()
 				}
 				return c.stop
 			})
-			UseOnBlock.On(20, "t.second", func(UseOnBlockEvent) { ran = true })
+			UseOnBlock.On(Normal, "t.second", func(UseOnBlockEvent) { ran = true })
 			x.h.HandleItemUseOnBlock(x.ctx, pos, cube.FaceUp, vec)
 			if got := x.ctx.Cancelled(); got != c.cancel {
 				t.Errorf("cancel=%v stop=%v: cancelled = %v", c.cancel, c.stop, got)
@@ -401,11 +402,59 @@ func TestCancelAndStopAreIndependent(t *testing.T) {
 	}
 }
 
+// TestLeaveDropsThePlayersEntriesLast: Leave drops the player's Players
+// entries when every subscriber has run, so a subscriber of any tier finds
+// them, and a subscriber that cancels the event does not keep them from
+// being dropped.
+func TestLeaveDropsThePlayersEntriesLast(t *testing.T) {
+	part := NewPlayers[int]()
+	for _, stop := range []bool{false, true} {
+		withFix(t, nil, func(x *fix) {
+			part.Of(x.s)[x.p.H()] = 7
+			var seen []int
+			var traced []string
+			see := func(e Presence) { seen = append(seen, part.Of(e.S)[e.P.H()]) }
+			Leave.On(Lowest, "t.first", see)
+			Leave.Handle(Normal, "t.stop", func(e Presence) bool { see(e); return stop })
+			Leave.Always(Monitor, "t.last", func(e Presence, _ bool) { see(e) })
+			traceInto(&traced)
+			x.l.Leave(x.p)
+			Trace = nil
+			if !slices.Equal(seen, []int{7, 7, 7}) {
+				t.Errorf("stop=%t: the subscribers saw %v", stop, seen)
+			}
+			if _, ok := part.Of(x.s)[x.p.H()]; ok {
+				t.Errorf("stop=%t: the player's entry was not dropped", stop)
+			}
+			if want := []string{"t.first", "t.stop", "t.last", "core.shapes", "core.parts"}; !slices.Equal(traced, want) {
+				t.Errorf("stop=%t: traced %v, want %v", stop, traced, want)
+			}
+		})
+	}
+}
+
+// TestCancelledTellsTheContext: Cancelled reports Dragonfly's cancel, and is
+// false for an event that has no context.
+func TestCancelledTellsTheContext(t *testing.T) {
+	withFix(t, nil, func(x *fix) {
+		var before, after, jump bool
+		Sneak.On(Low, "t.before", func(e PlayerEvent) { before = e.Cancelled() })
+		Sneak.On(Normal, "t.cancel", func(e PlayerEvent) { e.Cancel() })
+		Sneak.On(High, "t.after", func(e PlayerEvent) { after = e.Cancelled() })
+		Jump.On(Normal, "t.jump", func(e PlayerEvent) { e.Cancel(); jump = e.Cancelled() })
+		x.h.HandleToggleSneak(x.ctx, true)
+		x.h.HandleJump(x.p)
+		if before || !after || jump {
+			t.Fatalf("Cancelled: before=%t after=%t jump=%t", before, after, jump)
+		}
+	})
+}
+
 // TestCancelWithoutContext: Cancel on an event Dragonfly cannot cancel does
 // nothing.
 func TestCancelWithoutContext(t *testing.T) {
 	withFix(t, nil, func(x *fix) {
-		Jump.On(10, "t.cancel", func(e PlayerEvent) { e.Cancel() })
+		Jump.On(Normal, "t.cancel", func(e PlayerEvent) { e.Cancel() })
 		x.h.HandleJump(x.p)
 	})
 }
@@ -414,11 +463,11 @@ func TestCancelWithoutContext(t *testing.T) {
 // field reaches the variable Dragonfly passed.
 func TestEventsCarryDragonflyPointers(t *testing.T) {
 	withFix(t, nil, func(x *fix) {
-		BlockBreak.On(10, "t.drops", func(e BlockBreakEvent) { *e.Drops = nil; *e.XP = 99 })
-		ItemDamage.On(10, "t.damage", func(e ItemDamageEvent) { *e.Damage = 0 })
-		Hurt.On(10, "t.hurt", func(e HurtEvent) { *e.Damage = 0.5 })
-		Respawn.On(10, "t.respawn", func(e RespawnEvent) { *e.Pos = mgl64.Vec3{1, 2, 3} })
-		ItemPickup.On(10, "t.pick", func(e ItemEvent) { *e.Pick = item.Stack{} })
+		BlockBreak.On(Normal, "t.drops", func(e BlockBreakEvent) { *e.Drops = nil; *e.XP = 99 })
+		ItemDamage.On(Normal, "t.damage", func(e ItemDamageEvent) { *e.Damage = 0 })
+		Hurt.On(Normal, "t.hurt", func(e HurtEvent) { *e.Damage = 0.5 })
+		Respawn.On(Normal, "t.respawn", func(e RespawnEvent) { *e.Pos = mgl64.Vec3{1, 2, 3} })
+		ItemPickup.On(Normal, "t.pick", func(e ItemEvent) { *e.Pick = item.Stack{} })
 
 		drops, xp := []item.Stack{stack}, 1
 		x.h.HandleBlockBreak(x.ctx, pos, &drops, &xp)
@@ -454,7 +503,7 @@ func TestLifecycleKernelStepsRunLast(t *testing.T) {
 			x.s.FlushInterval = time.Nanosecond
 			x.s.MarkDirty()
 			var during bool
-			Second.On(10, "t.step", func(Tick) { during = x.s.Dirty() })
+			Second.On(Normal, "t.step", func(Tick) { during = x.s.Dirty() })
 			x.l.Second(x.tx)
 			if !during {
 				t.Error("Second flushed before its subscribers")
@@ -468,7 +517,7 @@ func TestLifecycleKernelStepsRunLast(t *testing.T) {
 	t.Run("NewDay", func(t *testing.T) {
 		withFix(t, store, func(x *fix) {
 			var seen []string
-			NewDay.On(10, "t.step", func(DayEvent) {})
+			NewDay.On(Normal, "t.step", func(DayEvent) {})
 			Trace = func(name string) { seen = append(seen, name) }
 			defer func() { Trace = nil }()
 			x.l.NewDay(x.tx, 3)
@@ -481,7 +530,7 @@ func TestLifecycleKernelStepsRunLast(t *testing.T) {
 		withFix(t, store, func(x *fix) {
 			x.s.MarkDirty()
 			var during bool
-			Autosave.On(10, "t.step", func(Tick) { during = x.s.Dirty() })
+			Autosave.On(Normal, "t.step", func(Tick) { during = x.s.Dirty() })
 			x.l.Autosave(x.tx)
 			if !during {
 				t.Error("Autosave flushed before its subscribers")
@@ -497,7 +546,7 @@ func TestLifecycleKernelStepsRunLast(t *testing.T) {
 			before := storedNow()
 			var registered bool
 			var storedDuring int
-			Close.On(10, "t.step", func(e Tick) {
+			Close.On(Normal, "t.step", func(e Tick) {
 				_, registered = OfWorld(x.w)
 				storedDuring = storedNow()
 			})

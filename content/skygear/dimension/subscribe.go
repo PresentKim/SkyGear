@@ -21,31 +21,32 @@ func subscribe() {
 
 // The second dimension's reaction to a death and a respawn.
 func subscribeLife() {
-	core.Death.On(20, "dimension.died", func(e core.PlayerEvent) {
+	core.Death.On(core.Normal, "dimension.died", func(e core.PlayerEvent) {
 		Died(e.S, e.P.Tx(), e.P)
 	})
-	core.Respawn.On(10, "dimension.respawned", func(e core.RespawnEvent) {
+	core.Respawn.On(core.Low, "dimension.respawned", func(e core.RespawnEvent) {
 		Respawned(e.S, e.P, e.Pos)
 	})
 }
 
-// The second dimension's reaction to a drop and a hurt.
+// The second dimension's reaction to a drop and a hurt. Whether a hit would
+// kill the hunter is asked last, of the damage the other steps left: Highest.
 func subscribeHurt() {
-	core.ItemDrop.Handle(10, "dimension.hunting", func(e core.ItemEvent) bool {
+	core.ItemDrop.Handle(core.Lowest, "dimension.hunting", func(e core.ItemEvent) bool {
 		if Hunting(e.S, e.P) {
 			e.Cancel()
 			return true
 		}
 		return false
 	})
-	core.Hurt.Handle(10, "dimension.frozen", func(e core.HurtEvent) bool {
+	core.Hurt.Handle(core.Lowest, "dimension.frozen", func(e core.HurtEvent) bool {
 		if Frozen(e.S, e.P) {
 			e.Cancel() // the hunt waits while the hunter chooses an upgrade
 			return true
 		}
 		return false
 	})
-	core.Hurt.On(30, "dimension.fallen", func(e core.HurtEvent) {
+	core.Hurt.On(core.Highest, "dimension.fallen", func(e core.HurtEvent) {
 		if Fallen(e.S, e.Tx, e.P, *e.Damage) {
 			e.Cancel()
 		}
@@ -55,42 +56,50 @@ func subscribeHurt() {
 // The collectors work and the items of the other dimension are retired every
 // second; the watchdog looks at the hunt on every fast tick.
 func subscribeTicks() {
-	core.Second.On(60, "dimension.second", func(e core.Tick) {
+	core.Second.On(core.Normal, "dimension.second", func(e core.Tick) {
 		TickCollectors(e.S, e.Tx)
 		for p := range e.Tx.Players() {
 			RetireItems(p.(*player.Player))
 		}
 	})
-	core.Fast.On(20, "dimension.watchdog", func(e core.Tick) {
+	core.Fast.On(core.Normal, "dimension.watchdog", func(e core.Tick) {
 		Watchdog(e.S, e.Tx)
 	})
 }
 
 // The second dimension reacts to a player joining and leaving.
+//
+// dimension.joined is in the High tier, after the join steps of the other
+// features, as it always ran: a hunter the server stopped under gets back
+// what it carried, and what the earlier join steps put into the hunter's
+// inventory meanwhile is gone with the hunting kit. That keeps today's
+// behaviour; it is one of the listed exceptions (docs/tech/extension.md).
 func subscribePresence() {
-	core.Join.On(80, "dimension.joined", func(e core.Presence) {
+	core.Join.On(core.High, "dimension.joined", func(e core.Presence) {
 		Joined(e.S, e.P)
 		RetireItems(e.P)
 	})
-	core.Leave.On(10, "dimension.leave", func(e core.Presence) {
+	core.Leave.On(core.Normal, "dimension.leave", func(e core.Presence) {
 		Leave(e.S, e.Tx, e.P)
 	})
 }
 
 // A hunter only moves: the use chain refuses it, and the weapons of a hunter
-// strike on their own (gear.go). The menu item is the way out.
+// strike on their own (gear.go). The menu item is the way out. The refusals
+// and the stone's window come before everything else: Lowest. They exclude
+// each other and the menu item's step by their own conditions.
 func subscribeUse() {
-	core.UseOnBlock.Handle(10, "dimension.hunting", func(e core.UseOnBlockEvent) bool {
+	core.UseOnBlock.Handle(core.Lowest, "dimension.hunting", func(e core.UseOnBlockEvent) bool {
 		if Hunting(e.S, e.P) {
 			e.Cancel()
 			return true
 		}
 		return false
 	})
-	core.UseOnBlock.Handle(30, "dimension.stone", func(e core.UseOnBlockEvent) bool {
+	core.UseOnBlock.Handle(core.Lowest, "dimension.stone", func(e core.UseOnBlockEvent) bool {
 		return useStone(e.Actor, e.Held)
 	})
-	core.Use.Handle(30, "dimension.hunting", func(e core.UseEvent) bool {
+	core.Use.Handle(core.Lowest, "dimension.hunting", func(e core.UseEvent) bool {
 		// the menu item in the air is the hunter's way out (screens.menuItem)
 		if Hunting(e.S, e.P) && !sgitem.IsMenuItem(e.Held) {
 			e.Cancel()
@@ -98,17 +107,17 @@ func subscribeUse() {
 		}
 		return false
 	})
-	core.Use.Handle(40, "dimension.stone", func(e core.UseEvent) bool {
+	core.Use.Handle(core.Lowest, "dimension.stone", func(e core.UseEvent) bool {
 		return useStone(e.Actor, e.Held)
 	})
-	core.UseOnEntity.Handle(10, "dimension.hunting", func(e core.EntityEvent) bool {
+	core.UseOnEntity.Handle(core.Lowest, "dimension.hunting", func(e core.EntityEvent) bool {
 		if Hunting(e.S, e.P) {
 			e.Cancel()
 			return true
 		}
 		return false
 	})
-	core.AttackEntity.Handle(10, "dimension.hunter", func(e core.EntityEvent) bool {
+	core.AttackEntity.Handle(core.Lowest, "dimension.hunter", func(e core.EntityEvent) bool {
 		if _, ok := e.Target.(*Monster); ok || Hunting(e.S, e.P) {
 			e.Cancel()
 			return true

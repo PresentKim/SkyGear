@@ -16,9 +16,10 @@ func subscribe() {
 	subscribeSide()
 }
 
-// A player that falls below the island returns from the void.
+// A player that falls below the island returns from the void: the last step
+// that may cancel the move, Highest.
 func subscribeVoid() {
-	core.Move.On(40, "island.void", func(e core.MoveEvent) {
+	core.Move.On(core.Highest, "island.void", func(e core.MoveEvent) {
 		if e.Pos.Y() < VoidY {
 			e.Cancel()
 			ReturnFromVoid(e.S, e.P, e.Tx)
@@ -31,18 +32,18 @@ func subscribeVoid() {
 // loaded; Dragonfly closes an item entity below the world's lowest height,
 // while a picked-up or expired item despawns above it.
 func subscribeLost() {
-	core.Join.On(50, "island.purgeLost", func(e core.Presence) {
+	core.Join.On(core.Normal, "island.purgeLost", func(e core.Presence) {
 		PurgeLost(e.S)
 	})
-	core.NewDay.On(10, "island.purgeLost", func(e core.DayEvent) {
+	core.NewDay.On(core.Normal, "island.purgeLost", func(e core.DayEvent) {
 		PurgeLost(e.S)
 	})
-	core.Start.On(10, "island.keepLoaded", func(e core.Tick) {
+	core.Start.On(core.Normal, "island.keepLoaded", func(e core.Tick) {
 		for _, c := range StateOf(e.S).Chunks {
 			KeepLoaded(e.S, e.Tx, c)
 		}
 	})
-	core.EntityDespawn.On(10, "island.lost", func(e core.DespawnEvent) {
+	core.EntityDespawn.On(core.Normal, "island.lost", func(e core.DespawnEvent) {
 		ent, ok := e.Entity.(*entity.Ent)
 		if !ok || e.Entity.Position().Y() >= float64(e.Tx.Range()[0]) {
 			return
@@ -53,15 +54,17 @@ func subscribeLost() {
 	})
 }
 
-// Building is only allowed on the island's own ground.
+// Building is only allowed on the island's own ground. The guard refuses after
+// the modes that hold a player (Lowest) and before any step works on the
+// block: Low.
 func subscribeGuard() {
-	core.StartBreak.Handle(20, "island.guard", func(e core.StartBreakEvent) bool {
+	core.StartBreak.Handle(core.Low, "island.guard", func(e core.StartBreakEvent) bool {
 		return guard(e.S, e.Ctx, e.Pos)
 	})
-	core.BlockBreak.Handle(20, "island.guard", func(e core.BlockBreakEvent) bool {
+	core.BlockBreak.Handle(core.Low, "island.guard", func(e core.BlockBreakEvent) bool {
 		return guard(e.S, e.Ctx, e.Pos)
 	})
-	core.BlockPlace.Handle(20, "island.guard", func(e core.BlockPlaceEvent) bool {
+	core.BlockPlace.Handle(core.Low, "island.guard", func(e core.BlockPlaceEvent) bool {
 		return guard(e.S, e.Ctx, e.Pos)
 	})
 }
@@ -80,12 +83,13 @@ func guard(s *core.Session, ctx *player.Context, pos cube.Pos) bool {
 	return true
 }
 
-// The block clicked and the block next to its face are guarded alike.
+// The block clicked and the block next to its face are guarded alike. The side
+// is refused last, when no step took the click: Highest.
 func subscribeSide() {
-	core.UseOnBlock.Handle(50, "island.guard", func(e core.UseOnBlockEvent) bool {
+	core.UseOnBlock.Handle(core.Low, "island.guard", func(e core.UseOnBlockEvent) bool {
 		return guard(e.S, e.Ctx, e.Pos)
 	})
-	core.UseOnBlock.Handle(170, "island.guardSide", func(e core.UseOnBlockEvent) bool {
+	core.UseOnBlock.Handle(core.Highest, "island.guardSide", func(e core.UseOnBlockEvent) bool {
 		return guard(e.S, e.Ctx, e.Pos.Side(e.Face))
 	})
 }

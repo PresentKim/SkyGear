@@ -2,9 +2,7 @@ package skygear
 
 import (
 	"fmt"
-	"hash/fnv"
 	"log/slog"
-	"math/rand/v2"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -15,7 +13,7 @@ import (
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/platform/account"
 	"github.com/presentkim/skygear/platform/db"
 )
@@ -23,246 +21,31 @@ import (
 // The tier order guard. A subscriber's place is its tier; inside a tier no
 // subscriber may depend on where it stands. TestTierOrder proves it: it runs
 // this test binary again with the subscribers of every hook reordered inside
-// their tiers (SKYGEAR_HOOK_ORDER) and compares what every pin scenario did.
-//
-// Until the kernel has tiers, the tier of each subscriber is the one planned
-// for it (plannedTiers), and a reordered run first sorts each hook by planned
-// tier, keeping today's order inside a tier ("tiers"), then reverses
-// ("reverse") or shuffles ("shuffle:<seed>") every tier.
+// their tiers (coretest.HookOrderEnv: reversed, and shuffled with a few seeds)
+// and compares what every pin scenario did.
 
-// hookOrder is the reordering of this process: "" (the order of the code),
-// "tiers", "reverse" or "shuffle:<seed>".
-var hookOrder = os.Getenv("SKYGEAR_HOOK_ORDER")
+// hookOrder is the reordering of this process: "" (the order of
+// registration), "reverse" or "shuffle:<seed>".
+var hookOrder = os.Getenv(coretest.HookOrderEnv)
 
 // pinDump, when set, is the file every pin test appends its scenarios to:
 // one line "<scenario> | <results> | <counters>" each (pinDumpLines).
 var pinDump = os.Getenv("SKYGEAR_PIN_DUMP")
 
-// tierNames are the tiers in the order they run.
-var tierNames = []string{"LOWEST", "LOW", "NORMAL", "HIGH", "HIGHEST", "MONITOR"}
-
-// plannedTiers is the tier planned for every subscriber, one
-// "<Hook> <TIER> <name>" per line, in today's order.
-const plannedTiers = `
-StartBreak LOWEST expand.guard
-StartBreak LOW island.guard
-StartBreak NORMAL tinker.autoTool
-BlockBreak LOWEST expand.guard
-BlockBreak LOW island.guard
-BlockBreak MONITOR achievement.break
-BlockBreak NORMAL tinker.break
-BlockBreak NORMAL farm.break
-BlockBreak NORMAL storage.break
-BlockBreak NORMAL netstore.break
-BlockBreak NORMAL machine.break
-BlockBreak NORMAL conduit.break
-BlockPlace LOWEST expand.guard
-BlockPlace LOW island.guard
-BlockPlace MONITOR achievement.place
-BlockPlace HIGH autofill.place
-BlockPlace NORMAL farm.plant
-BlockPlace NORMAL storage.place
-BlockPlace NORMAL machine.place
-BlockPlace HIGH netstore.place
-BlockPlace MONITOR conduit.place
-BlockPlace MONITOR progress.dragonEgg
-UseOnBlock LOWEST dimension.hunting
-UseOnBlock LOWEST screens.menuItem
-UseOnBlock LOWEST dimension.stone
-UseOnBlock LOWEST expand.guard
-UseOnBlock LOW island.guard
-UseOnBlock NORMAL machine.noteFace
-UseOnBlock LOW copier.use
-UseOnBlock LOW wand.use
-UseOnBlock NORMAL storage.sneakUse
-UseOnBlock NORMAL conduit.plate
-UseOnBlock NORMAL handwork.stick
-UseOnBlock HIGH farm.composter
-UseOnBlock NORMAL handwork.gather
-UseOnBlock NORMAL fairy.time
-UseOnBlock HIGH farm.crop
-UseOnBlock HIGHEST expand.guardSide
-UseOnBlock HIGHEST island.guardSide
-UseOnEntity LOWEST dimension.hunting
-UseOnEntity NORMAL fairy.touch
-AttackEntity LOWEST dimension.hunter
-AttackEntity NORMAL fairy.touch
-Use HIGH autofill.use
-Use LOWEST screens.menuItem
-Use LOWEST dimension.hunting
-Use LOWEST dimension.stone
-Use NORMAL copier.clear
-Use NORMAL wand.options
-Use NORMAL tinker.veinToggle
-Move LOWEST look.update
-Move LOWEST expand.hold
-Move MONITOR achievement.walk
-Move HIGHEST island.void
-Sneak LOWEST expand.show
-Sneak LOW achievement.sneak
-Sneak NORMAL elevator.down
-Sneak HIGH farm.crouchGrow
-Sprint MONITOR achievement.sprint
-Jump MONITOR achievement.jump
-Jump NORMAL elevator.up
-ItemDamage LOW tinker.ironHammer
-ItemDamage HIGH autofill.broken
-ItemConsume MONITOR achievement.eat
-ItemConsume HIGH autofill.consume
-ItemPickup MONITOR achievement.pickup
-ItemDrop LOWEST dimension.hunting
-ItemDrop MONITOR achievement.drop
-Death MONITOR achievement.death
-Death NORMAL dimension.died
-Death NORMAL tinker.keepFood
-Respawn LOW dimension.respawned
-Respawn NORMAL tinker.restoreFood
-Hurt LOWEST dimension.frozen
-Hurt MONITOR achievement.hurt
-Hurt HIGHEST dimension.fallen
-PunchAir MONITOR achievement.punchAir
-Chat MONITOR achievement.chat
-BlockPick MONITOR achievement.blockPick
-HeldSlot MONITOR achievement.heldSlot
-Command MONITOR achievement.command
-Load NORMAL farm.loadCrops
-Start NORMAL island.keepLoaded
-Start NORMAL climate.apply
-Join NORMAL screens.menuItem
-Join NORMAL fairy.backfillDust
-Join NORMAL climate.showWeather
-Join NORMAL core.shapes
-Join NORMAL island.purgeLost
-Join NORMAL progress.sendRecipes
-Join MONITOR screens.board
-Join HIGH dimension.joined
-Leave NORMAL dimension.leave
-Leave NORMAL expand.stop
-Leave NORMAL core.parts
-Leave HIGHEST look.clear
-Leave NORMAL core.shapes
-Leave HIGHEST screens.board
-Leave HIGHEST progress.recipes
-NewDay NORMAL island.purgeLost
-Second NORMAL farm.growCrops
-Second LOW progress.checkHeld
-Second NORMAL farm.barrels
-Second NORMAL fairy.tick
-Second NORMAL climate.tick
-Second NORMAL dimension.second
-Second NORMAL tinker.effects
-Second NORMAL machine.monitor
-Second NORMAL farm.plants
-Second MONITOR screens.boards
-Second MONITOR achievement.playSeconds
-Second MONITOR progress.collection
-Fast NORMAL network.step
-Fast NORMAL dimension.watchdog
-Fast MONITOR look.updateAll
-Autosave NORMAL netstore.flush
-Autosave NORMAL conduit.shares
-Close NORMAL storage.displays
-Close NORMAL conduit.close
-Close NORMAL netstore.flush
-ColumnLoad NORMAL conduit.load
-ColumnUnload NORMAL conduit.unload
-EntityDespawn NORMAL island.lost
-`
-
-// orderKept are the pairs that still depend on their order inside one tier:
-// "<Hook> <first> <second>". A reordered run keeps first before second. Each
-// entry is a dependency to remove (or, for the last ones, an exception the
-// owner decides on); the list only shrinks.
+// orderKept are the exceptions: the pairs of one tier whose order still
+// matters, "<Hook> <first> <second>". The kernel runs first before second
+// because first's feature is installed earlier (features.go), and a reordered
+// run keeps them so. Each is a known dependency on the place inside a tier,
+// kept until it is decided how to remove it (docs/tech/extension.md); the
+// list does not grow.
 var orderKept = []string{
-	// a click the drawer menu or a plate takes counts no stick use
+	// a click the drawer menu or a connector plate takes counts no stick use
+	// (handwork.stick counts "stick_other" when the click reaches it)
 	"UseOnBlock storage.sneakUse handwork.stick",
 	"UseOnBlock conduit.plate handwork.stick",
-	// a plate's settings open before the hourglass winds the machine
+	// a connector plate's settings open before the hourglass in hand winds
+	// the machine the plate is on
 	"UseOnBlock conduit.plate fairy.time",
-	// the panel updates on the move island expansion mode refuses
-	"Move look.update expand.hold",
-	// the player's entries are dropped after the features used them
-	"Leave dimension.leave core.parts",
-	"Leave expand.stop core.parts",
-}
-
-func tierIndex(name string) int {
-	i := slices.Index(tierNames, name)
-	if i < 0 {
-		panic("unknown tier " + name)
-	}
-	return i
-}
-
-// plannedTierOf returns the planned tier of every subscriber, keyed
-// "<Hook> <name>".
-func plannedTierOf() map[string]int {
-	out := map[string]int{}
-	for _, ln := range strings.Split(strings.TrimSpace(plannedTiers), "\n") {
-		f := strings.Fields(ln)
-		out[f[0]+" "+f[2]] = tierIndex(f[1])
-	}
-	return out
-}
-
-// reorderHooks applies mode to the kernel's hooks (core.Reorder).
-func reorderHooks(mode string) {
-	tiers := plannedTierOf()
-	kind, arg, _ := strings.Cut(mode, ":")
-	var seed uint64
-	if kind == "shuffle" {
-		if _, err := fmt.Sscan(arg, &seed); err != nil {
-			panic("SKYGEAR_HOOK_ORDER: " + mode)
-		}
-	} else if kind != "tiers" && kind != "reverse" {
-		panic("SKYGEAR_HOOK_ORDER: " + mode)
-	}
-	core.Reorder(func(hook string, subs []core.Subscription) []int {
-		groups := make([][]int, len(tierNames))
-		for i, s := range subs {
-			t, ok := tiers[hook+" "+s.Name]
-			if !ok {
-				panic(fmt.Sprintf("plannedTiers has no line for %s %s", hook, s.Name))
-			}
-			groups[t] = append(groups[t], i)
-		}
-		h := fnv.New64a()
-		h.Write([]byte(hook))
-		r := rand.New(rand.NewPCG(seed, h.Sum64()))
-		var idx []int
-		for _, g := range groups {
-			switch kind {
-			case "reverse":
-				slices.Reverse(g)
-			case "shuffle":
-				r.Shuffle(len(g), func(i, j int) { g[i], g[j] = g[j], g[i] })
-			}
-			idx = append(idx, g...)
-		}
-		// Put the kept pairs back in their order: a first that ended up after
-		// its second moves to just before it.
-		for moved := true; moved; {
-			moved = false
-			for _, k := range orderKept {
-				f := strings.Fields(k)
-				if f[0] != hook {
-					continue
-				}
-				a := slices.IndexFunc(idx, func(i int) bool { return subs[i].Name == f[1] })
-				b := slices.IndexFunc(idx, func(i int) bool { return subs[i].Name == f[2] })
-				if a < 0 || b < 0 {
-					panic("orderKept names no subscriber: " + k)
-				}
-				if a > b {
-					v := idx[a]
-					idx = slices.Delete(idx, a, a+1)
-					idx = slices.Insert(idx, b, v)
-					moved = true
-				}
-			}
-		}
-		return idx
-	})
 }
 
 // pinAccounts are the accounts of the players the tests spawned, in a run
@@ -277,9 +60,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	if hookOrder != "" {
-		reorderHooks(hookOrder)
-	}
+	coretest.ReorderHooks(orderKept...)
 	if pinDump != "" {
 		dir, err := os.MkdirTemp("", "pindump")
 		if err != nil {
@@ -391,14 +172,16 @@ func pinWriteDump(t *testing.T, lines map[string]string) {
 }
 
 // tierOrders are the reorderings TestTierOrder runs.
-var tierOrders = []string{"tiers", "reverse", "shuffle:1", "shuffle:2", "shuffle:3"}
+var tierOrders = []string{"reverse", "shuffle:1", "shuffle:2", "shuffle:3", "shuffle:4"}
 
 // TestTierOrder runs every test of this package once per reordering of
-// tierOrders, in a process of its own, and once in the order of the code. A
-// reordered run must pass, which includes that every pin scenario has the
-// results of its golden (the trace before the first " | " may differ), and
-// must count exactly what the run in the order of the code counted in every
-// scenario (the achievement counters of the players, which no golden holds).
+// tierOrders, in a process of its own, and once in the order of
+// registration. A reordered run must pass, which includes that every pin
+// scenario has the results of its golden (the trace before the first " | "
+// may differ) and that order.golden lists the same subscribers in every tier,
+// and it must count exactly what the run in the order of registration counted
+// in every scenario (the achievement counters of the players, which no golden
+// holds).
 func TestTierOrder(t *testing.T) {
 	if hookOrder != "" || pinDump != "" {
 		return // this is a run TestTierOrder started
@@ -411,7 +194,7 @@ func TestTierOrder(t *testing.T) {
 	run := func(mode string) (dump string, out []byte, err error) {
 		dump = filepath.Join(dir, strings.ReplaceAll(mode+".dump", ":", "-"))
 		cmd := exec.Command(exe, "-test.count=1")
-		cmd.Env = append(os.Environ(), "SKYGEAR_HOOK_ORDER="+mode, "SKYGEAR_PIN_DUMP="+dump)
+		cmd.Env = append(os.Environ(), coretest.HookOrderEnv+"="+mode, "SKYGEAR_PIN_DUMP="+dump)
 		out, err = cmd.CombinedOutput()
 		return dump, out, err
 	}
@@ -451,7 +234,7 @@ func TestTierOrder(t *testing.T) {
 	}
 	want := read(results[0].dump)
 	if len(want) < 200 {
-		t.Fatalf("the run in the order of the code dumped %d scenarios", len(want))
+		t.Fatalf("the run in the order of registration dumped %d scenarios", len(want))
 	}
 	for _, r := range results[1:] {
 		got := read(r.dump)

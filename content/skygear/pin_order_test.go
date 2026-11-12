@@ -15,29 +15,35 @@ import (
 	"testing"
 
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 )
 
 // TestPinOrder compares the kernel's subscriptions with
-// testdata/pin/order.golden: one line "<Hook> <priority> <name>" per
-// subscriber, hooks in declaration order, each hook's subscribers in the
-// order they run. It names no feature, so it does not change when a step moves
-// to its feature.
+// testdata/pin/order.golden: one line "<Hook> <TIER> <name>" per subscriber,
+// with " always" after the name of a subscriber that also receives a
+// cancelled event (Hook.Always), hooks in declaration order, each hook's
+// subscribers in the order they run. It names no feature, so it does not
+// change when a step moves to its feature.
 //
-// The golden was recorded once from the bridged code. Re-record it
-// (SKYGEAR_GOLDEN=update) only when a step is added, removed or reordered on
-// purpose.
+// Re-record it (SKYGEAR_GOLDEN=update) only when a step is added, removed or
+// moved to another tier on purpose. In a run that reorders the subscribers
+// inside their tiers (TestTierOrder) the lines of one tier of one hook are
+// compared as a set.
 func TestPinOrder(t *testing.T) {
-	var b strings.Builder
+	var lines []string
 	for _, s := range core.Subscriptions() {
-		fmt.Fprintf(&b, "%s %d %s\n", s.Hook, s.Prio, s.Name)
-	}
-	got := b.String()
-	if hookOrder != "" {
-		return // a reordered run (TestTierOrder) lists another order on purpose
+		ln := fmt.Sprintf("%s %s %s", s.Hook, s.Tier, s.Name)
+		if s.Always {
+			ln += " always"
+		}
+		lines = append(lines, ln)
 	}
 	const file = "testdata/pin/order.golden"
 	if os.Getenv("SKYGEAR_GOLDEN") == "update" {
-		if err := os.WriteFile(file, []byte(got), 0o644); err != nil {
+		if hookOrder != "" {
+			t.Fatal("record order.golden in the order of registration, without " + coretest.HookOrderEnv)
+		}
+		if err := os.WriteFile(file, []byte(strings.Join(lines, "\n")+"\n"), 0o644); err != nil {
 			t.Fatal(err)
 		}
 		return
@@ -46,20 +52,39 @@ func TestPinOrder(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if want := string(raw); got != want {
-		wl, gl := strings.Split(want, "\n"), strings.Split(got, "\n")
-		for i := 0; i < len(wl) || i < len(gl); i++ {
-			var w, g string
-			if i < len(wl) {
-				w = wl[i]
-			}
-			if i < len(gl) {
-				g = gl[i]
-			}
-			if w != g {
-				t.Fatalf("%s line %d:\nwant: %q\ngot:  %q", file, i+1, w, g)
-			}
+	wl := strings.Split(strings.TrimSuffix(string(raw), "\n"), "\n")
+	if hookOrder != "" {
+		// The tiers stay in order; inside "<Hook> <TIER>" the order is free.
+		sortTiers(wl)
+		sortTiers(lines)
+	}
+	for i := 0; i < len(wl) || i < len(lines); i++ {
+		var w, g string
+		if i < len(wl) {
+			w = wl[i]
 		}
+		if i < len(lines) {
+			g = lines[i]
+		}
+		if w != g {
+			t.Fatalf("%s line %d:\nwant: %q\ngot:  %q", file, i+1, w, g)
+		}
+	}
+}
+
+// sortTiers sorts each run of lines that share "<Hook> <TIER>".
+func sortTiers(lines []string) {
+	tier := func(ln string) string {
+		f := strings.SplitN(ln, " ", 3)
+		return f[0] + " " + f[1]
+	}
+	for from := 0; from < len(lines); {
+		to := from
+		for to < len(lines) && tier(lines[to]) == tier(lines[from]) {
+			to++
+		}
+		slices.Sort(lines[from:to])
+		from = to
 	}
 }
 
@@ -100,7 +125,7 @@ func rootSources(t *testing.T) map[string]*ast.File {
 }
 
 // TestRootSubscribesToNothing: no non-test file of the root package calls a
-// hook's On or Handle, calls core.Mark, declares a Handle* method or is named
+// hook's On, Handle or Always, calls core.Mark, declares a Handle* method or is named
 // legacy_*.go. A step belongs in the Setup of the feature that owns it.
 func TestRootSubscribesToNothing(t *testing.T) {
 	const hint = "a step belongs in the Setup of its feature package (content/skygear/<feature>/feature.go); the root package only lists features and holds platform glue"
@@ -122,8 +147,8 @@ func TestRootSubscribesToNothing(t *testing.T) {
 				if id, ok := sel.X.(*ast.Ident); ok && id.Name == "core" && sel.Sel.Name == "Mark" {
 					t.Errorf("%s: core.Mark call: %s", name, hint)
 				}
-				if (sel.Sel.Name == "On" || sel.Sel.Name == "Handle") && len(n.Args) == 3 {
-					t.Errorf("%s: %s(prio, name, f) subscribes to a hook: %s", name, sel.Sel.Name, hint)
+				if (sel.Sel.Name == "On" || sel.Sel.Name == "Handle" || sel.Sel.Name == "Always") && len(n.Args) == 3 {
+					t.Errorf("%s: %s(tier, name, f) subscribes to a hook: %s", name, sel.Sel.Name, hint)
 				}
 			}
 			return true

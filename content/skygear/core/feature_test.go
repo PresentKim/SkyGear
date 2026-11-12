@@ -31,10 +31,10 @@ func TestInstallRunsSetupUnderName(t *testing.T) {
 	ResetHooks()
 	h := NewHook[int]("T")
 	Install(
-		&Feature{Name: "a", Setup: func() { h.On(10, "a.x", func(int) {}) }},
-		&Feature{Name: "b", Setup: func() { h.On(20, "b.x", func(int) {}) }},
+		&Feature{Name: "a", Setup: func() { h.On(Normal, "a.x", func(int) {}) }},
+		&Feature{Name: "b", Setup: func() { h.On(Normal, "b.x", func(int) {}) }},
 	)
-	want := []Subscription{{Hook: "T", Prio: 10, Name: "a.x", Feature: "a"}, {Hook: "T", Prio: 20, Name: "b.x", Feature: "b"}}
+	want := []Subscription{{Hook: "T", Tier: Normal, Name: "a.x", Feature: "a"}, {Hook: "T", Tier: Normal, Name: "b.x", Feature: "b"}}
 	if got := Subscriptions(); !reflect.DeepEqual(got, want) {
 		t.Fatalf("got %v", got)
 	}
@@ -43,7 +43,7 @@ func TestInstallRunsSetupUnderName(t *testing.T) {
 	}
 	defer mustPanic(t, "b.x", "a")
 	ResetHooks()
-	Install(&Feature{Name: "a", Setup: func() { h.On(10, "b.x", func(int) {}) }})
+	Install(&Feature{Name: "a", Setup: func() { h.On(Normal, "b.x", func(int) {}) }})
 }
 
 func TestInstallTwicePanics(t *testing.T) {

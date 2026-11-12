@@ -1,23 +1,23 @@
 BlockPick/plain: achievement.blockPick | cancelled=false
 Chat/plain: achievement.chat | cancelled=false
 Command/plain: achievement.command | cancelled=false
-Death/plain: achievement.death dimension.died tinker.keepFood | 
+Death/plain: tinker.keepFood dimension.died achievement.death | 
 HeldSlot/plain: achievement.heldSlot | cancelled=false
-Hurt/fallen: dimension.frozen achievement.hurt dimension.fallen | cancelled=true
+Hurt/fallen: dimension.frozen dimension.fallen achievement.hurt | cancelled=true
 Hurt/frozen: dimension.frozen | cancelled=true
-Hurt/plain: dimension.frozen achievement.hurt dimension.fallen | cancelled=false
-ItemConsume/plain: achievement.eat autofill.consume | cancelled=false
+Hurt/plain: dimension.frozen dimension.fallen achievement.hurt | cancelled=false
+ItemConsume/plain: autofill.consume achievement.eat | cancelled=false
 ItemDamage/ironHammer: tinker.ironHammer autofill.broken | damage=0
 ItemDamage/lastUse: tinker.ironHammer autofill.broken | damage=250
 ItemDamage/plain: tinker.ironHammer autofill.broken | damage=1
 ItemDrop/hunting: dimension.hunting | cancelled=true
 ItemDrop/plain: dimension.hunting achievement.drop | cancelled=false
 ItemPickup/plain: achievement.pickup | cancelled=false
-Jump/elevator: achievement.jump elevator.up | 
-Jump/plain: achievement.jump elevator.up | 
-Move/expanding: look.update expand.hold | cancelled=true
-Move/void: look.update expand.hold achievement.walk island.void | cancelled=true
-Move/walk: look.update expand.hold achievement.walk island.void | cancelled=false
+Jump/elevator: elevator.up achievement.jump | 
+Jump/plain: elevator.up achievement.jump | 
+Move/expanding: expand.hold look.update | cancelled=true
+Move/void: expand.hold island.void achievement.walk look.update | cancelled=true
+Move/walk: expand.hold island.void achievement.walk look.update | cancelled=false
 PunchAir/plain: achievement.punchAir | cancelled=false
 Respawn/afterDeath: dimension.respawned tinker.restoreFood | food=5
 Respawn/plain: dimension.respawned tinker.restoreFood | food=20

@@ -136,8 +136,8 @@ func TestExpansionMap(t *testing.T) {
 }
 
 // TestLeaveEndsExpansionMode: a player who leaves the session in expansion
-// mode gets back the game mode it had before, through the kernel's Leave
-// with the kernel's own steps (core.parts drops the player's entries).
+// mode gets back the game mode it had before, through the kernel's Leave,
+// which drops the player's entries when the subscribers have run.
 func TestLeaveEndsExpansionMode(t *testing.T) {
 	s := coretest.Session(t)
 	coretest.LoadAround(s)

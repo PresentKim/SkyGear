@@ -11,30 +11,35 @@ func subscribe() {
 
 // The fairy acts every second.
 func subscribeSecond() {
-	core.Second.On(40, "fairy.tick", func(e core.Tick) {
+	core.Second.On(core.Normal, "fairy.tick", func(e core.Tick) {
 		Tick(e.S, e.Tx)
 	})
 }
 
 // A joining player gets the fairy dust they are owed.
 func subscribeJoin() {
-	core.Join.On(20, "fairy.backfillDust", func(e core.Presence) {
+	core.Join.On(core.Normal, "fairy.backfillDust", func(e core.Presence) {
 		BackfillDust(e.S, e.P, e.Tx)
 	})
 }
 
 // The fairy's time is told by the item it is used with; a visiting fairy
 // gives its gift to a player who touches it, whichever way.
+//
+// conduit.plate is in the same tier, is registered before fairy.time and
+// takes a click on a connector plate first, hourglass in hand or not: that
+// order is one of the exceptions the tier order guard keeps (the root's
+// orderKept).
 func subscribeTouch() {
-	core.UseOnBlock.Handle(140, "fairy.time", func(e core.UseOnBlockEvent) bool {
+	core.UseOnBlock.Handle(core.Normal, "fairy.time", func(e core.UseOnBlockEvent) bool {
 		if UseFairyTime(e.S, e.P, e.Tx, e.Pos, e.Held) {
 			e.Cancel()
 			return true
 		}
 		return false
 	})
-	core.UseOnEntity.On(20, "fairy.touch", touchFairy)
-	core.AttackEntity.On(20, "fairy.touch", touchFairy)
+	core.UseOnEntity.On(core.Normal, "fairy.touch", touchFairy)
+	core.AttackEntity.On(core.Normal, "fairy.touch", touchFairy)
 }
 
 // touchFairy takes the gift of the fairy e.Target, if it is one.

@@ -29,15 +29,16 @@ func subscribe() {
 
 func subscribeFood() {
 	// The iron hammer keeps whole: its vein mining costs food instead (vein.go).
-	core.ItemDamage.On(10, "tinker.ironHammer", func(e core.ItemDamageEvent) {
+	// It shapes the damage others read: Low.
+	core.ItemDamage.On(core.Low, "tinker.ironHammer", func(e core.ItemDamageEvent) {
 		if sgitem.IsIronHammer(e.Item) {
 			*e.Damage = 0
 		}
 	})
-	core.Death.On(30, "tinker.keepFood", func(e core.PlayerEvent) {
+	core.Death.On(core.Normal, "tinker.keepFood", func(e core.PlayerEvent) {
 		keptFood.Of(e.S)[e.P.H()] = e.P.Food()
 	})
-	core.Respawn.On(20, "tinker.restoreFood", func(e core.RespawnEvent) {
+	core.Respawn.On(core.Normal, "tinker.restoreFood", func(e core.RespawnEvent) {
 		if food, ok := keptFood.Of(e.S)[e.P.H()]; ok {
 			delete(keptFood.Of(e.S), e.P.H())
 			e.P.SetFood(food)
@@ -47,7 +48,7 @@ func subscribeFood() {
 
 // The worn tools give their effects every second.
 func subscribeEffects() {
-	core.Second.On(70, "tinker.effects", func(e core.Tick) {
+	core.Second.On(core.Normal, "tinker.effects", func(e core.Tick) {
 		TickEffects(e.S, e.Tx)
 	})
 }
@@ -56,10 +57,10 @@ func subscribeEffects() {
 // tool gives it experience, and a hammer crushes the block and mines the vein.
 // The hammer's drop replaces the drops in place.
 func subscribeTools() {
-	core.StartBreak.On(30, "tinker.autoTool", func(e core.StartBreakEvent) {
+	core.StartBreak.On(core.Normal, "tinker.autoTool", func(e core.StartBreakEvent) {
 		AutoTool(e.P, e.Tx.Block(e.Pos))
 	})
-	core.BlockBreak.On(40, "tinker.break", func(e core.BlockBreakEvent) {
+	core.BlockBreak.On(core.Normal, "tinker.break", func(e core.BlockBreakEvent) {
 		if _, ok := ToolOf(e.P); ok {
 			GainXP(e.S, e.P, 1)
 			Reinforce(e.S, e.P)
@@ -76,7 +77,7 @@ func subscribeTools() {
 // The iron hammer used on the air while sneaking switches diagonal vein
 // mining.
 func subscribeVeinToggle() {
-	core.Use.On(70, "tinker.veinToggle", func(e core.UseEvent) {
+	core.Use.On(core.Normal, "tinker.veinToggle", func(e core.UseEvent) {
 		if sgitem.IsIronHammer(e.Held) && e.P.Sneaking() && !e.S.Debounced(e.P) {
 			ToggleVeinDiagonal(e.S, e.P)
 		}

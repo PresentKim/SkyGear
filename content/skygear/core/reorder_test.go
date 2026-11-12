@@ -12,9 +12,9 @@ func TestReorderChangesTheRunOrder(t *testing.T) {
 	h := NewHook[int]("reorder")
 	empty := NewHook[int]("reorder-empty")
 	var ran []string
-	h.On(10, "a", func(int) { ran = append(ran, "a") })
-	h.On(20, "b", func(int) { ran = append(ran, "b") })
-	h.On(30, "c", func(int) { ran = append(ran, "c") })
+	h.On(Normal, "a", func(int) { ran = append(ran, "a") })
+	h.On(Normal, "b", func(int) { ran = append(ran, "b") })
+	h.On(Normal, "c", func(int) { ran = append(ran, "c") })
 	var asked []string
 	Reorder(func(hook string, subs []Subscription) []int {
 		asked = append(asked, hook)
@@ -48,7 +48,7 @@ func TestReorderChangesTheRunOrder(t *testing.T) {
 func TestReorderAfterEmitPanics(t *testing.T) {
 	ResetHooks()
 	h := NewHook[int]("reorder-late")
-	h.On(10, "a", func(int) {})
+	h.On(Normal, "a", func(int) {})
 	h.Emit(0)
 	defer mustPanic(t, "Reorder", "reorder-late", "emitted")
 	Reorder(func(string, []Subscription) []int { return []int{0} })
@@ -58,11 +58,40 @@ func TestReorderWantsEveryIndexOnce(t *testing.T) {
 	for _, bad := range [][]int{{0}, {0, 0}, {0, 2}, {1, 0, 0}} {
 		ResetHooks()
 		h := NewHook[int]("reorder-bad")
-		h.On(10, "a", func(int) {})
-		h.On(20, "b", func(int) {})
+		h.On(Normal, "a", func(int) {})
+		h.On(Normal, "b", func(int) {})
 		func() {
 			defer mustPanic(t, "Reorder", "reorder-bad")
 			Reorder(func(string, []Subscription) []int { return bad })
 		}()
+	}
+}
+
+// TestReorderKeepsTheTiers: a subscriber moves inside its tier only.
+func TestReorderKeepsTheTiers(t *testing.T) {
+	ResetHooks()
+	h := NewHook[int]("reorder-tier")
+	h.On(Low, "a", func(int) {})
+	h.On(Normal, "b", func(int) {})
+	defer mustPanic(t, "Reorder", "reorder-tier", "a", "b", "inside its tier")
+	Reorder(func(string, []Subscription) []int { return []int{1, 0} })
+}
+
+// TestReorderKeepsAlways: after a reordering the Always subscribers still
+// receive a cancelled event, wherever they stand now.
+func TestReorderKeepsAlways(t *testing.T) {
+	ResetHooks()
+	h := NewHook[int]("reorder-always")
+	var ran []string
+	h.Always(Normal, "w", func(_ int, cancelled bool) {
+		if cancelled {
+			ran = append(ran, "w")
+		}
+	})
+	h.Handle(Normal, "stop", func(int) bool { return true })
+	h.On(Normal, "on", func(int) { ran = append(ran, "on") })
+	Reorder(func(string, []Subscription) []int { return []int{1, 2, 0} })
+	if !h.Emit(0) || !slices.Equal(ran, []string{"w"}) {
+		t.Fatalf("ran %v", ran)
 	}
 }

@@ -14,36 +14,40 @@ func subscribe() {
 	subscribeUse()
 }
 
-// The scoreboards update every second.
+// The scoreboards update every second, when the second's work is done: they
+// show the result (Monitor).
 func subscribeBoards() {
-	core.Second.On(100, "screens.boards", func(e core.Tick) {
+	core.Second.On(core.Monitor, "screens.boards", func(e core.Tick) {
 		UpdateBoards(e.S, e.Tx)
 	})
 }
 
-// The menu item and the scoreboard are given on join; the scoreboard goes on
-// leave.
+// The menu item and the scoreboard are given on join (the scoreboard shows
+// what the other join steps made: Monitor); the scoreboard goes on leave,
+// after the features' own leave steps, which may draw it again (island
+// expansion mode redraws it when it ends): the last clean-up, Highest.
 func subscribePresence() {
-	core.Join.On(10, "screens.menuItem", func(e core.Presence) {
+	core.Join.On(core.Normal, "screens.menuItem", func(e core.Presence) {
 		if e.First {
 			// Bare hands: only the menu item.
 			_ = e.P.Inventory().SetItem(8, MenuItem(i18n.Of(e.P)))
 		}
 		RenameMenuItems(e.P)
 	})
-	core.Join.On(70, "screens.board", func(e core.Presence) {
+	core.Join.On(core.Monitor, "screens.board", func(e core.Presence) {
 		UpdateBoard(e.S, e.P)
 	})
-	core.Leave.On(60, "screens.board", func(e core.Presence) {
+	core.Leave.On(core.Highest, "screens.board", func(e core.Presence) {
 		e.P.RemoveScoreboard()
 	})
 }
 
 // A held menu item opens the menu on a block and in the air. A hunter's click
 // on a block is the hunting ground's to refuse (dimension.hunting), whatever
-// the hunter holds; in the air the menu item is the hunter's way out.
+// the hunter holds; in the air the menu item is the hunter's way out. The menu
+// item takes its click before anything else looks at it: Lowest.
 func subscribeUse() {
-	core.UseOnBlock.Handle(20, "screens.menuItem", func(e core.UseOnBlockEvent) bool {
+	core.UseOnBlock.Handle(core.Lowest, "screens.menuItem", func(e core.UseOnBlockEvent) bool {
 		if IsMenuItem(e.Held) && !dimension.Hunting(e.S, e.P) {
 			e.Cancel()
 			useHeldScreen(e.S, e.P)
@@ -51,7 +55,7 @@ func subscribeUse() {
 		}
 		return false
 	})
-	core.Use.Handle(20, "screens.menuItem", func(e core.UseEvent) bool {
+	core.Use.Handle(core.Lowest, "screens.menuItem", func(e core.UseEvent) bool {
 		if IsMenuItem(e.Held) {
 			e.Cancel()
 			useHeldScreen(e.S, e.P)

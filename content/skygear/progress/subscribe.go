@@ -18,33 +18,38 @@ func subscribe() {
 	subscribeDragon()
 }
 
-// The advancements and the collection read the items players hold.
+// The advancements and the collection read the items players hold. The items
+// are read before the second's work changes them (Low); the collection is
+// granted from that reading when the work is done (a record: Monitor).
 func subscribeHeld() {
-	core.Second.On(20, "progress.checkHeld", func(e core.Tick) {
+	core.Second.On(core.Low, "progress.checkHeld", func(e core.Tick) {
 		names := advancement.InventoryNames(e.Tx)
 		*held.Of(e.S) = names
 		CheckHeld(e.S, e.Tx, names)
 	})
-	core.Second.On(120, "progress.collection", func(e core.Tick) {
+	core.Second.On(core.Monitor, "progress.collection", func(e core.Tick) {
 		achievement.GrantCollection(*held.Of(e.S))
 	})
 }
 
 // A joining player is sent the recipes they know; the recipe filter, which
-// belongs to this island, is cleared on leave.
+// belongs to this island, is cleared on leave, after the features' own leave
+// steps, which may send recipes again (a hunt that ends may advance): the
+// last clean-up, Highest.
 func subscribeRecipes() {
-	core.Join.On(60, "progress.sendRecipes", func(e core.Presence) {
+	core.Join.On(core.Normal, "progress.sendRecipes", func(e core.Presence) {
 		SendRecipesTo(e.S, e.P)
 	})
-	core.Leave.On(70, "progress.recipes", func(e core.Presence) {
+	core.Leave.On(core.Highest, "progress.recipes", func(e core.Presence) {
 		// Locked recipes belong to this island (recipes.go).
 		e.P.SetRecipeFilter(nil)
 	})
 }
 
-// Placing the dragon egg finishes the game.
+// Placing the dragon egg finishes the game: an advancement of the result,
+// Monitor.
 func subscribeDragon() {
-	core.BlockPlace.On(100, "progress.dragonEgg", func(e core.BlockPlaceEvent) {
+	core.BlockPlace.On(core.Monitor, "progress.dragonEgg", func(e core.BlockPlaceEvent) {
 		if _, ok := e.Block.(block.DragonEgg); ok {
 			CompleteDragon(e.S, e.P, e.Tx, e.Pos)
 		}

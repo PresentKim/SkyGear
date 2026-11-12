@@ -16,29 +16,30 @@ func subscribe() {
 // at close; a loaded column puts its bundles into the grids and an unloaded one
 // takes them out, before the column is saved.
 func subscribeShares() {
-	core.Autosave.On(20, "conduit.shares", func(e core.Tick) {
+	core.Autosave.On(core.Normal, "conduit.shares", func(e core.Tick) {
 		WriteShares(e.S, e.Tx)
 	})
-	core.Close.On(20, "conduit.close", func(e core.Tick) {
+	core.Close.On(core.Normal, "conduit.close", func(e core.Tick) {
 		WriteShares(e.S, e.Tx)
 		RemoveVisuals(e.S, e.Tx)
 	})
-	core.ColumnLoad.On(10, "conduit.load", func(e core.ColumnEvent) {
+	core.ColumnLoad.On(core.Normal, "conduit.load", func(e core.ColumnEvent) {
 		LoadColumn(e.S, e.Tx, e.Blocks)
 	})
-	core.ColumnUnload.On(10, "conduit.unload", func(e core.ColumnEvent) {
+	core.ColumnUnload.On(core.Normal, "conduit.unload", func(e core.ColumnEvent) {
 		UnloadColumn(e.S, e.Tx, e.Blocks)
 	})
 }
 
-// A conduit bundle breaking loses its visual; a placed one counts.
+// A conduit bundle breaking loses its visual; a placed one counts (a record:
+// Monitor).
 func subscribeBlocks() {
-	core.BlockBreak.On(90, "conduit.break", func(e core.BlockBreakEvent) {
+	core.BlockBreak.On(core.Normal, "conduit.break", func(e core.BlockBreakEvent) {
 		if _, ok := e.Block.(Bundle); ok {
 			RemoveVisual(e.S, e.Tx, e.Pos)
 		}
 	})
-	core.BlockPlace.On(90, "conduit.place", func(e core.BlockPlaceEvent) {
+	core.BlockPlace.On(core.Monitor, "conduit.place", func(e core.BlockPlaceEvent) {
 		if _, ok := e.Block.(Bundle); ok {
 			achievement.Count(e.P, "conduit_place", 1)
 		}
@@ -49,8 +50,13 @@ func subscribeBlocks() {
 // opens its settings, whatever they hold, unless the held conduit goes into
 // that conduit (a click on the conduit itself is ConduitBundle.Activate).
 // Sneaking places blocks instead.
+//
+// conduit.plate is registered before handwork.stick and fairy.time, which are
+// in the same tier, and takes the click first: a stick on a plate counts no
+// stick use and an hourglass on a plate opens the settings. That order is one
+// of the exceptions the tier order guard keeps (the root's orderKept).
 func subscribePlate() {
-	core.UseOnBlock.Handle(100, "conduit.plate", func(e core.UseOnBlockEvent) bool {
+	core.UseOnBlock.Handle(core.Normal, "conduit.plate", func(e core.UseOnBlockEvent) bool {
 		if !e.P.Sneaking() && UsePlate(e.S, e.P, e.Tx, e.Pos, e.Face, e.Click, e.Held) {
 			e.Cancel()
 			return true

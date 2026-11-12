@@ -15,7 +15,7 @@ func subscribe() {
 
 // The drawer displays are removed when the save closes.
 func subscribeDisplays() {
-	core.Close.On(10, "storage.displays", func(e core.Tick) {
+	core.Close.On(core.Normal, "storage.displays", func(e core.Tick) {
 		RemoveDisplays(e.S, e.Tx)
 	})
 }
@@ -24,7 +24,7 @@ func subscribeDisplays() {
 // loses its display. A set machine breaking or placed invalidates the
 // networks; a placed drawer is set up.
 func subscribeBlocks() {
-	core.BlockBreak.On(60, "storage.break", func(e core.BlockBreakEvent) {
+	core.BlockBreak.On(core.Normal, "storage.break", func(e core.BlockBreakEvent) {
 		switch b := e.Block.(type) {
 		case Drawer:
 			if lp, ok := LastPunch.Of(e.S)[e.P.H()]; ok && lp.Pos == e.Pos && lp.Front {
@@ -38,7 +38,7 @@ func subscribeBlocks() {
 			}
 		}
 	})
-	core.BlockPlace.On(60, "storage.place", func(e core.BlockPlaceEvent) {
+	core.BlockPlace.On(core.Normal, "storage.place", func(e core.BlockPlaceEvent) {
 		switch b := e.Block.(type) {
 		case machine.Machine:
 			if IsSetMachine(b.Kind) {
@@ -50,9 +50,12 @@ func subscribeBlocks() {
 	})
 }
 
-// A sneaking player uses a drawer with a held item that is no block.
+// A sneaking player uses a drawer with a held item that is no block. It is
+// registered before handwork.stick, in the same tier, and takes the click
+// first (a stick opens the drawer's menu and counts no stick use): that order
+// is one of the exceptions the tier order guard keeps (the root's orderKept).
 func subscribeSneakUse() {
-	core.UseOnBlock.Handle(90, "storage.sneakUse", func(e core.UseOnBlockEvent) bool {
+	core.UseOnBlock.Handle(core.Normal, "storage.sneakUse", func(e core.UseOnBlockEvent) bool {
 		if SneakUse(e.S, e.P, e.Tx, e.Pos, e.Held) {
 			e.Cancel()
 			return true

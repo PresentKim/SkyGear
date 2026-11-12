@@ -31,19 +31,85 @@ func traceInto(got *[]string) {
 	Trace = func(name string) { *got = append(*got, name) }
 }
 
-func TestRunsInPriorityOrder(t *testing.T) {
+// TestRunsInTierOrder: the tiers run in the order of the constants, whatever
+// the order of registration, with every kind of subscriber.
+func TestRunsInTierOrder(t *testing.T) {
 	ResetHooks()
 	h := NewHook[int]("order")
 	var got []string
-	h.On(30, "c", func(int) { got = append(got, "c") })
-	h.Handle(10, "a", func(int) bool { got = append(got, "a"); return false })
-	h.On(20, "b", func(int) { got = append(got, "b") })
+	rec := func(name string) func(int) { return func(int) { got = append(got, name) } }
+	h.On(Monitor, "monitor", rec("monitor"))
+	h.Always(Highest, "highest", func(int, bool) { got = append(got, "highest") })
+	h.On(High, "high", rec("high"))
+	h.Handle(Normal, "normal", func(int) bool { got = append(got, "normal"); return false })
+	h.On(Low, "low", rec("low"))
+	h.Handle(Lowest, "lowest", func(int) bool { got = append(got, "lowest"); return false })
 	if h.Emit(1) {
-		t.Fatal("Emit reported a stop")
+		t.Fatal("Emit reported a cancel")
 	}
-	if want := []string{"a", "b", "c"}; !slices.Equal(got, want) {
+	if want := []string{"lowest", "low", "normal", "high", "highest", "monitor"}; !slices.Equal(got, want) {
 		t.Fatalf("got %v want %v", got, want)
 	}
+}
+
+// TestSameTierRunsInRegistrationOrder: inside a tier the subscribers run in
+// the order they were registered, and a later registration in an earlier tier
+// still runs before them.
+func TestSameTierRunsInRegistrationOrder(t *testing.T) {
+	ResetHooks()
+	h := NewHook[int]("tier")
+	var got []string
+	rec := func(name string) func(int) { return func(int) { got = append(got, name) } }
+	h.On(Normal, "b.x", rec("b.x"))
+	h.On(Normal, "a.x", rec("a.x"))
+	h.On(Monitor, "m.x", rec("m.x"))
+	h.On(Normal, "c.x", rec("c.x"))
+	h.On(Low, "l.x", rec("l.x"))
+	h.Emit(0)
+	want := []string{"l.x", "b.x", "a.x", "c.x", "m.x"}
+	if !slices.Equal(got, want) {
+		t.Fatalf("got %v want %v", got, want)
+	}
+	var listed []string
+	for _, s := range Subscriptions() {
+		if s.Hook == "tier" {
+			listed = append(listed, s.Name)
+		}
+	}
+	if !slices.Equal(listed, want) {
+		t.Fatalf("Subscriptions lists %v, want %v", listed, want)
+	}
+}
+
+func TestPriorityNames(t *testing.T) {
+	var got []string
+	for p := Lowest; p <= Monitor; p++ {
+		got = append(got, p.String())
+	}
+	if want := []string{"LOWEST", "LOW", "NORMAL", "HIGH", "HIGHEST", "MONITOR"}; !slices.Equal(got, want) {
+		t.Fatalf("got %v", got)
+	}
+	if got := Priority(9).String(); got != "Priority(9)" {
+		t.Fatalf("got %q", got)
+	}
+}
+
+func TestNotATierPanics(t *testing.T) {
+	ResetHooks()
+	h := NewHook[int]("notier")
+	defer mustPanic(t, "notier", "a.x", "Priority(6)", "not a tier")
+	h.On(Monitor+1, "a.x", func(int) {})
+}
+
+// TestHandleAtMonitorPanics: a Monitor subscriber does not cancel, so it is
+// registered with On or Always.
+func TestHandleAtMonitorPanics(t *testing.T) {
+	ResetHooks()
+	h := NewHook[int]("monitor")
+	h.On(Monitor, "a.x", func(int) {})
+	h.Always(Monitor, "b.x", func(int, bool) {})
+	defer mustPanic(t, "monitor", "c.x", "Monitor", "does not cancel")
+	h.Handle(Monitor, "c.x", func(int) bool { return false })
 }
 
 func TestStopSkipsLaterSteps(t *testing.T) {
@@ -52,8 +118,10 @@ func TestStopSkipsLaterSteps(t *testing.T) {
 	var traced, ran []string
 	traceInto(&traced)
 	defer func() { Trace = nil }()
-	h.Handle(10, "a.x", func(int) bool { ran = append(ran, "a.x"); return true })
-	h.On(20, "b.x", func(int) { ran = append(ran, "b.x") })
+	h.Handle(Normal, "a.x", func(int) bool { ran = append(ran, "a.x"); return true })
+	h.On(Normal, "b.x", func(int) { ran = append(ran, "b.x") })
+	h.Handle(High, "c.x", func(int) bool { ran = append(ran, "c.x"); return false })
+	h.On(Monitor, "d.x", func(int) { ran = append(ran, "d.x") })
 	if !h.Emit(1) {
 		t.Fatal("Emit did not report the stop")
 	}
@@ -62,55 +130,182 @@ func TestStopSkipsLaterSteps(t *testing.T) {
 	}
 }
 
+// alwaysCase is one arrangement of TestAlways: the tier of the subscriber
+// that may cancel, and the tier of the two subscribers under test (one
+// registered with On, one with Always), registered before or after it.
+type alwaysCase struct {
+	stopTier, tier Priority
+	before         bool
+}
+
+// TestAlways: an On subscriber and an Always subscriber, in every tier,
+// before and after a Handle subscriber in every tier but Monitor, for an
+// event that is not cancelled, one that the Handle subscriber cancels and one
+// whose Dragonfly context a subscriber cancelled while the walk went on.
+//
+//   - a live event: both run, the Always subscriber is told cancelled=false;
+//   - a cancelled event: a subscriber that stands before the cancelling one
+//     ran already (told false); one that stands after it runs only when it
+//     was registered with Always, and is told true;
+//   - a cancelled context without a cancelled walk is a live event for the
+//     hook: both run and are told false; Actor.Cancelled tells them.
+func TestAlways(t *testing.T) {
+	var cases []alwaysCase
+	for stop := Lowest; stop <= Highest; stop++ {
+		for tier := Lowest; tier <= Monitor; tier++ {
+			if tier != stop {
+				cases = append(cases, alwaysCase{stop, tier, tier < stop})
+				continue
+			}
+			cases = append(cases, alwaysCase{stop, tier, true}, alwaysCase{stop, tier, false})
+		}
+	}
+	for _, c := range cases {
+		for _, mode := range []string{"live", "cancelled", "context"} {
+			withFix(t, nil, func(x *fix) {
+				var ran []string
+				var onSaw, alwaysSaw bool
+				under := func() {
+					Sneak.On(c.tier, "t.on", func(e PlayerEvent) {
+						ran = append(ran, "on")
+						onSaw = e.Cancelled()
+					})
+					Sneak.Always(c.tier, "t.always", func(e PlayerEvent, cancelled bool) {
+						ran = append(ran, fmt.Sprint("always=", cancelled))
+						alwaysSaw = e.Cancelled()
+					})
+				}
+				if c.before {
+					under()
+				}
+				Sneak.Handle(c.stopTier, "t.stop", func(e PlayerEvent) bool {
+					ran = append(ran, "stop")
+					if mode == "context" {
+						e.Cancel()
+					}
+					return mode == "cancelled"
+				})
+				if !c.before {
+					under()
+				}
+				stopped := Sneak.Emit(PlayerEvent{Actor{S: x.s, P: x.p, Tx: x.tx, Ctx: x.ctx}})
+				if stopped != (mode == "cancelled") {
+					t.Errorf("%+v %s: Emit = %t", c, mode, stopped)
+				}
+				var want []string
+				switch {
+				case c.before:
+					want = []string{"on", "always=false", "stop"}
+				case mode == "cancelled":
+					want = []string{"stop", "always=true"}
+				default:
+					want = []string{"stop", "on", "always=false"}
+				}
+				if !slices.Equal(ran, want) {
+					t.Errorf("%+v %s: ran %v, want %v", c, mode, ran, want)
+				}
+				// The context is cancelled for those that run after the cancel.
+				if wantSaw := mode == "context" && !c.before; alwaysSaw != wantSaw || (onSaw != wantSaw) {
+					t.Errorf("%+v %s: Cancelled() was %t for On and %t for Always, want %t", c, mode, onSaw, alwaysSaw, wantSaw)
+				}
+			})
+		}
+	}
+	if len(cases) != 35 {
+		t.Fatalf("%d arrangements", len(cases))
+	}
+}
+
+// TestAlwaysAfterCancelRunsOnlyAlways: after a cancel the Always subscribers
+// still to come run in order, traced like any other, whatever stands between
+// them; a second Handle subscriber is not asked, and Emit still reports the
+// cancel.
+func TestAlwaysAfterCancelRunsOnlyAlways(t *testing.T) {
+	ResetHooks()
+	h := NewHook[int]("always")
+	var traced, ran []string
+	traceInto(&traced)
+	defer func() { Trace = nil }()
+	rec := func(name string) func(int, bool) {
+		return func(_ int, cancelled bool) { ran = append(ran, fmt.Sprint(name, "=", cancelled)) }
+	}
+	h.Always(Lowest, "a", rec("a"))
+	h.Handle(Low, "stop", func(int) bool { ran = append(ran, "stop"); return true })
+	h.Always(Low, "b", rec("b"))
+	h.On(Normal, "on", func(int) { ran = append(ran, "on") })
+	h.Handle(Normal, "handle", func(int) bool { ran = append(ran, "handle"); return true })
+	h.Always(High, "c", rec("c"))
+	h.On(Monitor, "monitor", func(int) { ran = append(ran, "monitor") })
+	h.Always(Monitor, "d", rec("d"))
+	if !h.Emit(0) {
+		t.Fatal("Emit did not report the cancel")
+	}
+	if want := []string{"a=false", "stop", "b=true", "c=true", "d=true"}; !slices.Equal(ran, want) {
+		t.Fatalf("ran %v, want %v", ran, want)
+	}
+	if want := []string{"a", "stop", "b", "c", "d"}; !slices.Equal(traced, want) {
+		t.Fatalf("traced %v, want %v", traced, want)
+	}
+	var always []string
+	for _, s := range Subscriptions() {
+		if s.Hook == "always" && s.Always {
+			always = append(always, s.Name)
+		}
+	}
+	if want := []string{"a", "b", "c", "d"}; !slices.Equal(always, want) {
+		t.Fatalf("Subscriptions marks %v as Always, want %v", always, want)
+	}
+}
+
 func TestOnNeverStops(t *testing.T) {
 	ResetHooks()
 	h := NewHook[int]("onstop")
 	n := 0
-	h.On(1, "a", func(int) { n++ })
-	h.Handle(2, "b", func(int) bool { n++; return false })
-	h.On(3, "c", func(int) { n++ })
+	h.On(Lowest, "a", func(int) { n++ })
+	h.Handle(Normal, "b", func(int) bool { n++; return false })
+	h.On(High, "c", func(int) { n++ })
 	if h.Emit(0) || n != 3 {
 		t.Fatalf("stopped=%v n=%d", h.Emit(0), n)
 	}
 }
 
-func TestSamePriorityPanics(t *testing.T) {
-	ResetHooks()
-	h := NewHook[int]("prio")
-	h.On(10, "a.x", func(int) {})
-	defer mustPanic(t, "prio", "10", "a.x", "b.x")
-	h.On(10, "b.x", func(int) {})
-}
-
 func TestSameNamePanics(t *testing.T) {
 	ResetHooks()
 	h := NewHook[int]("name")
-	h.On(10, "a.x", func(int) {})
+	h.On(Normal, "a.x", func(int) {})
 	defer mustPanic(t, "name", "a.x")
-	h.Handle(20, "a.x", func(int) bool { return false })
+	h.Handle(High, "a.x", func(int) bool { return false })
 }
 
 func TestNilFuncPanics(t *testing.T) {
 	ResetHooks()
 	h := NewHook[int]("nilf")
+	func() {
+		defer mustPanic(t, "nilf", "h")
+		h.Handle(Normal, "h", nil)
+	}()
+	func() {
+		defer mustPanic(t, "nilf", "w")
+		h.Always(Normal, "w", nil)
+	}()
 	defer mustPanic(t, "nilf", "a")
-	h.On(1, "a", nil)
+	h.On(Normal, "a", nil)
 }
 
 func TestInstallingPrefix(t *testing.T) {
 	ResetHooks()
 	h := NewHook[int]("pfx")
 	SetInstalling("feat")
-	h.On(1, "feat.ok", func(int) {})
+	h.On(Normal, "feat.ok", func(int) {})
 	func() {
 		defer mustPanic(t, "pfx", "other.bad", "feat")
-		h.On(2, "other.bad", func(int) {})
+		h.On(Normal, "other.bad", func(int) {})
 	}()
 	found := false
 	for _, s := range Subscriptions() {
 		if s.Hook == "pfx" {
 			found = true
-			if s.Feature != "feat" || s.Name != "feat.ok" || s.Prio != 1 {
+			if s.Feature != "feat" || s.Name != "feat.ok" || s.Tier != Normal || s.Always {
 				t.Fatalf("subscription %+v", s)
 			}
 		}
@@ -123,10 +318,10 @@ func TestInstallingPrefix(t *testing.T) {
 func TestRegisterAfterEmitPanics(t *testing.T) {
 	ResetHooks()
 	h := NewHook[int]("late")
-	h.On(1, "a", func(int) {})
+	h.On(Normal, "a", func(int) {})
 	h.Emit(0)
 	defer mustPanic(t, "late", "b")
-	h.On(2, "b", func(int) {})
+	h.On(Normal, "b", func(int) {})
 }
 
 func TestEmptyEmitStillSealsRegistration(t *testing.T) {
@@ -134,21 +329,21 @@ func TestEmptyEmitStillSealsRegistration(t *testing.T) {
 	h := NewHook[int]("early")
 	h.Emit(0) // no steps: an empty emit still counts as emission
 	defer mustPanic(t, "early")
-	h.On(1, "a", func(int) {})
+	h.On(Normal, "a", func(int) {})
 }
 
 func TestSubscriptionsRunOrder(t *testing.T) {
 	ResetHooks()
 	h := NewHook[int]("T")
-	h.On(20, "b.x", func(int) {})
-	h.On(10, "a.x", func(int) {})
+	h.Always(High, "b.x", func(int, bool) {})
+	h.On(Low, "a.x", func(int) {})
 	var got []Subscription
 	for _, s := range Subscriptions() {
 		if s.Hook == "T" {
 			got = append(got, s)
 		}
 	}
-	want := []Subscription{{Hook: "T", Prio: 10, Name: "a.x"}, {Hook: "T", Prio: 20, Name: "b.x"}}
+	want := []Subscription{{Hook: "T", Tier: Low, Name: "a.x"}, {Hook: "T", Tier: High, Name: "b.x", Always: true}}
 	if !slices.Equal(got, want) {
 		t.Fatalf("got %+v want %+v", got, want)
 	}
@@ -158,8 +353,8 @@ func TestSubscriptionsHookDeclarationOrder(t *testing.T) {
 	ResetHooks()
 	h1 := NewHook[int]("decl1")
 	h2 := NewHook[int]("decl2")
-	h2.On(1, "z", func(int) {})
-	h1.On(5, "y", func(int) {})
+	h2.On(Lowest, "z", func(int) {})
+	h1.On(Monitor, "y", func(int) {})
 	var names []string
 	for _, s := range Subscriptions() {
 		if s.Hook == "decl1" || s.Hook == "decl2" {
@@ -175,8 +370,8 @@ func TestTraceNamesInOrder(t *testing.T) {
 	ResetHooks()
 	h := NewHook[int]("trace")
 	var traced, ran []string
-	h.On(2, "b", func(int) { ran = append(ran, fmt.Sprint(len(traced), ":b")) })
-	h.On(1, "a", func(int) { ran = append(ran, fmt.Sprint(len(traced), ":a")) })
+	h.On(Normal, "b", func(int) { ran = append(ran, fmt.Sprint(len(traced), ":b")) })
+	h.On(Low, "a", func(int) { ran = append(ran, fmt.Sprint(len(traced), ":a")) })
 	traceInto(&traced)
 	defer func() { Trace = nil }()
 	h.Emit(0)
@@ -206,8 +401,8 @@ func TestSubscriberPanicPropagates(t *testing.T) {
 	ResetHooks()
 	h := NewHook[int]("boom")
 	later := false
-	h.On(1, "a", func(int) { panic("boom!") })
-	h.On(2, "b", func(int) { later = true })
+	h.On(Normal, "a", func(int) { panic("boom!") })
+	h.On(Normal, "b", func(int) { later = true })
 	func() {
 		defer func() {
 			if r := recover(); r != "boom!" {
@@ -226,7 +421,7 @@ func TestEmitConcurrent(t *testing.T) {
 	h := NewHook[int]("conc")
 	var n atomic.Int64
 	for i := 0; i < 8; i++ {
-		h.On(i, fmt.Sprint("s", i), func(e int) { n.Add(int64(e)) })
+		h.On(Priority(i%6), fmt.Sprint("s", i), func(e int) { n.Add(int64(e)) })
 	}
 	var wg sync.WaitGroup
 	for g := 0; g < 16; g++ {
@@ -244,13 +439,15 @@ func TestEmitConcurrent(t *testing.T) {
 	}
 }
 
+// fillHook gives h n subscribers spread over the tiers (Handle subscribers
+// over the five tiers that may cancel).
 func fillHook(h *Hook[bigEvent], n int, handle bool) {
 	for i := 0; i < n; i++ {
 		name := fmt.Sprint("s", i)
 		if handle {
-			h.Handle(i, name, func(e bigEvent) bool { return e.A[0] == 99 })
+			h.Handle(Priority(i%5), name, func(e bigEvent) bool { return e.A[0] == 99 })
 		} else {
-			h.On(i, name, func(e bigEvent) { _ = e.A[0] })
+			h.On(Priority(i%6), name, func(e bigEvent) { _ = e.A[0] })
 		}
 	}
 }
@@ -269,6 +466,34 @@ func TestEmitAllocatesNothing(t *testing.T) {
 				t.Errorf("handle=%v n=%d: %v allocs", handle, n, got)
 			}
 		}
+	}
+}
+
+// TestEmitAllocatesNothingAfterCancel: the walk of the Always subscribers
+// after a cancel allocates nothing either.
+func TestEmitAllocatesNothingAfterCancel(t *testing.T) {
+	ResetHooks()
+	h := NewHook[bigEvent]("alloc-always")
+	seen := 0
+	h.Handle(Lowest, "stop", func(e bigEvent) bool { return e.A[0] == 1 })
+	h.On(Normal, "on", func(bigEvent) {})
+	h.Always(Normal, "a", func(_ bigEvent, cancelled bool) {
+		if cancelled {
+			seen++
+		}
+	})
+	h.Always(Monitor, "b", func(_ bigEvent, cancelled bool) {
+		if cancelled {
+			seen++
+		}
+	})
+	var e bigEvent
+	e.A[0] = 1
+	if got := testing.AllocsPerRun(200, func() { h.Emit(e) }); got != 0 {
+		t.Errorf("%v allocs", got)
+	}
+	if seen == 0 || seen%2 != 0 {
+		t.Fatalf("the Always subscribers saw %d cancelled events", seen)
 	}
 }
 
@@ -292,15 +517,15 @@ func BenchmarkEmit(b *testing.B) {
 
 var moveSink float64
 
-// BenchmarkEmitMove emits a 72-byte MoveEvent to four mixed subscribers, the
-// shape of the move hook: On, Handle (not stopping), On, On.
+// BenchmarkEmitMove emits a MoveEvent to four mixed subscribers, the shape of
+// the move hook: Handle (not cancelling), On, On, Always.
 func BenchmarkEmitMove(b *testing.B) {
 	ResetHooks()
 	h := NewHook[MoveEvent]("bench-move")
-	h.On(10, "a", func(e MoveEvent) { moveSink += e.Rot[0] + e.Pos[0] })
-	h.Handle(20, "b", func(e MoveEvent) bool { return e.P == nil && e.Pos[1] > 1e9 })
-	h.On(30, "c", func(e MoveEvent) { moveSink += e.Pos[2] })
-	h.On(40, "d", func(e MoveEvent) {
+	h.Always(Monitor, "a", func(e MoveEvent, _ bool) { moveSink += e.Rot[0] + e.Pos[0] })
+	h.Handle(Lowest, "b", func(e MoveEvent) bool { return e.P == nil && e.Pos[1] > 1e9 })
+	h.On(Monitor, "c", func(e MoveEvent) { moveSink += e.Pos[2] })
+	h.On(Highest, "d", func(e MoveEvent) {
 		if e.Pos[1] < -1e9 {
 			e.Cancel()
 		}

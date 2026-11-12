@@ -20,7 +20,7 @@ func subscribe() {
 
 // The conduits move on every fast tick.
 func subscribeFast() {
-	core.Fast.On(10, "network.step", func(e core.Tick) {
+	core.Fast.On(core.Normal, "network.step", func(e core.Tick) {
 		// Energy moves every FastInterval (four ticks) over the conduits.
 		Energy(e.S).Step(e.Tx, 4)
 		// Items move every itemnet.StepTicks ticks and fluids every

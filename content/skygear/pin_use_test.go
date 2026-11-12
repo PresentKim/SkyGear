@@ -696,8 +696,8 @@ func TestPinUse(t *testing.T) {
 	pinCheckReached(t, names, lines)
 
 	rows := map[string]string{
-		"UseOnBlock/plain": "dimension.hunting screens.menuItem dimension.stone expand.guard island.guard machine.noteFace copier.use wand.use storage.sneakUse conduit.plate handwork.stick farm.composter handwork.gather fairy.time farm.crop expand.guardSide island.guardSide",
-		"Use/plain":        "autofill.use screens.menuItem dimension.hunting dimension.stone copier.clear wand.options tinker.veinToggle",
+		"UseOnBlock/plain": "dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use machine.noteFace conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide",
+		"Use/plain":        "dimension.hunting dimension.stone screens.menuItem tinker.veinToggle copier.clear wand.options autofill.use",
 	}
 	for name, row := range rows {
 		if got := lines[name]; hookOrder == "" && !strings.HasPrefix(got, row+" | ") {
@@ -706,12 +706,12 @@ func TestPinUse(t *testing.T) {
 	}
 	for name, want := range map[string]string{
 		"UseOnBlock/hunting":      "dimension.hunting | cancelled=true",
-		"UseOnBlock/menuItem":     "dimension.hunting screens.menuItem | cancelled=true",
-		"UseOnBlock/stone":        "dimension.hunting screens.menuItem dimension.stone | cancelled=true",
-		"UseOnBlock/expanding":    "dimension.hunting screens.menuItem dimension.stone expand.guard | cancelled=true",
-		"UseOnBlock/outside":      "dimension.hunting screens.menuItem dimension.stone expand.guard island.guard | cancelled=true",
-		"UseOnBlock/cropSneaking": "farm.crop expand.guardSide island.guardSide",
-		"Use/menuItemHunting":     "autofill.use screens.menuItem | cancelled=true",
+		"UseOnBlock/menuItem":     "dimension.hunting dimension.stone expand.guard screens.menuItem | cancelled=true",
+		"UseOnBlock/stone":        "dimension.hunting dimension.stone | cancelled=true",
+		"UseOnBlock/expanding":    "dimension.hunting dimension.stone expand.guard | cancelled=true",
+		"UseOnBlock/outside":      "dimension.hunting dimension.stone expand.guard screens.menuItem island.guard | cancelled=true",
+		"UseOnBlock/cropSneaking": "farm.crop island.guardSide expand.guardSide",
+		"Use/menuItemHunting":     "dimension.hunting dimension.stone screens.menuItem | cancelled=true",
 		"AttackEntity/monster":    "dimension.hunter | cancelled=true",
 	} {
 		if got := lines[name]; hookOrder == "" && !strings.Contains(got, want) {

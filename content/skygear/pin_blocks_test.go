@@ -273,11 +273,12 @@ func TestPinBlocks(t *testing.T) {
 	})
 
 	// The shapes of the rows: a scenario that stops nowhere equals its hook's
-	// row of the order file; the guards stop where they should.
+	// lines of order.golden; the guards stop where they should. A run that
+	// reorders the subscribers (TestTierOrder) has other traces.
 	rows := map[string]string{
 		"StartBreak/own":   "expand.guard island.guard tinker.autoTool",
-		"BlockBreak/stone": "expand.guard island.guard achievement.break tinker.break farm.break storage.break netstore.break machine.break conduit.break",
-		"BlockPlace/dirt":  "expand.guard island.guard achievement.place autofill.place farm.plant storage.place machine.place netstore.place conduit.place progress.dragonEgg",
+		"BlockBreak/stone": "expand.guard island.guard tinker.break machine.break conduit.break storage.break farm.break netstore.break achievement.break",
+		"BlockPlace/dirt":  "expand.guard island.guard machine.place storage.place farm.plant autofill.place netstore.place achievement.place progress.dragonEgg conduit.place",
 	}
 	for name, row := range rows {
 		if got := lines[name]; hookOrder == "" && !strings.HasPrefix(got, row+" | ") {
