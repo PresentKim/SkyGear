@@ -81,6 +81,7 @@ func Lobby(w *world.World, pf **Platform) instance.Lobby {
 			forgetLobbyHUD(p)
 			stopLobbyMotion(p)
 			forgetHome(p)
+			quitCacheTest(p)
 		},
 		Entered:     entered,
 		EnterFailed: func(p *player.Player, err error) { (*pf).enterFailed(p, err) },
@@ -324,6 +325,7 @@ func registerCommands(pf *Platform) {
 	cmd.Register(cmd.New("uidebug", i18n.T(i18n.Default, "platform.uidebug.command"), nil, uiDebugCmd{}))
 	cmd.Register(cmd.New("settings", i18n.T(i18n.Default, "setting.command"), []string{"setting", "options"}, settingsCmd{pf: pf}))
 	cmd.Register(cmd.New("copysave", i18n.T(i18n.Default, "platform.cmd.copysave"), nil, copySaveCmd{pf: pf}))
+	cmd.Register(cmd.New("cachetest", i18n.T(i18n.Default, "platform.cmd.cachetest"), nil, cacheTestCmd{pf: pf}))
 }
 
 type playerOnly struct{}

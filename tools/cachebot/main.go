@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -67,6 +68,7 @@ func main() {
 	file := flag.String("cache", "cachebot.blobs", "blob cache file (kept between runs)")
 	wait := flag.Duration("wait", 15*time.Second, "how long to count after spawning (and after the resend)")
 	resend := flag.Bool("resend", false, "run /sgdebug chunkcache resend after the first wait")
+	cmds := flag.String("cmds", "", "commands to run after the first wait, separated by ';', each followed by a wait")
 	flag.Parse()
 
 	b := &bot{cache: load(*file), want: map[uint64]struct{}{}}
@@ -89,14 +91,23 @@ func main() {
 
 	time.Sleep(*wait)
 	log.Printf("join:   %v", b.take())
+	var lines []string
 	if *resend {
+		lines = append(lines, "/sgdebug chunkcache resend")
+	}
+	if *cmds != "" {
+		lines = append(lines, strings.Split(*cmds, ";")...)
+	}
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		log.Printf("run %s", line)
 		_ = conn.WritePacket(&packet.CommandRequest{
-			CommandLine:   "/sgdebug chunkcache resend",
+			CommandLine:   line,
 			CommandOrigin: protocol.CommandOrigin{Origin: protocol.CommandOriginPlayer, UUID: uuid.New()},
 			Version:       "latest",
 		})
 		time.Sleep(*wait)
-		log.Printf("resend: %v", b.take())
+		log.Printf("after %s: %v", line, b.take())
 	}
 	_ = conn.Close()
 	b.mu.Lock()
