@@ -26,10 +26,14 @@ func TestViewFakePlayer(t *testing.T) {
 		sghook.AnimateEntity(p, id, "animation.test")
 		sghook.RemoveFakeEntity(p, id)
 	}).Done()
-	cl.Wait(func(pk packet.Packet) bool {
-		r, ok := pk.(*packet.RemoveActor)
-		return ok && r.EntityUniqueID == id
-	})
+	// one RemoveActor goes before the model (a model shown before), one
+	// after the animation
+	for range 2 {
+		cl.Wait(func(pk packet.Packet) bool {
+			r, ok := pk.(*packet.RemoveActor)
+			return ok && r.EntityUniqueID == id
+		})
+	}
 	var adds, removes int
 	var added *packet.AddPlayer
 	for _, pk := range cl.Packets() {
