@@ -28,7 +28,6 @@ UseOnBlock LOWEST screens.menuItem
 UseOnBlock LOW island.guard
 UseOnBlock LOW copier.use
 UseOnBlock LOW wand.use
-UseOnBlock NORMAL machine.noteFace
 UseOnBlock NORMAL conduit.plate
 UseOnBlock NORMAL storage.sneakUse
 UseOnBlock NORMAL fairy.time

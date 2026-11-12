@@ -301,7 +301,10 @@ func TestPinUse(t *testing.T) {
 	onBlock("outside", holding(stone), outsidePos, cube.FaceUp, centre, held)
 	onBlock("arena", holding(stone), core.ArenaCentre, cube.FaceUp, centre, held)
 	onBlock("outsideCopier", holding(copierItem), outsidePos, cube.FaceUp, centre, held)
-	// 6 machine.noteFace: the face a miner or network block is placed by.
+	// 6 a machine in hand: the click's subscribers note no face. The item
+	// hands the face to its own placement (machine.Machine.UseOnBlock,
+	// machineface_test.go), so a miner placed here without a click of its
+	// own faces down whatever was held.
 	placedFacing := func(sc scene) func() string {
 		return func() string {
 			at := cube.Pos{6, island.IslandY + 2, 6}
@@ -333,7 +336,7 @@ func TestPinUse(t *testing.T) {
 		sc := start(holding(c.held))
 		event("UseOnBlock/"+c.name, sc, 0, false, clickAt(pos, c.face, centre), placedFacing(sc))
 	}
-	// The denied clicks note no face.
+	// A denied click is no different.
 	for _, c := range []struct {
 		name  string
 		setup setupFn
@@ -696,7 +699,7 @@ func TestPinUse(t *testing.T) {
 	pinCheckReached(t, names, lines)
 
 	rows := map[string]string{
-		"UseOnBlock/plain": "dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use machine.noteFace conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther",
+		"UseOnBlock/plain": "dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther",
 		"Use/plain":        "dimension.hunting dimension.stone screens.menuItem tinker.veinToggle copier.clear wand.options autofill.use",
 	}
 	for name, row := range rows {

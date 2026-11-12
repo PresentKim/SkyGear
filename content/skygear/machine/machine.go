@@ -518,6 +518,12 @@ type Machine struct {
 	Tier int
 	// Shape is the look of a thin network block (netshape.go).
 	Shape int
+	// clicked and placedOn are whether a machine item was used on a block to
+	// place this one, and that block's face. The item sets them on the block
+	// it hands to the placement (UseOnBlock) and Place reads them; a machine
+	// in the world does not carry them.
+	clicked  bool
+	placedOn cube.Face
 }
 
 // State is the inventory and progress of a placed machine. It is
@@ -1851,8 +1857,12 @@ func viewCrack(tx *world.Tx, pos cube.Pos, a world.BlockAction) {
 	}
 }
 
-// Place sets up a placed machine with a fresh state.
-func Place(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, kind string) {
+// Place sets up a placed machine with a fresh state. b is the block that was
+// placed. One a machine item placed says which face the item was used on
+// (UseOnBlock): a network attachment or a miner faces that block. A machine
+// placed any other way faces its default.
+func Place(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, b Machine) {
+	kind := b.Kind
 	m := New(kind)
 	account.Grant(p, achievement.FirstMachine)
 	achievement.Count(p, "machine_place", 1)
@@ -1860,9 +1870,8 @@ func Place(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, kind s
 	if m.Kind != KindSieve {
 		progress.Advance(s, tx, advancement.Machine)
 	}
-	face, clicked := takePlaceFace(s, p)
-	if _, head := netHeads[kind]; (head || kind == KindMiner) && clicked {
-		m.State.Facing = face.Opposite()
+	if _, head := netHeads[kind]; (head || kind == KindMiner) && b.clicked {
+		m.State.Facing = b.placedOn.Opposite()
 	}
 	tx.Defer(func(tx *world.Tx) {
 		if NetShaped(kind) {
@@ -1881,6 +1890,27 @@ func Break(s *core.Session, tx *world.Tx, pos cube.Pos, m Machine) {
 }
 
 func Item(kind string) item.Stack { return item.NewStack(Machine{Kind: kind}, 1) }
+
+// UseOnBlock implements item.UsableOnBlock: a machine item places its block
+// where Dragonfly places a block item (in the clicked block if that gives
+// way, else beside the clicked face) and hands the placement the face it was
+// used on (Place).
+func (m Machine) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *world.Tx, user item.User, ctx *item.UseContext) bool {
+	at := pos
+	if r, ok := tx.Block(at).(block.Replaceable); !ok || !r.ReplaceableBy(m) {
+		at = pos.Side(face)
+	}
+	if r, ok := tx.Block(at).(block.Replaceable); !ok || !r.ReplaceableBy(m) || at.OutOfBounds(tx.Range()) {
+		return false
+	}
+	placer, ok := user.(block.Placer)
+	if !ok {
+		return false
+	}
+	m.clicked, m.placedOn = true, face
+	placer.PlaceBlock(at, m, ctx)
+	return ctx.CountSub > 0
+}
 
 // WindHourglass implements sgitem.HourglassWound: the hourglass of a sneaking
 // player, whose click Dragonfly does not hand to Activate, winds the machine

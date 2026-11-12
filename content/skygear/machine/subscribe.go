@@ -6,7 +6,6 @@ import "github.com/presentkim/skygear/content/skygear/core"
 func subscribe() {
 	subscribeMonitor()
 	subscribeBlocks()
-	subscribeFace()
 	registerLook()
 }
 
@@ -26,16 +25,7 @@ func subscribeBlocks() {
 	})
 	core.BlockPlace.On(core.Normal, "machine.place", func(e core.BlockPlaceEvent) {
 		if b, ok := e.Block.(Machine); ok {
-			Place(e.S, e.P, e.Tx, e.Pos, b.Kind)
-		}
-	})
-}
-
-// A net-shaped machine or a miner in hand remembers the face it is placed on.
-func subscribeFace() {
-	core.UseOnBlock.On(core.Normal, "machine.noteFace", func(e core.UseOnBlockEvent) {
-		if m, ok := e.Held.Item().(Machine); ok && (NetShaped(m.Kind) || m.Kind == KindMiner) {
-			NotePlaceFace(e.S, e.P, e.Face)
+			Place(e.S, e.P, e.Tx, e.Pos, b)
 		}
 	})
 }
