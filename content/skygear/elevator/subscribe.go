@@ -16,9 +16,10 @@ func subscribeJump() {
 }
 
 // Sneaking on an elevator rides it down. A ride cancels the event for the
-// later tiers: the sneak was used.
+// later tiers: the sneak was used. A player a takeover holds (island
+// expansion mode, a hunt) does not ride: that mode has the player's body.
 func subscribeSneak() {
 	core.Sneak.Handle(core.Normal, "elevator.down", func(e core.PlayerEvent) bool {
-		return Down(e.S, e.P, e.Tx)
+		return core.Takeover(e.S, e.P) == "" && Down(e.S, e.P, e.Tx)
 	})
 }

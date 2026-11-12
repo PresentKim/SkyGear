@@ -36,10 +36,14 @@ func registerComposterIO() {
 }
 
 // Sneaking grows saplings nearby by chance, unless another step used the
-// sneak (an elevator ride cancels the event): work of low priority, High.
+// sneak (an elevator ride cancels the event): work of low priority, High. A
+// player a takeover holds (island expansion mode, a hunt) grows none: that
+// sneak belongs to the mode.
 func subscribeSneak() {
 	core.Sneak.On(core.High, "farm.crouchGrow", func(e core.PlayerEvent) {
-		CrouchGrow(e.S, e.P, e.Tx)
+		if core.Takeover(e.S, e.P) == "" {
+			CrouchGrow(e.S, e.P, e.Tx)
+		}
 	})
 }
 
