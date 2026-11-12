@@ -2,6 +2,7 @@ package wand
 
 import (
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/look"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
@@ -13,10 +14,11 @@ func subscribe() {
 }
 
 // The construction wand builds out the face clicked and does nothing else;
-// used on the air while sneaking it shows its settings.
+// used on the air while sneaking it shows its settings. Where the island does
+// not allow building it leaves the click alone: the island's guard refuses it.
 func subscribeUse() {
 	core.UseOnBlock.Handle(80, "wand.use", func(e core.UseOnBlockEvent) bool {
-		if _, ok := sgitem.WandOf(e.Held); ok {
+		if _, ok := sgitem.WandOf(e.Held); ok && island.CanBuild(e.S, e.Pos) {
 			e.Cancel()
 			Use(e.S, e.P, e.Tx, e.Pos, e.Face, e.Held)
 			return true

@@ -174,9 +174,6 @@ EntityDespawn NORMAL island.lost
 // entry is a dependency to remove (or, for the last ones, an exception the
 // owner decides on); the list only shrinks.
 var orderKept = []string{
-	// outside the island the copier and the wand do nothing
-	"UseOnBlock island.guard copier.use",
-	"UseOnBlock island.guard wand.use",
 	// a click the drawer menu or a plate takes counts no stick use
 	"UseOnBlock storage.sneakUse handwork.stick",
 	"UseOnBlock conduit.plate handwork.stick",
