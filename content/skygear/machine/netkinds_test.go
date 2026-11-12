@@ -6,9 +6,14 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/netstore"
 )
+
+// The network kinds get their behaviour from the netstore feature's Setup,
+// which no feature list runs in this package's tests.
+func init() { coretest.Setup(netstore.Feature) }
 
 var netKinds = []string{"net_controller", "net_cable", "disk_drive", "net_terminal", "net_importer", "net_exporter", "net_external", "pattern_encoder", "net_autocrafter"}
 
@@ -32,7 +37,7 @@ func TestNetKindsRegistered(t *testing.T) {
 }
 
 func TestDriveAcceptsOnlyDisks(t *testing.T) {
-	m := machine.New(machine.KindDiskDrive, "", "")
+	m := machine.New(machine.KindDiskDrive)
 	st := m.State
 	disk := netstore.WithDiskID(item.NewStack(netstore.Disk{Tier: 1}, 1), "d1")
 	if !st.SlotAccepts(3, disk) {

@@ -1,0 +1,113 @@
+package farm
+
+import (
+	"github.com/df-mc/dragonfly/server/block"
+	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/common/itemio"
+	"github.com/presentkim/skygear/content/skygear/achievement"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/sgitem"
+)
+
+// subscribe registers the farm's steps and its composter adapter.
+func subscribe() {
+	subscribeSneak()
+	subscribeSecond()
+	subscribeLoad()
+	subscribeBlocks()
+	subscribeUse()
+	registerComposterIO()
+	registerLook()
+	registerKinds()
+}
+
+// registerComposterIO lets itemio reach a composter (a vanilla block) through
+// ComposterIO, in the session of the world the block is in.
+func registerComposterIO() {
+	itemio.RegisterAdapter(func(tx *world.Tx, _ cube.Pos, b world.Block) (itemio.Inserter, itemio.Extractor) {
+		if _, ok := b.(block.Composter); ok {
+			if s := core.At(tx); s != nil {
+				return ComposterIO{S: s}, ComposterIO{S: s}
+			}
+		}
+		return nil, nil
+	})
+}
+
+// Sneaking grows saplings around the player by chance. It is work of low
+// priority (High): it reads where the player is when the sneak's other work
+// is done, so after an elevator ride (elevator.down, Normal) the saplings
+// around the place the player arrived at get the chance. A player a takeover
+// holds (island expansion mode, a hunt) grows none: that sneak belongs to the
+// mode.
+func subscribeSneak() {
+	core.Sneak.On(core.High, "farm.crouchGrow", func(e core.PlayerEvent) {
+		if core.Takeover(e.S, e.P) == "" {
+			CrouchGrow(e.S, e.P, e.Tx)
+		}
+	})
+}
+
+// The crops, barrels, composters and plants grow every second.
+func subscribeSecond() {
+	core.Second.On(core.Normal, "farm.growCrops", func(e core.Tick) {
+		GrowCrops(e.S, e.Tx)
+	})
+	core.Second.On(core.Normal, "farm.barrels", func(e core.Tick) {
+		TickBarrels(e.S, e.Tx)
+		TickComposters(e.S, e.Tx)
+	})
+	core.Second.On(core.Normal, "farm.plants", func(e core.Tick) {
+		TickPlants(e.S, e.Tx)
+	})
+}
+
+// The crops are loaded before the world transaction of the session start.
+func subscribeLoad() {
+	core.Load.On(core.Normal, "farm.loadCrops", func(e core.Tick) {
+		LoadCrops(e.S)
+	})
+}
+
+// Leaves pulled apart with a crook give more saplings, now and then a
+// silkworm (silkworm leaves drop their string themselves); a broken composter
+// and a broken barrel give back what they hold. A placed crop is planted.
+func subscribeBlocks() {
+	core.BlockBreak.On(core.Normal, "farm.break", func(e core.BlockBreakEvent) {
+		if c, ok := sgitem.CrookOf(e.Held); ok {
+			if l, ok := e.Block.(block.Leaves); ok {
+				*e.Drops = CrookLeafDrops(l, c, e.S.Rand.Float64)
+			}
+		}
+		switch b := e.Block.(type) {
+		case block.Composter:
+			BreakComposter(e.S, e.Pos, b, e.Drops)
+		case Barrel:
+			BreakBarrel(e.S, e.Pos, e.Drops)
+		}
+	})
+	core.BlockPlace.On(core.Normal, "farm.plant", func(e core.BlockPlaceEvent) {
+		if kind, _, ok := CropOf(e.Block); ok {
+			achievement.Count(e.P, "crop_plant", 1)
+			PlantCrop(e.S, e.Pos, kind)
+		}
+	})
+}
+
+// Using a composter or a crop with a free hand acts on it; sneaking uses the
+// item as usual (placing blocks, bone meal). A crop shows its time or
+// harvests, and places nothing. What the block does with a click comes after
+// what the held item does with it (Normal: a stick, the fairy's items): High.
+func subscribeUse() {
+	core.UseOnBlock.On(core.High, "farm.composter", func(e core.UseOnBlockEvent) {
+		if !e.P.Sneaking() && UseComposter(e.S, e.P, e.Tx, e.Pos, e.Held) {
+			e.Cancel()
+		}
+	})
+	core.UseOnBlock.On(core.High, "farm.crop", func(e core.UseOnBlockEvent) {
+		if !e.P.Sneaking() && UseCrop(e.S, e.P, e.Tx, e.Pos) {
+			e.Cancel()
+		}
+	})
+}

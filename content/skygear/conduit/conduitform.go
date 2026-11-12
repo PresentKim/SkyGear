@@ -64,7 +64,7 @@ func ShowPlateForm(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos
 }
 
 // conduitLines are the lines that tell what each of the kinds of conduits
-// (conduitKinds' indices) of b carries.
+// (energy 0, item 1, fluid 2) of b carries.
 func conduitLines(lang string, b Bundle, kinds []int) string {
 	var lines []string
 	for _, k := range kinds {

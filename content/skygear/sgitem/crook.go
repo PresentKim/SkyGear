@@ -5,6 +5,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/category"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/common/clientdef"
 	"github.com/presentkim/skygear/common/i18n"
 )
 
@@ -43,6 +44,8 @@ var CrookTiers = []CrookTier{
 
 // Crook is a crook of a tier (the zero value is the wooden one).
 type Crook struct{ Tier string }
+
+var _ clientdef.Digger = Crook{}
 
 // Stats returns the tier of the crook.
 func (c Crook) Stats() CrookTier {
@@ -85,7 +88,7 @@ func (c Crook) BaseMiningEfficiency(b world.Block) float64 {
 	return 1
 }
 
-// DestroySpeeds implements item.Digger: leaves (and the infested leaves) at
+// DestroySpeeds implements clientdef.Digger: leaves (and the silkworm leaves) at
 // the material's speed, so the client breaks them as fast as the server.
 func (c Crook) DestroySpeeds() map[string]int {
 	out := map[string]int{}
@@ -100,7 +103,7 @@ func (c Crook) DestroySpeeds() map[string]int {
 }
 
 // CrookBlockNames are the custom blocks the crook is made for besides the
-// leaves (the farm package's infested leaves add theirs).
+// leaves (the farm package's silkworm leaves add theirs).
 var CrookBlockNames []string
 
 // IsCrookBlock reports whether b is leaves or a block the crook is made for.

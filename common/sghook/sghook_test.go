@@ -9,7 +9,6 @@ import (
 	"github.com/df-mc/dragonfly/server"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item/inventory"
-	"github.com/df-mc/dragonfly/server/player/form"
 	"github.com/df-mc/dragonfly/server/session"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/google/uuid"
@@ -30,13 +29,11 @@ func TestInternals(t *testing.T) {
 	field[map[uuid.UUID]struct{}](s, "hiddenEntities")
 	field[world.BlockRegistry](s, "br")
 	field[int32](s, "chunkRadius")
-	if !reflect.ValueOf(s).Elem().FieldByName("handlers").IsValid() {
-		t.Fatal("no field handlers")
-	}
-	fh := &session.ModalFormResponseHandler{}
-	field[sync.Mutex](fh, "mu")
-	field[map[uint32]form.Form](fh, "forms")
 	field[[]protocol.ItemEntry](&server.Server{}, "customItems")
+	if sf, ok := reflect.TypeFor[server.Server]().FieldByName("customBlocks"); !ok || sf.Type != reflect.TypeFor[[]protocol.BlockEntry]() {
+		t.Fatal("server.Server has no field customBlocks []protocol.BlockEntry: Dragonfly moved the custom block entries, update EditCustomBlocks")
+	}
+	field[[]protocol.BlockEntry](&server.Server{}, "customBlocks")
 	_ = []any{player_session, session_writePacket, session_sendInv, session_nextWindowID, session_closeCurrentContainer, tx_chunk}
 }
 
@@ -137,25 +134,6 @@ func TestCameraPresetsOnSpawn(t *testing.T) {
 	}
 }
 
-func TestMoveInput(t *testing.T) {
-	f := &fakeConn{in: []packet.Packet{&packet.PlayerAuthInput{RawMoveVector: [2]float32{1, -1}}}}
-	c := &Conn{Conn: f}
-	_, _ = c.ReadPacket()
-	if v := c.moveInput.Load(); v == nil || v[0] != 1 || v[1] != -1 {
-		t.Fatalf("move input %v", v)
-	}
-	first := c.moveInput.Load()
-	f.in = []packet.Packet{&packet.PlayerAuthInput{RawMoveVector: [2]float32{1, -1}}, &packet.PlayerAuthInput{RawMoveVector: [2]float32{0, 0.5}}}
-	_, _ = c.ReadPacket()
-	if c.moveInput.Load() != first {
-		t.Fatal("unchanged move input stored again")
-	}
-	_, _ = c.ReadPacket()
-	if v := c.moveInput.Load(); v == nil || v[0] != 0 || v[1] != 0.5 {
-		t.Fatalf("move input %v", v)
-	}
-}
-
 func TestVoxelShapesOnSpawn(t *testing.T) {
 	defer func(v bool) { SendBasicVoxelShapes = v }(SendBasicVoxelShapes)
 	SendBasicVoxelShapes = true
@@ -167,17 +145,6 @@ func TestVoxelShapesOnSpawn(t *testing.T) {
 	}
 	if !ids[packet.IDVoxelShapes] || !ids[packet.IDAvailableActorIdentifiers] {
 		t.Fatalf("written %T", f.out)
-	}
-}
-
-func TestFormResponse(t *testing.T) {
-	r := &packet.ModalFormResponse{FormID: 1, ResponseData: protocol.Option([]byte(" null\n"))}
-	f := &fakeConn{in: []packet.Packet{r}}
-	if pk, _ := (&Conn{Conn: f}).ReadPacket(); pk != r {
-		t.Fatal("dropped without a session")
-	}
-	if _, ok := r.ResponseData.Value(); ok {
-		t.Fatal("null response not turned into a cancel")
 	}
 }
 
@@ -197,9 +164,113 @@ func TestEditCustomItems(t *testing.T) {
 	if (*items)[0].Name != "a" {
 		t.Fatal("edited before a connection")
 	}
-	applyItemEdits()
-	applyItemEdits()
+	ApplyEntryEdits()
+	ApplyEntryEdits()
 	if (*items)[0].Name != "a!" || edits != 1 {
 		t.Fatalf("entry %q after %d edits", (*items)[0].Name, edits)
+	}
+}
+
+func TestEditCustomBlocks(t *testing.T) {
+	srv := &server.Server{}
+	edits := 0
+	EditCustomBlocks(srv, func(e protocol.BlockEntry) protocol.BlockEntry {
+		edits++
+		e.Properties["x"] = int32(1)
+		return e
+	})
+	t.Cleanup(func() { EditCustomBlocks(nil, nil) })
+	blocks := field[[]protocol.BlockEntry](srv, "customBlocks")
+	shared := map[string]any{"a": map[string]any{}}
+	*blocks = []protocol.BlockEntry{{Name: "a", Properties: shared}, {Name: "b", Properties: map[string]any{}}}
+	if edits != 0 || (*blocks)[0].Properties["x"] != nil {
+		t.Fatal("edited before a connection")
+	}
+	ApplyEntryEdits()
+	ApplyEntryEdits()
+	if edits != 2 || (*blocks)[0].Properties["x"] != int32(1) || (*blocks)[1].Name != "b" || len(*blocks) != 2 {
+		t.Fatalf("entries %v after %d edits", *blocks, edits)
+	}
+	if _, ok := shared["x"]; ok {
+		t.Fatal("edit changed the maps Dragonfly shares")
+	}
+}
+
+func TestEditCustomBlocksGuards(t *testing.T) {
+	t.Cleanup(func() { EditCustomBlocks(nil, nil) })
+	for name, edit := range map[string]func(protocol.BlockEntry) protocol.BlockEntry{
+		"name": func(e protocol.BlockEntry) protocol.BlockEntry { e.Name += "!"; return e },
+		"block_id": func(e protocol.BlockEntry) protocol.BlockEntry {
+			e.Properties["vanilla_block_data"].(map[string]any)["block_id"] = int32(2)
+			return e
+		},
+		"vanilla_block_data": func(e protocol.BlockEntry) protocol.BlockEntry { delete(e.Properties, "vanilla_block_data"); return e },
+	} {
+		srv := &server.Server{}
+		EditCustomBlocks(srv, edit)
+		blocks := field[[]protocol.BlockEntry](srv, "customBlocks")
+		*blocks = []protocol.BlockEntry{{Name: "a", Properties: map[string]any{"vanilla_block_data": map[string]any{"block_id": int32(1)}}}}
+		func() {
+			defer func() {
+				if recover() == nil {
+					t.Errorf("%s change not refused", name)
+				}
+			}()
+			ApplyEntryEdits()
+		}()
+		if (*blocks)[0].Name != "a" || vanillaBlockID((*blocks)[0].Properties) != int32(1) {
+			t.Errorf("%s: entries changed despite the panic", name)
+		}
+	}
+}
+
+// TestEditEntriesConcurrentAccept: two listeners accepting at once make each
+// edit once, and the loser of the race returns only after the winner is done
+// (the server reads the entries right after Accept returns).
+func TestEditEntriesConcurrentAccept(t *testing.T) {
+	srv := &server.Server{}
+	var itemEdits, blockEdits atomic.Int32
+	EditCustomItems(srv, func(e protocol.ItemEntry) protocol.ItemEntry { itemEdits.Add(1); e.Name += "!"; return e })
+	EditCustomBlocks(srv, func(e protocol.BlockEntry) protocol.BlockEntry {
+		blockEdits.Add(1)
+		e.Properties["x"] = int32(1)
+		return e
+	})
+	t.Cleanup(func() { EditCustomItems(nil, nil); EditCustomBlocks(nil, nil) })
+	items := field[[]protocol.ItemEntry](srv, "customItems")
+	blocks := field[[]protocol.BlockEntry](srv, "customBlocks")
+	*items = []protocol.ItemEntry{{Name: "a"}, {Name: "b"}}
+	*blocks = []protocol.BlockEntry{{Name: "a", Properties: map[string]any{}}, {Name: "b", Properties: map[string]any{}}}
+	var wg sync.WaitGroup
+	for range 8 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			ApplyEntryEdits()
+			if (*items)[1].Name != "b!" || (*blocks)[1].Properties["x"] != int32(1) {
+				t.Error("returned before the entries were edited")
+			}
+		}()
+	}
+	wg.Wait()
+	if itemEdits.Load() != 2 || blockEdits.Load() != 2 {
+		t.Fatalf("%d item and %d block edits, want 2 each", itemEdits.Load(), blockEdits.Load())
+	}
+}
+
+// TestApplyEntryEditsOnce: the exported call makes both edits once, whoever
+// calls it first.
+func TestApplyEntryEditsOnce(t *testing.T) {
+	srv := &server.Server{}
+	items, blocks := 0, 0
+	EditCustomItems(srv, func(e protocol.ItemEntry) protocol.ItemEntry { items++; return e })
+	EditCustomBlocks(srv, func(e protocol.BlockEntry) protocol.BlockEntry { blocks++; return e })
+	t.Cleanup(func() { EditCustomItems(nil, nil); EditCustomBlocks(nil, nil) })
+	*field[[]protocol.ItemEntry](srv, "customItems") = []protocol.ItemEntry{{Name: "a"}, {Name: "b"}}
+	*field[[]protocol.BlockEntry](srv, "customBlocks") = []protocol.BlockEntry{{Name: "c", Properties: map[string]any{}}}
+	ApplyEntryEdits()
+	ApplyEntryEdits()
+	if items != 2 || blocks != 1 {
+		t.Fatalf("%d item edits, %d block edits", items, blocks)
 	}
 }

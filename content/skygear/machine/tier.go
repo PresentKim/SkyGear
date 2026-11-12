@@ -155,14 +155,18 @@ func (st *State) Offset(kind string) cube.Pos {
 // moved: its area is one block high, so it has no reach of its own to go by.
 const harvesterLift = 2
 
+// rangeLifts are the kinds whose area moves up and down by a fixed number of
+// blocks instead of by its own height.
+var rangeLifts = map[string]int{KindHarvester: harvesterLift}
+
 // MaxOffset is how far the area of a machine of kind may be moved each way
 // on each axis: as far as its tier reaches sideways, and as far as it reaches
 // below or above.
 func (st *State) MaxOffset(kind string) cube.Pos {
 	most := st.MaxArea(kind)
 	y := max(most.Down, most.Up)
-	if kind == KindHarvester {
-		y = harvesterLift
+	if lift, ok := rangeLifts[kind]; ok {
+		y = lift
 	}
 	return cube.Pos{most.X, y, most.Z}
 }

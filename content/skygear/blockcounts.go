@@ -3,7 +3,6 @@ package skygear
 import (
 	"log/slog"
 	"sort"
-	"strings"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/world"
@@ -46,10 +45,13 @@ func CustomBlockCounts() (blocks, states, permutations int) {
 	return blocks, states, permutations
 }
 
-// LogCustomBlockCounts logs CustomBlockCounts once, for comparing client
-// loading times with the state probe on and off, with the most states of a name, a
-// line for each state probe block name and a warning for each name over
-// stateProbeNameCap states.
+// blockNameStateCap is the number of states of a block name the client is
+// thought to know at most: it may know only the first 65,536 states of a name
+// (a state past it draws nothing and has no collision).
+const blockNameStateCap = 65536
+
+// LogCustomBlockCounts logs CustomBlockCounts once, with the most states of a
+// name, and a warning for each name over blockNameStateCap states.
 func LogCustomBlockCounts(log *slog.Logger) {
 	counts := customBlockNameCounts()
 	var blocks, states, permutations, most int
@@ -67,15 +69,12 @@ func LogCustomBlockCounts(log *slog.Logger) {
 	logBlockNameCounts(log, counts)
 }
 
-// logBlockNameCounts logs a line for each state probe block name and a warning
-// for each name with more states than the client is thought to know.
+// logBlockNameCounts logs a warning for each name with more states than the
+// client is thought to know.
 func logBlockNameCounts(log *slog.Logger, counts []blockNameCount) {
 	for _, c := range counts {
-		if strings.HasPrefix(c.name, "skygear:state_probe") {
-			log.Info("state probe block", "name", c.name, "states", c.states, "permutations", c.permutations)
-		}
-		if c.states > stateProbeNameCap {
-			log.Warn("custom block has more states than the client may know", "name", c.name, "states", c.states, "cap", stateProbeNameCap)
+		if c.states > blockNameStateCap {
+			log.Warn("custom block has more states than the client may know", "name", c.name, "states", c.states, "cap", blockNameStateCap)
 		}
 	}
 }

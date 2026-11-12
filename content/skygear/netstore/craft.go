@@ -136,11 +136,14 @@ func init() {
 	CraftableHook = Craftable
 	RequestHook = func(_ *core.Session, p *player.Player, n *Network, k storagenet.Key) { RequestUI(p, p.Tx(), n, k) }
 	MonitorHook = func(_ *core.Session, p *player.Player, n *Network) { MonitorUI(p, p.Tx(), n) }
-	machine.Kinds[machine.KindNetAutocrafter].Run = func(s *core.Session, _ *machine.State, pos cube.Pos, tx *world.Tx) {
-		sweepLost(tx, s, false)
-		if cs := craftOf(At(tx, pos)); cs != nil {
-			cs.tick(tx)
-		}
+}
+
+// runAutocrafter is one run of an autocrafter's tick: the crafting tasks of
+// its network go on.
+func runAutocrafter(s *core.Session, _ *machine.State, pos cube.Pos, tx *world.Tx) {
+	sweepLost(tx, s, false)
+	if cs := craftOf(At(tx, pos)); cs != nil {
+		cs.tick(tx)
 	}
 }
 

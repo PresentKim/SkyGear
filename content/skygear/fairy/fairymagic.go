@@ -6,6 +6,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/common/slotdeco"
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
@@ -31,6 +32,9 @@ func (Board) Name() string { return i18n.T(i18n.Default, "name.FairyBoard") }
 func (Board) Category() category.Category { return category.Equipment() }
 
 func (Board) MaxCount() int { return 1 }
+
+// Decor is the board's slot decoration (slotdeco.Decorated).
+func (Board) Decor() (slotdeco.Rarity, int) { return slotdeco.Rare, 0 }
 
 // FairyRecipes registers dust, the middle item and dust in a row: an emerald
 // makes a fairy emerald, a research table the fairy board. Three wide, they

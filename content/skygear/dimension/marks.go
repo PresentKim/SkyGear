@@ -105,14 +105,14 @@ func (t markType) Open(tx *world.Tx, handle *world.EntityHandle, data *world.Ent
 
 func (gemType) EncodeEntity() string { return "skygear:hunt_gem" }
 
-func (popupType) EncodeEntity() string        { return "skygear:hunt_popup" }
+func (popupType) EncodeEntity() string { return "skygear:hunt_popup" }
+
+// A falling block with no block of its own is drawn as air (common/sghook),
+// so a damage number shows its text alone.
 func (popupType) NetworkEncodeEntity() string { return "minecraft:falling_block" }
 
 // Transient: marks are never saved with the world.
 func (markType) Transient() bool { return true }
-
-// FloatingText draws a damage number as its text alone (session/world.go).
-func (popupType) FloatingText() {}
 
 func (markType) BBox(world.Entity) cube.BBox                     { return cube.BBox{} }
 func (markType) DecodeNBT(_ map[string]any, d *world.EntityData) { d.Data = &runMark{} }

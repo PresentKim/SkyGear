@@ -95,7 +95,7 @@ func TestLookInfo(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
-	st := placeTestMachine(s, machinePos, machine.KindCrusher, "")
+	st := placeTestMachine(s, machinePos, machine.KindCrusher)
 	st.Insert(item.NewStack(block.Cobblestone{}, 5))
 	tick(s, machine.Kinds[machine.KindCrusher].Interval/2+1)
 	drawerPos := cube.Pos{6, island.IslandY, 3}
@@ -165,11 +165,11 @@ func TestLookInfo(t *testing.T) {
 
 // TestFurnaceArrow: an unlit furnace shows an empty arrow.
 func TestFurnaceArrow(t *testing.T) {
-	it := look.FurnaceArrow(block.NewFurnace(cube.North))
+	it := machine.FurnaceArrow(block.NewFurnace(cube.North))
 	if a, ok := it.Item().(machine.ProgressArrow); !ok || a.Step != 0 {
 		t.Errorf("unlit furnace arrow %v, want an empty progress arrow", it)
 	}
-	if !look.FurnaceArrow(block.Stone{}).Empty() {
+	if !machine.FurnaceArrow(block.Stone{}).Empty() {
 		t.Errorf("stone has a furnace arrow")
 	}
 }
@@ -230,7 +230,7 @@ func TestLookDetailWhileSneaking(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
-	st := placeTestMachine(s, machinePos, machine.KindCrusher, "")
+	st := placeTestMachine(s, machinePos, machine.KindCrusher)
 	st.Insert(item.NewStack(block.Cobblestone{}, 5))
 	tick(s, machine.Kinds[machine.KindCrusher].Interval/2+1)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
@@ -242,4 +242,24 @@ func TestLookDetailWhileSneaking(t *testing.T) {
 			t.Errorf("sneaking lines %q, plain %d", info.Lines, plain)
 		}
 	})
+}
+
+// TestLookCropsMatchFarm: the look trace knows the height of exactly the
+// crops the farm grows, from an eighth of the cell at stage 0 to all of it
+// at the last stage.
+func TestLookCropsMatchFarm(t *testing.T) {
+	for _, b := range []world.Block{
+		block.WheatSeeds{}, block.Carrot{}, block.Potato{}, block.BeetrootSeeds{}, block.MelonSeeds{}, block.PumpkinSeeds{},
+		block.Stone{}, block.Farmland{}, block.Sapling{Type: block.OakSapling()}, farm.MagicPlant{Kind: "ore_iron"},
+	} {
+		_, _, crop := farm.CropOf(b)
+		if _, ok := look.CropHeight(b); ok != crop {
+			t.Errorf("%T: look.CropHeight says %t, farm.CropOf says %t", b, ok, crop)
+		}
+	}
+	for stage, want := range map[int]float64{0: 0.125, 3: 0.5, farm.MaxCropStage: 1} {
+		if h, _ := look.CropHeight(farm.WithGrowth(block.WheatSeeds{}, stage)); h != want {
+			t.Errorf("wheat at stage %d is %v high, want %v", stage, h, want)
+		}
+	}
 }

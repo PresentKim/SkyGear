@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest. These are the rules the project follows; the full
+Thanks for your interest. These are the rules the project follows.
 
 ## Branches and commits
 
@@ -16,9 +16,6 @@ Thanks for your interest. These are the rules the project follows; the full
   gofmt -l .
   ```
 
-- If you change a connection flow, run the matching scenario
-  (`spike/scenarios/run.sh spike/scenarios/<name>.sh`), and add a scenario for
-  a new feature.
 - Write commit messages in English.
 - One commit per change: when a piece of work covers several requests or
   fixes, commit each one separately.
@@ -30,8 +27,8 @@ Thanks for your interest. These are the rules the project follows; the full
 - `main` moves only by merging `dev` into it. Each merge is a release: raise
   `Version` in `cmd/skygear/version.go`, write what changed since the last
   release in `change_logs/<version>.md` (first line `# <version> (<date>)`,
-  Korean in the polite `~합니다` style), and tag the merge `v<version>`. A test checks that the newest change log is
-  `Version`.
+  in English), and tag the merge `v<version>`. A test checks that the newest
+  change log is `Version`.
 - Pushing a `v<version>` tag runs `.github/workflows/release.yml`: it checks
   that the tag matches `Version`, builds the server for Windows and Linux
   (amd64), and creates a GitHub release with the archives and the body of
@@ -57,6 +54,40 @@ Thanks for your interest. These are the rules the project follows; the full
   (`Enter`/`ToLobby`). The instance package reaches Sky Gear only
   through the `instance.Game`/`Session` interfaces (`content/skygear`
   imports `platform/instance`, not the other way round).
+- Sky Gear features are packages under `content/skygear/<feature>`. A feature
+  declares a `core.Feature` in its `feature.go` (`Name`, `Entities`,
+  `Settings`, `ItemEntry`, `Creative`, `Commands`, `Setup`) and subscribes
+  its steps to the kernel's hooks in `Setup`, in `subscribe.go`, with
+  subscriber names
+  `<feature>.<step>` and the tier (`core.Lowest` to `core.Monitor`) of what the
+  step does; the steps of one tier have no order. No step stops another: a step
+  acts by its own conditions and cancels the event (`e.Cancel()`) only when the
+  action or the later steps must not happen; a cancelled event reaches only the
+  steps registered with `core.HandleCancelled`. It keeps its data in
+  `core.NewPart`, `core.NewPlayers` and `core.NewSaved` parts, never in a field
+  of `Session`, and never imports the root package. Its blocks fill in their
+  own WAILA lines (`Waila`, in `look.go`) and its items their slot decoration
+  (`Decor`); its creative items go in `creative.go` and its commands in
+  `commands.go`. Adding a feature is its package, one line in the list in `content/skygear/features.go`, its entries
+  in `layers`, `featureLayer` and `TestFeatureNames` in
+  `content/skygear/layers_test.go` and, once it subscribes, its lines in the
+  goldens under `content/skygear/testdata/pin`. The root package only lists
+  the features and holds the platform glue (`Game`, `session`) and the
+  operator tools (`/sgadmin`, `/sgdebug`); it holds no player command and
+  subscribes to nothing. See `docs/tech/extension.md`.
+- A feature's tests live in its package, as `package <feature>_test`. They get
+  a session and a player from `content/skygear/core/coretest` and machines
+  from `content/skygear/machine/machinetest`, and name the features they need
+  in `coretest.Setup`, called from the `init` of the package's `setup_test.go`.
+  Tests of the composed game (pins and goldens, the structure rules, recipes,
+  research, the pack, saves, scenes that need several features) stay in
+  `content/skygear`.
+- `go test ./content/skygear -run TestPin -count=1` compares the order of every
+  hook's subscribers, the steps each scenario reaches, the WAILA panels
+  (`look.golden`) and the creative list (`creative.golden`) with the goldens in
+  `content/skygear/testdata/pin`. A change in dispatch order shows up as a
+  golden diff. Re-record (`SKYGEAR_GOLDEN=update`) only in a commit meant to
+  change that behaviour, and give the reason in the commit message.
 - Sky Gear session state belongs to its instance world: read and write it
   only inside that world's transactions (handlers, form submits, block ticks,
   `w.Do`).
@@ -66,7 +97,9 @@ Thanks for your interest. These are the rules the project follows; the full
   `skygear.version`, `data_versions` for account data). A change that
   existing data has to follow (a renamed block, item, counter or key) adds a
   patch at the end of `Patches` in `content/skygear/migrate/patches.go` with
-  the release it ships in; at startup the server applies the patches newer
+  the release it ships in (`Rename` for renamed strings, `Plain` for retired
+  items that become a plain stack of another item, `Blocks` for blocks that
+  change into another block with its states); at startup the server applies the patches newer
   than each save's record after a backup. Released patches are never edited.
 
 ## Text and translations
@@ -90,13 +123,14 @@ Thanks for your interest. These are the rules the project follows; the full
   names, animations, JSON UI. Go code only names the model identifier and the
   material key; Dragonfly's automatic pack generation is turned off.
 - Do not edit the version in a pack's `manifest.json`;
-  `common/resourcepack.Load` derives it from the content hash.
+  `common/resourcepack.LoadFS` derives it from the content hash.
 - Do not change the UUIDs of the packs under `assets/resourcepack/` (clients have them
   cached).
-- New craftable items and blocks must also be registered in `creative.go`
-  (the client recipe book only lists results that are in the creative
-  inventory; a test checks this).
-- Before JSON UI or modelling work, check the reference repositories listed in
+- New craftable items and blocks must also be listed in the creative items of
+  the feature that owns them (`Feature.Creative`, in the feature's
+  `creative.go`), or in the central runs of `content/skygear/catalog/creative.go`
+  for shared items (the client recipe book only lists results that are in the
+  creative inventory; `TestEveryGameRecipeResultIsCreative` checks this).
 
 ## Ore UI page
 
@@ -112,11 +146,31 @@ Thanks for your interest. These are the rules the project follows; the full
 ## Patched Dragonfly
 
 The server uses the patched copy in `third_party/dragonfly`. Keep the patch
-small: anything that can be done by intercepting packets or reading and
-writing session internals belongs in `common/sghook` (packet hooks,
-`go:linkname`, reflection). Patch Dragonfly only when its behaviour itself has
-to change, and then update `third_party/dragonfly.patch` and
-`third_party/README.md`.
+small and extend Dragonfly from the outside first, in this order:
+
+- `common/clientdef`: components a client gets in the item and block entries
+  (digger, fuel, tool tags, collision boxes, bone visibility, render methods).
+  A custom item or block implements the `clientdef` interface; the game installs
+  it once in `core.EditEntries` (`content/skygear/core`) through
+  `sghook.EditCustomItems` and `sghook.EditCustomBlocks`. Client components do
+  not belong in a patch.
+- `common/sghook`: packet hooks, `go:linkname` to session internals and
+  reflection. Only this package reaches Dragonfly internals.
+- A patch, only when Dragonfly's behaviour itself has to change (storage,
+  ticking, chunk handling, hooks it lacks). Update
+  `third_party/dragonfly.patch` and the row in `third_party/README.md`, and
+  follow its steps to regenerate and check the patch.
+
+See `docs/tech/dragonfly.md`.
+
+`content/skygear/wire` pins what a joining player is sent (block entries,
+item registry, crafting data, creative content) as golden files, hashed per
+block, item, recipe and creative entry. A mismatch names the entries that
+changed. A change that moves client data or edits the patch must leave the
+goldens as they are. Re-record only in a commit meant to change what clients
+get, with `SKYGEAR_GOLDEN=update go test ./content/skygear/wire/`, and give the
+reason in the commit message. To see what changed inside an entry, run once per
+tree with `SKYGEAR_GOLDEN_DUMP=<dir>` and `diff -r` the two folders.
 
 ## Licence
 

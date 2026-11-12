@@ -275,7 +275,7 @@ func (m *Manager) join(p *player.Player, inst *Instance) error {
 	saveID := inst.Save.ID
 	first := false
 	var state playerstate.State
-	_, blob, err := m.db.PlayerState(saveID, acc)
+	blob, err := m.db.PlayerState(saveID, acc)
 	switch {
 	case errors.Is(err, db.ErrNotFound) || blob == nil:
 		first = true

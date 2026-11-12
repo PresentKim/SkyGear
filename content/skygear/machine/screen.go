@@ -61,7 +61,9 @@ func windowHeight(parts []ui.InvPart) int {
 }
 
 // showsEnergy reports whether the machine's window has an energy gauge.
-func (st *State) showsEnergy() bool { return st.Def.EnergyCap > 0 && (st.Def.Use > 0 || st.Def.Generates > 0) }
+func (st *State) showsEnergy() bool {
+	return st.Def.EnergyCap > 0 && (st.Def.Use > 0 || st.Def.Generates > 0)
+}
 
 // showsProgress reports whether the machine's window shows its progress.
 func (st *State) showsProgress() bool { return st.Def.Marker != "" }
@@ -248,8 +250,8 @@ func ShowMachine(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, 
 			}
 			again(p, tx)
 		},
-		Again: again,
-		Close: func(p *player.Player, _ *world.Tx) { delete(watchers.Of(s), p.H()) },
+		Again:  again,
+		Close:  func(p *player.Player, _ *world.Tx) { delete(watchers.Of(s), p.H()) },
 		Size:   fmt.Sprintf("machine:%d", height),
 		Height: height,
 		Key:    machineKey(pos),

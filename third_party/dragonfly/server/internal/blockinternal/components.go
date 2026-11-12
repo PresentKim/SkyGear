@@ -1,9 +1,6 @@
 package blockinternal
 
 import (
-	"maps"
-	"slices"
-
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/block/customblock"
@@ -32,12 +29,6 @@ func Components(identifier string, b world.CustomBlock, blockID int32) map[strin
 		// duration is the only one a static definition can carry.
 		seconds := block.BreakDuration(b, item.Stack{}, block.BreakContext{}).Seconds()
 		builder.AddComponent("minecraft:destructible_by_mining", map[string]any{"value": float32(seconds)})
-		// skygear patch: the tags of the tools that mine the block faster, as
-		// vanilla blocks carry them, so a digger that names the tags (vanilla
-		// tools, item.TagDigger) mines it at its speed.
-		for _, tag := range toolTags(b.(block.Breakable).BreakInfo()) {
-			builder.AddComponent("tag:"+tag, map[string]any{})
-		}
 	}
 	if frictional, ok := b.(block.Frictional); ok {
 		builder.AddComponent("minecraft:friction", map[string]any{"value": float32(frictional.Friction())})
@@ -49,24 +40,9 @@ func Components(identifier string, b world.CustomBlock, blockID int32) map[strin
 			"burn_odds":  int32(info.Flammability),
 		})
 	}
-	if _, ok := b.(block.Activatable); ok {
-		// skygear patch: marks the block as interactable, so the client sends the click to
-		// the server instead of predicting the held block being placed.
-		builder.AddComponent("minecraft:custom_components", map[string]any{
-			"hasPlayerInteract": uint8(1),
-			"hasPlayerPlacing":  uint8(0),
-			"isV1Component":     uint8(1),
-		})
-	}
 	if permutable, ok := b.(block.Permutable); ok {
-		// skygear patch: the properties in the order of their names, not of the
-		// map. The client numbers a block's states as every combination of the
-		// values, the property first by name changing slowest (the order of the
-		// vanilla palette), and the server numbers them by registration; sending
-		// them sorted keeps the definition in that same order every time.
-		states := permutable.States()
-		for _, name := range slices.Sorted(maps.Keys(states)) {
-			builder.AddProperty(name, states[name])
+		for name, values := range permutable.States() {
+			builder.AddProperty(name, values)
 		}
 		for _, permutation := range permutable.Permutations() {
 			builder.AddPermutation(permutation.Condition, componentsFromProperties(permutation.Properties))
@@ -82,9 +58,7 @@ func Components(identifier string, b world.CustomBlock, blockID int32) map[strin
 // a custom permutation.
 func componentsFromProperties(props customblock.Properties) map[string]any {
 	components := make(map[string]any)
-	if len(props.CollisionBoxes) > 0 {
-		components["minecraft:collision_box"] = collisionBoxComponent(props.CollisionBoxes...)
-	} else if props.CollisionBox != (cube.BBox{}) {
+	if props.CollisionBox != (cube.BBox{}) {
 		components["minecraft:collision_box"] = collisionBoxComponent(props.CollisionBox)
 	}
 	if props.SelectionBox != (cube.BBox{}) {
@@ -94,15 +68,6 @@ func componentsFromProperties(props customblock.Properties) map[string]any {
 		components["minecraft:geometry"] = map[string]any{"identifier": props.Geometry}
 	} else if props.Cube {
 		components["minecraft:geometry"] = map[string]any{"identifier": "minecraft:geometry.full_block"}
-	}
-	if geometry, ok := components["minecraft:geometry"].(map[string]any); ok && len(props.BoneVisibility) > 0 {
-		// skygear patch: bone_visibility, each bone a Molang expression ("true" and "false" are
-		// constants) the client evaluates per block state.
-		visibility := make(map[string]any, len(props.BoneVisibility))
-		for bone, expression := range props.BoneVisibility {
-			visibility[bone] = expression
-		}
-		geometry["bone_visibility"] = visibility
 	}
 	if props.MapColour != "" {
 		components["minecraft:map_color"] = map[string]any{"value": props.MapColour}
@@ -144,22 +109,20 @@ func componentsFromProperties(props customblock.Properties) map[string]any {
 }
 
 // collisionBoxComponent returns the component data for a collision box, using absolute min/max coordinates in pixels.
-func collisionBoxComponent(boxes ...cube.BBox) map[string]any {
-	list := make([]map[string]any, 0, len(boxes))
-	for _, box := range boxes {
-		min, max := box.Min(), box.Max()
-		list = append(list, map[string]any{
-			"minX": float32(min.X() * 16),
-			"minY": float32(min.Y() * 16),
-			"minZ": float32(min.Z() * 16),
-			"maxX": float32(max.X() * 16),
-			"maxY": float32(max.Y() * 16),
-			"maxZ": float32(max.Z() * 16),
-		})
-	}
+func collisionBoxComponent(box cube.BBox) map[string]any {
+	min, max := box.Min(), box.Max()
 	return map[string]any{
 		"enabled": true,
-		"boxes":   list,
+		"boxes": []map[string]any{
+			{
+				"minX": float32(min.X() * 16),
+				"minY": float32(min.Y() * 16),
+				"minZ": float32(min.Z() * 16),
+				"maxX": float32(max.X() * 16),
+				"maxY": float32(max.Y() * 16),
+				"maxZ": float32(max.Z() * 16),
+			},
+		},
 	}
 }
 
@@ -174,51 +137,4 @@ func selectionBoxComponent(box cube.BBox) map[string]any {
 		"origin":  []float32{float32(originX) - 8, float32(originY), float32(originZ) - 8},
 		"size":    []float32{float32(sizeX), float32(sizeY), float32(sizeZ)},
 	}
-}
-
-// toolTags are the vanilla block tags of the tools that mine a block with
-// info faster: minecraft:is_<tool>_item_destructible for each tool type its
-// Effective takes, and for a pickaxe the tier it needs to drop anything
-// (stone_pick_diggable, iron_pick_diggable, diamond_pick_diggable).
-// (skygear patch)
-func toolTags(info block.BreakInfo) []string {
-	if info.Effective == nil {
-		return nil
-	}
-	var tags []string
-	for _, t := range []struct {
-		tag  string
-		tool item.Tool
-	}{
-		{"minecraft:is_pickaxe_item_destructible", item.Pickaxe{Tier: item.ToolTierDiamond}},
-		{"minecraft:is_axe_item_destructible", item.Axe{Tier: item.ToolTierDiamond}},
-		{"minecraft:is_shovel_item_destructible", item.Shovel{Tier: item.ToolTierDiamond}},
-		{"minecraft:is_hoe_item_destructible", item.Hoe{Tier: item.ToolTierDiamond}},
-		{"minecraft:is_sword_item_destructible", item.Sword{Tier: item.ToolTierDiamond}},
-		{"minecraft:is_shears_item_destructible", item.Shears{}},
-	} {
-		if info.Effective(t.tool) {
-			tags = append(tags, t.tag)
-		}
-	}
-	if info.Harvestable == nil || info.Harvestable(item.ToolNone{}) || !info.Effective(item.Pickaxe{Tier: item.ToolTierDiamond}) {
-		return tags
-	}
-	for _, t := range []struct {
-		tag  string
-		tier item.ToolTier
-	}{
-		{"", item.ToolTierWood},
-		{"stone_pick_diggable", item.ToolTierStone},
-		{"iron_pick_diggable", item.ToolTierIron},
-		{"diamond_pick_diggable", item.ToolTierDiamond},
-	} {
-		if info.Harvestable(item.Pickaxe{Tier: t.tier}) {
-			if t.tag != "" {
-				tags = append(tags, t.tag)
-			}
-			break
-		}
-	}
-	return tags
 }

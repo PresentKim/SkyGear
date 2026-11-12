@@ -4,9 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"go/ast"
-	"log/slog"
 	"reflect"
-	"runtime/debug"
 	"slices"
 	"strings"
 
@@ -283,7 +281,7 @@ func (cmd Command) executeRunnable(v reflect.Value, args string, source Source, 
 		return arguments, arguments.UsageError()
 	}
 
-	runRecovered(v.Interface().(Runnable), source, output, tx)
+	v.Interface().(Runnable).Run(source, output, tx)
 	return arguments, nil
 }
 
@@ -357,17 +355,4 @@ func exportedFields(command reflect.Value) []reflect.StructField {
 		fields = append(fields, t)
 	}
 	return fields
-}
-
-// runRecovered runs r, turning a panic into an ERROR log and an error
-// output, so a bug in one command does not take the server down.
-// (skygear patch)
-func runRecovered(r Runnable, source Source, output *Output, tx *world.Tx) {
-	defer func() {
-		if v := recover(); v != nil {
-			slog.Error("command panicked", "command", fmt.Sprintf("%T", r), "panic", v, "stack", string(debug.Stack()))
-			output.Errorf("명령어를 처리하다 오류가 났습니다.")
-		}
-	}()
-	r.Run(source, output, tx)
 }

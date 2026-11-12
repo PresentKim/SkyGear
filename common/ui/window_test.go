@@ -93,17 +93,6 @@ func TestWindowSize(t *testing.T) {
 	}
 }
 
-// childWithClass is the first child of n whose class is class.
-func childWithClass(n map[string]any, class string) map[string]any {
-	kids, _ := n["children"].([]any)
-	for _, k := range kids {
-		if m, ok := k.(map[string]any); ok && m["class"] == class {
-			return m
-		}
-	}
-	return nil
-}
-
 // TestQuestLinesDoneOnTop: of two lines leaving one quest, the done one is
 // drawn after the locked one, so the shared piece shows done.
 func TestQuestLinesDoneOnTop(t *testing.T) {

@@ -65,7 +65,7 @@ func (o OreBlock) Properties() customblock.Properties {
 }
 
 // BreakInfo mines like an iron ore: a stone pickaxe or better gives one raw
-// ore (the hammer is handled by the game, handler.go).
+// ore (the hammer is handled by the game, the tinker.break subscriber).
 func (o OreBlock) BreakInfo() block.BreakInfo {
 	harvestable := func(t item.Tool) bool {
 		return t.ToolType() == item.TypePickaxe && t.HarvestLevel() >= item.ToolTierStone.HarvestLevel

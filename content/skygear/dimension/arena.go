@@ -10,7 +10,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/core"
 )
 
-// The hunting ground: a round grassland of core.ArenaRadius around
+// The second dimension: a round grassland of core.ArenaRadius around
 // core.ArenaCentre with a path around its rim and barrier blocks past it.
 // It is laid once per world and looks the same at every entry, since no one
 // can build in it.
@@ -32,7 +32,7 @@ func arenaStart() mgl64.Vec3 {
 	return core.ArenaCentre.Vec3Middle().Add(mgl64.Vec3{gateOffset, 0, 0})
 }
 
-// buildArena lays the hunting ground unless it is already there.
+// buildArena lays the second dimension unless it is already there.
 func buildArena(tx *world.Tx) {
 	c := core.ArenaCentre
 	floor := c.Y() - 1

@@ -12,9 +12,11 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/common/clientdef"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/advancement"
+	"github.com/presentkim/skygear/content/skygear/autofill"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/progress"
@@ -140,8 +142,22 @@ func sieveBones(fill int) map[string]string {
 	return out
 }
 
+// sieveExtras are the bones a sieve shows, for the base definition and each
+// permutation by its condition.
+func sieveExtras() (clientdef.Extras, map[string]clientdef.Extras) {
+	perms := map[string]clientdef.Extras{}
+	for _, l := range SieveLooks() {
+		perms[sieveCondition(l[0], l[1], l[2])] = clientdef.Extras{BoneVisibility: sieveBones(l[2] * min(l[1], 1))}
+	}
+	return clientdef.Extras{BoneVisibility: sieveBones(0)}, perms
+}
+
+func sieveCondition(mesh, content, fill int) string {
+	return fmt.Sprintf("q.block_state('%s') == '%s'", SieveLookState, LookValue(mesh, content, fill))
+}
+
 func sieveProperties(kind string) customblock.Properties {
-	return customblock.Properties{Geometry: sieveGeometry, BoneVisibility: sieveBones(0), Textures: sieveMaterials(kind, 0, 0)}
+	return customblock.Properties{Geometry: sieveGeometry, Textures: sieveMaterials(kind, 0, 0)}
 }
 
 func SieveStates() map[string][]any {
@@ -157,11 +173,10 @@ func sievePermutations(kind string) []customblock.Permutation {
 	for _, l := range SieveLooks() {
 		mesh, c, fill := l[0], l[1], l[2]
 		out = append(out, customblock.Permutation{
-			Condition: fmt.Sprintf("q.block_state('%s') == '%s'", SieveLookState, LookValue(mesh, c, fill)),
+			Condition: sieveCondition(mesh, c, fill),
 			Properties: customblock.Properties{
-				Geometry:       sieveGeometry,
-				BoneVisibility: sieveBones(fill * min(c, 1)),
-				Textures:       sieveMaterials(kind, c, mesh),
+				Geometry: sieveGeometry,
+				Textures: sieveMaterials(kind, c, mesh),
 			},
 		})
 	}
@@ -290,7 +305,7 @@ func useSieve(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, st 
 			put += putIntoSieve(s, p, tx, sv, held, off)
 		}
 		// autofill: a hand left empty gets the same block again
-		core.RefillHand(p, proto)
+		autofill.RefillHand(p, proto)
 		if put > 0 {
 			return
 		}

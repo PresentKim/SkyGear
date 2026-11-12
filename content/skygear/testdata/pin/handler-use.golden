@@ -1,0 +1,123 @@
+AttackEntity/fairy: dimension.hunter fairy.touch | cancelled=true screens=- gift=true
+AttackEntity/fairyTwice: dimension.hunter fairy.touch | cancelled=true screens=- gift=true
+AttackEntity/hunting: dimension.hunter | cancelled=true screens=- held=-
+AttackEntity/huntingFairy: dimension.hunter | cancelled=true screens=- gift=false
+AttackEntity/huntingMonster: dimension.hunter | cancelled=true screens=- held=-
+AttackEntity/monster: dimension.hunter | cancelled=true screens=- held=-
+AttackEntity/other: dimension.hunter fairy.touch | cancelled=false screens=- held=-
+Use/copierEmpty: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- card=-
+Use/copierFilled: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- card=-
+Use/copierFilledAfterWindow: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- card=-
+Use/copierFilledRepeat: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- card=held
+Use/hunting: dimension.hunting | cancelled=true screens=- held=minecraft:stone:0x3
+Use/huntingStone: dimension.hunting | cancelled=true screens=- held=skygear:dimension_stone:0x1
+Use/ironHammerSneak: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=skygear:hammer:0x1 diagonal=true
+Use/ironHammerSneakAfterWindow: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=skygear:hammer:0x1 diagonal=false
+Use/ironHammerSneakRepeat: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=skygear:hammer:0x1 diagonal=true
+Use/ironHammerStanding: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=skygear:hammer:0x1 diagonal=false
+Use/lastMenuItem: dimension.hunting screens.menuItem | cancelled=true screens=screens.ShowMenu held=minecraft:nether_star:0x1
+Use/lastSnowball: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=minecraft:snowball:0x5
+Use/lastStone: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=minecraft:stone:0x5
+Use/menuItem: dimension.hunting screens.menuItem | cancelled=true screens=screens.ShowMenu held=minecraft:nether_star:0x1
+Use/menuItemAfterWindow: dimension.hunting screens.menuItem | cancelled=true screens=screens.ShowMenu held=minecraft:nether_star:0x1
+Use/menuItemExpanding: dimension.hunting screens.menuItem | cancelled=true screens=expand.showExpandPlane held=minecraft:nether_star:0x1
+Use/menuItemHunting: dimension.hunting screens.menuItem | cancelled=true screens=dimension.ShowRunMenu held=minecraft:nether_star:0x1
+Use/menuItemRepeat: dimension.hunting screens.menuItem | cancelled=true screens=- held=minecraft:nether_star:0x1
+Use/menuItemWatching: dimension.hunting screens.menuItem | cancelled=true screens=dimension.ShowWatchMenu held=minecraft:nether_star:0x1
+Use/plain: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=minecraft:stone:0x3
+Use/stone: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=dimension.ShowWindow held=skygear:dimension_stone:0x1
+Use/stoneAfterWindow: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=dimension.ShowWindow held=skygear:dimension_stone:0x1
+Use/stoneHammerSneak: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=skygear:stone_hammer:0x1 diagonal=false
+Use/stoneRepeat: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=skygear:dimension_stone:0x1
+Use/twoSnowballs: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=minecraft:snowball:0x1
+Use/wandSneak: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=wand.ShowOptions held=skygear:stone_wand:0x1
+Use/wandSneakAfterWindow: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=wand.ShowOptions held=skygear:stone_wand:0x1
+Use/wandSneakRepeat: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=skygear:stone_wand:0x1
+Use/wandStanding: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=skygear:stone_wand:0x1
+UseOnBlock/arena: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard | cancelled=true screens=- held=minecraft:stone:0x3
+UseOnBlock/boneMealCrop: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop | cancelled=true screens=- held=minecraft:bone_meal:0x3 dropped=none block=block.WheatSeeds
+UseOnBlock/boneMealCropSneaking: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time | cancelled=true screens=- held=minecraft:bone_meal:0x3 dropped=none block=block.WheatSeeds
+UseOnBlock/boneMealStoneSneaking: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- held=minecraft:bone_meal:0x3 dropped=none block=block.Stone
+UseOnBlock/composterFill: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter | cancelled=true screens=- held=minecraft:wheat_seeds:0x3 dropped=0 dirt=0 compost=1
+UseOnBlock/composterFillSneaking: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- held=minecraft:wheat_seeds:0x4 dropped=0 dirt=0 compost=0
+UseOnBlock/composterFull: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter | cancelled=true screens=- held=minecraft:stone:0x3 dropped=0 dirt=1 compost=0
+UseOnBlock/composterFullSneaking: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- held=minecraft:stone:0x3 dropped=0 dirt=0 compost=32
+UseOnBlock/composterNoMatter: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- held=minecraft:stone:0x3 dropped=0 dirt=0 compost=0
+UseOnBlock/copier: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use | cancelled=true screens=- card=side
+UseOnBlock/copierAfterWindow: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use | cancelled=true screens=- card=side
+UseOnBlock/copierNothing: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use | cancelled=true screens=- card=-
+UseOnBlock/copierRepeat: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use | cancelled=true screens=- card=-
+UseOnBlock/copierSneaking: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use | cancelled=true screens=- card=-
+UseOnBlock/crop: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop | cancelled=true screens=- held=minecraft:stone:0x3 dropped=none block=block.WheatSeeds
+UseOnBlock/cropGrown: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop | cancelled=true screens=- held=minecraft:stone:0x3 dropped=some block=block.WheatSeeds
+UseOnBlock/cropGrownSideOutside: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop | cancelled=true screens=- held=minecraft:stone:0x3 dropped=some block=block.WheatSeeds
+UseOnBlock/cropSneaking: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- held=minecraft:stone:0x3 dropped=none block=block.WheatSeeds
+UseOnBlock/cropSneakingSideOutside: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide | cancelled=true screens=- held=minecraft:stone:0x3 dropped=none block=block.WheatSeeds
+UseOnBlock/drawerSneak: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse | cancelled=true screens=storage.showDrawer held=minecraft:stick:0x1
+UseOnBlock/drawerSneakAfterWindow: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse | cancelled=true screens=storage.showDrawer held=minecraft:stick:0x1
+UseOnBlock/drawerSneakBlock: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- held=minecraft:stone:0x3
+UseOnBlock/drawerSneakEmpty: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- held=-
+UseOnBlock/drawerSneakNotDrawer: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- held=minecraft:stick:0x1
+UseOnBlock/drawerSneakRepeat: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse | cancelled=true screens=- held=minecraft:stick:0x1
+UseOnBlock/drawerStanding: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- held=minecraft:stick:0x1
+UseOnBlock/expanding: dimension.hunting dimension.stone expand.guard | cancelled=true screens=- held=minecraft:stone:0x3
+UseOnBlock/expandingCopier: dimension.hunting dimension.stone expand.guard | cancelled=true screens=- held=skygear:config_copier:0x1
+UseOnBlock/expandingWand: dimension.hunting dimension.stone expand.guard | cancelled=true screens=- stone=20 wear=0 front=0
+UseOnBlock/fairyTime: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time | cancelled=true screens=- held=skygear:fairy_bone_meal:0x2 dropped=none block=block.WheatSeeds
+UseOnBlock/fairyTimeOnStone: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- held=skygear:fairy_bone_meal:0x3 dropped=none block=block.Stone
+UseOnBlock/fiber: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- dropped=1
+UseOnBlock/fiberNotAxe: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- dropped=0
+UseOnBlock/fiberStripped: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- dropped=0
+UseOnBlock/heldCrusher: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- placedFacing=down
+UseOnBlock/heldMiner: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- placedFacing=down
+UseOnBlock/heldMinerOutside: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard | cancelled=true screens=- placedFacing=down
+UseOnBlock/heldNetCable: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- placedFacing=down
+UseOnBlock/heldStone: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- placedFacing=down
+UseOnBlock/hourglassNoMachine: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- held=skygear:fairy_hourglass:0x1 dropped=none block=block.Stone
+UseOnBlock/hunting: dimension.hunting | cancelled=true screens=-
+UseOnBlock/huntingMenuItem: dimension.hunting | cancelled=true screens=-
+UseOnBlock/menuItem: dimension.hunting dimension.stone expand.guard screens.menuItem | cancelled=true screens=screens.ShowMenu
+UseOnBlock/menuItemAfterWindow: dimension.hunting dimension.stone expand.guard screens.menuItem | cancelled=true screens=screens.ShowMenu
+UseOnBlock/menuItemExpanding: dimension.hunting dimension.stone expand.guard screens.menuItem | cancelled=true screens=expand.showExpandPlane
+UseOnBlock/menuItemOutside: dimension.hunting dimension.stone expand.guard screens.menuItem | cancelled=true screens=screens.ShowMenu
+UseOnBlock/menuItemRepeat: dimension.hunting dimension.stone expand.guard screens.menuItem | cancelled=true screens=-
+UseOnBlock/outside: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard | cancelled=true screens=- held=minecraft:stone:0x3
+UseOnBlock/outsideCopier: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard | cancelled=true screens=- held=skygear:config_copier:0x1
+UseOnBlock/plain: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- held=minecraft:stone:0x3
+UseOnBlock/plate: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate | cancelled=true screens=conduit.ShowSides held=-
+UseOnBlock/plateAfterWindow: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate | cancelled=true screens=conduit.ShowSides held=-
+UseOnBlock/plateHeldFits: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- held=skygear:conduit_energy_0:0x1
+UseOnBlock/plateNoBundle: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- held=-
+UseOnBlock/plateOffCentre: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- held=-
+UseOnBlock/plateRepeat: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate | cancelled=true screens=- held=-
+UseOnBlock/plateSneaking: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- held=-
+UseOnBlock/plateWithPickaxe: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate | cancelled=true screens=conduit.ShowSides held=minecraft:iron_pickaxe:0x1
+UseOnBlock/sideOutside: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide | cancelled=true screens=- held=minecraft:stone:0x3
+UseOnBlock/sideOwned: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- held=minecraft:stone:0x3
+UseOnBlock/stickChest: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick | cancelled=true screens=- slot14=0
+UseOnBlock/stickChestAfterWindow: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick | cancelled=true screens=- slot14=0
+UseOnBlock/stickChestRepeat: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick | cancelled=true screens=- slot14=10
+UseOnBlock/stickChestStanding: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- slot14=10 dropped=0
+UseOnBlock/stickDirt: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick | cancelled=true screens=- dropped=1
+UseOnBlock/stickGrass: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick | cancelled=true screens=- dropped=1
+UseOnBlock/stickGrassAfterWindow: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick | cancelled=true screens=- dropped=2
+UseOnBlock/stickGrassRepeat: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick | cancelled=true screens=- dropped=1
+UseOnBlock/stickSneakingGrass: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick | cancelled=true screens=- dropped=1
+UseOnBlock/stickStone: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- dropped=0
+UseOnBlock/stone: dimension.hunting dimension.stone | cancelled=true screens=dimension.ShowWindow
+UseOnBlock/stoneAfterWindow: dimension.hunting dimension.stone | cancelled=true screens=dimension.ShowWindow
+UseOnBlock/stoneExpanding: dimension.hunting dimension.stone | cancelled=true screens=dimension.ShowWindow
+UseOnBlock/stoneOutside: dimension.hunting dimension.stone | cancelled=true screens=dimension.ShowWindow
+UseOnBlock/stoneRepeat: dimension.hunting dimension.stone | cancelled=true screens=-
+UseOnBlock/tillSeeds: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- dropped=1
+UseOnBlock/tillSeedsFaceDown: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther | cancelled=false screens=- dropped=0
+UseOnBlock/wand: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use | cancelled=true screens=- stone=11 wear=9 front=9
+UseOnBlock/wandAfterWindow: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use | cancelled=true screens=- stone=2 wear=18 front=9
+UseOnBlock/wandRepeat: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use | cancelled=true screens=- stone=11 wear=9 front=0
+UseOnBlock/wandSneaking: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use | cancelled=true screens=- stone=11 wear=9 front=9
+UseOnEntity/fairy: dimension.hunting fairy.touch | cancelled=true screens=- gift=true
+UseOnEntity/fairyTwice: dimension.hunting fairy.touch | cancelled=true screens=- gift=true
+UseOnEntity/hunting: dimension.hunting | cancelled=true screens=- held=-
+UseOnEntity/huntingFairy: dimension.hunting | cancelled=true screens=- gift=false
+UseOnEntity/monster: dimension.hunting fairy.touch | cancelled=false screens=- held=-
+UseOnEntity/other: dimension.hunting fairy.touch | cancelled=false screens=- held=-

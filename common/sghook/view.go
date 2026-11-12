@@ -1,8 +1,7 @@
 package sghook
 
 // Client views Dragonfly has no API for: they only send packets to one
-// player (camera, HUD, input locks, blocks only that player sees) or read
-// what its client sends (held movement keys).
+// player (camera, HUD, input locks, blocks only that player sees).
 
 import (
 	"sync"
@@ -34,15 +33,6 @@ func init() {
 				Name:          "minecraft:free",
 				ControlScheme: protocol.Option(byte(packet.ControlSchemeCameraRelativeStrafe)),
 			}}})
-		}
-		return false
-	})
-	OnClientPacket(func(c *Conn, pk packet.Packet) bool {
-		if in, ok := pk.(*packet.PlayerAuthInput); ok {
-			v := mgl64.Vec2{float64(in.RawMoveVector[0]), float64(in.RawMoveVector[1])}
-			if last := c.moveInput.Load(); last == nil || *last != v {
-				c.moveInput.Store(&v)
-			}
 		}
 		return false
 	})
@@ -203,18 +193,6 @@ func ViewChunkCentre(p *player.Player, pos mgl64.Vec3) {
 		Position: protocol.BlockPos{int32(pos[0]), int32(pos[1]), int32(pos[2])},
 		Radius:   uint32(*field[int32](s, "chunkRadius")) << 4,
 	})
-}
-
-// MoveInput returns the movement keys p's client last held, as sent in
-// PlayerAuthInput before input permissions apply (so also while immobile):
-// Y is forward (+1) and back, X is left (+1) and right.
-func MoveInput(p *player.Player) mgl64.Vec2 {
-	if c := Of(p); c != nil {
-		if v := c.moveInput.Load(); v != nil {
-			return *v
-		}
-	}
-	return mgl64.Vec2{}
 }
 
 // SendTitle is p.SendTitle with the subtitle sent before the title: the

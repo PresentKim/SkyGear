@@ -137,8 +137,8 @@ func (d *DB) CopySave(src int64, owner string, slot int, name string) (Save, err
 	if _, err := tx.Exec(`INSERT INTO save_state (save_id, key, value) SELECT ?, key, value FROM save_state WHERE save_id = ?`, id, src); err != nil {
 		return Save{}, err
 	}
-	if _, err := tx.Exec(`INSERT INTO save_players (save_id, account_id, money, state)
-		SELECT ?, ?, money, state FROM save_players WHERE save_id = ? AND account_id = ?`, id, owner, src, from.Owner); err != nil {
+	if _, err := tx.Exec(`INSERT INTO save_players (save_id, account_id, state)
+		SELECT ?, ?, state FROM save_players WHERE save_id = ? AND account_id = ?`, id, owner, src, from.Owner); err != nil {
 		return Save{}, err
 	}
 	if err := tx.Commit(); err != nil {
@@ -199,9 +199,10 @@ func (d *DB) MemberRole(saveID int64, accountID string) (Role, error) {
 
 // PlayerState returns the stored per-save state of a player. A player that
 // never entered the save returns ErrNotFound.
-func (d *DB) PlayerState(saveID int64, accountID string) (money int64, state []byte, err error) {
-	err = d.sql.QueryRow(`SELECT money, state FROM save_players WHERE save_id = ? AND account_id = ?`, saveID, accountID).Scan(&money, &state)
-	return money, state, notFound(err)
+func (d *DB) PlayerState(saveID int64, accountID string) ([]byte, error) {
+	var state []byte
+	err := d.sql.QueryRow(`SELECT state FROM save_players WHERE save_id = ? AND account_id = ?`, saveID, accountID).Scan(&state)
+	return state, notFound(err)
 }
 
 // SetPlayerState stores the per-save state blob of a player.
@@ -246,31 +247,6 @@ func (d *DB) SetSaveState(saveID int64, key string, value []byte) error {
 func (d *DB) AddMember(saveID int64, accountID string, role Role) error {
 	_, err := d.sql.Exec(`INSERT INTO save_members (save_id, account_id, role, joined_at) VALUES (?, ?, ?, ?)
 		ON CONFLICT(save_id, account_id) DO UPDATE SET role = excluded.role, left_at = NULL`, saveID, accountID, role, now())
-	return err
-}
-
-// Money returns the wallet of a player in a save (0 if none).
-func (d *DB) Money(saveID int64, accountID string) (int64, error) {
-	var m int64
-	err := d.sql.QueryRow(`SELECT money FROM save_players WHERE save_id = ? AND account_id = ?`, saveID, accountID).Scan(&m)
-	if err = notFound(err); errors.Is(err, ErrNotFound) {
-		return 0, nil
-	}
-	return m, err
-}
-
-// SetMoney stores the wallet of a player in a save.
-func (d *DB) SetMoney(saveID int64, accountID string, money int64) error {
-	_, err := d.sql.Exec(`INSERT INTO save_players (save_id, account_id, money) VALUES (?, ?, ?)
-		ON CONFLICT(save_id, account_id) DO UPDATE SET money = excluded.money`, saveID, accountID, money)
-	return err
-}
-
-// AddMoney changes the stored wallet of a player in a save by delta, for
-// players whose wallet is not loaded.
-func (d *DB) AddMoney(saveID int64, accountID string, delta int64) error {
-	_, err := d.sql.Exec(`INSERT INTO save_players (save_id, account_id, money) VALUES (?, ?, ?)
-		ON CONFLICT(save_id, account_id) DO UPDATE SET money = money + excluded.money`, saveID, accountID, delta)
 	return err
 }
 

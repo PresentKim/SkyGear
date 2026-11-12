@@ -11,7 +11,7 @@ import (
 
 // TestUnlimitedSurvivesNBTBytes: Unlimited must survive a real NBT byte round trip.
 func TestUnlimitedSurvivesNBTBytes(t *testing.T) {
-	m := New(KindCrusher, "", "")
+	m := New(KindCrusher)
 	m.State.Unlimited = true
 	raw, err := nbt.MarshalEncoding(m.EncodeNBT(), nbt.LittleEndian)
 	if err != nil {
@@ -33,7 +33,7 @@ func TestUnlimitedSurvivesNBTBytes(t *testing.T) {
 func TestMachineItemsStack(t *testing.T) {
 	for kind := range Kinds {
 		fresh := Item(kind)
-		placed := New(kind, "", "")
+		placed := New(kind)
 		dropped := placed.BreakInfo().Drops(item.ToolNone{}, nil)[0]
 		saved := item.NewStack(placed.DecodeNBT(fresh.Item().(Machine).EncodeNBT()).(Machine), 1)
 		again := item.NewStack(saved.Item().(Machine).DecodeNBT(saved.Item().(Machine).EncodeNBT()).(Machine), 1)
@@ -46,7 +46,7 @@ func TestMachineItemsStack(t *testing.T) {
 			t.Errorf("%s: a machine loaded from its id alone is not blank: %v", kind, got)
 		}
 	}
-	m := New(KindSolarGenerator, "", "")
+	m := New(KindSolarGenerator)
 	m.State.Energy = 5
 	back := m.DecodeNBT(m.EncodeNBT()).(Machine)
 	if back.State.Energy != 5 {

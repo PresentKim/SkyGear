@@ -86,7 +86,7 @@ func TickCollectors(s *core.Session, tx *world.Tx) {
 		return
 	}
 	l.seconds = 0
-	// the old essence bloom harvest counter counts the essences collected
+	// the bloom_ess counter counts the essences collected
 	if n := handOut(s); n > 0 {
 		achievement.CountAll(tx, "bloom_ess", int64(n))
 	}
@@ -150,7 +150,7 @@ func (o collectorOut) Item(i int) item.Stack {
 	st, _ := o.st.Inv().Item(o.st.Def.Output[i])
 	return st
 }
-func (o collectorOut) Set(i int, st item.Stack)     { _ = o.st.Inv().SetItem(o.st.Def.Output[i], st) }
+func (o collectorOut) Set(i int, st item.Stack)   { _ = o.st.Inv().SetItem(o.st.Def.Output[i], st) }
 func (collectorOut) Accepts(int, item.Stack) bool { return false }
 
 // ShowCollector is the collector's window: the cleared monsters to pick the
@@ -226,14 +226,4 @@ func ShowCollector(s *core.Session, p *player.Player, pos cube.Pos) {
 		Again: again,
 		Size:  "collector",
 	})
-}
-
-// A click opens the collector's window.
-func init() {
-	machine.Kinds[machine.KindCollector].Click = func(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
-		if !s.Debounced(p) {
-			ShowCollector(s, p, pos)
-		}
-		return true
-	}
 }

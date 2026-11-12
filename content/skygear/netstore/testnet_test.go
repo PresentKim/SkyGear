@@ -9,7 +9,7 @@ import (
 
 func TestBuildTestNet(t *testing.T) {
 	netEnv(t, func(s *core.Session, tx *world.Tx) {
-		term, ok := BuildTestNet(tx, p(0), "", "", 30)
+		term, ok := BuildTestNet(tx, p(0), 30)
 		n := At(tx, term)
 		if !ok || n == nil || !n.Online() {
 			t.Fatal("network offline")
@@ -17,7 +17,7 @@ func TestBuildTestNet(t *testing.T) {
 		if got := len(entriesOf(n)); got != 30 {
 			t.Fatalf("kinds %d", got)
 		}
-		if _, ok := BuildTestNet(tx, p(1), "", "", 30); ok {
+		if _, ok := BuildTestNet(tx, p(1), 30); ok {
 			t.Fatal("built over blocks")
 		}
 	})

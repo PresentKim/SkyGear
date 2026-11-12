@@ -15,6 +15,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item/category"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/common/clientdef"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/slotdeco"
 	_ "github.com/presentkim/skygear/content/skygear/locales" // this server's texts
@@ -23,22 +24,17 @@ import (
 
 // Tool kinds.
 const (
-	ToolSword   = "sword"
 	ToolPickaxe = "pickaxe"
 	ToolAxe     = "axe"
 	ToolShovel  = "shovel"
 )
 
-// ToolKinds are every kind of tool, registered so old ones load; the tools
-// are the island's and do not fight (the second dimension's relics do), so
-// MadeKinds, the ones the table makes, have no sword.
-var (
-	ToolKinds = []string{ToolSword, ToolPickaxe, ToolAxe, ToolShovel}
-	MadeKinds = []string{ToolPickaxe, ToolAxe, ToolShovel}
-)
+// ToolKinds are every kind of tool; the tools are the island's and do not
+// fight (the second dimension's relics do).
+var ToolKinds = []string{ToolPickaxe, ToolAxe, ToolShovel}
 
 // ToolHeadCost is the ingots a head of a kind takes.
-var ToolHeadCost = map[string]int{ToolSword: 2, ToolPickaxe: 3, ToolAxe: 3, ToolShovel: 1}
+var ToolHeadCost = map[string]int{ToolPickaxe: 3, ToolAxe: 3, ToolShovel: 1}
 
 // HeadMaterial is a metal a tool head is made of.
 type HeadMaterial struct {
@@ -96,6 +92,8 @@ func HandleOf(id string) (HandleMaterial, bool) {
 
 // Tool is a tool of a kind with a head and a handle.
 type Tool struct{ Kind, Head, Handle string }
+
+var _ clientdef.TagDigger = Tool{}
 
 func (t Tool) EncodeItem() (string, int16) {
 	return fmt.Sprintf("skygear:tool_%s_%s_%s", t.Kind, t.Head, t.Handle), 0
@@ -166,13 +164,12 @@ func (t Tool) AttackDamage() float64 { return 1 }
 
 // toolTags are the block tags a kind of tool mines faster, as the vanilla
 // tool of its type: the minecraft:is_<tool>_item_destructible tag, which our
-// blocks get from their BreakInfo too (a Dragonfly patch), and the older
+// blocks get from their BreakInfo too (clientdef.BlockEntry), and the older
 // material tags of vanilla blocks.
 var toolTags = map[string][]string{
 	ToolPickaxe: {"minecraft:is_pickaxe_item_destructible", "stone", "metal", "rail"},
 	ToolAxe:     {"minecraft:is_axe_item_destructible", "wood", "pumpkin"},
 	ToolShovel:  {"minecraft:is_shovel_item_destructible", "dirt", "sand", "gravel", "grass", "snow"},
-	ToolSword:   {"minecraft:is_sword_item_destructible"},
 }
 
 // pickTierTags are the tags of the blocks a pickaxe drops nothing from
@@ -186,10 +183,10 @@ var pickTierTags = []struct {
 	{"diamond_pick_diggable", item.ToolTierDiamond.HarvestLevel},
 }
 
-// DestroySpeedsByTag implements item.TagDigger: the tool's speed on every
+// DestroySpeedsByTag implements clientdef.TagDigger: the tool's speed on every
 // block, vanilla or ours, that carries a tag of its kind, as the server
 // times it, so the client mines them as fast as the server expects.
-func (t Tool) DestroySpeedsByTag() []item.TagSpeed {
+func (t Tool) DestroySpeedsByTag() []clientdef.TagSpeed {
 	tags := toolTags[t.Kind]
 	if len(tags) == 0 {
 		return nil
@@ -202,7 +199,7 @@ func (t Tool) DestroySpeedsByTag() []item.TagSpeed {
 			}
 		}
 	}
-	return []item.TagSpeed{{Tags: query, Speed: int(math.Round(t.speed()))}}
+	return []clientdef.TagSpeed{{Tags: query, Speed: int(math.Round(t.speed()))}}
 }
 
 // Modifiers of a tool, by id.
@@ -316,7 +313,7 @@ func DescribeTool(st item.Stack) item.Stack {
 		}
 	}
 	r := toolRarity(lvl)
-	return st.WithCustomName(slotdeco.Decorate(r, 0, "§r"+RarityColour(r)+t.Name()+fmt.Sprintf(" §7Lv.%d", lvl))).WithLore(lore...)
+	return st.WithCustomName(slotdeco.Decorate(r, 0, "§r"+r.Colour()+t.Name()+fmt.Sprintf(" §7Lv.%d", lvl))).WithLore(lore...)
 }
 
 // WithToolXP adds xp to a tool stack and returns it, with whether it leveled up.
@@ -340,21 +337,6 @@ func toolRarity(level int) slotdeco.Rarity {
 		return slotdeco.Uncommon
 	}
 	return slotdeco.Common
-}
-
-// RarityColour is the colour code of a rarity's name ("§f" for Common).
-func RarityColour(r slotdeco.Rarity) string {
-	switch r {
-	case slotdeco.Uncommon:
-		return "§a"
-	case slotdeco.Rare:
-		return "§b"
-	case slotdeco.Epic:
-		return "§d"
-	case slotdeco.Legendary:
-		return "§6"
-	}
-	return "§f"
 }
 
 // The tools register as items: every kind with every head and handle.

@@ -6,48 +6,57 @@
 ## 구조
 
 기능마다 패키지가 하나다. 패키지는 아래 표에서 **자기보다 위 칸**의 패키지만 import 한다(같은 칸끼리는 표의 순서대로).
-위 칸이 아래 칸을 불러야 할 때(메뉴 열기, 사이드바 갱신, 다른 기능의 기계 종류)는 위 칸이 함수 변수(훅)를 두고,
-아래 칸이 `init` 에서 채운다(예: `core.ShowMenu` 는 `screens` 가, `machine.Kinds[KindGate].Click` 은 `dimension` 이).
+서버 이벤트(블록 캐기·놓기·사용, 이동, 입장·퇴장, 매초와 빠른 틱 …)는 `core` 의 훅으로 기능에 닿고, 기능은 자기 패키지의 `feature.go`
+(`core.Feature`)의 `Setup` 에서 구독한다. 블록의 WAILA 줄(`Waila` 메서드), 아이템의 칸 장식(`Decor` 메서드), 창작 목록 항목(`Creative`), 명령어(`Commands`), 설정(`Settings`)도
+기능이 자기 패키지에서 선언한다. 기능은 루트 패키지의 `features.go` 목록에 한 줄로 오른다. 훅, 구독자의 티어와 취소, 새 기능을 더하는 순서는
+[docs/tech/extension.md](../../docs/tech/extension.md) 에 있다.
+위 칸이 아래 칸을 불러야 할 때 중 이벤트가 아닌 것(메뉴 열기, 사이드바 갱신)은 위 칸이 함수 변수를 두고,
+아래 칸이 `init` 에서 채운다(예: `core.ShowMenu` 는 `screens` 가 채운다). 다른 기능의 기계 종류는 `machine` 이 이름과 정의를 두고,
+그 기능의 `Setup` 이 `machine.Register` 로 동작을 등록한다(예: `machine.KindRelicTable` 은 `dimension` 이).
 
 | 층 | 패키지 | 내용 |
 |---|---|---|
 | 데이터 | `locales` | 게임 글 카탈로그(`<언어>[.<부분>].json`, 바닐라 이름 `<언어>.vanilla.json`) |
-| | `naming` | 아이템·블록 이름 키와 이름(카탈로그, 팩 글, `vanillakeys.json`) |
+| | `naming` | 아이템·블록 이름 키와 이름(카탈로그, 팩 글, `vanillakeys.json`), 클라이언트 아이템 항목의 이름을 번역 키로 바꾸기(`LocalItemName`) |
 | | `textfmt` | 수·시간 표기, 색 코드 지우기, 팩 글꼴 기호 |
 | | `formicon` | 메뉴 버튼 아이콘 |
 | | `blockmodel` | 커스텀 블록 재질과 큐브 속성 |
+| | `netshape` | 저장망 얇은 블록(케이블·수입기·수출기·외부 저장소)의 모양: 연결된 방향마다 팔이 있는 코어와 면을 향한 머리 |
 | | `sgitem` | 세션이 필요 없는 아이템과 단순 블록(조약돌, 가루, 광석, 금속, 메쉬, 망치, 압축 블록 …)과 그 등록 |
 | | `sievetable` | 체 드롭 표와 마법 체 테마 |
 | | `wintext` | 기계 창 아이템의 글(보는 사람 언어로) |
 | | `machinerecipe` | 합금 제련기·실험실·자동 제작기 레시피 |
 | | `advancement` | 발전과제 트리·장·배치 |
-| | `hopper` | 나무·역방향 호퍼 |
-| | `nsmigrate` | 이름 변경(DragonFactory → Sky Gear) 전 세이브의 한 번짜리 변환 |
-| 핵심 | `core` | 세이브 하나의 실행 상태(`Session`: 월드·시계·난수·세이브 정보)와 기능이 자기 데이터를 두는 방법(`Part`·`Players`·`Saved`), 공용 도우미(아이템, 메뉴 버튼, 디버그 도형) |
+| | `hopper` | 나무·역방향 호퍼와 그 등록 |
+| | `migrate` | 세이브 데이터를 실행 중인 릴리스 형식으로 올리는 패치(`Patches`)와, 이름 변경(DragonFactory → Sky Gear) 전 세이브의 한 번짜리 변환(`Namespace`) |
+| | `wire` | 접속한 플레이어가 받는 데이터(블록 항목, 아이템 등록, 제작 데이터, 크리에이티브 목록)의 골든 파일과 그 테스트 |
+| 핵심 | `core` | 기능 커널: 세이브 하나의 실행 상태(`Session`: 월드·시계·난수·세이브 정보), 기능이 자기 데이터를 두는 방법(`Part`·`Players`·`Saved`), 훅과 이벤트(`PlayerHandler`·`WorldHandler`·`Lifecycle` 이 내보낸다), 기능 서술자(`Feature`·`Install`), 창작 목록 자리(`CreativeItem`·`CreativeItems`), 기능의 명령어(`Commands`·`PlayerSession`), 공용 도우미(아이템, 메뉴 버튼, 디버그 도형) |
 | | `network` | 세이브의 에너지·아이템·유체 연결망 |
 | | `achievement` | 계정 업적 목록·등록과 횟수 집계(`Count` 등) |
 | | `preview` | 보는 사람에게만 보내는 블록 미리보기: 선택·충돌 상자가 크기 0 인 16색 미리보기 유리(`Glass`, 지팡이 초록·망치 파랑)와 칸별 레이어 0·1 전송(`Set`·`Clear`). 건축 지팡이와 철 망치가 함께 쓴다 |
+| | `look` | WAILA 패널: 시선 추적과 기본 정보, 블록이 자기 줄을 채운다(`waila.Provider`, 어댑터). 패널 숨기기(`Hidden`)와 갱신 따라가기(`Follow`) |
+| | `autofill` | 손에 든 묶음이 떨어지면 인벤토리의 같은 아이템으로 다시 채우기(`RefillHand`, 설정 `autofill`). 체와 건축 지팡이도 부른다 |
+| | `decor` | 아이템 칸 장식(희귀도·단계 표시)과 툴팁 이름. 등급과 단계는 아이템의 `Decor` 메서드(`slotdeco.Decorated`)에서 읽는다 |
 | 진행 | `progress` | 연구·발전과제 규칙, 레시피 잠금, 연구대 블록 |
 | | `island` | 소유 청크, 시작 위치, 청크 구매, 보이드 복귀, 분실물 보관함 |
 | | `climate` | 날씨·해·성장 시계 |
-| 기능 | `tinker` | 팅커 도구(재료·레벨·개조), 팅커 테이블, 광맥 채굴, 자동 도구 |
-| | `decor` | 아이템 칸 장식(희귀도·단계 표시)과 툴팁 이름 |
-| | `machine` | 기계 블록과 종류(`Kinds`), 창, 에너지·유체, 단계, 체, 가공 기계, 생산 기록과 정지 알림 |
+| 기능 | `machine` | 기계의 틀(블록, 창, 틱, 에너지·유체, 단계)과 모든 종류의 목록(`Kinds`, `Order`, 다른 기능의 종류는 `Owner` 와 `Register`), 체, 가공 기계, 생산 기록과 정지 알림 |
+| | `tinker` | 팅커 도구(재료·레벨·개조), 팅커 테이블(기계 종류 `tinker_table` 의 동작), 광맥 채굴, 자동 도구 |
 | | `conduit` | 도관 묶음 블록, 연결망 잇기, 표시 엔티티, 연결판과 그 화면 |
 | | `storage` | 서랍과 아이템 거치대, 저장고 컨트롤러와 목록 화면 |
 | | `farm` | 작물, 묘목·나무, 잎, 누에와 누에 나뭇잎, 퇴비통, 배럴과 마녀물, 수확기, 마법 식물 |
 | | `fairy` | 선물 요정, 요정 판 주문, 모래시계, 요정 뼛가루 |
-| | `dimension` | 이차원: 사냥터·몬스터·보구·기록과 별·에센스 수집기, 옛 차원 게이트 처리 |
+| | `dimension` | 이차원: 지형·몬스터·보구·기록과 별·에센스 수집기 |
 | | `handwork` | 시작의 손작업(막대기로 조약돌·섬유·씨앗, 상자 정리) |
 | | `expand` | 섬 확장 모드(위에서 내려다보는 화면) |
 | | `copier` | 설정 복사기 |
 | | `wand` | 건축 지팡이(ConstructionWand 모드 이식): 면 넓히기, 설정, 되돌리기, 미리보기 |
+| | `netstore` | 저장망의 게임 쪽: 디스크·패턴, 저장망 기계 종류의 동작, `common/storagenet` 과 월드 잇기 |
 | | `elevator` | 양털 엘리베이터(점프하면 위로, 웅크리면 아래로 같은 색 엘리베이터까지 순간이동) |
-| 내용 목록 | `catalog` | 연구 트리, 게임 아이템 레시피, 크리에이티브 목록(여러 기능의 아이템을 이름으로 나열하는 데이터) |
+| 내용 목록 | `catalog` | 연구 트리, 게임 아이템 레시피, 공용 아이템(`sgitem`, `hopper`)의 크리에이티브 항목과 크리에이티브 목록 등록(`RegisterCreativeItems`) |
 | 화면 | `codex` | 도감(JEI 같은 레시피 보기) |
-| | `look` | WAILA 줄(바라보는 블록 정보) |
-| | `screens` | 게임 메뉴, 섬 관리, 분실물, 도움말, 연구·발전과제 화면, 사이드바와 퀘스트 판 |
-| 게임 | `skygear` | 위 패키지를 잇는 곳: `Game`·`session`(플랫폼 인터페이스 구현), 이벤트 핸들러, 매초·빠른 틱의 차례(`second.go`), 명령어, 운영자 도구(`admin.go`, `debug*.go`) |
+| | `screens` | 게임 메뉴, 섬 관리, 분실물, 도움말, 연구·발전과제 화면, 사이드바와 퀘스트 판, 메뉴·메뉴 아이템·도감·도움말 명령어 |
+| 게임 | `skygear` | 기능 목록(`features.go`, `core.Install`)과 플랫폼 접착제: `Game`·`session`(플랫폼 인터페이스 구현), 세이브 상태 버전(`state.go`), 커스텀 블록 수 기록(`blockcounts.go`), 운영자 도구(`admin.go`, `debug*.go`). 훅에 구독하는 단계와 플레이어 명령어는 두지 않는다 |
 
 ## 기능의 데이터
 
@@ -58,9 +67,15 @@
 - `core.NewSaved`: 저장되는 데이터. 모든 `Saved` 파트는 세이브 상태 문서(`skygear.state`) 하나의 필드이고,
   필드 이름은 파트끼리 겹치지 않는다(겹치면 시작할 때 패닉). 그래서 기능을 옮겨도 세이브 형식은 그대로다.
 
+## 테스트
+
+기능의 테스트는 기능 패키지 안에 `<기능>_test` 패키지로 있고, 세션과 플레이어는 `core/coretest`, 기계는 `machine/machinetest` 에서 얻는다.
+루트 패키지(`content/skygear`)의 테스트는 조립된 게임을 본다: 핀과 골든, 구조 규칙, 레시피·연구·도감·리소스팩·세이브, 기능 여럿이 함께 있어야 하는 장면.
+어디에 두고 기능을 어떻게 준비하는지는 [docs/tech/extension.md](../../docs/tech/extension.md) 의 "기능의 테스트"에 있다.
+
 ## 파일
 
-패키지로 옮길 때 파일 이름은 그대로 두었다. 문서에 나오는 `sieve.go`, `codexsearch.go` 같은 파일은 그 기능의 패키지 안에 있다
+문서에 나오는 `sieve.go`, `codexsearch.go` 같은 파일은 그 기능의 패키지 안에 있다
 (예: `machine/sieve.go`, `codex/codexsearch.go`).
 
 ## 문서

@@ -8,28 +8,20 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/common/waila"
 	"github.com/presentkim/skygear/content/skygear/catalog"
-	"github.com/presentkim/skygear/content/skygear/climate"
 	"github.com/presentkim/skygear/content/skygear/codex"
-	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/core"
-	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/expand"
-	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/island"
-	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/migrate"
-	"github.com/presentkim/skygear/content/skygear/netstore"
-	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/screens"
-	"github.com/presentkim/skygear/content/skygear/storage"
 	"github.com/presentkim/skygear/platform/db"
 	"github.com/presentkim/skygear/platform/instance"
 )
@@ -44,25 +36,22 @@ type Game struct {
 	// isOperator reports whether a player may use the operator tools.
 	isOperator func(*player.Player) bool
 
-	// sessions maps each active instance world to its session. It is read
-	// by every block tick and written only when an instance starts or stops,
-	// so reads take no lock.
+	// sessions maps each active instance world to its session, so the
+	// platform's calls that carry only a world find the session. It is read by
+	// every block tick and written only when an instance starts or stops, so
+	// reads take no lock.
 	sessions sync.Map // *world.World -> *session
 }
-
-// activeGame is the game used by blocks, whose methods have no other way to
-// reach their session.
-var activeGame = &Game{}
 
 // New creates the game and registers its commands. There is one game per
 // process. isOperator, if not nil, allows players to use the operator tools.
 // release is the running server release.
 func New(log *slog.Logger, d *db.DB, isOperator func(*player.Player) bool, release string) *Game {
 	g := &Game{log: log, db: d, isOperator: isOperator, release: release}
-	activeGame = g
-	registerCommands(g)
+	for _, c := range core.Commands() {
+		cmd.Register(c)
+	}
 	catalog.RegisterCreativeItems()
-	registerItemIO()
 	registerAdmin(g)
 	registerDebug(g)
 	go codex.Index(i18n.Default)
@@ -105,19 +94,16 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 	})
 	c.FlushInterval = inst.StateFlushInterval()
 	s := &session{
-		Session: c, g: g,
+		Lifecycle: core.Lifecycle{Session: c}, g: g,
 	}
 	s.state = savedState.Of(c)
 	s.tickReach = inst.LoadRadius() * 16
-	farm.LoadCrops(s.Session)
+	core.Load.Emit(core.Tick{S: c})
 	island.SetKeep(c, func(tx *world.Tx, c island.ChunkPos) { inst.KeepLoaded(tx, c[0], c[1]) })
 	inst.World.Do(func(tx *world.Tx) {
-		for _, c := range island.StateOf(s.Session).Chunks {
-			island.KeepLoaded(s.Session, tx, c)
-		}
-		climate.Apply(s.Session, tx)
+		core.Start.Emit(core.Tick{S: c, Tx: tx})
 	})
-	inst.World.Handle(&worldHandler{s: s})
+	inst.World.Handle(&core.WorldHandler{S: c})
 	g.sessions.Store(inst.World, s)
 	core.Register(c)
 	return s
@@ -132,98 +118,40 @@ func (g *Game) sessionOf(w *world.World) (*session, bool) {
 	return v.(*session), true
 }
 
-// session is one active save: the core session (core.Session) and the
-// features' data that is not in core parts yet. All fields are owned by the
+// session is one active save as the platform sees it (instance.Session): the
+// core session (the Session of core.Lifecycle), which runs the lifecycle and
+// the player handler, plus the platform glue the game answers itself: Spawn,
+// Relocate, MenuBack, OpenScreen and Close. It holds no feature step; those are
+// the subscriptions of the feature packages. All fields are owned by the
 // instance world.
 type session struct {
-	*core.Session
-	// diedFood is the food level each player died with, given back when it
-	// respawns (handler.go).
-	diedFood map[*world.EntityHandle]int
-	g        *Game
+	core.Lifecycle
+	g *Game
 	// state is the saved state (savedState).
 	state *State
 	// tickReach is how far from a viewer blocks tick, in blocks (the load
 	// radius in chunks).
 	tickReach int
-	// fastCount counts the Fast calls (an item step is every second one,
-	// conduit.go).
-	fastCount int
 }
 
 // Spawn is where a player without a position starts (island.Spawn).
 func (s *session) Spawn() mgl64.Vec3 { return island.Spawn(s.Session) }
 
-// Relocate sends a player stored in the hunting ground (the server stopped
+// Relocate sends a player stored in the second dimension (the server stopped
 // during its run) to the island instead (instance.Relocator).
 func (s *session) Relocate(pos mgl64.Vec3) bool { return core.InArena(pos) }
 
-func (s *session) Join(p *player.Player, first bool) {
-	if first {
-		// Bare hands: only the menu item.
-		_ = p.Inventory().SetItem(8, screens.MenuItem(i18n.Of(p)))
-	}
-	screens.RenameMenuItems(p)
-	fairy.BackfillDust(s.Session, p, p.Tx())
-	climate.ShowWeather(s.Session, p)
-	s.SendShapes(p)
-	island.PurgeLost(s.Session)
-	progress.SendRecipesTo(s.Session, p)
-	screens.UpdateBoard(s.Session, p)
-	dimension.Joined(s.Session, p)
-	dimension.RetireItems(s.Session, p.Tx(), p)
-}
-
-func (s *session) Leave(p *player.Player) {
-	dimension.Leave(s.Session, p.Tx(), p)
-	s.Session.Leave(p)
-	expand.Stop(s.Session, p, p.Tx())
-	delete(s.diedFood, p.H())
-	waila.Clear(p)
-	// Shapes are client-side: clear them before the player leaves the
-	// instance world.
-	p.RemoveAllDebugShapes()
-	p.RemoveScoreboard()
-	// Locked recipes belong to this island (recipes.go).
-	p.SetRecipeFilter(nil)
-}
-
-func (s *session) Handler(*player.Player) player.Handler { return &handler{s: s} }
-
-func (s *session) NewDay(tx *world.Tx, day int) {
-	island.PurgeLost(s.Session)
-	s.Broadcast(tx, "game.newDay", day)
-}
-
-func (s *session) Autosave(tx *world.Tx) {
-	// Disk contents changed since the controller last flushed them are part
-	// of the save.
-	netstore.Disks(s.Session).Flush()
-	conduit.WriteShares(s.Session, tx)
-	s.Flush()
-}
-
+// Close emits Close and stores the state (core.Lifecycle), then forgets the
+// session.
 func (s *session) Close(tx *world.Tx) {
-	storage.RemoveDisplays(s.Session, tx)
-	conduit.WriteShares(s.Session, tx)
-	conduit.RemoveVisuals(s.Session, tx)
-	netstore.Disks(s.Session).Flush()
-	s.Session.Close()
-	core.Unregister(s.Session)
+	s.Lifecycle.Close(tx)
 	s.g.sessions.Delete(s.World)
 }
 
-// activeGameSession is the session of the world of tx, nil if it has none.
-func activeGameSession(tx *world.Tx) *session {
-	if s, ok := activeGame.sessionOf(tx.World()); ok {
-		return s
-	}
-	return nil
-}
-
-// EntityTypes returns the default entity types plus the game's own.
+// EntityTypes returns the default entity types plus those of the listed
+// features (Features). The registry is keyed by name, so the order is free.
 func EntityTypes() []world.EntityType {
-	return append(append(entity.DefaultRegistry.Types(), storage.HolderType, fairy.EntityType, conduit.VisualType, conduit.PlateType, dimension.GatePortalType, dimension.FxDemoType, dimension.GemType, dimension.PopupType, machine.RangeBoxType), dimension.MonsterTypes()...)
+	return append(entity.DefaultRegistry.Types(), core.EntityTypes()...)
 }
 
 // MenuBack shows the game screen a platform screen opened in the save goes

@@ -32,7 +32,7 @@ func TestOwnsAfterBuyChunk(t *testing.T) {
 func TestBatchedCyclesRun(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindFurnace, "")
+	st := placeTestMachine(s, machinePos, machine.KindFurnace)
 	_ = st.Inv().SetItem(11, item.NewStack(block.Cobblestone{}, 3))
 	tick(s, 3*(machine.Kinds[machine.KindFurnace].Interval+2))
 	runSeconds(s, 2)

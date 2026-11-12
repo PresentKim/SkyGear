@@ -4,6 +4,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/category"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/common/clientdef"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/naming"
 )
@@ -12,9 +13,11 @@ import (
 // (stone → cobblestone → gravel → sand), an ore block two dusts. The iron
 // hammer (the zero value) also vein mines while sneaking and does not wear;
 // the stone hammer lasts twice as long as a stone tool. Its mining speeds go
-// to clients as the minecraft:digger component (a Dragonfly patch) so they
+// to clients as the minecraft:digger component (clientdef.Digger) so they
 // mine as fast as the server expects.
 type Hammer struct{ Stone bool }
+
+var _ clientdef.Digger = Hammer{}
 
 // hammerSpeeds are the mining speeds of the hammer per block. Stone is
 // three times as hard as gravel, sand and dirt, so those get a third of
@@ -102,7 +105,7 @@ func (Hammer) BaseMiningEfficiency(b world.Block) float64 {
 	return 1
 }
 
-// DestroySpeeds implements item.Digger.
+// DestroySpeeds implements clientdef.Digger.
 func (Hammer) DestroySpeeds() map[string]int { return hammerSpeeds }
 
 func IsHammer(st item.Stack) bool {

@@ -1,6 +1,6 @@
 // Command texdedup points the terrain atlas entries whose block textures are
 // the same picture at one file and deletes the copies. The machine texture
-// tools (machinetex, tierblocks) make many faces that come out pixel-equal
+// tool (tierblocks) makes many faces that come out pixel-equal
 // (the down face of most machines, every face of a plain cube); each copy is
 // one more file in the pack for the client to load.
 //

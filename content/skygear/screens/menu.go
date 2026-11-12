@@ -4,15 +4,14 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
-
-const menuItemKey = "skygear_menu"
 
 // MenuItem opens the game menu when used. Its name is written on it in lang
 // (a name of a stack is text, not a translation key); renameMenuItems names
 // the menu items a player has in the player's language again.
 func MenuItem(lang string) item.Stack {
-	return item.NewStack(item.NetherStar{}, 1).WithCustomName(i18n.T(lang, "menu.item.name")).WithValue(menuItemKey, true)
+	return item.NewStack(item.NetherStar{}, 1).WithCustomName(i18n.T(lang, "menu.item.name")).WithValue(sgitem.MenuItemKey, true)
 }
 
 // RenameMenuItems names the menu items in p's inventory in p's language, as
@@ -28,7 +27,4 @@ func RenameMenuItems(p *player.Player) {
 	}
 }
 
-func IsMenuItem(s item.Stack) bool {
-	_, ok := s.Value(menuItemKey)
-	return ok
-}
+func IsMenuItem(s item.Stack) bool { return sgitem.IsMenuItem(s) }

@@ -203,7 +203,7 @@ func TestMeasureNetworkScans(t *testing.T) {
 		var st *machine.State
 		if withMachine {
 			// Beside the plane's corner, touching one energy conduit.
-			st = placeTestMachine(s, machinePosOf, machine.KindCrusher, "")
+			st = placeTestMachine(s, machinePosOf, machine.KindCrusher)
 		}
 		settle(t, s, 1024)
 		e0, i0, f0 := network.Energy(s.Session).Counters(), network.Items(s.Session).Counters(), network.Fluids(s.Session).Counters()

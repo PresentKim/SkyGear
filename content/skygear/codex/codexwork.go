@@ -130,8 +130,8 @@ func cardSlots(c Card) (ins, outs map[string]bool) {
 }
 
 // codexCrookCards are the cards of the crook and the silkworm: leaves broken
-// with the wooden crook, a silkworm used on leaves, and the string of the
-// infested leaves (by crook, the hand in the tip).
+// with the wooden crook, a silkworm used on leaves, and the string of
+// silkworm leaves (by crook, the hand in the tip).
 func codexCrookCards(s *core.Session, lang string) []Card {
 	crook := sgitem.Crook{Tier: sgitem.CrookWood}
 	head := item.NewStack(crook, 1)

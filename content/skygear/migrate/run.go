@@ -205,19 +205,42 @@ func rewriteWorld(log *slog.Logger, dir string, r renamer) (int, error) {
 		return 0, fmt.Errorf("open %s: %w", dir, err)
 	}
 	defer ldb.Close()
+	drops, err := dropPositions(log, dir, ldb, r)
+	if err != nil {
+		return 0, err
+	}
 	batch := new(leveldb.Batch)
 	changed := 0
 	it := ldb.NewIterator(nil, nil)
 	for it.Next() {
 		k, v := it.Key(), it.Value()
+		if n := len(k); n > 1 && k[n-1] == blockEntityTag && drops[string(k[:n-1])] != nil {
+			// The block entities of a chunk with replaced blocks that
+			// have no use for them.
+			nv, err := dropBlockEntities(v, drops[string(k[:n-1])])
+			if err != nil {
+				log.Warn("migrate: world value left as it is", "world", dir, "key", fmt.Sprintf("%x", k), "err", err)
+			} else {
+				if len(nv) == 0 {
+					batch.Delete(slices.Clone(k))
+					changed++
+					continue
+				}
+				if !bytes.Equal(nv, v) {
+					batch.Put(slices.Clone(k), nv)
+					changed++
+				}
+				v = nv
+			}
+		}
 		if !r.mentions(v) {
 			continue
 		}
 		var nv []byte
 		if nbtrewrite.IsSubChunkKey(k) {
-			nv, err = nbtrewrite.SubChunk(v, r.rep)
+			nv, err = nbtrewrite.SubChunkBlocks(v, r.rep, r.blocks)
 		} else {
-			nv, err = nbtrewrite.NBT(v, r.rep)
+			nv, err = nbtrewrite.NBTStacks(v, r.rep, r.rep, r.plain)
 		}
 		if err != nil {
 			log.Warn("migrate: world value left as it is", "world", dir, "key", fmt.Sprintf("%x", k), "err", err)
@@ -245,14 +268,25 @@ func rewriteRows(log *slog.Logger, d *sql.DB, r renamer, scopeCol string, id int
 		return 0, err
 	}
 	defer tx.Rollback()
+	changed, err := rewriteTables(log, tx, r, func(t table) bool {
+		return t.name != "data_versions" && slices.Contains(t.cols, "save_id") == (scopeCol != "")
+	}, scopeCol, id)
+	if err != nil {
+		return 0, err
+	}
+	return changed, tx.Commit()
+}
+
+// rewriteTables rewrites the tables of tx that pick selects (scopeCol and id
+// as in rewriteRows) and returns the number of values changed.
+func rewriteTables(log *slog.Logger, tx *sql.Tx, r renamer, pick func(table) bool, scopeCol string, id int64) (int, error) {
 	tables, err := tableColumns(tx)
 	if err != nil {
 		return 0, err
 	}
 	changed := 0
 	for _, t := range tables {
-		hasSave := slices.Contains(t.cols, "save_id")
-		if t.name == "data_versions" || hasSave != (scopeCol != "") {
+		if !pick(t) {
 			continue
 		}
 		n, err := rewriteTable(log, tx, t, r, scopeCol, id)
@@ -261,7 +295,7 @@ func rewriteRows(log *slog.Logger, d *sql.DB, r renamer, scopeCol string, id int
 		}
 		changed += n
 	}
-	return changed, tx.Commit()
+	return changed, nil
 }
 
 type table struct {
@@ -331,6 +365,8 @@ func rewriteTable(log *slog.Logger, tx *sql.Tx, t table, r renamer, scopeCol str
 		for i, v := range vals {
 			if nv, ok := rewriteValue(v, r); ok {
 				updates = append(updates, update{rowid, t.cols[i], nv})
+			} else if r.warn && mentionsValue(v, r) {
+				log.Warn("namespace conversion: value left as it is", "table", t.name, "column", t.cols[i], "rowid", rowid)
 			}
 		}
 	}
@@ -344,6 +380,16 @@ func rewriteTable(log *slog.Logger, tx *sql.Tx, t table, r renamer, scopeCol str
 		}
 	}
 	return len(updates), nil
+}
+
+func mentionsValue(v any, r renamer) bool {
+	switch v := v.(type) {
+	case string:
+		return r.mentions([]byte(v))
+	case []byte:
+		return r.mentions(v)
+	}
+	return false
 }
 
 // rewriteValue returns v with the renamed strings replaced and whether it
@@ -369,7 +415,7 @@ func rewriteBytes(b []byte, r renamer) ([]byte, bool) {
 		return b, false
 	}
 	if b[0] == 10 {
-		if nb, err := nbtrewrite.NBT(b, r.rep); err == nil {
+		if nb, err := nbtrewrite.NBTStacks(b, r.rep, r.key, r.plain); err == nil {
 			return nb, !bytes.Equal(nb, b)
 		}
 	}
@@ -387,7 +433,7 @@ func rewriteJSON(b []byte, r renamer) ([]byte, error) {
 	if err := dec.Decode(&v); err != nil {
 		return nil, err
 	}
-	changed := false
+	changed := r.disks && rewriteDisks(v, r)
 	v = walkJSON(v, r, &changed)
 	if !changed {
 		return b, nil
@@ -418,8 +464,9 @@ func walkJSON(v any, r renamer, changed *bool) any {
 			return ns
 		}
 		// []byte fields are base64 in JSON: lost items hold item NBT.
-		if raw, err := base64.StdEncoding.DecodeString(v); err == nil && len(raw) > 0 && raw[0] == 10 && r.mentions(raw) {
-			if nb, err := nbtrewrite.NBT(raw, r.rep); err == nil {
+		e := r.embedded()
+		if raw, err := base64.StdEncoding.DecodeString(v); err == nil && len(raw) > 0 && raw[0] == 10 && e.mentions(raw) {
+			if nb, err := nbtrewrite.NBTStacks(raw, e.rep, e.key, e.plain); err == nil {
 				*changed = true
 				return base64.StdEncoding.EncodeToString(nb)
 			}

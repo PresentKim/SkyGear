@@ -9,7 +9,6 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
-	"github.com/df-mc/dragonfly/server/block/customblock"
 	"github.com/df-mc/dragonfly/server/block/model"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/category"
@@ -17,6 +16,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/particle"
+	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/chestui"
 	"github.com/presentkim/skygear/common/fluidnet"
@@ -34,10 +34,8 @@ import (
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/sievetable"
-	"github.com/presentkim/skygear/content/skygear/tinker"
 	"github.com/presentkim/skygear/content/skygear/wintext"
 	"github.com/presentkim/skygear/platform/account"
-	"github.com/presentkim/skygear/platform/instance"
 )
 
 func init() {
@@ -47,7 +45,7 @@ func init() {
 		world.RegisterItem(EnergyGauge{Step: i})
 	}
 	world.RegisterItem(Info{})
-	for _, k := range append(Order[:len(Order):len(Order)], Retired...) {
+	for _, k := range Order {
 		Kinds[k].Hash = block.NextHash()
 		world.RegisterBlock(Machine{Kind: k})
 		world.RegisterItem(Machine{Kind: k})
@@ -145,7 +143,6 @@ const (
 	// KindMagicSieve is the auto sieve with an essence slot (magicsieve.go).
 	KindMagicSieve = "magic_sieve"
 	KindMiner      = "auto_miner"
-	KindSellBox    = "sell_box"
 	// KindHarvester harvests grown crops around it (harvester.go).
 	KindHarvester = "harvester"
 	// KindGenerator burns fuel into RE (generator.go).
@@ -161,11 +158,8 @@ const (
 	KindDrawerController = "drawer_controller"
 	KindDrawerTrim       = "drawer_trim"
 	KindDrawerInterface  = "drawer_interface"
-	// KindTinker is the tinker table (tinkerform.go).
-	KindTinker = "tinker_table"
-	// KindGate is the retired dimension gate: it breaks into its materials
-	// (dimension/retired.go).
-	KindGate          = "dimension_gate"
+	// KindTinker is the tinker table, the tinker feature's (tinker/kinds.go).
+	KindTinker        = "tinker_table"
 	KindCrucible      = "crucible"
 	KindLavaGenerator = "lava_generator"
 	// KindSolarGenerator and KindHydroGenerator make energy from the
@@ -206,7 +200,6 @@ const (
 	idAutoSieve
 	idMagicSieve
 	idMiner
-	idSellBox
 	idHarvester
 	idGenerator
 	idAlloy
@@ -215,7 +208,6 @@ const (
 	idDrawerController
 	idDrawerTrim
 	idTinker
-	idGate
 	idCrucible
 	idLavaGenerator
 	idSimulator
@@ -268,9 +260,6 @@ type Def struct {
 	FluidCap               int
 	fluidSource, fluidSink bool
 	fluidOnly              fluidnet.Kind
-	// Controller marks the drawer controller and the drawer interface, which
-	// show the controller's storage (storage.go).
-	Controller bool
 	// cell makes the machine an energy store: it takes energy from the network and
 	// gives it back, without working (energyCap is its capacity).
 	Cell bool
@@ -284,20 +273,23 @@ type Def struct {
 	// marks the sieves that sift on their own (sieve.go).
 	Charge    []int
 	autoSieve bool
+	// NoDisplay marks a kind with no machine window to keep current: its tick
+	// ends before the window's progress, energy gauge and info icon are
+	// brought up to date. NoWindow marks a kind a click does nothing on (the
+	// click goes on to the held item). Cycle marks a kind that works in a
+	// cycle that turns whether or not there is work: its window and its panel
+	// show the cycle, not an input.
+	NoDisplay, NoWindow, Cycle bool
 
-	// The kinds whose behaviour is another package's set these (Register):
-	// click is what a click does instead of opening the window, true if
-	// it took the click; run is the work of one run; insert, peek and extract
-	// replace the item I/O of the block.
-	Click   func(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool
-	Run     func(s *core.Session, st *State, pos cube.Pos, tx *world.Tx)
-	Insert  func(tx *world.Tx, pos cube.Pos, st item.Stack) int
-	Peek    func(tx *world.Tx, pos cube.Pos, want func(item.Stack) bool) item.Stack
-	Extract func(tx *world.Tx, pos cube.Pos, st item.Stack, n int) item.Stack
-	// Accepts, if set, says which items an input slot takes (slot is -1 for
-	// "any input slot"); it replaces the machine's own rule, so the network
-	// kinds can hold items with stored values (disks, patterns).
-	Accepts func(slot int, st item.Stack) bool
+	// Owner is the feature that supplies the kind's behaviour with Register
+	// ("" for a kind whose behaviour is this package's); registered is set
+	// once it did (kinds.go).
+	Owner      string
+	registered bool
+	// hooks is what the owner registered: the zero value until then and for
+	// the machine feature's own kinds. Only Register writes it; Hooks reads
+	// it.
+	hooks Behaviour
 }
 
 var Kinds = map[string]*Def{
@@ -332,8 +324,8 @@ var Kinds = map[string]*Def{
 		helpKeys: []string{"machine.miner.help.1"},
 	},
 	KindHarvester: {
-		ID: idHarvester, nameKey: "machine.harvester.name", Marker: "§d§m§3", Interval: 40, Output: []int{13, 14, 15, 16}, Indicator: 10,
-		Use: 10, EnergyCap: ConsumerBuffer,
+		ID: idHarvester, Owner: "farm", nameKey: "machine.harvester.name", Marker: "§d§m§3", Interval: 40, Output: []int{13, 14, 15, 16}, Indicator: 10,
+		Use: 10, EnergyCap: ConsumerBuffer, Cycle: true,
 		helpKeys: []string{"machine.harvester.help.1", "machine.harvester.help.2"},
 	},
 	KindGenerator: {
@@ -347,72 +339,69 @@ var Kinds = map[string]*Def{
 		helpKeys: []string{"machine.alloy.help.1", "machine.alloy.help.2"},
 	},
 	KindDrawerController: {
-		ID: idDrawerController, nameKey: "machine.controller.name", Interval: 1, Indicator: 10, Controller: true,
+		ID: idDrawerController, Owner: "storage", nameKey: "machine.controller.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		helpKeys: []string{"machine.controller.help.1", "machine.controller.help.2"},
 	},
 	KindDrawerTrim: {
-		ID: idDrawerTrim, nameKey: "machine.link.name", Interval: 1, Indicator: 10,
+		ID: idDrawerTrim, Owner: "storage", nameKey: "machine.link.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		helpKeys: []string{"machine.link.help.1"},
 	},
 	KindDrawerInterface: {
-		ID: idDrawerInterface, nameKey: "machine.drawer_interface.name", Interval: 1, Indicator: 10, Controller: true,
+		ID: idDrawerInterface, Owner: "storage", nameKey: "machine.drawer_interface.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		helpKeys: []string{"machine.drawer_interface.help.1", "machine.drawer_interface.help.2"},
 	},
 	KindTinker: {
-		ID: idTinker, nameKey: "machine.tinker.name", Interval: 1, Indicator: 10,
+		ID: idTinker, Owner: "tinker", nameKey: "machine.tinker.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		helpKeys: []string{"machine.tinker.help.1", "machine.tinker.help.2"},
 	},
 	KindCollector: {
 		// The harvester's window: four output slots, no energy.
-		ID: idCollector, nameKey: "machine.collector.name", Marker: "§d§m§3", Interval: 1, Output: []int{13, 14, 15, 16}, Indicator: 10,
+		ID: idCollector, Owner: "dimension", nameKey: "machine.collector.name", Marker: "§d§m§3", Interval: 1, Output: []int{13, 14, 15, 16}, Indicator: 10, NoDisplay: true,
 		helpKeys: []string{"machine.collector.help.1", "machine.collector.help.2"},
 	},
 	KindRelicTable: {
-		ID: idRelicTable, nameKey: "machine.relictable.name", Interval: 1, Indicator: 10,
+		ID: idRelicTable, Owner: "dimension", nameKey: "machine.relictable.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		helpKeys: []string{"machine.relictable.help.1"},
 	},
 	KindNetController: {
-		ID: idNetController, nameKey: "machine.net_controller.name", Interval: 1, Indicator: 10,
+		ID: idNetController, Owner: "netstore", nameKey: "machine.net_controller.name", Interval: 1, Indicator: 10,
 		Use: 8, EnergyCap: ConsumerBuffer,
 		helpKeys: []string{"machine.net_controller.help.1"},
 	},
 	KindNetCable: {
-		ID: idNetCable, nameKey: "machine.net_cable.name", Interval: 1, Indicator: 10,
+		ID: idNetCable, Owner: "netstore", nameKey: "machine.net_cable.name", Interval: 1, Indicator: 10, NoWindow: true,
 		helpKeys: []string{"machine.net_cable.help.1"},
 	},
 	KindDiskDrive: {
-		ID: idDiskDrive, nameKey: "machine.disk_drive.name", Interval: 1, Input: []int{0, 1, 2, 3, 4, 5, 6, 7}, Indicator: 10,
+		ID: idDiskDrive, Owner: "netstore", nameKey: "machine.disk_drive.name", Interval: 1, Input: []int{0, 1, 2, 3, 4, 5, 6, 7}, Indicator: 10,
 		helpKeys: []string{"machine.disk_drive.help.1"},
 	},
 	KindNetTerminal: {
-		ID: idNetTerminal, nameKey: "machine.net_terminal.name", Interval: 1, Indicator: 10, Input: []int{0, 1, 2, 3, 4, 5, 6, 7, 8},
+		ID: idNetTerminal, Owner: "netstore", nameKey: "machine.net_terminal.name", Interval: 1, Indicator: 10, Input: []int{0, 1, 2, 3, 4, 5, 6, 7, 8},
 		helpKeys: []string{"machine.net_terminal.help.1"},
 	},
 	KindNetImporter: {
 		// four upgrade slots (netstore.Upgrade)
-		ID: idNetImporter, nameKey: "machine.net_importer.name", Interval: 1, Input: []int{0, 1, 2, 3}, Indicator: 10,
+		ID: idNetImporter, Owner: "netstore", nameKey: "machine.net_importer.name", Interval: 1, Input: []int{0, 1, 2, 3}, Indicator: 10,
 		helpKeys: []string{"machine.net_importer.help.1"},
 	},
 	KindNetExporter: {
-		ID: idNetExporter, nameKey: "machine.net_exporter.name", Interval: 1, Input: []int{0, 1, 2, 3}, Indicator: 10,
+		ID: idNetExporter, Owner: "netstore", nameKey: "machine.net_exporter.name", Interval: 1, Input: []int{0, 1, 2, 3}, Indicator: 10,
 		helpKeys: []string{"machine.net_exporter.help.1"},
 	},
 	KindNetExternal: {
-		ID: idNetExternal, nameKey: "machine.net_external.name", Interval: 1, Indicator: 10,
+		ID: idNetExternal, Owner: "netstore", nameKey: "machine.net_external.name", Interval: 1, Indicator: 10,
 		helpKeys: []string{"machine.net_external.help.1"},
 	},
 	KindPatternEncoder: {
-		// nine pattern slots and three sample slots
-		ID: idPatternEncoder, nameKey: "machine.pattern_encoder.name", Interval: 1, Input: []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, Indicator: 13,
+		// nine input samples, three output samples and the blank pattern (12);
+		// the engraved pattern comes out at 14 (netstore/encoder.go)
+		ID: idPatternEncoder, Owner: "netstore", nameKey: "machine.pattern_encoder.name", Interval: 1, Input: []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}, Output: []int{14}, Indicator: 13,
 		helpKeys: []string{"machine.pattern_encoder.help.1"},
 	},
 	KindNetAutocrafter: {
-		ID: idNetAutocrafter, nameKey: "machine.net_autocrafter.name", Interval: 1, Input: []int{0, 1, 2, 3, 4, 5, 6, 7, 8}, Indicator: 13,
+		ID: idNetAutocrafter, Owner: "netstore", nameKey: "machine.net_autocrafter.name", Interval: 1, Input: []int{0, 1, 2, 3, 4, 5, 6, 7, 8}, Indicator: 13,
 		helpKeys: []string{"machine.net_autocrafter.help.1"},
-	},
-	KindGate: {
-		ID: idGate, nameKey: "machine.gate.name", Interval: 1, Indicator: 10,
-		helpKeys: []string{"machine.gate.help.1"},
 	},
 	KindWasher: {
 		ID: idWasher, nameKey: "machine.washer.name", Marker: "§d§m§2", Interval: 60, Input: []int{10}, Output: []int{13, 14, 15, 16}, Indicator: 12,
@@ -421,29 +410,29 @@ var Kinds = map[string]*Def{
 		helpKeys: []string{"machine.washer.help.1", "machine.washer.help.2"},
 	},
 	KindTank: {
-		ID: idTank, nameKey: "machine.tank.name", Interval: 1, Indicator: 10,
+		ID: idTank, nameKey: "machine.tank.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		FluidCap: tankCapacity, fluidSource: true, fluidSink: true,
 		helpKeys: []string{"machine.tank.help.1", "machine.tank.help.2"},
 	},
 	KindCrucible: {
-		ID: idCrucible, nameKey: "machine.crucible.name", Interval: 20, Input: []int{10}, Indicator: 12,
+		ID: idCrucible, nameKey: "machine.crucible.name", Interval: 20, Input: []int{10}, Indicator: 12, NoDisplay: true,
 		Use: 30, EnergyCap: ConsumerBuffer,
 		FluidCap: 8000, fluidSource: true, fluidOnly: fluidnet.Lava,
 		helpKeys: []string{"machine.crucible.help.1", "machine.crucible.help.2"},
 	},
 	KindLavaGenerator: {
-		ID: idLavaGenerator, nameKey: "machine.lavagen.name", Interval: 1, Indicator: 10,
+		ID: idLavaGenerator, nameKey: "machine.lavagen.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		Generates: LavaGenOutput, EnergyCap: generatorBuffer,
 		FluidCap: 4000, fluidSink: true, fluidOnly: fluidnet.Lava,
 		helpKeys: []string{"machine.lavagen.help.1", "machine.lavagen.help.2"},
 	},
 	KindSolarGenerator: {
-		ID: idSolarGenerator, nameKey: "machine.solargen.name", Interval: 1, Indicator: 10,
+		ID: idSolarGenerator, nameKey: "machine.solargen.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		Generates: SolarOutput, EnergyCap: generatorBuffer,
 		helpKeys: []string{"machine.solargen.help.1", "machine.solargen.help.2"},
 	},
 	KindHydroGenerator: {
-		ID: idHydroGenerator, nameKey: "machine.hydrogen.name", Interval: 1, Indicator: 10,
+		ID: idHydroGenerator, nameKey: "machine.hydrogen.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		Generates: HydroOutput, EnergyCap: generatorBuffer,
 		helpKeys: []string{"machine.hydrogen.help.1", "machine.hydrogen.help.2"},
 	},
@@ -453,7 +442,7 @@ var Kinds = map[string]*Def{
 		helpKeys: []string{"machine.simulator.help.1", "machine.simulator.help.2"},
 	},
 	KindEnergyCell: {
-		ID: idEnergyCell, nameKey: "machine.cell.name", Interval: 1, Indicator: 10,
+		ID: idEnergyCell, nameKey: "machine.cell.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		Cell: true, EnergyCap: CellCapacity,
 		helpKeys: []string{"machine.cell.help.1", "machine.cell.help.2"},
 	},
@@ -485,18 +474,10 @@ var Kinds = map[string]*Def{
 		Use: 40, EnergyCap: ConsumerBuffer,
 		helpKeys: []string{"machine.lab.help.1", "machine.lab.help.2", "machine.lab.help.3"},
 	},
-	KindSellBox: {
-		ID: idSellBox, nameKey: "machine.sellbox.name", Marker: "§d§m§4", Interval: 20, Input: []int{9, 10, 11, 12, 13, 14, 15, 16, 17}, Indicator: 4,
-		helpKeys: []string{"machine.sellbox.help.1", "machine.sellbox.help.2"},
-	},
 }
 
-// Retired are the kinds that are registered (old islands load) but never
-// shown or made.
-var Retired = []string{KindGate}
-
 // Order is the registration and display order.
-var Order = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindTank, KindCrucible, KindLavaGenerator, KindSolarGenerator, KindHydroGenerator, KindWasher, KindDrawerController, KindDrawerTrim, KindDrawerInterface, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve, KindCollector, KindRelicTable, KindNetController, KindNetCable, KindDiskDrive, KindNetTerminal, KindNetImporter, KindNetExporter, KindNetExternal, KindPatternEncoder, KindNetAutocrafter}
+var Order = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindTank, KindCrucible, KindLavaGenerator, KindSolarGenerator, KindHydroGenerator, KindWasher, KindDrawerController, KindDrawerTrim, KindDrawerInterface, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve, KindCollector, KindRelicTable, KindNetController, KindNetCable, KindDiskDrive, KindNetTerminal, KindNetImporter, KindNetExporter, KindNetExternal, KindPatternEncoder, KindNetAutocrafter}
 
 // CrusherOutput is what the crusher always makes of an item: the blocks of
 // the hammer chain one step down, an ore block sgitem.CrusherRaw raw ores
@@ -537,6 +518,12 @@ type Machine struct {
 	Tier int
 	// Shape is the look of a thin network block (netshape.go).
 	Shape int
+	// clicked and placedOn are whether a machine item was used on a block to
+	// place this one, and that block's face. The item sets them on the block
+	// it hands to the placement (UseOnBlock) and Place reads them; a machine
+	// in the world does not carry them.
+	clicked  bool
+	placedOn cube.Face
 }
 
 // State is the inventory and progress of a placed machine. It is
@@ -568,11 +555,13 @@ type State struct {
 	rangeEntity *world.EntityHandle
 	rangeSize   int32
 	rangeAt     mgl64.Vec3
-	// owner is the account that placed a sell box and gets its money.
-	Owner, ownerName string
 	// Facing is the side a network attachment acts on (south when it was
 	// placed without a clicked face).
 	Facing cube.Face
+	// broken is the BreakHandler of the machine's BreakInfo: what Dragonfly
+	// calls when the block was broken and is gone. It is made once with the
+	// state (New), so BreakInfo allocates nothing for it.
+	broken func(pos cube.Pos, tx *world.Tx, u item.User)
 	// pos is where the machine stands, set when it ticks or its window is
 	// opened.
 	pos cube.Pos
@@ -727,9 +716,9 @@ func (st *State) DrainLegacy() {
 	}
 }
 
-func New(kind, owner, ownerName string) Machine {
+func New(kind string) Machine {
 	k := Kinds[kind]
-	st := &State{Def: k, storage: chestui.NewStorage(27, k.windowTitle(i18n.Default)), Owner: owner, ownerName: ownerName, ShownPct: -1, shownEnergy: -1, Facing: cube.FaceSouth}
+	st := &State{Def: k, storage: chestui.NewStorage(27, k.windowTitle(i18n.Default)), ShownPct: -1, shownEnergy: -1, Facing: cube.FaceSouth}
 	if kind == KindMiner {
 		st.Facing = cube.FaceDown
 	}
@@ -753,6 +742,11 @@ func New(kind, owner, ownerName string) Machine {
 	}
 	st.ShowProgress()
 	st.ShowEnergy()
+	st.broken = func(pos cube.Pos, tx *world.Tx, _ item.User) {
+		if s, ok := core.Of(tx); ok {
+			Break(s, tx, pos, Machine{Kind: kind, State: st})
+		}
+	}
 	return Machine{Kind: kind, State: st}
 }
 
@@ -791,21 +785,14 @@ func (st *State) OpenWindow(p *player.Player) {
 }
 
 // infoItem is the info icon of a machine window: the machine's name, what
-// it does and, for the sell box, whose it is.
+// it does.
 func (st *State) InfoItem() item.Stack {
 	var lore []wintext.Text
 	for _, k := range st.Def.helpKeys {
 		lore = append(lore, wintext.Text{wintext.Key(k)})
 	}
-	if st.Def.ID == idCollector {
-		if st.Mob != "" {
-			lore = append(lore, wintext.Text{wintext.Key("machine.collector.mob", wintext.Key("mob."+st.Mob))})
-		} else {
-			lore = append(lore, wintext.Text{wintext.Key("machine.collector.none")})
-		}
-	}
-	if st.Def.ID == idSellBox && st.ownerName != "" {
-		lore = append(lore, wintext.Text{wintext.Key("machine.info.owner"), wintext.Raw(st.ownerName)})
+	if st.Def.hooks.Info != nil {
+		lore = append(lore, st.Def.hooks.Info(st)...)
 	}
 	if st.Tier > 0 {
 		spec := st.spec()
@@ -825,7 +812,7 @@ func (st *State) InfoItem() item.Stack {
 }
 
 // SetMob sets what the machine works with (the monster an essence
-// collector receives) and shows it in its window.
+// collector receives) and redraws the info icon of its window.
 func (st *State) SetMob(mob string) {
 	st.Mob = mob
 	_ = st.Inv().SetItem(infoSlot, st.InfoItem())
@@ -868,8 +855,8 @@ func (st *State) Inv() *inventory.Inventory { return st.storage.Inventory() }
 // accepts reports whether it may go into the input of the machine.
 // Time-limited items are never processed or sold.
 func (st *State) Accepts(it item.Stack) bool {
-	if st.Def.Accepts != nil {
-		return !it.Empty() && st.Def.Accepts(-1, it)
+	if st.Def.hooks.Accepts != nil {
+		return !it.Empty() && st.Def.hooks.Accepts(-1, it)
 	}
 	if it.Empty() || !core.Plain(it) {
 		return false
@@ -905,7 +892,7 @@ func (st *State) Accepts(it item.Stack) bool {
 		_, ok := sievetable.Tables[st.Mesh][naming.ItemKey(it.Item())]
 		return ok || st.takesCharge(it)
 	}
-	// The sell box takes nothing.
+	// Anything else takes nothing.
 	return false
 }
 
@@ -928,8 +915,8 @@ func (st *State) takesCharge(it item.Stack) bool {
 func (st *State) SlotAccepts(slot int, it item.Stack) bool {
 	switch st.Role(slot) {
 	case roleInput:
-		if st.Def.Accepts != nil {
-			return !it.Empty() && st.Def.Accepts(slot, it)
+		if st.Def.hooks.Accepts != nil {
+			return !it.Empty() && st.Def.hooks.Accepts(slot, it)
 		}
 		return st.Accepts(it) && !st.takesCharge(it)
 	case roleCharge:
@@ -1160,15 +1147,14 @@ func (st *State) progressPct() int { return min(100, st.Progress*100/max(1, st.C
 // shows the fuel left in the one burning), and the text key of its tooltip,
 // which takes the percent when withPct is set.
 func (st *State) progressLook() (ring bool, key string, withPct bool) {
+	if st.Def.Cycle {
+		return true, "machine.progress.harvestCycle", false
+	}
 	switch st.Def.ID {
-	case idSellBox:
-		return true, "machine.progress.sellCycle", false
 	case idMiner, idAutoSieve, idMagicSieve, idSimulator, idWasher, idVacuum, idFeller, idCrafter, idLab:
 		return true, "machine.progress.mining", true
 	case idGenerator:
 		return true, "machine.progress.fuel", true
-	case idHarvester:
-		return true, "machine.progress.harvestCycle", false
 	}
 	return false, "machine.progress.percent", true
 }
@@ -1226,7 +1212,7 @@ func (a ProgressArrow) Name() string { return i18n.T(i18n.Default, "name.Progres
 func (ProgressArrow) Category() category.Category { return category.Items() }
 
 // CycleGauge is the indicator of machines that work in a repeating cycle
-// (auto harvester, sell box): a hollow ring filled in Step tenths, which
+// (auto harvester): a hollow ring filled in Step tenths, which
 // turns over and over like a loading circle.
 type CycleGauge struct{ Step int }
 
@@ -1300,70 +1286,20 @@ func (m Machine) Name() string {
 
 func (Machine) Category() category.Category { return category.Items() }
 
-// cubeMachines are the machines drawn as plain cubes with one side texture;
-// frontMachines have a front (south), back and side textures. The sieves
-// have models.
-var (
-	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindSolarGenerator: true, KindHydroGenerator: true, KindGate: true, KindDrawerController: true, KindDrawerInterface: true, KindTinker: true, KindCollector: true, KindRelicTable: true, KindNetController: true, KindDiskDrive: true, KindNetTerminal: true, KindPatternEncoder: true}
-	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true, KindCrucible: true, KindFurnace: true, KindCrafter: true, KindLab: true, KindNetAutocrafter: true}
-)
-
-// States implements block.Permutable: only the sieve has states.
-func (m Machine) States() map[string][]any {
-	if IsSieve(m.Kind) {
-		return SieveStates()
-	}
-	if TierLook(m.Kind) {
-		return tierStates(m.Kind)
-	}
-	if AnimatedKinds[m.Kind] {
-		return activeStates()
-	}
-	if NetShaped(m.Kind) {
-		return netStates(m.Kind)
-	}
-	return nil
-}
-
-// Permutations implements block.Permutable.
-func (m Machine) Permutations() []customblock.Permutation {
-	if IsSieve(m.Kind) {
-		return sievePermutations(m.Kind)
-	}
-	if TierLook(m.Kind) {
-		return tierPermutations(m.Kind)
-	}
-	if AnimatedKinds[m.Kind] {
-		return activePermutations(m.Kind)
-	}
-	if NetShaped(m.Kind) {
-		return netPermutations(m.Kind)
-	}
-	return nil
-}
-
-func (m Machine) Properties() customblock.Properties {
-	if m.Kind == KindDrawerTrim {
-		return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{"*": blockmodel.AlphaMaterial("skygear_drawer_side")}}
-	}
-	if cubeMachines[m.Kind] {
-		return blockmodel.CubeProperties(m.Kind)
-	}
-	if frontMachines[m.Kind] {
-		return blockmodel.FrontCubeProperties(m.Kind)
-	}
-	if NetShaped(m.Kind) {
-		return netProperties(m.Kind, 0)
-	}
-	return sieveProperties(m.Kind)
-}
-
 // BreakInfo drops the machine and its contents.
 func (m Machine) BreakInfo() block.BreakInfo {
+	// A placed machine takes itself down when it was broken (Break): by a
+	// player, or by an explosion. An item has no state and nothing to take
+	// down.
+	var broken func(cube.Pos, *world.Tx, item.User)
+	if m.State != nil {
+		broken = m.State.broken
+	}
 	return block.BreakInfo{
 		Hardness: 1.5, BlastResistance: 6,
-		Harvestable: func(item.Tool) bool { return true },
-		Effective:   blockmodel.WoodEffective(m.Kind == KindSieve),
+		BreakHandler: broken,
+		Harvestable:  func(item.Tool) bool { return true },
+		Effective:    blockmodel.WoodEffective(m.Kind == KindSieve),
 		Drops: func(item.Tool, []item.Enchantment) []item.Stack {
 			drops := []item.Stack{item.NewStack(Machine{Kind: m.Kind}, 1)}
 			if m.State != nil {
@@ -1417,7 +1353,7 @@ func blankNBT(kind string) map[string]any {
 	if v, ok := blankNBTs.Load(kind); ok {
 		return v.(map[string]any)
 	}
-	data := New(kind, "", "").encodeState()
+	data := New(kind).encodeState()
 	blankNBTs.Store(kind, data)
 	return data
 }
@@ -1467,8 +1403,6 @@ func (m Machine) encodeState() map[string]any {
 		}
 	}
 	data["Recipe"] = m.State.RecipeID
-	data["Owner"] = m.State.Owner
-	data["OwnerName"] = m.State.ownerName
 	if _, head := netHeads[m.Kind]; head || m.Kind == KindMiner {
 		data["Facing"] = int32(m.State.Facing)
 	}
@@ -1476,9 +1410,7 @@ func (m Machine) encodeState() map[string]any {
 }
 
 func (m Machine) DecodeNBT(data map[string]any) any {
-	owner, _ := data["Owner"].(string)
-	ownerName, _ := data["OwnerName"].(string)
-	n := New(m.Kind, owner, ownerName)
+	n := New(m.Kind)
 	n.Shape = m.Shape
 	if f, ok := data["Facing"].(int32); ok && f >= 0 && f < 6 {
 		n.State.Facing = cube.Face(f)
@@ -1557,7 +1489,8 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 	return n
 }
 
-// Activate opens the machine window, or uses a sieve.
+// Activate opens the machine window, or uses a sieve. A held tier kit or
+// fairy hourglass is used on the machine instead.
 func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, ctx *item.UseContext) bool {
 	p, ok := u.(*player.Player)
 	s, ok2 := core.Of(tx)
@@ -1570,21 +1503,19 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 			UseKit(s, p, tx, pos, m, kit, held, off)
 			return true
 		}
+		// A fairy hourglass winds the machine; one the machine does not take
+		// leaves the click to the machine.
+		if _, ok := held.Item().(sgitem.FairyHourglass); ok && m.State.WindHourglass() {
+			ctx.SubtractFromCount(1)
+			tx.PlaySound(pos.Vec3Centre(), sound.ItemAdd{})
+			return true
+		}
 	}
 	if IsSieve(m.Kind) {
 		useSieve(s, p, tx, pos, m.State)
 		return true
 	}
-	if c := m.State.Def.Click; c != nil && c(s, p, tx, pos) {
-		return true
-	}
-	if m.Kind == KindDrawerTrim {
-		return true
-	}
-	if m.Kind == KindTinker {
-		if !s.Debounced(p) {
-			tinker.ShowTable(s, p, tx, pos)
-		}
+	if c := m.State.Def.hooks.Click; c != nil && c(s, p, tx, pos) {
 		return true
 	}
 	if m.Kind == KindLab {
@@ -1605,7 +1536,7 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 			return true
 		}
 	}
-	if m.State.Def.Cell || m.Kind == KindNetCable {
+	if m.State.Def.Cell || m.State.Def.NoWindow {
 		return false
 	}
 	if !s.Debounced(p) {
@@ -1619,8 +1550,8 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 // (it needs its mesh), so it takes one only while it is empty, and its look
 // follows.
 func (m Machine) InsertItems(tx *world.Tx, pos cube.Pos, face cube.Face, st item.Stack) int {
-	if m.State != nil && m.State.Def.Insert != nil {
-		return m.State.Def.Insert(tx, pos, st)
+	if m.State != nil && m.State.Def.hooks.Insert != nil {
+		return m.State.Def.hooks.Insert(tx, pos, st)
 	}
 	if m.State == nil || len(m.State.Def.Input) == 0 || face == cube.FaceDown {
 		return 0
@@ -1643,8 +1574,8 @@ func (m Machine) InsertItems(tx *world.Tx, pos cube.Pos, face cube.Face, st item
 // (a hopper under the machine, a conduit anywhere); machines do not push it
 // into their neighbours.
 func (m Machine) PeekItems(tx *world.Tx, pos cube.Pos, _ cube.Face, want func(item.Stack) bool) item.Stack {
-	if m.State != nil && m.State.Def.Peek != nil {
-		return m.State.Def.Peek(tx, pos, want)
+	if m.State != nil && m.State.Def.hooks.Peek != nil {
+		return m.State.Def.hooks.Peek(tx, pos, want)
 	}
 	if m.State == nil {
 		return item.Stack{}
@@ -1659,8 +1590,8 @@ func (m Machine) PeekItems(tx *world.Tx, pos cube.Pos, _ cube.Face, want func(it
 
 // ExtractItems implements itemio.Extractor.
 func (m Machine) ExtractItems(tx *world.Tx, pos cube.Pos, _ cube.Face, st item.Stack, n int) item.Stack {
-	if m.State != nil && m.State.Def.Extract != nil {
-		return m.State.Def.Extract(tx, pos, st, n)
+	if m.State != nil && m.State.Def.hooks.Extract != nil {
+		return m.State.Def.hooks.Extract(tx, pos, st, n)
 	}
 	if m.State == nil {
 		return item.Stack{}
@@ -1688,7 +1619,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	}
 	if m.State == nil {
 		// Placed without going through the place handler.
-		tx.SetBlock(pos, New(m.Kind, "", ""), nil)
+		tx.SetBlock(pos, New(m.Kind), nil)
 		return
 	}
 	if NetShaped(m.Kind) && currentTick%40 == 0 {
@@ -1730,9 +1661,8 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		watchMachine(s, tx, pos, st)
 	}
 	st.showRange(tx, pos)
-	switch st.Def.ID {
-	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idSolarGenerator, idHydroGenerator, idGate, idDrawerController, idDrawerTrim, idDrawerInterface, idTinker, idCollector, idRelicTable:
-		if st.Def.ID == idEnergyCell && st.Energy > 0 {
+	if st.Def.NoDisplay {
+		if st.Def.Cell && st.Energy > 0 {
 			network.Energy(s).AddSource(pos)
 		}
 		return
@@ -1831,8 +1761,8 @@ func runMachine(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
 	case idLab:
 		st.runLab()
 	default:
-		if st.Def.Run != nil {
-			st.Def.Run(s, st, pos, tx)
+		if st.Def.hooks.Run != nil {
+			st.Def.hooks.Run(s, st, pos, tx)
 		}
 	}
 }
@@ -1944,18 +1874,21 @@ func viewCrack(tx *world.Tx, pos cube.Pos, a world.BlockAction) {
 	}
 }
 
-// Place sets up a placed machine with a fresh state.
-func Place(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, kind string) {
-	m := New(kind, instance.AccountID(p), p.Name())
+// Place sets up a placed machine with a fresh state. b is the block that was
+// placed. One a machine item placed says which face the item was used on
+// (UseOnBlock): a network attachment or a miner faces that block. A machine
+// placed any other way faces its default.
+func Place(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, b Machine) {
+	kind := b.Kind
+	m := New(kind)
 	account.Grant(p, achievement.FirstMachine)
 	achievement.Count(p, "machine_place", 1)
 	achievement.Count(p, "place_"+kind, 1)
 	if m.Kind != KindSieve {
 		progress.Advance(s, tx, advancement.Machine)
 	}
-	face, clicked := takePlaceFace(s, p)
-	if _, head := netHeads[kind]; (head || kind == KindMiner) && clicked {
-		m.State.Facing = face.Opposite()
+	if _, head := netHeads[kind]; (head || kind == KindMiner) && b.clicked {
+		m.State.Facing = b.placedOn.Opposite()
 	}
 	tx.Defer(func(tx *world.Tx) {
 		if NetShaped(kind) {
@@ -1965,12 +1898,46 @@ func Place(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, kind s
 	})
 }
 
-// Break closes the windows of a machine being broken.
+// Break takes down a machine that was broken: the monitor forgets it, its
+// windows close and the feature that owns its kind is told (Behaviour.Broken).
+// The machine's BreakInfo calls it when the block is gone.
 func Break(s *core.Session, tx *world.Tx, pos cube.Pos, m Machine) {
 	delete(FactoryOf(s).machines, pos)
 	if m.State != nil {
 		m.State.storage.CloseAll()
 	}
+	if broken := m.Def().hooks.Broken; broken != nil {
+		broken(s, tx, pos)
+	}
 }
 
 func Item(kind string) item.Stack { return item.NewStack(Machine{Kind: kind}, 1) }
+
+// UseOnBlock implements item.UsableOnBlock: a machine item places its block
+// where Dragonfly places a block item (in the clicked block if that gives
+// way, else beside the clicked face) and hands the placement the face it was
+// used on (Place).
+func (m Machine) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *world.Tx, user item.User, ctx *item.UseContext) bool {
+	at := pos
+	if r, ok := tx.Block(at).(block.Replaceable); !ok || !r.ReplaceableBy(m) {
+		at = pos.Side(face)
+	}
+	if r, ok := tx.Block(at).(block.Replaceable); !ok || !r.ReplaceableBy(m) || at.OutOfBounds(tx.Range()) {
+		return false
+	}
+	placer, ok := user.(block.Placer)
+	if !ok {
+		return false
+	}
+	m.clicked, m.placedOn = true, face
+	placer.PlaceBlock(at, m, ctx)
+	return ctx.CountSub > 0
+}
+
+// WindHourglass implements sgitem.HourglassWound: the hourglass of a sneaking
+// player, whose click Dragonfly does not hand to Activate, winds the machine
+// through the item.
+func (m Machine) WindHourglass(pos cube.Pos, tx *world.Tx) bool {
+	s, ok := core.Of(tx)
+	return ok && island.CanBuild(s, pos) && m.State != nil && m.State.WindHourglass()
+}

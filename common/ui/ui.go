@@ -111,7 +111,7 @@ func Menu(p *player.Player, title, body string, opts ...Option) {
 // Messages from screen actions show as toasts: chat is hidden while a screen
 // is open, and a toast shows over it without interrupting the next screen.
 
-// Notify tells p about something that failed (not enough money, out of
+// Notify tells p about something that failed (not enough items, out of
 // stock, ...): a toast only, as it matters just now.
 func Notify(p *player.Player, format string, a ...any) {
 	toast(p, i18n.T(i18n.Of(p), "ui.notify.title"), fmt.Sprintf(format, a...))
@@ -363,8 +363,8 @@ func ItemGridSections(p *player.Player, title, body string, sections []GridSecti
 	oreItemGrid(p, title, body, sections, actions)
 }
 
-// Confirm asks a yes/no question: the yes button runs f, "취소" or closing
-// does nothing.
+// Confirm asks a yes/no question: the yes button runs f; the cancel button (text
+// key ui.confirm.cancel) or closing does nothing.
 func Confirm(p *player.Player, title, body, yes string, f func(p *player.Player, tx *world.Tx)) {
 	Menu(p, title, body,
 		Option{Label: yes, Icon: "textures/ui/confirm", Run: f},

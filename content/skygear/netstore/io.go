@@ -125,9 +125,6 @@ func init() {
 		delete(rts, n)
 		rtMu.Unlock()
 	})
-	for _, k := range []string{machine.KindNetImporter, machine.KindNetExporter, machine.KindNetExternal} {
-		machine.Kinds[k].Run = nodeRun
-	}
 }
 
 func buildIO(tx *world.Tx, n *Network) {

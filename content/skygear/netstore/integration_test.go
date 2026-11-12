@@ -78,7 +78,7 @@ func TestEndToEnd(t *testing.T) {
 		if out.Count() != 5 || n.Root.Count(KeyOf(dirtS)) != 0 {
 			t.Fatalf("took %v, left %d", out, n.Root.Count(KeyOf(dirtS)))
 		}
-		if got := machine.Kinds[machine.KindNetTerminal].Insert(tx, p(term), out); got != 5 {
+		if got := machine.Kinds[machine.KindNetTerminal].Hooks().Insert(tx, p(term), out); got != 5 {
 			t.Fatalf("deposit %d", got)
 		}
 

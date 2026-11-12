@@ -12,7 +12,6 @@ import (
 	"github.com/df-mc/dragonfly/server/block/model"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/category"
-	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
@@ -32,9 +31,7 @@ import (
 // Magic plants (after Botania and Mystical Agriculture) grow on dirt from
 // seeds and regrow after each harvest. Flower seeds are crafted from wheat
 // seeds, dyes, monster essences and fairy dust; better seeds from a lower
-// seed, a vanilla plant, petals and a material (ore and gem blooms). The
-// essence blooms are retired: they stay registered so old islands load, and
-// turn into redstone blooms (TickPlants, RetireSeeds).
+// seed, a vanilla plant, petals and a material (ore and gem blooms).
 
 func init() {
 	for _, c := range sgitem.PetalColours {
@@ -53,9 +50,6 @@ func init() {
 	}
 	for _, g := range gems {
 		PlantKinds = append(PlantKinds, PlantKind{ID: "gem_" + g.id, tier: 3, Seed: "gem_" + g.id, Grow: 300 * time.Second, Yield: []PlantYield{{g.it, g.min, g.max}}})
-	}
-	for _, mob := range sgitem.FlowerMobKinds {
-		PlantKinds = append(PlantKinds, PlantKind{ID: "ess_" + mob, tier: 4, Seed: "ess_" + mob, Grow: 480 * time.Second, Retired: "gem_redstone"})
 	}
 	seen := map[string]bool{}
 	for _, k := range PlantKinds {
@@ -93,43 +87,6 @@ type PlantKind struct {
 	Seed  string
 	Grow  time.Duration
 	Yield []PlantYield
-	// Retired is the kind a retired kind (an essence bloom) turns into.
-	Retired string
-}
-
-// LivePlantKinds are the kinds of plants that still grow, in order.
-func LivePlantKinds() []PlantKind {
-	var out []PlantKind
-	for _, k := range PlantKinds {
-		if k.Retired == "" {
-			out = append(out, k)
-		}
-	}
-	return out
-}
-
-// LivePlantSeeds are the ids of the seeds of the plants that still grow.
-func LivePlantSeeds() []string {
-	var out []string
-	for _, k := range LivePlantKinds() {
-		out = append(out, k.Seed)
-	}
-	return out
-}
-
-// RetireSeeds turns the seeds of retired plants p carries into the seeds of
-// what those plants became.
-func RetireSeeds(p interface{ Inventory() *inventory.Inventory }) {
-	inv := p.Inventory()
-	for slot, it := range inv.Slots() {
-		sd, ok := it.Item().(PlantSeed)
-		if !ok {
-			continue
-		}
-		if i := PlantKindIndex(sd.Seed); i >= 0 && PlantKinds[i].Retired != "" {
-			_ = inv.SetItem(slot, item.NewStack(PlantSeed{Seed: PlantKinds[PlantKindIndex(PlantKinds[i].Retired)].Seed}, it.Count()))
-		}
-	}
 }
 
 // PlantKinds are the kinds of plants in a fixed order (the block's states follow it).
@@ -469,12 +426,6 @@ func TickPlants(s *core.Session, tx *world.Tx) {
 		if !isPlant {
 			delete(StateOf(s).Plants, key)
 			continue
-		}
-		if i := PlantKindIndex(b.Kind); i >= 0 && PlantKinds[i].Retired != "" {
-			b.Kind = PlantKinds[i].Retired
-			r.Kind = b.Kind
-			tx.SetBlock(pos, b, nil)
-			s.MarkDirty()
 		}
 		if !b.Bloom && now >= r.ReadyAt {
 			tx.SetBlock(pos, MagicPlant{Kind: b.Kind, Bloom: true}, nil)

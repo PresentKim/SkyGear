@@ -41,26 +41,26 @@ const (
 	encoderPage = 36
 )
 
-func init() {
-	def := machine.Kinds[machine.KindPatternEncoder]
-	def.Input = []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, encBlank}
-	def.Output = []int{encDone}
-	def.Accepts = func(slot int, st item.Stack) bool {
-		if slot >= encIn && slot < encBlank {
-			return true
-		}
-		return isBlank(st)
-	}
-	def.Click = func(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
-		if !p.Sneaking() {
-			return false
-		}
-		m, ok := tx.Block(pos).(machine.Machine)
-		if ok && m.State != nil && !s.Debounced(p) {
-			showEncoder(s, p, m.State, 0)
-		}
+// encoderAccepts says what a slot of the encoder takes: any item as a sample,
+// a blank pattern on the blank slot.
+func encoderAccepts(slot int, st item.Stack) bool {
+	if slot >= encIn && slot < encBlank {
 		return true
 	}
+	return isBlank(st)
+}
+
+// clickEncoder is the click on an encoder: a sneaking click opens the recipe
+// list, any other the machine window.
+func clickEncoder(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
+	if !p.Sneaking() {
+		return false
+	}
+	m, ok := tx.Block(pos).(machine.Machine)
+	if ok && m.State != nil && !s.Debounced(p) {
+		showEncoder(s, p, m.State, 0)
+	}
+	return true
 }
 
 // isBlank reports whether a stack is a pattern with no recipe on it.

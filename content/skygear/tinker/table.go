@@ -58,7 +58,7 @@ func ShowTable(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) {
 func showToolKinds(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) {
 	lang := i18n.Of(p)
 	var slots []ui.ItemSlot
-	for _, k := range MadeKinds {
+	for _, k := range ToolKinds {
 		slots = append(slots, ui.ItemSlot{
 			Icon: ui.ItemIcon(Tool{Kind: k, Head: "iron", Handle: "wood"}),
 			Tip:  "§f" + i18n.T(lang, "tool."+k) + "\n§7" + fmt.Sprintf(i18n.T(lang, "tinker.headCost"), ToolHeadCost[k]),

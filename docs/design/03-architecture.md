@@ -9,7 +9,7 @@
 | 인스턴스별 인벤토리·상태 | 기본 `playerdb`는 플레이어당 1벌이라 사용하지 않음. 이동 시 직접 직렬화/복원 |
 | 기계 | `world.CustomBlock` + `NBTer`(블록 엔티티) + `TickerBlock`. 모양·텍스처·이름은 리소스팩 파일(`assets/resourcepack/skygear/`), Go는 모델 식별자와 재질 키만 적는다 |
 | 아이템 값 | `item.Stack` 값(`WithValue`)에 서랍 내용, 도구 경험·강화 같은 값을 저장 |
-| 메뉴 | Ore UI 에 그리는 서버 주도 DDUI 화면(`common/ui`, `common/oreui`, 암호화한 `oreui` 팩), 아이템이 오가는 창은 엔티티 상자(`common/chestui`, JSON UI) |
+| 메뉴 | Ore UI 에 그리는 서버 주도 DDUI 화면(`common/ui`, `common/oreui`, `oreui` 팩), 아이템이 오가는 창은 엔티티 상자(`common/chestui`, JSON UI) |
 | 시간 기반 이벤트 | 인스턴스 시간(활성 누적 시간) 기준 스케줄러. 비활성화 시 멈춤 |
 | 소유 청크 상시 틱 | 인스턴스별 `world.NewLoader(r, w, world.NopViewer{})`. 로더 반경과 `TickRange`가 소유 청크 전체를 덮도록 설정(월드는 로더가 있을 때만, 블록 엔티티는 로더의 `TickRange` 안에서만 틱한다. 동기 테스트 월드는 로드된 청크를 모두 틱하므로 이 동작은 비동기 월드로 검증한다) |
 | 분실물 수집 | 인스턴스 월드 핸들러 `HandleEntityDespawn`에서 Y < 월드 최저 높이인 아이템 엔티티 → 분실물 목록에 병합 |
@@ -23,7 +23,7 @@
 
 | 데이터 | 저장소 |
 |---|---|
-| 계정, 친구, 업적, 세이브 메타, 세이브 × 플레이어 상태, 세이브 상태 | **SQLite** (`modernc.org/sqlite`, CGO 불필요) |
+| 계정, 친구, 업적, 카운터, 설정, 세이브 메타, 세이브 × 플레이어 상태, 세이브 상태 | **SQLite** (`modernc.org/sqlite`, CGO 불필요) |
 | 월드 블록 | 세이브별 `mcdb` (LevelDB) 폴더: `saves/<saveID>/world` |
 
 - 테이블(`platform/db/db.go`):
@@ -31,11 +31,15 @@
 | 테이블 | 내용 |
 |---|---|
 | `accounts` | 계정(XUID), 이름, 칭호, 이름 색, 안내 확인 버전, 접속 시각 |
-| `friends`, `friend_requests`, `blocks` | 친구 관계, 요청, 차단 |
+| `friends`, `friend_requests`, `blocks` | 친구 관계(친한 친구 표시 포함), 요청, 차단 |
 | `achievements` | 계정별 획득한 업적 |
-| `saves`, `save_members` | 세이브 메타(소유자, 슬롯, 이름, 초대 코드, 인스턴스 시간, 일수)와 참여자(역할 `host/cohost/guest`, 탈퇴·추방 뒤에도 행 유지) |
+| `counters` | 계정별 카운터 업적의 횟수 |
+| `account_settings` | 계정별 설정 값 |
+| `saves`, `save_members` | 세이브 메타(소유자, 슬롯, 이름, 인스턴스 시간, 일수)와 참여자(역할 `host/cohost/guest`, 탈퇴·추방 뒤에도 행 유지). 초대 코드는 저장하지 않고 호스트가 세이브 안에서 켜는 동안 플랫폼이 메모리에 둔다 |
+| `save_invites` | 세이브 초대(받는 사람, 보낸 사람, 시각). 오프라인 친구도 나중에 받는다 |
 | `save_players` | 세이브 × 플레이어 상태(인벤토리·위치·체력 등 직렬화) |
 | `save_state` | 세이브별 게임 키-값 상태(연구, 발전과제, 청크, 분실물 …) |
+| `data_versions` | 세이브 밖 데이터(계정, 업적, 카운터)가 어느 릴리스의 형식인지 범위별로 기록한다. 세이브는 자기 릴리스를 `save_state` 에 둔다 |
 
 - `save_state`는 게임이 자유롭게 쓰는 키-값이라 플랫폼이 게임 내용을 몰라도 된다.
 - 스키마 변경은 `platform/db/db.go`의 `migrations`에 새 항목을 더하는 방식으로 하고, 기존 항목은 고치지 않는다.
@@ -81,10 +85,13 @@ type Session interface {
     Second(tx *world.Tx)                        // 약 1초마다(작물, 요정, 발전과제, 에센스 수집기 …)
     Fast(tx *world.Tx)                          // 0.2초마다(연결망, WAILA 게이지)
     MenuBack(p *player.Player, from string)     // 플랫폼 화면의 뒤로 버튼이 돌아갈 게임 화면
+    OpenScreen(p *player.Player, screen string) // 플랫폼 화면의 탭이 여는 게임 화면(섬 확장 등)
     Autosave(tx *world.Tx)                      // 자동 저장 주기마다
     Close(tx *world.Tx)                         // 월드 저장·종료 전
 }
 ```
+
+세션은 `instance.Relocator`(`Relocate(pos) bool`)도 구현할 수 있다. 저장된 위치를 받아들이지 않으면 그 플레이어는 `Spawn` 에서 시작한다(스카이기어는 이차원 안의 위치를 섬으로 돌려보낸다).
 
 ### 콘텐츠 안의 구조
 
@@ -94,9 +101,12 @@ type Session interface {
   자기 패키지에 파트를 둔다: 실행 중 데이터 `core.NewPart`, 플레이어별 데이터 `core.NewPlayers`(퇴장 때 지워짐),
   저장 데이터 `core.NewSaved`(모든 저장 파트가 세이브 상태 문서 하나의 필드라 기능을 옮겨도 세이브 형식이 그대로다).
 - 패키지는 자기보다 아래 층만 import 한다(데이터 → 핵심 → 진행 → 기능 → 내용 목록 → 화면 → 게임). 위로 불러야 할 때는
-  아래 패키지가 함수 변수(훅)를 두고 위 패키지가 `init` 에서 채운다. `layers_test.go` 가 이 방향을 검사한다.
-- 루트 패키지 `skygear` 는 잇기만 한다: 플랫폼 인터페이스를 구현하고(`Game`, `session`), 이벤트 핸들러가 이벤트를 기능에 나눠 주고,
-  `second.go` 의 `Second`·`Fast` 가 기능의 틱을 차례로 부른다. 명령어와 운영자 도구도 여기 있다.
+  아래 패키지가 함수 변수를 두고 위 패키지가 `init` 에서 채운다. `layers_test.go` 가 이 방향을 검사한다.
+- 이벤트는 훅으로 기능에 닿는다. Dragonfly 가 `core.PlayerHandler`·`core.WorldHandler` 를 부르면 같은 이름의 훅이 티어 차례로 기능의 구독자를 모두 부르고(취소된 이벤트는 받겠다고 한 구독자만 받는다),
+  플랫폼이 부르는 세션 호출(`Join`, `Leave`, `NewDay`, `Second`, `Fast`, `Autosave`, `Close`)은 `core.Lifecycle` 이 같은 식으로 훅에 내보낸다.
+  기능은 자기 패키지의 `feature.go` 에서 `core.Feature` 를 선언하고 `Setup` 에서 구독자를 단다.
+- 루트 패키지 `skygear` 는 기능 목록(`features.go`, `core.Install`)과 플랫폼 접착제(`Game`, `session`)이다. 플랫폼 인터페이스를 구현하고 운영자 도구(`/sgadmin`, `/sgdebug`)를 두며, 훅에 구독하지 않는다. 플레이어 명령어는 루트에 없고 기능이 `core.Feature` 의 `Commands` 로 더한다.
+- 층, 훅 목록, 새 기능을 더하는 순서, 구조를 지키는 테스트는 [docs/tech/extension.md](../tech/extension.md) 에 있다.
 
 ### 플레이어 이벤트 흐름
 모든 플레이어는 접속 내내 `instance.Handler` 하나를 가진다. 이 핸들러는 플랫폼 공통 규칙(낙하 피해 제거, 사망 시 인벤토리 유지, 보이드 복귀, 접속 종료 시 저장)을 처리하고,

@@ -583,15 +583,6 @@
     "skygear_crusher_up_t3": {
       "textures": "textures/blocks/crusher_up_t3"
     },
-    "skygear_dimension_gate_down": {
-      "textures": "textures/blocks/portal_placeholder"
-    },
-    "skygear_dimension_gate_side": {
-      "textures": "textures/blocks/portal_placeholder"
-    },
-    "skygear_dimension_gate_up": {
-      "textures": "textures/blocks/portal_placeholder"
-    },
     "skygear_disk_drive_down": {
       "textures": "textures/blocks/disk_drive_down"
     },
@@ -1243,48 +1234,6 @@
     "skygear_pattern_encoder_up": {
       "textures": "textures/blocks/net_terminal_up"
     },
-    "skygear_plant_ess_blaze_0": {
-      "textures": "textures/blocks/plant_ess_blaze_0"
-    },
-    "skygear_plant_ess_blaze_1": {
-      "textures": "textures/blocks/plant_ess_blaze_1"
-    },
-    "skygear_plant_ess_creeper_0": {
-      "textures": "textures/blocks/plant_ess_creeper_0"
-    },
-    "skygear_plant_ess_creeper_1": {
-      "textures": "textures/blocks/plant_ess_creeper_1"
-    },
-    "skygear_plant_ess_enderman_0": {
-      "textures": "textures/blocks/plant_ess_enderman_0"
-    },
-    "skygear_plant_ess_enderman_1": {
-      "textures": "textures/blocks/plant_ess_enderman_1"
-    },
-    "skygear_plant_ess_skeleton_0": {
-      "textures": "textures/blocks/plant_ess_skeleton_0"
-    },
-    "skygear_plant_ess_skeleton_1": {
-      "textures": "textures/blocks/plant_ess_skeleton_1"
-    },
-    "skygear_plant_ess_slime_0": {
-      "textures": "textures/blocks/plant_ess_slime_0"
-    },
-    "skygear_plant_ess_slime_1": {
-      "textures": "textures/blocks/plant_ess_slime_1"
-    },
-    "skygear_plant_ess_spider_0": {
-      "textures": "textures/blocks/plant_ess_spider_0"
-    },
-    "skygear_plant_ess_spider_1": {
-      "textures": "textures/blocks/plant_ess_spider_1"
-    },
-    "skygear_plant_ess_zombie_0": {
-      "textures": "textures/blocks/plant_ess_zombie_0"
-    },
-    "skygear_plant_ess_zombie_1": {
-      "textures": "textures/blocks/plant_ess_zombie_1"
-    },
     "skygear_plant_flower_black_0": {
       "textures": "textures/blocks/plant_flower_black_0"
     },
@@ -1476,21 +1425,6 @@
     },
     "skygear_research_table_up": {
       "textures": "textures/blocks/research_table_up"
-    },
-    "skygear_sell_box_back": {
-      "textures": "textures/blocks/sell_box_back"
-    },
-    "skygear_sell_box_down": {
-      "textures": "textures/blocks/sell_box_down"
-    },
-    "skygear_sell_box_front": {
-      "textures": "textures/blocks/sell_box_front"
-    },
-    "skygear_sell_box_side": {
-      "textures": "textures/blocks/sell_box_side"
-    },
-    "skygear_sell_box_up": {
-      "textures": "textures/blocks/sell_box_up"
     },
     "skygear_sieve": {
       "textures": "textures/blocks/planks_oak"
