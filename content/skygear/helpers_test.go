@@ -63,7 +63,15 @@ func spawnPlayer(s *session) *world.EntityHandle {
 // the test (Dragonfly would only log it).
 func withPlayer(t testing.TB, s *session, h *world.EntityHandle, f func(p *player.Player, tx *world.Tx)) {
 	t.Helper()
-	coretest.WithPlayer(t, s.Lifecycle, h, f)
+	if pinDump == "" {
+		coretest.WithPlayer(t, s.Lifecycle, h, f)
+		return
+	}
+	// A run that dumps (TestTierOrder) also notes what the player holds.
+	coretest.WithPlayer(t, s.Lifecycle, h, func(p *player.Player, tx *world.Tx) {
+		pinNoteInventory(p)
+		f(p, tx)
+	})
 }
 
 func tick(s *session, n int) { coretest.Tick(s.Lifecycle, n) }

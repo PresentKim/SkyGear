@@ -12,8 +12,11 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/df-mc/dragonfly/server/item/inventory"
+	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/content/skygear/core/coretest"
+	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/platform/account"
 	"github.com/presentkim/skygear/platform/db"
 )
@@ -29,7 +32,8 @@ import (
 var hookOrder = os.Getenv(coretest.HookOrderEnv)
 
 // pinDump, when set, is the file every pin test appends its scenarios to:
-// one line "<scenario> | <results> | <counters>" each (pinDumpLines).
+// one line "<scenario> | <results> | <counters> | <inventories>" each
+// (pinDumpLines).
 var pinDump = os.Getenv("SKYGEAR_PIN_DUMP")
 
 // orderKept are the exceptions: the pairs of one tier whose order still
@@ -144,6 +148,56 @@ func pinCountersSince(before map[string]int64) string {
 	return strings.Join(out, ",")
 }
 
+// pinInventories are the inventories of the players of pinInventoryWorld,
+// the world of the last player a test ran with (withPlayer), in a run that
+// dumps.
+var (
+	pinInventories    []*inventory.Inventory
+	pinInventoryWorld *world.World
+)
+
+// pinNoteInventory remembers the inventory of a player a test runs with, in
+// a run that dumps. A player of another world than the last starts the list
+// again: each scenario has a world of its own.
+func pinNoteInventory(p *player.Player) {
+	if pinDump == "" {
+		return
+	}
+	pinDumpMu.Lock()
+	defer pinDumpMu.Unlock()
+	if w := p.Tx().World(); w != pinInventoryWorld {
+		pinInventoryWorld, pinInventories = w, nil
+	}
+	if inv := p.Inventory(); !slices.Contains(pinInventories, inv) {
+		pinInventories = append(pinInventories, inv)
+	}
+}
+
+// pinInventoryDump is what the players of the last scenario's world hold, one
+// "<slot>=<item>x<count>" per used slot, the players separated by "/"; "-"
+// for a player that holds nothing.
+func pinInventoryDump() string {
+	pinDumpMu.Lock()
+	defer pinDumpMu.Unlock()
+	var players []string
+	for _, inv := range pinInventories {
+		var slots []string
+		for slot, it := range inv.Slots() {
+			if !it.Empty() {
+				slots = append(slots, fmt.Sprintf("%d=%sx%d", slot, naming.ItemKey(it.Item()), it.Count()))
+			}
+		}
+		if len(slots) == 0 {
+			slots = []string{"-"}
+		}
+		players = append(players, strings.Join(slots, ","))
+	}
+	if len(players) == 0 {
+		return "-"
+	}
+	return strings.Join(players, "/")
+}
+
 // pinResults is the part of a pin line after the trace.
 func pinResults(line string) string {
 	_, res, ok := strings.Cut(line, " | ")
@@ -181,7 +235,8 @@ var tierOrders = []string{"reverse", "shuffle:1", "shuffle:2", "shuffle:3", "shu
 // may differ) and that order.golden lists the same subscribers in every tier,
 // and it must count exactly what the run in the order of registration counted
 // in every scenario (the achievement counters of the players, which no golden
-// holds).
+// holds) and leave the players the scenario ran with holding exactly the
+// same items in the same slots.
 func TestTierOrder(t *testing.T) {
 	if hookOrder != "" || pinDump != "" {
 		return // this is a run TestTierOrder started

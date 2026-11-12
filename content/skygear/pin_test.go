@@ -75,8 +75,9 @@ func pinRun(t *testing.T, lines map[string]string, scenario string, outcome func
 	}
 	lines[scenario] = strings.Join(k.take(), " ") + " | " + out
 	if pinDump != "" {
+		dump := pinCountersSince(counted) + " | " + pinInventoryDump()
 		pinDumpMu.Lock()
-		pinDumpLines[scenario] = pinCountersSince(counted)
+		pinDumpLines[scenario] = dump
 		pinDumpMu.Unlock()
 	}
 }

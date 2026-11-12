@@ -87,6 +87,50 @@ func BenchmarkUse(b *testing.B) {
 	})
 }
 
+// BenchmarkBlockBreak breaks a stone block of the island with a stack of stone
+// in hand through the session's handler: every subscriber is reached and none
+// cancels (the "stone" scenario of TestPinBlocks).
+func BenchmarkBlockBreak(b *testing.B) {
+	s := benchSession(b)
+	island.StateOf(s.Session).Chunks = []island.ChunkPos{{0, 0}}
+	h := spawnPlayer(s)
+	b.ReportAllocs()
+	withPlayer(b, s, h, func(p *player.Player, tx *world.Tx) {
+		at := cube.Pos{4, island.IslandY + 2, 4}
+		tx.SetBlock(at, block.Stone{}, nil)
+		p.SetHeldItems(item.NewStack(block.Stone{}, 3), item.Stack{})
+		hd := s.Handler(p)
+		ctx := player.NewEventContext(tx, p)
+		drops := []item.Stack{item.NewStack(block.Stone{}, 1)}
+		xp := 0
+		b.ResetTimer()
+		for range b.N {
+			hd.HandleBlockBreak(ctx, at, &drops, &xp)
+		}
+	})
+}
+
+// BenchmarkBlockPlace places dirt on the island from a stack of three through
+// the session's handler: every subscriber is reached and none cancels (the
+// "dirt" scenario of TestPinBlocks).
+func BenchmarkBlockPlace(b *testing.B) {
+	s := benchSession(b)
+	island.StateOf(s.Session).Chunks = []island.ChunkPos{{0, 0}}
+	h := spawnPlayer(s)
+	b.ReportAllocs()
+	withPlayer(b, s, h, func(p *player.Player, tx *world.Tx) {
+		at := cube.Pos{4, island.IslandY + 2, 4}
+		p.SetHeldItems(item.NewStack(block.Dirt{}, 3), item.Stack{})
+		hd := s.Handler(p)
+		ctx := player.NewEventContext(tx, p)
+		var dirt world.Block = block.Dirt{}
+		b.ResetTimer()
+		for range b.N {
+			hd.HandleBlockPlace(ctx, at, dirt)
+		}
+	})
+}
+
 // BenchmarkLookMachine updates the WAILA panel of a player who looks at a
 // working crusher: the trace to the block, the panel's lines and the title.
 func BenchmarkLookMachine(b *testing.B) {
