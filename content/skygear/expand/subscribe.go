@@ -5,6 +5,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/look"
+	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
 // subscribe registers the takeover and the steps of expand on the kernel.
@@ -73,9 +74,14 @@ func guard(s *core.Session, ctx *player.Context, pos cube.Pos) bool {
 	return false
 }
 
-// The block clicked and the block next to its face are guarded alike.
+// The block clicked and the block next to its face are guarded alike. An
+// item that opens its screen wherever it is used (the menu item, the dimension
+// stone) keeps its click: its own step takes it.
 func subscribeSide() {
 	core.UseOnBlock.Handle(40, "expand.guard", func(e core.UseOnBlockEvent) bool {
+		if sgitem.OpensScreen(e.Held) {
+			return false
+		}
 		return guard(e.S, e.Ctx, e.Pos)
 	})
 	core.UseOnBlock.Handle(160, "expand.guardSide", func(e core.UseOnBlockEvent) bool {

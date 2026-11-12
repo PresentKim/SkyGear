@@ -174,12 +174,6 @@ EntityDespawn NORMAL island.lost
 // entry is a dependency to remove (or, for the last ones, an exception the
 // owner decides on); the list only shrinks.
 var orderKept = []string{
-	// the hunting ground refuses the hunter's click before the menu item and the stone
-	"UseOnBlock dimension.hunting screens.menuItem",
-	"UseOnBlock dimension.hunting dimension.stone",
-	// the menu item and the stone open their screen in island expansion mode
-	"UseOnBlock screens.menuItem expand.guard",
-	"UseOnBlock dimension.stone expand.guard",
 	// outside the island the copier and the wand do nothing
 	"UseOnBlock island.guard copier.use",
 	"UseOnBlock island.guard wand.use",
@@ -188,9 +182,6 @@ var orderKept = []string{
 	"UseOnBlock conduit.plate handwork.stick",
 	// a plate's settings open before the hourglass winds the machine
 	"UseOnBlock conduit.plate fairy.time",
-	// in the air the menu item is the hunter's way out, the stone is not
-	"Use screens.menuItem dimension.hunting",
-	"Use dimension.hunting dimension.stone",
 	// the panel updates on the move island expansion mode refuses
 	"Move look.update expand.hold",
 	// the player's entries are dropped after the features used them

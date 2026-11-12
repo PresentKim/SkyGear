@@ -39,10 +39,12 @@ func subscribePresence() {
 	})
 }
 
-// A held menu item opens the menu on a block and in the air.
+// A held menu item opens the menu on a block and in the air. A hunter's click
+// on a block is the hunting ground's to refuse (dimension.hunting), whatever
+// the hunter holds; in the air the menu item is the hunter's way out.
 func subscribeUse() {
 	core.UseOnBlock.Handle(20, "screens.menuItem", func(e core.UseOnBlockEvent) bool {
-		if IsMenuItem(e.Held) {
+		if IsMenuItem(e.Held) && !dimension.Hunting(e.S, e.P) {
 			e.Cancel()
 			useHeldScreen(e.S, e.P)
 			return true

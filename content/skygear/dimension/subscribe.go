@@ -91,7 +91,8 @@ func subscribeUse() {
 		return useStone(e.Actor, e.Held)
 	})
 	core.Use.Handle(30, "dimension.hunting", func(e core.UseEvent) bool {
-		if Hunting(e.S, e.P) {
+		// the menu item in the air is the hunter's way out (screens.menuItem)
+		if Hunting(e.S, e.P) && !sgitem.IsMenuItem(e.Held) {
 			e.Cancel()
 			return true
 		}
@@ -117,9 +118,10 @@ func subscribeUse() {
 }
 
 // useStone opens the second dimension's window for a held teleport stone,
-// on a block or the air; it reports whether held is one.
+// on a block or the air; it reports whether it took the click. A hunter's
+// stone opens nothing: the hunter's use is refused (dimension.hunting).
 func useStone(a core.Actor, held item.Stack) bool {
-	if _, ok := held.Item().(sgitem.DimensionStone); !ok {
+	if _, ok := held.Item().(sgitem.DimensionStone); !ok || Hunting(a.S, a.P) {
 		return false
 	}
 	a.Cancel()
