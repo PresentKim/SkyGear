@@ -23,6 +23,10 @@
   - `UseOnBlock` 의 `storage.sneakUse`, `conduit.plate` 다음 `handwork.stick`: 흙·잔디가 아닌 블록에 막대기를 쓰면 언제나 `stick_other` 를 세고, 세는 일을 MONITOR 구독자로 뗀다(서랍 메뉴나 판 설정을 막대기로 열어도 센다). 아니면 API 에 "누구 뒤" 제약을 더한다.
   - `UseOnBlock` 의 `conduit.plate` 다음 `fairy.time`: `fairy.time` 을 든 도구처럼 LOW 에 두고 `island.CanBuild` 조건을 단다(모래시계가 판보다 먼저 기계를 감는다). 아니면 "누구 뒤" 제약을 더한다.
   - `Join` 의 `dimension.joined`(HIGH): 역할대로 LOW 로 옮긴다. 서버가 멈출 때 사냥 중이던 플레이어가 요정 가루를 잃지 않고 메뉴 아이템 이름도 고쳐진다.
+- 티어 안 순서 가드(`TestTierOrder`)는 장면의 결과와 업적 카운터만 견준다. 채팅·팁·소리·패킷, 장면이 닿지 않는 상태는 보지 못한다. 첫 접속 때 메뉴 아이템이 소급 요정 가루를 덮어쓰던 문제(`TestFirstJoinKeepsBackfilledDust`)가 그렇게 빠져나갔다. 인벤토리를 건드리는 접속·퇴장 구독자마다 장면을 더한다.
+- `Join` 의 `screens.board`(MONITOR)가 이제 `dimension.joined`(HIGH) 뒤에 돈다. 서버가 멈출 때 사냥 중이던 플레이어의 퀘스트 비용 줄이 다음 갱신까지(1초 안) 장비가 아니라 되돌린 소지품을 센다. 그대로 둘지 정한다.
+- 같은 MONITOR 안에서는 채팅 순서가 설치 순서를 따른다(`achievement.place`·`conduit.place`·드래곤 알림, `playSeconds` 와 수집 보상). 기록을 MONITOR 로 옮기면서 업적 메시지가 다른 구독자의 메시지 뒤로 간 곳이 있다(`Death`, `BlockPlace`). 순서가 중요한 메시지가 있으면 한 구독자로 묶는다.
+- MONITOR 가드(`TestMonitorSubscribersDoNotShape`)는 구독자 함수 본문만 읽는다. 구독자가 부르는 도우미 안의 취소나 변경, 포인터를 변수에 옮겨 쓰는 경우는 보지 못한다. 지금의 23개는 읽어서 확인했다. 가드를 넓히거나 MONITOR 구독자에 읽기 전용 이벤트를 넘긴다.
 - `TestHuntClear`(`content/skygear/dimension/dimension_test.go`)와 `TestKitAndLevels` 가 `TestHuntFails` 와 같은 시간 의존 방식이라 `-race` 에서 `TestHuntFails` 처럼 불안정해질 수 있다. 같은 방식으로 시간에 기대지 않게 고친다.
 - `-race` 에서 `TestPinUse` 가 가끔 테스트에만 있는 데이터 경합을 보고한다. 동기 테스트 월드가 미뤄 둔 일을 월드 큐 밖에서 돌리기 때문이다(`fairy.wander` 와 `placeAt`·`Teleport`). 테스트 월드가 미룬 일을 월드 큐에서 돌리게 하거나, 시나리오가 그 일이 끝나기를 기다리게 고친다.
 - `machine.Register` 는 부르는 기능이 그 종류의 `Owner` 인지 확인하지 않는다. 다른 기능이 남의 종류를 등록해도 `TestKindOwners` 와 골든은 통과한다. 커널이 지금 설치 중인 기능 이름을 알려 주면 막을 수 있다. 기능 패키지의 테스트는 `core.Install` 없이 `coretest.Setup` 으로 설치하므로(`netstore/keys_test.go`) 그 경우를 어떻게 볼지 먼저 정한다.
