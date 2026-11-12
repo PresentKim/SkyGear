@@ -402,13 +402,13 @@ func TestPinLifecycle(t *testing.T) {
 			}, func() { s.Fast(tx) })
 		})
 	}
-	// A player in the hunting ground without a hunt is sent back to the island.
+	// A player in the second dimension without a hunt is sent back to the island.
 	{
 		s, _, hs := fresh(1)
 		withPlayer(t, s, hs[0], func(p *player.Player, tx *world.Tx) {
 			p.Teleport(mgl64.Vec3{float64(core.ArenaCentre[0]) + 0.5, float64(core.ArenaCentre[1]), float64(core.ArenaCentre[2]) + 0.5})
 			if !core.InArena(p.Position()) {
-				t.Fatal("the player is not in the hunting ground")
+				t.Fatal("the player is not in the second dimension")
 			}
 			pinRun(t, lines, "Fast/watchdog", func() string { return fmt.Sprintf("inArena=%t", core.InArena(p.Position())) }, func() { s.Fast(tx) })
 		})

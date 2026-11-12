@@ -137,7 +137,7 @@ type session struct {
 // Spawn is where a player without a position starts (island.Spawn).
 func (s *session) Spawn() mgl64.Vec3 { return island.Spawn(s.Session) }
 
-// Relocate sends a player stored in the hunting ground (the server stopped
+// Relocate sends a player stored in the second dimension (the server stopped
 // during its run) to the island instead (instance.Relocator).
 func (s *session) Relocate(pos mgl64.Vec3) bool { return core.InArena(pos) }
 

@@ -158,7 +158,7 @@ func Watching(s *core.Session, p *player.Player) bool {
 	return ok
 }
 
-// Watch takes p over the hunting ground as a spectator of the run under way.
+// Watch takes p over the second dimension as a spectator of the run under way.
 // A player another feature's takeover holds is only told it cannot go.
 func Watch(s *core.Session, tx *world.Tx, p *player.Player) {
 	r := RunOf(s)
@@ -184,7 +184,7 @@ func Watch(s *core.Session, tx *world.Tx, p *player.Player) {
 }
 
 // heldElsewhere reports whether a takeover of another feature holds p
-// (core.Takeover), and then tells p it cannot go to the hunting ground. The
+// (core.Takeover), and then tells p it cannot go to the second dimension. The
 // dimension's own takeovers (hunting, watching) are left to the callers'
 // own rules.
 func heldElsewhere(s *core.Session, p *player.Player) bool {

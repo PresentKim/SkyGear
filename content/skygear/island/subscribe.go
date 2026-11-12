@@ -77,7 +77,7 @@ func guard(a core.Actor, pos cube.Pos) {
 	}
 	a.Cancel()
 	if core.InArena(pos.Vec3()) {
-		return // the hunting ground is no one's to build on
+		return // the second dimension is no one's to build on
 	}
 	a.P.SendTip(i18n.T(i18n.Default, "island.outside"))
 }

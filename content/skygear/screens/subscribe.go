@@ -45,7 +45,7 @@ func subscribePresence() {
 }
 
 // A held menu item opens the menu on a block and in the air. A hunter's click
-// on a block is the hunting ground's to refuse (dimension.hunting), whatever
+// on a block is the second dimension's to refuse (dimension.hunting), whatever
 // the hunter holds; in the air the menu item is the hunter's way out. The menu
 // item takes its click before anything else looks at it: Lowest.
 func subscribeUse() {

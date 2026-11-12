@@ -110,7 +110,7 @@ func TestHuntRecords(t *testing.T) {
 	})
 }
 
-// TestWatchdog: a hunter moved out of the hunting ground by something else
+// TestWatchdog: a hunter moved out of the second dimension by something else
 // than the run (a member's "bring") ends its run and gets its health back,
 // a player moved into it without hunting is sent back, and a player stored
 // there enters the save at the island instead.

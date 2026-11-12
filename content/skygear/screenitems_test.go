@@ -13,7 +13,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
-// TestHunterStoneOpensNothing: a hunter's use is the hunting ground's to
+// TestHunterStoneOpensNothing: a hunter's use is the second dimension's to
 // refuse, on a block and in the air, also with the dimension stone in hand:
 // the use is cancelled and no window opens, wherever dimension.stone stands
 // among the subscribers.

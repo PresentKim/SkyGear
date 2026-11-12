@@ -186,7 +186,7 @@ func Hunting(s *core.Session, p *player.Player) bool {
 	return r != nil && r.Hunter == p.H()
 }
 
-// Begin sends p into the hunting ground to hunt mob. It fails when a run is
+// Begin sends p into the second dimension to hunt mob. It fails when a run is
 // under way, mob has no hunt, or another feature's takeover holds p (p is
 // told so).
 func Begin(s *core.Session, tx *world.Tx, p *player.Player, mob string) bool {
@@ -556,7 +556,7 @@ func Leave(s *core.Session, tx *world.Tx, p *player.Player) {
 
 // Joined gives a player that was in a run when the server stopped what it
 // had: a watcher its game mode, a hunter what it carried; the session already
-// moved it out of the hunting ground (session.Relocate).
+// moved it out of the second dimension (session.Relocate).
 func Joined(s *core.Session, p *player.Player) {
 	if p.GameMode() == world.GameModeSpectator && !Watching(s, p) {
 		p.SetGameMode(world.GameModeSurvival)
@@ -567,7 +567,7 @@ func Joined(s *core.Session, p *player.Player) {
 	}
 }
 
-// Watchdog ends the run of a hunter that is no longer in the hunting ground
+// Watchdog ends the run of a hunter that is no longer in the second dimension
 // (moved out by something else than the run: the gate stops ticking when no
 // one views its chunk) and sends back any other player that ended up there
 // without hunting or watching (session.Fast).
