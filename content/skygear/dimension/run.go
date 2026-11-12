@@ -466,7 +466,7 @@ func (r *Run) end(s *core.Session, tx *world.Tx, p *player.Player, how string) {
 		// the inventory is kept through death (the platform keeps it for
 		// every death): the rewards go in now; the hunter goes back and sees
 		// the result when it respawns
-		deliver(s, tx, p, res)
+		deliver(s, tx, p, r.Return, res)
 		if l.fallen == nil {
 			l.fallen = map[*world.EntityHandle]fallen{}
 		}
@@ -475,12 +475,12 @@ func (r *Run) end(s *core.Session, tx *world.Tx, p *player.Player, how string) {
 		// leaving the save: back on the island before the state is stored
 		p.DisableInstantRespawn()
 		p.Teleport(r.Return)
-		deliver(s, tx, p, res)
+		deliver(s, tx, p, r.Return, res)
 	default:
 		p.DisableInstantRespawn()
 		p.Teleport(r.Return)
 		instance.PlaceAt(p, r.Return, island.Spawn(s))
-		deliver(s, tx, p, res)
+		deliver(s, tx, p, r.Return, res)
 		showResult(p, res)
 	}
 }

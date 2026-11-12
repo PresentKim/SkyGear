@@ -200,6 +200,52 @@ func TestDeadHunterWhoLeavesIsBackOnTheIsland(t *testing.T) {
 	})
 }
 
+// TestFallenHuntersOverflowLiesWhereItGoesBack: the rewards of a run lost by a
+// death go into the inventory at the death; what does not fit lies where the
+// hunter goes back to, as at every other end of a run, not in the second
+// dimension, which the respawned hunter leaves.
+func TestFallenHuntersOverflowLiesWhereItGoesBack(t *testing.T) {
+	s, h, _, _ := fallenHunter(t)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		// The run begins again with a full inventory: what the hunter
+		// carried, and gets back at the death, fills it.
+		dimension.Leave(s.Session, tx, p)
+		for slot := range p.Inventory().Size() {
+			_ = p.Inventory().SetItem(slot, item.NewStack(block.Stone{}, 64))
+		}
+		if !dimension.Begin(s.Session, tx, p, sgitem.MobSlime) {
+			t.Fatal("the run did not begin again")
+		}
+		from := dimension.RunOf(s.Session).Return
+		dimension.RunOf(s.Session).Essences = 4
+		p.Hurt(1000, entity.AttackDamageSource{})
+		if !p.Dead() {
+			t.Fatal("the hunter did not die")
+		}
+		essence := item.NewStack(sgitem.Essence{Mob: sgitem.MobSlime}, 1)
+		found := false
+		for e := range tx.Entities() {
+			it, ok := e.(*entity.Ent)
+			if !ok {
+				continue
+			}
+			b, ok := it.Behaviour().(*entity.ItemBehaviour)
+			if !ok || !b.Item().Comparable(essence) {
+				continue
+			}
+			found = true
+			if core.InArena(e.Position()) {
+				t.Errorf("the essences that did not fit lie in the second dimension at %v, want near %v", e.Position(), from)
+			} else if e.Position().Sub(from).Len() > 2 {
+				t.Errorf("the essences that did not fit lie at %v, want near %v", e.Position(), from)
+			}
+		}
+		if !found {
+			t.Fatal("no essence was dropped for a full inventory")
+		}
+	})
+}
+
 // TestDeathOnTheIslandIsUntouched: a player who is not in the second
 // dimension dies as before: the death is counted, the respawn handler leaves
 // the place to the platform, and no run is involved.
