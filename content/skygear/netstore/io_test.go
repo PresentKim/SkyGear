@@ -113,7 +113,7 @@ func TestImporterMovesOneItemEveryNineTicks(t *testing.T) {
 
 func TestUpgradesSpeedAndStack(t *testing.T) {
 	netEnv(t, func(s *core.Session, tx *world.Tx) {
-		st := machine.New(machine.KindNetImporter, "", "").State
+		st := machine.New(machine.KindNetImporter).State
 		for i, want := range []int64{9, 7, 5, 3, 1, 1} {
 			if got := ioRateOf(st); got != want {
 				t.Fatalf("%d speed upgrades: every %d ticks, want %d", i, got, want)
@@ -177,7 +177,7 @@ func TestNoTransferIntoAnExternalStoragesBlock(t *testing.T) {
 		rt := rtOf(n)
 		node := chest.Side(cube.FaceSouth)
 		for _, kind := range []string{machine.KindNetImporter, machine.KindNetExporter} {
-			m := machine.New(kind, "", "")
+			m := machine.New(kind)
 			m.State.Facing = cube.FaceNorth
 			tx.SetBlock(node, m, nil)
 			Config(s, node).Filter = []string{string(KeyOf(stoneS))}
@@ -248,7 +248,7 @@ func TestExternalDrawerController(t *testing.T) {
 	netEnv(t, func(s *core.Session, tx *world.Tx) {
 		put(tx, p(0), machine.KindNetController)
 		ctl := cube.Pos{1, 64, 1} // in front of the external storage at p(1)
-		tx.SetBlock(ctl, machine.New(machine.KindDrawerController, "", ""), nil)
+		tx.SetBlock(ctl, machine.New(machine.KindDrawerController), nil)
 		tx.SetBlock(ctl.Side(cube.FaceSouth), storage.Drawer{Item: stoneS, Count: 100}, nil)
 		tx.SetBlock(ctl.Side(cube.FaceWest), storage.Drawer{Item: stoneS, Count: 50}, nil)
 		n, ps := ioNet(tx, machine.KindNetExternal)
@@ -296,7 +296,7 @@ func TestCableArmsFollowNeighbours(t *testing.T) {
 		}
 		put(tx, p(1), machine.KindNetCable)
 		put(tx, p(0), machine.KindNetController)
-		imp := machine.New(machine.KindNetImporter, "", "")
+		imp := machine.New(machine.KindNetImporter)
 		imp.State.Facing = cube.FaceWest
 		tx.SetBlock(p(2), imp, nil)
 		update()
@@ -359,7 +359,7 @@ func TestExternalOutsideNodeRuns(t *testing.T) {
 			t.Fatalf("online %v, mirrored %d", n.Online(), n.Root.Count(KeyOf(stoneS)))
 		}
 		// the controller's item I/O reaches the chest through At alone
-		got := machine.Kinds[machine.KindNetController].Extract(tx, p(0), stoneS, 4)
+		got := machine.Kinds[machine.KindNetController].Hooks().Extract(tx, p(0), stoneS, 4)
 		if got.Count() != 4 {
 			t.Fatalf("controller extract %d", got.Count())
 		}

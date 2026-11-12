@@ -31,7 +31,7 @@ func TestBarkFiberFuel(t *testing.T) {
 
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindGenerator, "")
+	st := placeTestMachine(s, machinePos, machine.KindGenerator)
 	st.Unlimited = false
 	if !st.Insert(item.NewStack(sgitem.BarkFiber{}, 1)) {
 		t.Fatal("the generator does not take a fiber as fuel")
@@ -108,5 +108,24 @@ func TestPaperResearch(t *testing.T) {
 	}
 	if !slices.Contains(r.Needs, "stone_tools") || !slices.Contains(r.Unlocks, "paper") {
 		t.Fatalf("paper research %+v", r)
+	}
+}
+
+// TestNoFiberString: bark fibers no longer make string (string comes from
+// elsewhere).
+func TestNoFiberString(t *testing.T) {
+	for _, r := range recipe.Recipes() {
+		for _, out := range r.Output() {
+			if _, ok := out.Item().(block.String); !ok {
+				continue
+			}
+			for _, in := range r.Input() {
+				if st, ok := in.(item.Stack); ok {
+					if _, fiber := st.Item().(sgitem.BarkFiber); fiber {
+						t.Fatalf("fibers make string: %#v", r)
+					}
+				}
+			}
+		}
 	}
 }

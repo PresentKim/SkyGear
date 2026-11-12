@@ -1,8 +1,6 @@
 package dimension
 
 import (
-	"math"
-
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
@@ -90,6 +88,3 @@ func (gatePortalType) DecodeNBT(_ map[string]any, d *world.EntityData) {
 }
 
 func (gatePortalType) EncodeNBT(*world.EntityData) map[string]any { return nil }
-
-// dirYaw is the yaw of a direction (0 south, 90 west).
-func dirYaw(dir mgl64.Vec3) float64 { return mgl64.RadToDeg(math.Atan2(-dir[0], dir[2])) }

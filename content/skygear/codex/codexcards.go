@@ -391,7 +391,7 @@ func SourceCards(s *core.Session, lang string, it item.Stack) []Card {
 			}
 		}
 	}
-	for _, pk := range farm.LivePlantKinds() {
+	for _, pk := range farm.PlantKinds {
 		for _, y := range pk.Yield {
 			if naming.ItemKey(y.Item) == k {
 				cards = append(cards, plantCard(s, lang, pk))

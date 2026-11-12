@@ -2,7 +2,10 @@ package instance
 
 import (
 	"fmt"
+	"log/slog"
 	"net"
+	"runtime/debug"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -17,6 +20,7 @@ import (
 	"github.com/df-mc/dragonfly/server/session"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/timed"
 )
 
@@ -249,8 +253,34 @@ func (h *Handler) HandleItemDrop(ctx *player.Context, s item.Stack) { h.in().Han
 func (h *Handler) HandleTransfer(ctx *player.Context, addr *net.UDPAddr) {
 	h.in().HandleTransfer(ctx, addr)
 }
+
+// HandleCommandExecution forwards to the location's handler and then runs the
+// command itself, the way Player.ExecuteCommand would (the arguments joined
+// by one space, the player as source, its transaction), so that a panic in
+// the command's Run is caught here and does not take the server down.
 func (h *Handler) HandleCommandExecution(ctx *player.Context, command cmd.Command, args []string) {
 	h.in().HandleCommandExecution(ctx, command, args)
+	if ctx.Cancelled() {
+		return
+	}
+	ctx.Cancel() // Player.ExecuteCommand must not run the command a second time
+	runCommand(ctx.Player(), command, strings.Join(args, " "))
+}
+
+// runCommand executes command for p. A panic is logged with its stack and
+// answered with one error output in p's language. Dragonfly sends the output
+// the command had collected before it panicked (Execute defers the send),
+// so the player first gets that and then the error.
+func runCommand(p *player.Player, command cmd.Command, args string) {
+	defer func() {
+		if v := recover(); v != nil {
+			slog.Error("command panicked", "command", command.Name(), "panic", v, "stack", string(debug.Stack()))
+			o := &cmd.Output{}
+			o.Error(i18n.T(i18n.Of(p), "platform.command.failed"))
+			p.SendCommandOutput(o)
+		}
+	}()
+	command.Execute(args, p, p.Tx())
 }
 func (h *Handler) HandleDiagnostics(p *player.Player, d session.Diagnostics) {
 	h.in().HandleDiagnostics(p, d)

@@ -4,6 +4,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
@@ -150,12 +151,13 @@ func record(s *core.Session, res *result) {
 	s.MarkDirty()
 }
 
-// deliver gives the hunter the rewards of its run.
-func deliver(s *core.Session, tx *world.Tx, p *player.Player, res result) {
+// deliver gives the hunter the rewards of its run; what does not fit is
+// dropped at at, where the hunter goes back to.
+func deliver(s *core.Session, tx *world.Tx, p *player.Player, at mgl64.Vec3, res result) {
 	if res.Essences > 0 {
-		s.GiveItem(p, tx, p.Position(), item.NewStack(sgitem.Essence{Mob: res.Mob}, res.Essences))
+		s.GiveItem(p, tx, at, item.NewStack(sgitem.Essence{Mob: res.Mob}, res.Essences))
 	}
 	if res.Dust > 0 {
-		s.GiveItem(p, tx, p.Position(), item.NewStack(sgitem.FairyDust{}, res.Dust))
+		s.GiveItem(p, tx, at, item.NewStack(sgitem.FairyDust{}, res.Dust))
 	}
 }

@@ -54,13 +54,13 @@ func TestAccountAndSaves(t *testing.T) {
 		t.Fatalf("clock = %v day %d %v", s.InstanceTime, s.Day, s.DayTime)
 	}
 
-	if _, _, err := d.PlayerState(s.ID, "u1"); !errors.Is(err, ErrNotFound) {
+	if _, err := d.PlayerState(s.ID, "u1"); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("missing state err = %v", err)
 	}
 	if err := d.SetPlayerState(s.ID, "u1", []byte{1, 2, 3}); err != nil {
 		t.Fatal(err)
 	}
-	if _, st, err := d.PlayerState(s.ID, "u1"); err != nil || len(st) != 3 {
+	if st, err := d.PlayerState(s.ID, "u1"); err != nil || len(st) != 3 {
 		t.Fatalf("state = %v, %v", st, err)
 	}
 	if err := d.SetSaveState(s.ID, "level", []byte("1")); err != nil {
@@ -106,7 +106,7 @@ func TestCopySave(t *testing.T) {
 	if v, err := d.SaveState(cp.ID, "level"); err != nil || string(v) != "7" {
 		t.Fatalf("copied state = %q, %v", v, err)
 	}
-	if _, st, err := d.PlayerState(cp.ID, "admin"); err != nil || len(st) != 2 {
+	if st, err := d.PlayerState(cp.ID, "admin"); err != nil || len(st) != 2 {
 		t.Fatalf("copied player state = %v, %v", st, err)
 	}
 	if r, err := d.MemberRole(cp.ID, "admin"); err != nil || r != RoleHost {
@@ -183,19 +183,18 @@ func TestFriends(t *testing.T) {
 	}
 }
 
-func TestSetPlayerStatesKeepsMoney(t *testing.T) {
+func TestSetPlayerStates(t *testing.T) {
 	d := open(t)
 	_, _ = d.TouchAccount("h", "", "h")
 	_, _ = d.TouchAccount("g", "", "g")
 	s, _ := d.CreateSave("h", 1, "s")
-	_ = d.SetMoney(s.ID, "h", 7)
 	if err := d.SetPlayerStates(s.ID, map[string][]byte{"h": {1}, "g": {2}}); err != nil {
 		t.Fatal(err)
 	}
-	if money, state, err := d.PlayerState(s.ID, "h"); err != nil || money != 7 || string(state) != "\x01" {
-		t.Fatalf("host = %d %v %v", money, state, err)
+	if state, err := d.PlayerState(s.ID, "h"); err != nil || string(state) != "\x01" {
+		t.Fatalf("host = %v %v", state, err)
 	}
-	if _, state, err := d.PlayerState(s.ID, "g"); err != nil || string(state) != "\x02" {
+	if state, err := d.PlayerState(s.ID, "g"); err != nil || string(state) != "\x02" {
 		t.Fatalf("guest = %v %v", state, err)
 	}
 }
@@ -341,5 +340,49 @@ func TestMigrationDropsGameTypeAndKeepsSaves(t *testing.T) {
 	}
 	if _, err := d.MemberRole(saves[0].ID, "h"); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("members cascade after migration: err = %v", err)
+	}
+}
+
+func TestMigrationDropsWallet(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "old.db")
+	old, err := sql.Open("sqlite", fileDSN(path))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, q := range migrations[:10] {
+		if _, err := old.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, q := range []string{
+		`PRAGMA user_version = 10`,
+		`INSERT INTO accounts (id, name, created_at, last_seen) VALUES ('h', 'host', 0, 0)`,
+		`INSERT INTO saves (owner, slot, name, created_at, last_played) VALUES ('h', 1, 's', 0, 0)`,
+		`INSERT INTO save_players (save_id, account_id, money, state) VALUES (1, 'h', 7, x'01')`,
+		`INSERT INTO cheques (id, save_id, amount, issued_by, issued_at) VALUES ('c', 1, 5, 'h', 0)`,
+	} {
+		if _, err := old.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	_ = old.Close()
+
+	d, err := Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer d.Close()
+	var v, n int
+	if err := d.sql.QueryRow(`PRAGMA user_version`).Scan(&v); err != nil || v != len(migrations) || v < 11 {
+		t.Fatalf("user_version = %d, %v", v, err)
+	}
+	if err := d.sql.QueryRow(`SELECT COUNT(*) FROM sqlite_master WHERE name = 'cheques'`).Scan(&n); err != nil || n != 0 {
+		t.Fatalf("cheques still there: %d, %v", n, err)
+	}
+	if err := d.sql.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('save_players') WHERE name = 'money'`).Scan(&n); err != nil || n != 0 {
+		t.Fatalf("money column still there: %d, %v", n, err)
+	}
+	if state, err := d.PlayerState(1, "h"); err != nil || string(state) != "\x01" {
+		t.Fatalf("state = %v, %v", state, err)
 	}
 }

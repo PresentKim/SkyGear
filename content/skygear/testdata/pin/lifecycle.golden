@@ -1,0 +1,49 @@
+Autosave/disk: conduit.shares netstore.flush | dirty=false cell=150 stored=1 disk=7
+Autosave/empty: conduit.shares netstore.flush | dirty=false stored=1
+Autosave/onePlayer: conduit.shares netstore.flush | dirty=false cell=150 stored=1 disk=7
+Autosave/twoPlayers: conduit.shares netstore.flush | dirty=false cell=150 stored=1 disk=7
+Close/disk: conduit.close island.lost storage.displays island.lost netstore.flush | stored=1 registered=false game=false visuals=0 displays=0 cell=150 disk=7
+Close/empty: conduit.close storage.displays netstore.flush | stored=1 registered=false game=false visuals=0 displays=0
+Close/onePlayer: conduit.close island.lost storage.displays island.lost netstore.flush | stored=1 registered=false game=false visuals=0 displays=0 cell=150 disk=7
+Close/twoPlayers: conduit.close island.lost storage.displays island.lost netstore.flush | stored=1 registered=false game=false visuals=0 displays=0 cell=150 disk=7
+ColumnLoad/bundle: conduit.load | inGrid=true
+ColumnLoad/empty: conduit.load | inGrid=true
+ColumnUnload/bundle: conduit.unload island.lost | inGrid=false
+ColumnUnload/empty: conduit.unload | inGrid=true
+EntityDespawn/pickedUp: island.lost | lostItems=0
+EntityDespawn/player: island.lost | lostItems=0
+EntityDespawn/void: island.lost | lostItems=5
+Fast/01: network.step dimension.watchdog look.updateAll | fastCount=1
+Fast/02: network.step network.fluids dimension.watchdog look.updateAll | fastCount=2
+Fast/03: network.step dimension.watchdog look.updateAll | fastCount=3
+Fast/04: network.step network.fluids dimension.watchdog look.updateAll | fastCount=4
+Fast/05: network.step network.items dimension.watchdog look.updateAll | fastCount=5
+Fast/06: network.step network.fluids dimension.watchdog look.updateAll | fastCount=6
+Fast/07: network.step dimension.watchdog look.updateAll | fastCount=7
+Fast/08: network.step network.fluids dimension.watchdog look.updateAll | fastCount=8
+Fast/09: network.step dimension.watchdog look.updateAll | fastCount=9
+Fast/10: network.step network.items network.fluids dimension.watchdog look.updateAll | fastCount=10
+Fast/11: network.step dimension.watchdog look.updateAll | fastCount=11
+Fast/noPlayers: network.step dimension.watchdog look.updateAll | fastCount=1
+Fast/twoPlayers: network.step dimension.watchdog look.updateAll | fastCount=1 players=2
+Fast/watchdog: network.step dimension.watchdog look.updateAll | inArena=false
+Join/again: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather fairy.backfillDust screens.board | slot8=none players=1
+Join/first: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather fairy.backfillDust screens.board | slot8=minecraft:nether_star players=1
+Join/purge: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather fairy.backfillDust screens.board | lost=1
+Join/spectator: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather fairy.backfillDust screens.board | mode=world.survival
+Join/withOther: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather fairy.backfillDust screens.board | slot8=none players=2
+Leave/expanding: dimension.leave expand.stop progress.recipes look.clear screens.board core.shapes core.parts | expanding=false mode=world.survival
+Leave/hunting: dimension.leave island.lost expand.stop progress.recipes look.clear screens.board core.shapes core.parts | hunting=false run=false inArena=false
+Leave/plain: dimension.leave expand.stop progress.recipes look.clear screens.board core.shapes core.parts | diedFood=0 players=1
+Leave/withOther: dimension.leave expand.stop progress.recipes look.clear screens.board core.shapes core.parts | diedFood=1 players=2
+NewDay/noPlayers: island.purgeLost game.newDay | lost=1 players=0
+NewDay/onePlayer: island.purgeLost game.newDay | lost=1 players=1
+NewDay/twoPlayers: island.purgeLost game.newDay | lost=0 players=2
+Second/01: progress.checkHeld climate.tick tinker.effects machine.monitor farm.growCrops farm.barrels farm.plants fairy.tick dimension.second achievement.playSeconds progress.collection screens.boards | dirty=true>dirty=false
+Second/02: progress.checkHeld climate.tick tinker.effects machine.monitor farm.growCrops farm.barrels farm.plants fairy.tick dimension.second achievement.playSeconds progress.collection screens.boards | dirty=true>dirty=true
+Second/03: progress.checkHeld climate.tick tinker.effects machine.monitor farm.growCrops farm.barrels farm.plants fairy.tick dimension.second achievement.playSeconds progress.collection screens.boards | dirty=true>dirty=false
+Second/04: progress.checkHeld climate.tick tinker.effects machine.monitor farm.growCrops farm.barrels farm.plants fairy.tick dimension.second achievement.playSeconds progress.collection screens.boards | dirty=false>dirty=false
+Second/advancement: progress.checkHeld climate.tick tinker.effects machine.monitor farm.growCrops farm.barrels farm.plants fairy.tick dimension.second achievement.playSeconds progress.collection screens.boards | advanced=true dirty=false stored=true
+Second/noPlayers: progress.checkHeld climate.tick tinker.effects machine.monitor farm.growCrops farm.barrels farm.plants fairy.tick dimension.second achievement.playSeconds progress.collection screens.boards | players=0
+Second/twoPlayers: progress.checkHeld climate.tick tinker.effects machine.monitor farm.growCrops farm.barrels farm.plants fairy.tick dimension.second achievement.playSeconds progress.collection screens.boards | players=2
+Start: farm.loadCrops island.keepLoaded climate.apply | 

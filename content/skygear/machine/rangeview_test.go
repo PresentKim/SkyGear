@@ -8,7 +8,7 @@ import (
 )
 
 func TestRangeSettingIsCappedByTier(t *testing.T) {
-	st := New(KindFeller, "", "").State
+	st := New(KindFeller).State
 	if got := st.Area(KindFeller); got != (Area{fellerReach, fellerReach, fellerDown, fellerUp}) {
 		t.Fatalf("unset range: %+v", got)
 	}
@@ -19,7 +19,7 @@ func TestRangeSettingIsCappedByTier(t *testing.T) {
 }
 
 func TestPeekShowsRangeForAMoment(t *testing.T) {
-	m := New(KindHarvester, "", "")
+	m := New(KindHarvester)
 	m.State.curTick = 100
 	PeekRange(nil, cube.Pos{}, m)
 	if !m.State.rangeShown() || m.State.rangeToggled() {
@@ -29,7 +29,7 @@ func TestPeekShowsRangeForAMoment(t *testing.T) {
 	if m.State.rangeShown() {
 		t.Error("the peek outlasts its ticks")
 	}
-	crusher := New(KindCrusher, "", "")
+	crusher := New(KindCrusher)
 	PeekRange(nil, cube.Pos{}, crusher)
 	if crusher.State.peekUntil != 0 {
 		t.Error("a crusher peeks a range")
@@ -37,7 +37,7 @@ func TestPeekShowsRangeForAMoment(t *testing.T) {
 }
 
 func TestRangeSettingIsSaved(t *testing.T) {
-	m := New(KindVacuum, "", "")
+	m := New(KindVacuum)
 	m.State.RangeX, m.State.RangeY, m.State.RangeZ = 3, 1, 2
 	back := m.DecodeNBT(m.EncodeNBT()).(Machine).State
 	if back.RangeX != 3 || back.RangeY != 1 || back.RangeZ != 2 {
@@ -46,13 +46,13 @@ func TestRangeSettingIsSaved(t *testing.T) {
 }
 
 func TestRangeBoxFollowsKind(t *testing.T) {
-	st := New(KindVacuum, "", "").State
+	st := New(KindVacuum).State
 	st.RangeX, st.RangeY, st.RangeZ = 2, 2, 4
 	lo, hi := st.rangeBox(KindVacuum, cube.Pos{0, 10, 0})
 	if lo != (mgl64.Vec3{-2, 8, -4}) || hi != (mgl64.Vec3{3, 13, 5}) {
 		t.Errorf("box %v %v", lo, hi)
 	}
-	if _, ok := New(KindCrusher, "", "").State.rangeKind(); ok {
+	if _, ok := New(KindCrusher).State.rangeKind(); ok {
 		t.Error("the crusher has a range")
 	}
 }
@@ -65,7 +65,7 @@ func TestBoxVariantPacksSize(t *testing.T) {
 }
 
 func TestMinerFacingIsSaved(t *testing.T) {
-	m := New(KindMiner, "", "")
+	m := New(KindMiner)
 	if m.State.Facing != cube.FaceDown {
 		t.Fatalf("new miner faces %v", m.State.Facing)
 	}
@@ -80,14 +80,14 @@ func TestMinerFacingIsSaved(t *testing.T) {
 }
 
 func TestOffsetIsCappedAndSaved(t *testing.T) {
-	m := New(KindVacuum, "", "")
+	m := New(KindVacuum)
 	st := m.State
 	st.OffsetX, st.OffsetY, st.OffsetZ = 99, -2, -99
 	most := st.MaxOffset(KindVacuum)
 	if got := st.Offset(KindVacuum); got != (cube.Pos{most[0], -2, -most[2]}) {
 		t.Errorf("offset %v, most %v", got, most)
 	}
-	if got := New(KindHarvester, "", "").State.MaxOffset(KindHarvester); got[1] != harvesterLift {
+	if got := New(KindHarvester).State.MaxOffset(KindHarvester); got[1] != harvesterLift {
 		t.Errorf("harvester moves %d up and down", got[1])
 	}
 	back := m.DecodeNBT(m.EncodeNBT()).(Machine).State
@@ -97,7 +97,7 @@ func TestOffsetIsCappedAndSaved(t *testing.T) {
 }
 
 func TestRangeBoxFollowsOffset(t *testing.T) {
-	st := New(KindVacuum, "", "").State
+	st := New(KindVacuum).State
 	st.RangeX, st.RangeY, st.RangeZ = 2, 2, 4
 	st.OffsetX, st.OffsetY = 3, 5
 	lo, hi := st.rangeBox(KindVacuum, cube.Pos{0, 10, 0})
@@ -115,7 +115,7 @@ func TestRangeBoxFollowsOffset(t *testing.T) {
 // into 24 bits and read back as it was.
 func TestBoxVariantFitsAFloat(t *testing.T) {
 	for kind := range tierRanges {
-		st := New(kind, "", "").State
+		st := New(kind).State
 		for tier := 0; tier <= MaxTier; tier++ {
 			st.Tier = tier
 			most := st.MaxOffset(kind)

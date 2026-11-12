@@ -74,7 +74,7 @@ type monsterData struct {
 	vel      mgl64.Vec3
 	cooldown int
 	onGround bool
-	sentRot  cube.Rotation // skygear patch: rotation last sent to viewers
+	sentRot  cube.Rotation // rotation last sent to viewers
 	// damageMul and speedMul make a monster of a later stage of a run
 	// stronger (0 counts as 1).
 	damageMul, speedMul float64
@@ -174,15 +174,6 @@ func (m *Monster) Close() error {
 	return m.Handle.Close()
 }
 
-// MobTypes are the world.EntityTypes of the mobs' base variants.
-var MobTypes = func() map[string]monsterType {
-	out := map[string]monsterType{}
-	for mob := range MonsterTable {
-		out[mob] = monsterType{Mob: mob}
-	}
-	return out
-}()
-
 // VariantType is the world.EntityType of variant v of mob: an entity type has
 // a single vanilla look, so every variant has its own.
 func VariantType(mob string, v int) monsterType { return monsterType{Mob: mob, Variant: v} }
@@ -217,7 +208,7 @@ func (t monsterType) EncodeEntity() string {
 	return fmt.Sprintf("skygear:monster_%s_%d", t.Mob, t.Variant)
 }
 
-// Transient: monsters are never saved with the world. skygear patch
+// Transient: monsters are never saved with the world.
 func (monsterType) Transient() bool { return true }
 
 func (t monsterType) NetworkEncodeEntity() string {
@@ -319,7 +310,9 @@ func (m *Monster) Tick(tx *world.Tx, _ int64) {
 		}
 		if v.Fuse == 0 && flat.Len() < monsterReach && math.Abs(to[1]) < 2 && d.cooldown == 0 {
 			d.cooldown = monsterCooldown
-			if _, hurt := target.Hurt(st.damage, entity.AttackDamageSource{Attacker: m}); hurt {
+			// A hit that killed the hunter leaves no effect on it: a death
+			// clears the effects and a respawn would bring this one home.
+			if _, hurt := target.Hurt(st.damage, entity.AttackDamageSource{Attacker: m}); hurt && !target.Dead() {
 				target.KnockBack(m.Data.Pos, 0.4, 0.3)
 				if v.Hit != nil {
 					target.AddEffect(*v.Hit)
@@ -385,7 +378,7 @@ func (m *Monster) trick(s *core.Session, tx *world.Tx, pos mgl64.Vec3, target *p
 // move applies one tick of walking, jumping and falling.
 func (m *Monster) move(tx *world.Tx, pos, dir mgl64.Vec3, st monsterStats) {
 	d := m.Md()
-	oldPos, oldGround := m.Data.Pos, d.onGround // skygear patch: X2 send only changes
+	oldPos, oldGround := m.Data.Pos, d.onGround // to send only what changed
 	feet := func(p mgl64.Vec3) cube.Pos { return cube.PosFromVec3(p) }
 	// horizontal: blocked by a wall unless it can be stepped over
 	if dir.Len() > 0 {

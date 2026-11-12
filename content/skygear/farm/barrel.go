@@ -13,6 +13,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/df-mc/dragonfly/server/world/sound"
+	"github.com/presentkim/skygear/common/clientdef"
 	"github.com/presentkim/skygear/common/fluidnet"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/itemio"
@@ -250,8 +251,13 @@ func barrelMaterials(wood string, stage int) map[string]customblock.Material {
 	return m
 }
 
+// ClientExtras implements clientdef.ExtraProperties: the barrel is hollow.
+func (Barrel) ClientExtras() (clientdef.Extras, map[string]clientdef.Extras) {
+	return clientdef.Extras{CollisionBoxes: tubBoxes}, nil
+}
+
 func (b Barrel) Properties() customblock.Properties {
-	return customblock.Properties{Geometry: "geometry.skygear_barrel_0", Textures: barrelMaterials(b.Wood, 0), CollisionBoxes: tubBoxes}
+	return customblock.Properties{Geometry: "geometry.skygear_barrel_0", Textures: barrelMaterials(b.Wood, 0)}
 }
 
 // States implements block.Permutable.

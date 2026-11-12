@@ -241,9 +241,6 @@
     "skygear:progress_9": {
       "textures": "textures/items/progress_9"
     },
-    "skygear:research_note": {
-      "textures": "textures/items/research_note"
-    },
     "skygear:ore_chunk_iron": {
       "textures": "textures/items/ore_chunk_iron"
     },
@@ -459,69 +456,6 @@
     },
     "skygear:essence_wither_skeleton": {
       "textures": "textures/items/essence_wither_skeleton"
-    },
-    "skygear:tool_sword_flint_wood": {
-      "textures": "textures/items/tool_sword_flint_wood"
-    },
-    "skygear:tool_sword_flint_bone": {
-      "textures": "textures/items/tool_sword_flint_bone"
-    },
-    "skygear:tool_sword_flint_blaze": {
-      "textures": "textures/items/tool_sword_flint_blaze"
-    },
-    "skygear:tool_sword_iron_wood": {
-      "textures": "textures/items/tool_sword_iron_wood"
-    },
-    "skygear:tool_sword_iron_bone": {
-      "textures": "textures/items/tool_sword_iron_bone"
-    },
-    "skygear:tool_sword_iron_blaze": {
-      "textures": "textures/items/tool_sword_iron_blaze"
-    },
-    "skygear:tool_sword_bronze_wood": {
-      "textures": "textures/items/tool_sword_bronze_wood"
-    },
-    "skygear:tool_sword_bronze_bone": {
-      "textures": "textures/items/tool_sword_bronze_bone"
-    },
-    "skygear:tool_sword_bronze_blaze": {
-      "textures": "textures/items/tool_sword_bronze_blaze"
-    },
-    "skygear:tool_sword_electrum_wood": {
-      "textures": "textures/items/tool_sword_electrum_wood"
-    },
-    "skygear:tool_sword_electrum_bone": {
-      "textures": "textures/items/tool_sword_electrum_bone"
-    },
-    "skygear:tool_sword_electrum_blaze": {
-      "textures": "textures/items/tool_sword_electrum_blaze"
-    },
-    "skygear:tool_sword_invar_wood": {
-      "textures": "textures/items/tool_sword_invar_wood"
-    },
-    "skygear:tool_sword_invar_bone": {
-      "textures": "textures/items/tool_sword_invar_bone"
-    },
-    "skygear:tool_sword_invar_blaze": {
-      "textures": "textures/items/tool_sword_invar_blaze"
-    },
-    "skygear:tool_sword_steel_wood": {
-      "textures": "textures/items/tool_sword_steel_wood"
-    },
-    "skygear:tool_sword_steel_bone": {
-      "textures": "textures/items/tool_sword_steel_bone"
-    },
-    "skygear:tool_sword_steel_blaze": {
-      "textures": "textures/items/tool_sword_steel_blaze"
-    },
-    "skygear:tool_sword_diamond_wood": {
-      "textures": "textures/items/tool_sword_diamond_wood"
-    },
-    "skygear:tool_sword_diamond_bone": {
-      "textures": "textures/items/tool_sword_diamond_bone"
-    },
-    "skygear:tool_sword_diamond_blaze": {
-      "textures": "textures/items/tool_sword_diamond_blaze"
     },
     "skygear:tool_pickaxe_flint_wood": {
       "textures": "textures/items/tool_pickaxe_flint_wood"
@@ -798,27 +732,6 @@
     },
     "skygear:seed_gem_emerald": {
       "textures": "textures/items/seed_gem_emerald"
-    },
-    "skygear:seed_ess_zombie": {
-      "textures": "textures/items/seed_ess_zombie"
-    },
-    "skygear:seed_ess_skeleton": {
-      "textures": "textures/items/seed_ess_skeleton"
-    },
-    "skygear:seed_ess_creeper": {
-      "textures": "textures/items/seed_ess_creeper"
-    },
-    "skygear:seed_ess_spider": {
-      "textures": "textures/items/seed_ess_spider"
-    },
-    "skygear:seed_ess_slime": {
-      "textures": "textures/items/seed_ess_slime"
-    },
-    "skygear:seed_ess_enderman": {
-      "textures": "textures/items/seed_ess_enderman"
-    },
-    "skygear:seed_ess_blaze": {
-      "textures": "textures/items/seed_ess_blaze"
     },
     "skygear:seed_flower_white": {
       "textures": "textures/items/seed_flower_white"

@@ -69,8 +69,8 @@
 
 ## 6. 구현 위치와 성능
 
-- `stats.go`: `prodStats`(1분 칸 15개와 누적), `session.stats`, `machineState.emit`(출력 + 기록), 통계 화면.
-- `monitor.go`: 기계 목록(`session.machines`), 상태 판정(`machineState.status`), 알림 상태기계, 알림 설정.
-- 기계의 출력 지점은 `put(출력)` 대신 `emit`을 쓰고, 출력이 막히는 지점은 `roomFor`로 막힘을 기록한다. 발전·소비는 20틱마다 모아 기록한다.
+- `stats.go`: `prodStats`(1분 칸 15개와 누적), `FactoryOf(s).Stats`, `State.Emit`(출력 + 기록), 통계 화면.
+- `monitor.go`: 기계 목록(`factory.machines`), 상태 판정(`State.judge`), 알림 상태기계, 알림 설정.
+- 기계의 출력 지점은 `put(출력)` 대신 `Emit`을 쓰고, 출력이 막히는 지점은 `RoomFor`로 막힘을 기록한다. 발전·소비는 20틱마다 모아 기록한다.
 - 기록은 맵 더하기뿐이다. 계정 카운터와 업적은 **초마다 증가분을 한 번에** 넘기므로 기계마다 계정 잠금을 잡지 않는다. 상태 판정과 알림은 초마다 기계 목록을 한 번 도는 일이다(기계 150대 안팎).
 - 기계 목록은 틱할 때 갱신하고 부술 때 지운다. 10초 넘게 틱이 없는 기계는 건너뛴다.

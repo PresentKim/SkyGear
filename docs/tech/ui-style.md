@@ -20,7 +20,7 @@
 |---|---|---|
 | 카드 격자 | `ui.CardMenu` | 같은 무게의 갈래 6~12개(메뉴, 도움말, 도감 첫 화면) |
 | 목록 | `ui.Menu`, `ui.Confirm` | 항목이 글 위주이고 몇 개~수십 개, 예·아니오 질문 |
-| 칸 격자 | `ui.ItemGrid`, `ui.ItemGridSections`, `ui.SearchGrid`, `ui.ItemBoard` | 아이템이 주인공(스토리지, 도감 검색, 레시피) |
+| 칸 격자 | `ui.ItemGrid`, `ui.SearchGrid`, `ui.ItemBoard` | 아이템이 주인공(스토리지, 도감 검색, 레시피) |
 | 분할 | `ui.SplitMenu`, `ui.ListSplitMenu` | 목록에서 고른 항목의 동작을 같은 창 오른쪽에(연구, 세이브 선택, 친구, 멀티 플레이, 참여자 관리) |
 | 퀘스트 책 | `ui.QuestBookMenu` | 선후 관계가 있는 노드(발전과제, [advancement-tree.md](advancement-tree.md)) |
 | 선택 판·면 설정 | `ui.ChoiceMenu`, `ui.SidesMenu` | 설정 고르기(요정의 마법판), 블록 면마다 설정(도관) |

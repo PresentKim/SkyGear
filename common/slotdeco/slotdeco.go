@@ -53,6 +53,21 @@ func (r Rarity) Mark() string {
 	return rarityMarks[r]
 }
 
+// Colour returns the colour code of the rarity's name, "§f" for Common.
+func (r Rarity) Colour() string {
+	switch r {
+	case Uncommon:
+		return "§a"
+	case Rare:
+		return "§b"
+	case Epic:
+		return "§d"
+	case Legendary:
+		return "§6"
+	}
+	return "§f"
+}
+
 // TierMark returns the mark of the front image n (1 to MaxFront: tier pips
 // and badges), "" otherwise. It is put after the name; the colour code in it
 // is undone at once.
@@ -110,4 +125,10 @@ func Of(s string) (Rarity, int) {
 		}
 	}
 	return r, tier
+}
+
+// Decorated is an item that has a rarity or a tier badge of its own.
+type Decorated interface {
+	// Decor returns the item's rarity and its tier (0: no pips).
+	Decor() (Rarity, int)
 }

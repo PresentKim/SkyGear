@@ -25,7 +25,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/storage"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
-	"github.com/presentkim/skygear/platform/instance"
 )
 
 // Debugging tools (/sgdebug): helpers for scenarios and manual tests that
@@ -36,7 +35,7 @@ func registerDebug(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("sgdebug", i18n.T(i18n.Default, "skygear.debug.register"), nil,
 		debugUI{adminBase: b}, debugLook{adminBase: b}, debugStatus{adminBase: b}, debugSkip{adminBase: b}, debugTimed{adminBase: b}, debugHolderPose{adminBase: b}, debugFairy{adminBase: b}, debugWeather{adminBase: b}, debugSun{adminBase: b}, debugHunt{adminBase: b}, debugFx{adminBase: b}, debugResearchRandom{adminBase: b}, debugResearchLoad{adminBase: b}, debugFactory{adminBase: b}, debugDense{adminBase: b}, debugPlace{adminBase: b}, debugFloor{adminBase: b}, debugTerminal{adminBase: b}, debugNet{adminBase: b},
-		debugResearchScreen{adminBase: b}, debugOreInput{adminBase: b}, debugOreRes{adminBase: b}, debugFill{adminBase: b}, debugFillStop{adminBase: b}))
+		debugResearchScreen{adminBase: b}, debugOreInput{adminBase: b}, debugOreRes{adminBase: b}))
 }
 
 type debugResearchScreen struct {
@@ -256,7 +255,7 @@ func (c debugNet) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	at := cube.PosFromVec3(p.Position()).Add(cube.Pos{-1, up, -2})
 	term := at.Add(cube.Pos{1, 0, 0})
 	if !netstore.IsTerminal(tx.Block(term)) {
-		if _, ok := netstore.BuildTestNet(tx, at, instance.AccountID(p), p.Name(), max(0, c.Count)); !ok {
+		if _, ok := netstore.BuildTestNet(tx, at, max(0, c.Count)); !ok {
 			o.Errorf("blocks in the way at %d %d %d", at[0], at[1], at[2])
 			return
 		}

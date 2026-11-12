@@ -9,6 +9,16 @@ import (
 	"testing"
 )
 
+// TestRarityColour: the colour of a rarity's name; white for Common and for
+// a value that is no rarity.
+func TestRarityColour(t *testing.T) {
+	for r, want := range map[Rarity]string{Common: "§f", Uncommon: "§a", Rare: "§b", Epic: "§d", Legendary: "§6", Rarity(9): "§f", Rarity(-1): "§f"} {
+		if got := r.Colour(); got != want {
+			t.Errorf("rarity %d: colour %q, want %q", r, got, want)
+		}
+	}
+}
+
 func TestDecorateStripOf(t *testing.T) {
 	for _, tc := range []struct {
 		r    Rarity

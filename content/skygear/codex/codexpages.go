@@ -209,7 +209,7 @@ func showCodexProcessAt(s *core.Session, p *player.Player, which int) {
 }
 
 // showCodexMobs is the mobs tab: the simulator, the magic sieve's themes and
-// the gate's levels.
+// the second dimension's hunts.
 func showCodexMobs(s *core.Session, p *player.Player) {
 	lang := i18n.Of(p)
 	codexAt(s, p, func(p *player.Player) { showCodexMobs(s, p) })
@@ -223,7 +223,7 @@ func showCodexPlants(s *core.Session, p *player.Player) {
 	lang := i18n.Of(p)
 	codexAt(s, p, func(p *player.Player) { showCodexPlants(s, p) })
 	var cards []Card
-	for _, pk := range farm.LivePlantKinds() {
+	for _, pk := range farm.PlantKinds {
 		cards = append(cards, plantCard(s, lang, pk))
 	}
 	chrome := append(codexTabs(s, p, codexPlantsTab), codexBack(s, p))

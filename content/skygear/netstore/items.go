@@ -126,18 +126,21 @@ func init() {
 	world.RegisterItem(Pattern{})
 	world.RegisterItem(Upgrade{})
 	world.RegisterItem(Upgrade{Stack: true})
-	for _, k := range []string{machine.KindNetImporter, machine.KindNetExporter} {
-		machine.Kinds[k].Accepts = func(_ int, st item.Stack) bool {
-			_, ok := st.Item().(Upgrade)
-			return ok
-		}
-	}
-	machine.Kinds[machine.KindDiskDrive].Accepts = func(_ int, st item.Stack) bool {
-		_, ok := st.Item().(Disk)
-		return ok
-	}
-	machine.Kinds[machine.KindNetAutocrafter].Accepts = func(_ int, st item.Stack) bool {
-		_, ok := st.Item().(Pattern)
-		return ok
-	}
+}
+
+// acceptsUpgrade, acceptsDisk and acceptsPattern say what the slots of an
+// importer or exporter, of a disk drive and of an autocrafter take.
+func acceptsUpgrade(_ int, st item.Stack) bool {
+	_, ok := st.Item().(Upgrade)
+	return ok
+}
+
+func acceptsDisk(_ int, st item.Stack) bool {
+	_, ok := st.Item().(Disk)
+	return ok
+}
+
+func acceptsPattern(_ int, st item.Stack) bool {
+	_, ok := st.Item().(Pattern)
+	return ok
 }

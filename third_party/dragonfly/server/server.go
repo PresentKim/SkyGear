@@ -324,11 +324,7 @@ func (srv *Server) close() {
 
 	srv.conf.Log.Debug("Disconnecting players...")
 	for p := range srv.Players(nil) {
-		msg := chat.MessageServerDisconnect.Resolve(p.Locale())
-		if srv.conf.ShutdownKick != nil {
-			msg = srv.conf.ShutdownKick(p)
-		}
-		p.Disconnect(msg)
+		p.Disconnect(chat.MessageServerDisconnect.Resolve(p.Locale()))
 	}
 	srv.pwg.Wait()
 

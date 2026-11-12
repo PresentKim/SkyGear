@@ -10,14 +10,10 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/particle"
-	"github.com/df-mc/dragonfly/server/world/sound"
-	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/climate"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/farm"
-	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
-	"github.com/presentkim/skygear/content/skygear/textfmt"
 )
 
 func init() {
@@ -50,10 +46,11 @@ func FairyTimeRecipes() {
 	recipe.Register(recipe.NewShaped([]recipe.Item{e, g, e, d, s, d, e, g, e}, item.NewStack(sgitem.FairyHourglass{}, 1), recipe.NewShape(3, 3), "crafting_table"))
 }
 
-// UseFairyTime uses a held fairy bone meal or hourglass, or keeps plain
-// bone meal off a timed crop (a click without sneaking is useCrop's). It
-// reports whether the click was taken: an item that would change nothing
-// is not spent and leaves the click to the block.
+// UseFairyTime uses a held fairy bone meal, or keeps plain bone meal off a
+// timed crop (a click without sneaking is useCrop's). It reports whether the
+// click was taken: an item that would change nothing is not spent and leaves
+// the click to the block. The fairy hourglass is not used here: the machine
+// it winds takes it (machine.Machine.Activate, sgitem.FairyHourglass).
 func UseFairyTime(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, held item.Stack) bool {
 	switch held.Item().(type) {
 	case item.BoneMeal:
@@ -65,14 +62,6 @@ func UseFairyTime(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos,
 		}
 		spendHeld(p, held)
 		tx.AddParticle(pos.Vec3(), particle.BoneMeal{})
-		return true
-	case sgitem.FairyHourglass:
-		m, ok := tx.Block(pos).(machine.Machine)
-		if !ok || m.State == nil || !m.State.WindHourglass() {
-			return false
-		}
-		spendHeld(p, held)
-		tx.PlaySound(pos.Vec3Centre(), sound.ItemAdd{})
 		return true
 	}
 	return false
@@ -132,13 +121,4 @@ func BoneMeal(s *core.Session, tx *world.Tx, pos cube.Pos) bool {
 	}
 	farm.GrowCrop(s, tx, pos, r, now)
 	return true
-}
-
-// HourglassLine is the WAILA line of the hourglass time left, or "".
-func HourglassLine(lang string, st *machine.State) string {
-	if st == nil || st.Boost <= 0 {
-		return ""
-	}
-	left := time.Duration(st.Boost) * time.Second / 20
-	return i18n.T(lang, "fairy.hourglass.left") + textfmt.Duration(lang, left.Round(time.Second))
 }

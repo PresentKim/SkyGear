@@ -144,5 +144,8 @@ func ReplantSeed(st *machine.State, after world.Block, drops []item.Stack) (worl
 	return block.Air{}, drops
 }
 
-// The harvester is a machine kind whose run is the farm's.
-func init() { machine.Kinds[machine.KindHarvester].Run = RunHarvester }
+// registerKinds hands the machine frame the work of the farm's machine kind,
+// the harvester.
+func registerKinds() {
+	machine.Register(machine.KindHarvester, machine.Behaviour{Run: RunHarvester})
+}

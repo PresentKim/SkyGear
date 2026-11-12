@@ -285,8 +285,6 @@ func ShowTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos)
 	showTerminal(s, p, tx, pos, "")
 }
 
-var orderKeys = []string{"storage.order.countDesc", "storage.order.countAsc", "storage.order.nameAsc", "storage.order.nameDesc"}
-
 // entriesOf is every entry of n, in key order.
 func entriesOf(n *Network) []storage.Entry {
 	var ks []storagenet.Key
@@ -307,37 +305,45 @@ func entriesOf(n *Network) []storage.Entry {
 
 // A click opens the terminal window on a terminal and the network's node list
 // on a controller; both take and give items through Root.
-func init() {
-	machine.Kinds[machine.KindNetController].Click = func(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
-		if !s.Debounced(p) {
-			showController(s, p, tx, pos)
-		}
-		return true
+
+// clickController is the click on a controller: the network's node list.
+func clickController(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
+	if !s.Debounced(p) {
+		showController(s, p, tx, pos)
 	}
-	machine.Kinds[machine.KindNetTerminal].Click = func(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
-		ShowTerminal(s, p, tx, pos)
-		return true
+	return true
+}
+
+// clickTerminal is the click on a terminal: the terminal window.
+func clickTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
+	ShowTerminal(s, p, tx, pos)
+	return true
+}
+
+// insertAt puts st into the network of the terminal or controller at pos and
+// returns how many it took.
+func insertAt(tx *world.Tx, pos cube.Pos, st item.Stack) int {
+	return int(netInsert(At(tx, pos), st))
+}
+
+// peekAt is the first stack the network of the terminal or controller at pos
+// would give that want accepts.
+func peekAt(tx *world.Tx, pos cube.Pos, want func(item.Stack) bool) item.Stack {
+	n := At(tx, pos)
+	if n == nil || !n.Online() {
+		return item.Stack{}
 	}
-	for _, kind := range []string{machine.KindNetTerminal, machine.KindNetController} {
-		d := machine.Kinds[kind]
-		d.Insert = func(tx *world.Tx, pos cube.Pos, st item.Stack) int {
-			return int(netInsert(At(tx, pos), st))
-		}
-		d.Peek = func(tx *world.Tx, pos cube.Pos, want func(item.Stack) bool) item.Stack {
-			n := At(tx, pos)
-			if n == nil || !n.Online() {
-				return item.Stack{}
-			}
-			for _, e := range entriesOf(n) {
-				if want == nil || want(e.Item) {
-					return e.Item.Grow(int(min(e.Count, int64(e.Item.MaxCount()))) - 1)
-				}
-			}
-			return item.Stack{}
-		}
-		d.Extract = func(tx *world.Tx, pos cube.Pos, st item.Stack, cnt int) item.Stack {
-			n := At(tx, pos)
-			return netExtract(n, KeyOf(st), cnt)
+	for _, e := range entriesOf(n) {
+		if want == nil || want(e.Item) {
+			return e.Item.Grow(int(min(e.Count, int64(e.Item.MaxCount()))) - 1)
 		}
 	}
+	return item.Stack{}
+}
+
+// extractAt takes cnt of st out of the network of the terminal or controller
+// at pos.
+func extractAt(tx *world.Tx, pos cube.Pos, st item.Stack, cnt int) item.Stack {
+	n := At(tx, pos)
+	return netExtract(n, KeyOf(st), cnt)
 }

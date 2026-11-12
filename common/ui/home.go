@@ -124,8 +124,8 @@ type homeManageD struct {
 
 // homeOverlayD is the panel over the dimmed screen.
 type homeOverlayD struct {
-	Title   string        `json:"title"`
-	Body    string        `json:"body"`
+	Title   string               `json:"title"`
+	Body    string               `json:"body"`
 	Buttons []homeOverlayButtonD `json:"buttons"`
 }
 

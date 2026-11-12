@@ -52,13 +52,11 @@ func openPersisted(t *testing.T, dir string) (*session, func()) {
 		SaveID: save.ID, SaveName: save.Name, HostID: "host", Log: slog.Default(),
 	})
 	c.Rand = rand.New(rand.NewPCG(1, 2))
-	s := &session{Session: c, g: g}
+	s := &session{Lifecycle: core.Lifecycle{Session: c}, g: g}
 	s.state = savedState.Of(c)
 	g.sessions.Store(w, s)
 	core.Register(c)
-	activeGame = g
-	registerItemIO()
-	w.Handle(&worldHandler{s: s})
+	w.Handle(&core.WorldHandler{S: s.Session})
 	loadAround(s)
 	closed := false
 	closeAll := func() {
@@ -82,7 +80,7 @@ func TestSieveProgressSurvivesReload(t *testing.T) {
 	pos := cube.Pos{3, island.IslandY, 3}
 
 	s, closeAll := openPersisted(t, dir)
-	m := machine.New(machine.KindAutoSieve, "", "")
+	m := machine.New(machine.KindAutoSieve)
 	m.State.Unlimited = true
 	_ = m.State.Inv().SetItem(m.State.Def.Input[0], item.NewStack(block.Gravel{}, 30))
 	s.World.Do(func(tx *world.Tx) { tx.SetBlock(pos, m, nil) })

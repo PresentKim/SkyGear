@@ -309,7 +309,3 @@ func runController(s *core.Session, st *machine.State, pos cube.Pos, tx *world.T
 		n.flush()
 	}
 }
-
-func init() {
-	machine.Kinds[machine.KindNetController].Run = runController
-}

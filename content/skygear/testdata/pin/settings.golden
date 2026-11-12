@@ -1,0 +1,10 @@
+00:  | notify_achievement_toast default=true group=setting.group.achievement
+01:  | notify_achievement_chat default=false group=setting.group.achievement
+02:  | notify_achievement_sound default=true group=setting.group.achievement
+03:  | notify_advancement_toast default=true group=setting.group.advancement
+04:  | notify_advancement_chat default=false group=setting.group.advancement
+05:  | notify_advancement_sound default=true group=setting.group.advancement
+06:  | hud_quest_panel default=true group=setting.group.advancement
+07:  | vein_diagonal default=false group=setting.group.play
+08:  | auto_tool default=false group=setting.group.play
+09:  | autofill default=true group=setting.group.play

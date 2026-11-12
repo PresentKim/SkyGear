@@ -77,11 +77,12 @@
 | 몬스터 | 뼈 공예, 슬라임 블록, 엘리베이터 | 사냥 2 |
 | | 블레이즈 공예, 엔더 상자 | 연금술 4 + 사냥 4 |
 | | 다이아몬드 갑옷 | 연금술 2 + 사냥 4 |
-| | 이차원 | 공학 6 + 연금술 4 |
-| 마법 | 마법 식물 | 연금술 6 + 사냥 4 + 농사 4 |
+| | 이차원, 보구 | 공학 6 + 연금술 4 |
+| | 이차원 에센스 수집기 | 공학 6 + 연금술 6 |
+| 마법 | 마법 씨앗 | 연금술 4 |
+| | 마법 식물 | 연금술 6 + 사냥 4 + 농사 4 |
 | | 염색 | 마법 4 |
 | | 보석꽃 | 연금술 6 + 사냥 4 + 마법 4 |
-| | 정수꽃 | 연금술 6 + 사냥 6 + 마법 6 |
 | 프로젝트 | 공장 | 공학 16 + 연금술 16 |
 | | 사냥꾼 | 공학 8 + 연금술 8 + 사냥 16 |
 | | 재배자 | 농사 16 + 사냥 8 + 마법 16 |
@@ -134,16 +135,16 @@
 
 | 내용 | 위치 |
 |---|---|
-| 정수 아이템, 연구별 정수 비용 표, 정수 추출기 선행 붙이기, 연출 | `researchessence.go` (`researchEssenceCosts`, `withEssenceCosts`, `pourEssences`) |
-| 정수 추출기 레시피 표, 주기, WAILA 줄 | `lab.go` (`machinerecipe.Labs`, `runLab`, `labLines`) |
-| 정수 추출기 화면(정수 고르기, 넣기·꺼내기·중지) | `labui.go` (`showLab`, `showLabOn`, `labDetail`) |
-| 기계 종류·창 배치·주기 | `machine.go` (`KindLab`, `machineState.period`), 창 JSON `sg_machine.json`의 `lab_slots`와 `chest_screen.json`의 `§d§m§8` |
-| 연구 트리·정수 추출기 조합법 | `research.go` (`baseResearchTree`, `laboratory`) |
-| 도감·도움말·발전과제·카운터 | `codex.go`, `help.go`(`helpEssenceText`), `advancement.go`, `counter.go`·`achievement/catalog.go` |
-| 텍스처 | `tools/essencetex`(정수 5종), `tools/machinetex`(정수 추출기) |
-| 검사 | `lab_test.go`, `researchessence_test.go`(정수 비용 표, 만들 수 있는지의 순서 점검), `spike/scenarios/lab.sh` |
+| 정수 아이템, 연구별 정수 비용 표, 정수 추출기 선행 붙이기, 연출 | `sgitem/researchessence.go`(정수 아이템), `progress/essence.go`(`EssenceCosts`, `WithEssenceCosts`, `PourEssences`) |
+| 정수 추출기 레시피 표, 주기, WAILA 줄 | `machine/lab.go` (`machinerecipe.Labs`, `runLab`, `LabLines`) |
+| 정수 추출기 화면(정수 고르기, 넣기·꺼내기·중지) | `machine/labui.go` (`showLab`, `showLabOn`, `LabDetail`) |
+| 기계 종류·창 배치·주기 | `machine/machine.go` (`KindLab`, `State.period`), 창 JSON `sg_machine.json`의 `lab_slots`와 `chest_screen.json`의 `§d§m§8` |
+| 연구 트리·정수 추출기 조합법 | `catalog/research.go` (`baseResearchTree`, `laboratory`) |
+| 도감·도움말·발전과제·카운터 | `codex/codex.go`, `screens/help.go`(`helpEssenceText`), `progress/advancement.go`, `achievement/counter.go`·`achievement/catalog.go` |
+| 텍스처 | 손으로 관리하는 PNG(`assets/resourcepack/skygear/textures/`) |
+| 검사 | `machine/lab_test.go`, 루트의 `lab_test.go`(실험실 화면), `researchessence_test.go`(정수 비용 표, 만들 수 있는지의 순서 점검) |
 
-연구 트리의 정수 비용은 기본 트리에 코드로 더하므로, 비용을 바꾸는 일은 `researchEssenceCosts` 한 곳에서 한다. 새 정수는 종류 상수, 정수 추출기 레시피, 아이템 이름·텍스처, 비용 표, `makers`(`TestEssencesCanBeMade`)를 더하면 된다.
+연구 트리의 정수 비용은 기본 트리에 코드로 더하므로, 비용을 바꾸는 일은 `progress.EssenceCosts` 한 곳에서 한다. 새 정수는 종류 상수, 정수 추출기 레시피, 아이템 이름·텍스처, 비용 표, `makers`(`TestEssencesCanBeMade`)를 더하면 된다.
 
 ## 10. 확장 여지
 

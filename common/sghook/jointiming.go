@@ -13,8 +13,8 @@ import (
 )
 
 // How long a player's join takes, per connection, logged as one INFO line
-// ("join timing") when the client closes its loading screen. It compares the
-// client load with more or fewer custom block states (SKYGEAR_STATE_PROBE).
+// ("join timing") when the client closes its loading screen. It shows how the
+// client load grows with the custom block states.
 //
 // The marks and where each is seen, all without patching Dragonfly:
 //
@@ -31,10 +31,6 @@ import (
 // Not seen: the client's pack download steps (they are inside gophertunnel's
 // handshake), so there is no packs_ms of its own; connect_to_packs_ms covers
 // login to packs completed.
-
-// JoinProbe is the state probe mode named in the join timing line ("off",
-// "pair2"); the program sets it at startup.
-var JoinProbe = "off"
 
 // JoinLog is where the join timing lines go; nil is slog.Default().
 var JoinLog *slog.Logger
@@ -66,14 +62,14 @@ func ms(a, b time.Time) (float64, bool) {
 // attrs are the log attributes of a finished join, nil if the client has not
 // finished loading (no line is logged then). A duration whose marks are
 // missing is left out.
-func (m *joinMarks) attrs(player, probe string) []any {
+func (m *joinMarks) attrs(player string) []any {
 	m.mu.Lock()
 	login, packs, start, loaded := m.login, m.packs, m.start, m.loaded
 	m.mu.Unlock()
 	if loaded.IsZero() {
 		return nil
 	}
-	out := []any{"player", player, "probe", probe}
+	out := []any{"player", player}
 	for _, d := range []struct {
 		name string
 		a, b time.Time
@@ -149,7 +145,7 @@ func (c *Conn) StartGameContext(ctx context.Context, data minecraft.GameData) er
 	if log == nil {
 		log = slog.Default()
 	}
-	if attrs := c.join.attrs(c.IdentityData().DisplayName, JoinProbe); attrs != nil {
+	if attrs := c.join.attrs(c.IdentityData().DisplayName); attrs != nil {
 		log.Info("join timing", attrs...)
 	}
 	return nil

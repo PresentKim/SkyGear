@@ -97,7 +97,7 @@ func TestItemNamesInPlayerLanguage(t *testing.T) {
 
 func TestItemEntriesNameByTranslationKey(t *testing.T) {
 	shown := map[string]any{"value": "공학의 정수"}
-	e := localItemName(protocol.ItemEntry{Name: "skygear:research_essence_engineering", ComponentBased: true,
+	e := naming.LocalItemName(protocol.ItemEntry{Name: "skygear:research_essence_engineering", ComponentBased: true,
 		Data: map[string]any{"components": map[string]any{"minecraft:display_name": shown}}})
 	got := e.Data["components"].(map[string]any)["minecraft:display_name"].(map[string]any)["value"]
 	if got != "item.skygear:research_essence_engineering.name" {
@@ -106,7 +106,7 @@ func TestItemEntriesNameByTranslationKey(t *testing.T) {
 	if shown["value"] != "공학의 정수" {
 		t.Error("changed the map it was given")
 	}
-	if block := localItemName(protocol.ItemEntry{Name: "skygear:sieve", Data: map[string]any{}}); len(block.Data) != 0 {
+	if block := naming.LocalItemName(protocol.ItemEntry{Name: "skygear:sieve", Data: map[string]any{}}); len(block.Data) != 0 {
 		t.Errorf("a block item got %v", block.Data)
 	}
 }

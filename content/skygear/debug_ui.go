@@ -29,7 +29,7 @@ func (windowKindEnum) Options(cmd.Source) []string { return windowKinds() }
 func windowKinds() []string {
 	var out []string
 	for _, k := range machine.Order {
-		if d := machine.Kinds[k]; d.Marker != "" && d.Click == nil && k != machine.KindSieve && k != machine.KindTinker {
+		if d := machine.Kinds[k]; d.Marker != "" && d.Hooks().Click == nil && k != machine.KindSieve && k != machine.KindTinker {
 			out = append(out, k)
 		}
 	}
@@ -87,7 +87,7 @@ func previewLater(s *core.Session, p *player.Player, kind string) {
 // previewWindow opens a sample screen of the machine kind, as if it stood
 // under the world.
 func previewWindow(s *core.Session, tx *world.Tx, p *player.Player, kind string) {
-	st := machine.New(kind, "", "").State
+	st := machine.New(kind).State
 	inv := st.Inv()
 	for i, slot := range st.Def.Input {
 		_ = inv.SetItem(slot, item.NewStack(block.Cobblestone{}, 16+i))

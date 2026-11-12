@@ -1,0 +1,33 @@
+BlockBreak/barrel: expand.guard island.guard storage.front tinker.break farm.break achievement.break | cancelled=false drops=minecraft:stone:0x1,minecraft:clay:0x3 xp=0
+BlockBreak/bundle: expand.guard island.guard storage.front tinker.break farm.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0
+BlockBreak/composter: expand.guard island.guard storage.front tinker.break farm.break achievement.break | cancelled=false drops=minecraft:stone:0x1,minecraft:dirt:0x1 xp=0
+BlockBreak/crookLeaves: expand.guard island.guard storage.front tinker.break farm.break achievement.break | cancelled=false drops=minecraft:birch_sapling:0x1 xp=0
+BlockBreak/crookStone: expand.guard island.guard storage.front tinker.break farm.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0
+BlockBreak/drawer: expand.guard island.guard storage.front tinker.break farm.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0
+BlockBreak/drawerFront: expand.guard island.guard storage.front | cancelled=true drops=minecraft:stone:0x1 xp=0
+BlockBreak/drawerSidePunch: expand.guard island.guard storage.front tinker.break farm.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0
+BlockBreak/expanding: expand.guard | cancelled=true drops=minecraft:stone:0x1 xp=0
+BlockBreak/hammerCobble: expand.guard island.guard storage.front tinker.break farm.break achievement.break | cancelled=false drops=minecraft:gravel:0x1 xp=0
+BlockBreak/hammerComposter: expand.guard island.guard storage.front tinker.break farm.break achievement.break | cancelled=false drops=minecraft:stone:0x1,minecraft:dirt:0x1 xp=0
+BlockBreak/machine: expand.guard island.guard storage.front tinker.break farm.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0
+BlockBreak/netNode: expand.guard island.guard storage.front tinker.break farm.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0 filter=1
+BlockBreak/outside: expand.guard island.guard | cancelled=true drops=minecraft:stone:0x1 xp=0
+BlockBreak/setMachine: expand.guard island.guard storage.front tinker.break farm.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0
+BlockBreak/stone: expand.guard island.guard storage.front tinker.break farm.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0
+BlockBreak/tinkerTool: expand.guard island.guard storage.front tinker.break farm.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0 toolxp=1
+BlockPlace/bundle: expand.guard island.guard machine.place storage.place farm.plant autofill.place netstore.place achievement.place progress.dragonEgg conduit.place | cancelled=false held=-
+BlockPlace/crop: expand.guard island.guard machine.place storage.place farm.plant autofill.place netstore.place achievement.place progress.dragonEgg conduit.place | cancelled=false crop=beetroot held=minecraft:beetroot_seeds:0x1
+BlockPlace/dirt: expand.guard island.guard machine.place storage.place farm.plant autofill.place netstore.place achievement.place progress.dragonEgg conduit.place | cancelled=false block=block.Air held=minecraft:dirt:0x1
+BlockPlace/dragonEgg: expand.guard island.guard machine.place storage.place farm.plant autofill.place netstore.place achievement.place progress.dragonEgg conduit.place | cancelled=false dragon=true held=-
+BlockPlace/drawer: expand.guard island.guard machine.place storage.place farm.plant autofill.place netstore.place achievement.place progress.dragonEgg conduit.place | cancelled=false block=storage.Drawer held=-
+BlockPlace/expanding: expand.guard | cancelled=true held=minecraft:dirt:0x2
+BlockPlace/lastNetNode: expand.guard island.guard machine.place storage.place farm.plant autofill.place netstore.place achievement.place progress.dragonEgg conduit.place netstore.placeDeferred | cancelled=false block=machine:net_cable filter=0 held=skygear:net_cable:0x4
+BlockPlace/lastOfStack: expand.guard island.guard machine.place storage.place farm.plant autofill.place netstore.place achievement.place progress.dragonEgg conduit.place | cancelled=false held=minecraft:dirt:0x5
+BlockPlace/machine: expand.guard island.guard machine.place storage.place farm.plant autofill.place netstore.place achievement.place progress.dragonEgg conduit.place | cancelled=false block=machine:crusher held=-
+BlockPlace/netNode: expand.guard island.guard machine.place storage.place farm.plant autofill.place netstore.place achievement.place progress.dragonEgg conduit.place netstore.placeDeferred | cancelled=false block=machine:net_cable filter=0 held=skygear:net_cable:0x1
+BlockPlace/outside: expand.guard island.guard | cancelled=true held=minecraft:dirt:0x2
+BlockPlace/setMachine: expand.guard island.guard machine.place storage.place farm.plant autofill.place netstore.place achievement.place progress.dragonEgg conduit.place | cancelled=false block=machine:drawer_controller held=-
+StartBreak/arena: expand.guard island.guard | cancelled=true
+StartBreak/expanding: expand.guard | cancelled=true
+StartBreak/outside: expand.guard island.guard | cancelled=true
+StartBreak/own: expand.guard island.guard tinker.autoTool | cancelled=false

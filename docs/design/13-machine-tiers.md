@@ -95,6 +95,6 @@
 
 ## 7. 구현 위치
 
-- `tier.go`: 단계 표(`tierSpecs`), 기계별 효과, 합금·회로·키트 아이템, 키트 사용, 환급.
-- 기계의 한 틱은 `reps()`번의 작업(`runMachine`)이다. 에너지는 `consume()`이 `useCost()`(작업 한 번)만큼 쓰고, 막히거나 할 일이 없으면 남은 반복을 건너뛴다. 발전기는 반복하지 않고 `genRate()`·`burnRate()`로 더 만들고 더 빨리 태운다. 범위는 `reach()`가, 버퍼는 `energyCap()`이 단계 표에서 읽는다.
-- 레시피와 연구는 `research.go`(`gameRecipes`, 기본 트리), 정수 비용은 `researchEssenceCosts`.
+- `tier.go`: 단계 표(`TierSpecs`), 기계별 효과, 합금·회로·키트 아이템, 키트 사용, 환급.
+- 기계의 한 틱은 `Reps()`번의 작업(`runMachine`)이다. 에너지는 `consume()`이 `useCost()`(작업 한 번)만큼 쓰고, 막히거나 할 일이 없으면 남은 반복을 건너뛴다. 발전기는 반복하지 않고 `GenRate()`·`BurnRate()`로 더 만들고 더 빨리 태운다. 범위는 `MaxArea`·`Area`가, 버퍼는 `EnergyCap()`이 단계 표에서 읽는다.
+- 레시피와 연구는 `research.go`(`gameRecipes`, 기본 트리), 정수 비용은 `progress.EssenceCosts`.

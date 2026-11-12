@@ -6,10 +6,9 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/block/customblock"
-	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/common/clientdef"
 	"github.com/presentkim/skygear/content/skygear/blockmodel"
-	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/netshape"
 )
 
@@ -31,22 +30,6 @@ var netHeads = map[string]netshape.Head{KindNetImporter: netshape.Importer, Kind
 func NetShaped(kind string) bool {
 	_, head := netHeads[kind]
 	return head || kind == KindNetCable
-}
-
-// Faces the network attachments act on: an attachment faces the block
-// clicked to place it (NotePlaceFace); without one it faces south.
-var placeFaces = core.NewPlayers[cube.Face]()
-
-// NotePlaceFace keeps the face of the block p clicked with a machine, which
-// the attachment placed by that click faces.
-func NotePlaceFace(s *core.Session, p *player.Player, face cube.Face) {
-	placeFaces.Of(s)[p.H()] = face
-}
-
-func takePlaceFace(s *core.Session, p *player.Player) (cube.Face, bool) {
-	f, ok := placeFaces.Of(s)[p.H()]
-	delete(placeFaces.Of(s), p.H())
-	return f, ok
 }
 
 // netRaw is a shape as the arm mask, plus 64 times the facing for an
@@ -147,7 +130,8 @@ func clientBox(b cube.BBox) cube.BBox {
 	return cube.Box(1-hi.X(), lo.Y(), lo.Z(), 1-lo.X(), hi.Y(), hi.Z())
 }
 
-func netProperties(kind string, shape int) customblock.Properties {
+// netExtras are the collision boxes and bone visibility of a kind's shape.
+func netExtras(kind string, shape int) clientdef.Extras {
 	boxes := netBoxes(kind, shape)
 	coll := make([]cube.BBox, len(boxes))
 	for i, b := range boxes {
@@ -160,7 +144,25 @@ func netProperties(kind string, shape int) customblock.Properties {
 	for _, name := range netVisible(kind, shape) {
 		visible[name] = "true"
 	}
-	return customblock.Properties{Geometry: NetGeometry(kind), BoneVisibility: visible, Textures: netMaterials(kind), SelectionBox: clientBox(netshape.Bounds(boxes)), CollisionBoxes: coll}
+	return clientdef.Extras{CollisionBoxes: coll, BoneVisibility: visible}
+}
+
+func netProperties(kind string, shape int) customblock.Properties {
+	return customblock.Properties{Geometry: NetGeometry(kind), Textures: netMaterials(kind), SelectionBox: clientBox(netshape.Bounds(netBoxes(kind, shape)))}
+}
+
+func netCondition(shape int) string {
+	return fmt.Sprintf("q.block_state('%s') == '%s'", NetShapeState, netShapeName(shape))
+}
+
+// netAllExtras are the extras of the base definition (shape 0) and of each
+// shape's permutation.
+func netAllExtras(kind string) (clientdef.Extras, map[string]clientdef.Extras) {
+	perms := map[string]clientdef.Extras{}
+	for _, s := range netShapes(kind) {
+		perms[netCondition(s)] = netExtras(kind, s)
+	}
+	return netExtras(kind, 0), perms
 }
 
 func netStates(kind string) map[string][]any {
@@ -175,7 +177,7 @@ func netPermutations(kind string) []customblock.Permutation {
 	var out []customblock.Permutation
 	for _, s := range netShapes(kind) {
 		out = append(out, customblock.Permutation{
-			Condition:  fmt.Sprintf("q.block_state('%s') == '%s'", NetShapeState, netShapeName(s)),
+			Condition:  netCondition(s),
 			Properties: netProperties(kind, s),
 		})
 	}

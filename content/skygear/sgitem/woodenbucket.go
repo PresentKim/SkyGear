@@ -93,7 +93,7 @@ func liquidFits(b world.Block, liq world.Liquid) bool {
 // (the item property liquid_clipped, as the iron bucket has): otherwise a
 // click passes through the water to the block behind it and the bucket never
 // gets the water. Dragonfly writes no such property, so it is added to the
-// bucket's item entry (EditItemEntries).
+// bucket's item entry (core.EditEntries).
 func ClipWoodenBucket(e protocol.ItemEntry) protocol.ItemEntry {
 	if name, _ := (WoodenBucket{}).EncodeItem(); e.Name != name {
 		return e

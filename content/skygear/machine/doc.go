@@ -24,7 +24,11 @@
 //     monitor.go): the achievement counts, the production record and the
 //     stall alerts.
 //
-// The kinds of other parts of the game (the drawer controller, the
-// dimension gate, the harvester) set the hooks of their Def: Click, Run,
-// Insert, Peek and Extract.
+// The kinds of other features (the drawer controller, the harvester, the
+// tinker table, the nodes of the storage network ...) are declared here like
+// every kind, so that the blocks and items register in one order, and name
+// their feature as Owner. The feature hands the kind's Behaviour (Click, Run,
+// Insert, Peek, Extract, Accepts, Lines, Info) to Register from its Setup;
+// CheckKinds, the machine feature's Check, stops the installation when one
+// did not (kinds.go). This package imports none of those features.
 package machine

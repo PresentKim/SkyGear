@@ -115,9 +115,6 @@ func TestCounterKindsExist(t *testing.T) {
 	}
 	// and the other way round: every machine can be placed for an achievement
 	for _, k := range machine.Order {
-		if k == machine.KindSellBox {
-			continue
-		}
 		found := false
 		for _, c := range achievement.Counters {
 			found = found || c.Key == "place_"+k

@@ -361,8 +361,8 @@ func HopperLines(lang string, h FlowHopper) []string {
 	return append(lines, fmt.Sprintf(i18n.T(lang, "hopper.lines.rate"), float64(h.Info().interval)/20))
 }
 
-// Register registers the hopper blocks and items.
-func Register() {
+// The hopper blocks and items are registered when the package is initialised.
+func init() {
 	for _, id := range HopperOrder {
 		k := hopperKinds[id]
 		k.hash = block.NextHash()

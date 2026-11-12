@@ -28,10 +28,10 @@ import (
 	"github.com/presentkim/skygear/common/resourcepack"
 	"github.com/presentkim/skygear/common/sghook"
 	"github.com/presentkim/skygear/content/skygear"
+	"github.com/presentkim/skygear/content/skygear/core"
 	_ "github.com/presentkim/skygear/content/skygear/locales" // this server's texts
 	"github.com/presentkim/skygear/content/skygear/migrate"
 	"github.com/presentkim/skygear/content/skygear/naming"
-	"github.com/presentkim/skygear/content/skygear/nsmigrate"
 	"github.com/presentkim/skygear/platform"
 	"github.com/presentkim/skygear/platform/account"
 	"github.com/presentkim/skygear/platform/db"
@@ -73,7 +73,7 @@ func run(log *slog.Logger) error {
 	}
 	// Saves from before the rename to SkyGear are converted once, before
 	// the lobby world opens.
-	if err := nsmigrate.Run(log, pconf.Data.Dir, pconf.Backup.Dir); err != nil {
+	if err := migrate.Namespace(log, pconf.Data.Dir, pconf.Backup.Dir); err != nil {
 		return err
 	}
 	conf, err := readServerConfig(log)
@@ -97,9 +97,6 @@ func run(log *slog.Logger) error {
 
 	// Every world is an empty void; the lobby and islands are built on demand.
 	conf.Generator = func(world.Dimension) world.Generator { return world.NopGenerator{} }
-	// The disconnect screen shows text as it is (no translation keys, no
-	// colour codes), so the shutdown message is written out in plain text.
-	conf.ShutdownKick = func(p *player.Player) string { return i18n.T(i18n.Of(p), "platform.shutdown") }
 	// No server-wide join and quit lines: the lobby has no chat, and a save's
 	// players hear of each other only (instance.Manager).
 	conf.JoinMessage, conf.QuitMessage = chat.Translation{}, chat.Translation{}
@@ -161,12 +158,9 @@ func run(log *slog.Logger) error {
 	// Chest windows reach the sessions through hooked connections.
 	sghook.Wrap(&conf)
 	sghook.JoinLog = log
-	if mode := assets.StateProbeMode(); mode != assets.StateProbeOff {
-		sghook.JoinProbe = mode
-	}
 	skygear.LogCustomBlockCounts(log)
 	srv := conf.New()
-	skygear.EditItemEntries(srv)
+	core.EditEntries(srv)
 	lobby := srv.World()
 	lobby.SetSpawn(platform.LobbySpawn)
 	lobby.SetDefaultGameMode(world.GameModeAdventure)
@@ -213,12 +207,20 @@ func run(log *slog.Logger) error {
 		m.CloseAll()
 		account.Flush()
 		close(stopBackup)
+		// The disconnect screen shows text as it is, so the shutdown message
+		// is written out in plain text.
+		platform.DisconnectAll(srv.Players(nil), func(p *player.Player) string { return i18n.T(i18n.Of(p), "platform.shutdown") })
 		if err := srv.Close(); err != nil {
 			log.Error("close server", "err", err)
 		}
 	}()
 
 	srv.Listen()
+	// The edits of the client entries run now, not at the first join: a bad
+	// block or item declaration stops the start.
+	if err := core.CheckEntries(); err != nil {
+		return err
+	}
 	for p := range srv.Accept() {
 		sghook.Attach(p)
 		if pconf.OperatorByNameOnly(p.Name(), p.XUID()) {

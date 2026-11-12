@@ -37,7 +37,7 @@ func TestStorageTellsItemsApartByNBT(t *testing.T) {
 	if (storage.Drawer{Item: plainLog.Grow(-31), Count: 1}).Accepts(log) {
 		t.Error("a drawer of plain logs takes timed logs")
 	}
-	crusher := machine.New(machine.KindCrusher, "", "").State
+	crusher := machine.New(machine.KindCrusher).State
 	cobble := item.NewStack(block.Cobblestone{}, 1)
 	if crusher.Insert(timed.For(cobble, time.Hour)) || !crusher.Insert(cobble) {
 		t.Error("a crusher takes an item with extra NBT or refuses a plain one")

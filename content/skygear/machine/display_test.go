@@ -13,7 +13,7 @@ func displaySlots(st *State) map[int]bool {
 
 // TestNoDisplayWithoutViewers: ticks nobody watches do not write the display.
 func TestNoDisplayWithoutViewers(t *testing.T) {
-	st := New(KindFurnace, "", "").State
+	st := New(KindFurnace).State
 	slots := displaySlots(st)
 	writes := 0
 	st.storage.OnChange(func(slot int, _, _ item.Stack) {
@@ -33,7 +33,7 @@ func TestNoDisplayWithoutViewers(t *testing.T) {
 // TestDisplayFreshOnOpen: a machine that worked unwatched shows its current
 // progress and energy the moment a window opens.
 func TestDisplayFreshOnOpen(t *testing.T) {
-	st := New(KindFurnace, "", "").State
+	st := New(KindFurnace).State
 	st.Progress, st.Energy = st.CycleLen()/2, st.EnergyCap()/2
 	shown := st.ShownPct
 	st.tickDisplay(10, false)

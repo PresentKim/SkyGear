@@ -230,7 +230,7 @@ func areaSlots(a invclick.Area, tipOf func(item.Stack) string) []ui.InvSlot {
 
 // terminalTools are the buttons left of the terminal window, as Refined
 // Storage's grid: the sort direction, the sort kind and the crafting grid.
-// The orders (orderKeys) are count high to low, count low to high, name
+// The orders are count high to low, count low to high, name
 // A to Z and name Z to A.
 func terminalTools(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, lang string, again func(p *player.Player, tx *world.Tx)) []ui.Option {
 	o := orders.Of(s)[p.H()]

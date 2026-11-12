@@ -197,6 +197,10 @@ var migrations = []string{
 		PRIMARY KEY (save_id, to_id)
 	);
 	CREATE INDEX save_invites_to ON save_invites(to_id);`,
+	// 11: the wallet is gone with the shop: the cheque ledger and the money
+	// of a player in a save.
+	`DROP TABLE IF EXISTS cheques;
+	ALTER TABLE save_players DROP COLUMN money;`,
 }
 
 func (d *DB) migrate() error {

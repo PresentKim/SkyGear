@@ -42,9 +42,6 @@ var (
 // GlassTexture is the atlas key of the texture of the glass of colour c.
 func GlassTexture(c item.Colour) string { return "skygear_preview_glass_" + c.String() }
 
-// GlassVanillaTexture is the vanilla texture the glass of colour c points at.
-func GlassVanillaTexture(c item.Colour) string { return "textures/blocks/glass_" + c.SilverString() }
-
 var glassHash = block.NextHash()
 
 // EncodeBlock ...

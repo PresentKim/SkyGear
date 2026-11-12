@@ -156,7 +156,7 @@ func gameRecipes() {
 	add(item.NewStack(machine.Machine{Kind: machine.KindDrawerTrim}, 4), n(iron, 2), n(item.RedstoneWire{}, 1))
 	add(machine.Item(machine.KindTinker), n(item.IronIngot{}, 6), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 2), n(block.CraftingTable{}, 1))
 	add(machine.Item(machine.KindSimulator), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 3), n(block.Glass{}, 3), n(item.RedstoneWire{}, 3))
-	// The dragon egg, the last project's prize (project.go).
+	// The dragon egg, the last project's prize (progress/project.go).
 	add(item.NewStack(block.DragonEgg{}, 1), n(item.EnderEye{}, 1), n(block.Obsidian{}, 8))
 	// The automation equipment.
 	add(machine.Item(machine.KindFurnace), n(iron, 5), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 2))
