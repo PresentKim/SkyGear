@@ -16,13 +16,9 @@ func subscribeMonitor() {
 	})
 }
 
-// A machine breaking or placed is taken down or set up.
+// A placed machine is set up. A broken one takes itself down: its BreakInfo
+// has the handler (Break), which Dragonfly calls for every break.
 func subscribeBlocks() {
-	core.BlockBreak.On(core.Normal, "machine.break", func(e core.BlockBreakEvent) {
-		if b, ok := e.Block.(Machine); ok {
-			Break(e.S, e.Tx, e.Pos, b)
-		}
-	})
 	core.BlockPlace.On(core.Normal, "machine.place", func(e core.BlockPlaceEvent) {
 		if b, ok := e.Block.(Machine); ok {
 			Place(e.S, e.P, e.Tx, e.Pos, b)

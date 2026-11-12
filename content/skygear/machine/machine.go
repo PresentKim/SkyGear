@@ -558,6 +558,10 @@ type State struct {
 	// Facing is the side a network attachment acts on (south when it was
 	// placed without a clicked face).
 	Facing cube.Face
+	// broken is the BreakHandler of the machine's BreakInfo: what Dragonfly
+	// calls when the block was broken and is gone. It is made once with the
+	// state (New), so BreakInfo allocates nothing for it.
+	broken func(pos cube.Pos, tx *world.Tx, u item.User)
 	// pos is where the machine stands, set when it ticks or its window is
 	// opened.
 	pos cube.Pos
@@ -738,6 +742,11 @@ func New(kind string) Machine {
 	}
 	st.ShowProgress()
 	st.ShowEnergy()
+	st.broken = func(pos cube.Pos, tx *world.Tx, _ item.User) {
+		if s, ok := core.Of(tx); ok {
+			Break(s, tx, pos, Machine{Kind: kind, State: st})
+		}
+	}
 	return Machine{Kind: kind, State: st}
 }
 
@@ -1279,10 +1288,18 @@ func (Machine) Category() category.Category { return category.Items() }
 
 // BreakInfo drops the machine and its contents.
 func (m Machine) BreakInfo() block.BreakInfo {
+	// A placed machine takes itself down when it was broken (Break): by a
+	// player, or by an explosion. An item has no state and nothing to take
+	// down.
+	var broken func(cube.Pos, *world.Tx, item.User)
+	if m.State != nil {
+		broken = m.State.broken
+	}
 	return block.BreakInfo{
 		Hardness: 1.5, BlastResistance: 6,
-		Harvestable: func(item.Tool) bool { return true },
-		Effective:   blockmodel.WoodEffective(m.Kind == KindSieve),
+		BreakHandler: broken,
+		Harvestable:  func(item.Tool) bool { return true },
+		Effective:    blockmodel.WoodEffective(m.Kind == KindSieve),
 		Drops: func(item.Tool, []item.Enchantment) []item.Stack {
 			drops := []item.Stack{item.NewStack(Machine{Kind: m.Kind}, 1)}
 			if m.State != nil {
@@ -1881,7 +1898,8 @@ func Place(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, b Mach
 	})
 }
 
-// Break closes the windows of a machine being broken.
+// Break takes down a machine that was broken: the monitor forgets it and its
+// windows close. The machine's BreakInfo calls it when the block is gone.
 func Break(s *core.Session, tx *world.Tx, pos cube.Pos, m Machine) {
 	delete(FactoryOf(s).machines, pos)
 	if m.State != nil {

@@ -277,7 +277,7 @@ func TestPinBlocks(t *testing.T) {
 	// reorders the subscribers (TestTierOrder) has other traces.
 	rows := map[string]string{
 		"StartBreak/own":   "expand.guard island.guard tinker.autoTool",
-		"BlockBreak/stone": "expand.guard island.guard storage.front tinker.break machine.break storage.break farm.break netstore.break achievement.break",
+		"BlockBreak/stone": "expand.guard island.guard storage.front tinker.break storage.break farm.break netstore.break achievement.break",
 		"BlockPlace/dirt":  "expand.guard island.guard machine.place storage.place farm.plant autofill.place netstore.place achievement.place progress.dragonEgg conduit.place",
 	}
 	for name, row := range rows {

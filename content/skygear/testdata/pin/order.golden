@@ -5,7 +5,6 @@ BlockBreak LOWEST expand.guard
 BlockBreak LOW island.guard
 BlockBreak LOW storage.front
 BlockBreak NORMAL farm.break
-BlockBreak NORMAL machine.break
 BlockBreak NORMAL netstore.break
 BlockBreak NORMAL storage.break
 BlockBreak NORMAL tinker.break

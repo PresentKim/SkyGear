@@ -11,6 +11,7 @@ import (
 	"github.com/presentkim/skygear/common/itemnet"
 	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/island"
+	"github.com/presentkim/skygear/content/skygear/machine"
 )
 
 // What a block leaves behind when it goes is cleaned up by the block's own
@@ -71,5 +72,36 @@ func TestBrokenBundleLosesItsDisplay(t *testing.T) {
 				t.Errorf("%s: %d connector plates are still there", c.name, len(l.Plates))
 			}
 		})
+	}
+}
+
+// TestBrokenMachineIsTakenDown: a machine a player breaks is forgotten by the
+// monitor (and its windows close: the same call, machine.Break), and so is
+// one an explosion removes. The machine's BreakInfo does it, which Dragonfly
+// calls for every break; no subscriber of the player's break does.
+func TestBrokenMachineIsTakenDown(t *testing.T) {
+	pos := cube.Pos{4, island.IslandY + 2, 4}
+	for _, c := range []struct {
+		name   string
+		remove func(p *player.Player, tx *world.Tx)
+	}{
+		{"broken by hand", func(p *player.Player, _ *world.Tx) { p.BreakBlock(pos) }},
+		{"blown up", func(_ *player.Player, tx *world.Tx) { blowUp(tx, pos) }},
+	} {
+		s, h := brokenSession(t, pos)
+		placeTestMachine(s, pos, machine.KindCrusher)
+		tick(s, 2)
+		if _, ok := machine.Ticking(s.Session, machine.KindCrusher)[pos]; !ok {
+			t.Fatalf("%s: the monitor does not know the machine", c.name)
+		}
+		withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+			c.remove(p, tx)
+			if _, still := tx.Block(pos).(machine.Machine); still {
+				t.Fatalf("%s: the machine is still there", c.name)
+			}
+		})
+		if _, ok := machine.Ticking(s.Session, machine.KindCrusher)[pos]; ok {
+			t.Errorf("%s: the monitor still lists the machine", c.name)
+		}
 	}
 }
