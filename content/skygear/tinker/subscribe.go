@@ -2,6 +2,7 @@ package tinker
 
 import (
 	"github.com/df-mc/dragonfly/server/item"
+	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/look"
@@ -75,13 +76,19 @@ func subscribeTools() {
 }
 
 // The iron hammer used on the air while sneaking switches diagonal vein
-// mining.
+// mining: the item's own Use (sgitem.Hammer), which Dragonfly calls unless a
+// subscriber cancelled the use. The stone hammer does nothing there.
 func subscribeVeinToggle() {
-	core.Use.On(core.Normal, "tinker.veinToggle", func(e core.UseEvent) {
-		if sgitem.IsIronHammer(e.Held) && e.P.Sneaking() && !e.S.Debounced(e.P) {
-			ToggleVeinDiagonal(e.S, e.P)
+	sgitem.HammerUsed = func(tx *world.Tx, u item.User) {
+		p, ok := u.(*player.Player)
+		s, ok2 := core.Of(tx)
+		if !ok || !ok2 {
+			return
 		}
-	})
+		if held, _ := p.HeldItems(); sgitem.IsIronHammer(held) && p.Sneaking() && !s.Debounced(p) {
+			ToggleVeinDiagonal(s, p)
+		}
+	}
 }
 
 // On the fast tick the vein outline follows the block a player looks at.

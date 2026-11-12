@@ -43,11 +43,7 @@ UseOnEntity NORMAL fairy.touch
 AttackEntity LOWEST dimension.hunter
 AttackEntity NORMAL fairy.touch
 Use LOWEST dimension.hunting
-Use LOWEST dimension.stone
 Use LOWEST screens.menuItem
-Use NORMAL copier.clear
-Use NORMAL tinker.veinToggle
-Use NORMAL wand.options
 Use HIGH autofill.use
 Move LOWEST expand.hold
 Move HIGHEST island.void

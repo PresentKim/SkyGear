@@ -538,7 +538,17 @@ func TestPinUse(t *testing.T) {
 		if extra != nil {
 			ex = effects(sc, extra)
 		}
-		event("Use/"+name, sc, prior, forget, func(hd *core.PlayerHandler, ctx *player.Context, p *player.Player) { hd.HandleItemUse(ctx) }, ex)
+		// The game calls the held item's own Use after the handler, unless
+		// the use was cancelled (Player.UseItem): the copier, the wands, the
+		// hammers and the teleport stone do their work on the air there.
+		event("Use/"+name, sc, prior, forget, func(hd *core.PlayerHandler, ctx *player.Context, p *player.Player) {
+			hd.HandleItemUse(ctx)
+			if h, _ := p.HeldItems(); !ctx.Cancelled() {
+				if u, ok := h.Item().(item.Usable); ok {
+					u.Use(p.Tx(), p, &item.UseContext{})
+				}
+			}
+		}, ex)
 	}
 	veinDiagonal := func(s *session, p *player.Player, tx *world.Tx) string {
 		return fmt.Sprintf("diagonal=%t", account.On(p, tinker.VeinDiagonalSetting))
@@ -589,11 +599,11 @@ func TestPinUse(t *testing.T) {
 	// 3 dimension.hunting
 	onUse("hunting", chain(hunting, holding(stone)), 0, false, held)
 	onUse("huntingStone", chain(hunting, holding(dimStone)), 0, false, held)
-	// 4 dimension.stone
+	// 4 the teleport stone: its own Use (sgitem.DimensionStone)
 	onUse("stone", holding(dimStone), 0, false, held)
 	onUse("stoneRepeat", holding(dimStone), 1, false, held)
 	onUse("stoneAfterWindow", holding(dimStone), 1, true, held)
-	// 5 copier.clear, 6 wand.options, 7 tinker.veinToggle
+	// 5 the copier, 6 the wands, 7 the hammers: their own Use (sgitem)
 	card := &copier.ConfigCard{Kind: copier.CardSide, Side: 4, Sides: []*copier.ConduitCard{{Mode: int(itemnet.Input), Extract: 5, Insert: 9}}}
 	filled := copier.WithCard(copierItem, card, "ko")
 	cardIn := func(s *session, p *player.Player, tx *world.Tx) string {
@@ -700,7 +710,7 @@ func TestPinUse(t *testing.T) {
 
 	rows := map[string]string{
 		"UseOnBlock/plain": "dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther",
-		"Use/plain":        "dimension.hunting dimension.stone screens.menuItem tinker.veinToggle copier.clear wand.options autofill.use",
+		"Use/plain":        "dimension.hunting screens.menuItem autofill.use",
 	}
 	for name, row := range rows {
 		if got := lines[name]; hookOrder == "" && !strings.HasPrefix(got, row+" | ") {
@@ -714,7 +724,7 @@ func TestPinUse(t *testing.T) {
 		"UseOnBlock/expanding":    "dimension.hunting dimension.stone expand.guard | cancelled=true",
 		"UseOnBlock/outside":      "dimension.hunting dimension.stone expand.guard screens.menuItem island.guard | cancelled=true",
 		"UseOnBlock/cropSneaking": "farm.crop island.guardSide expand.guardSide",
-		"Use/menuItemHunting":     "dimension.hunting dimension.stone screens.menuItem | cancelled=true",
+		"Use/menuItemHunting":     "dimension.hunting screens.menuItem | cancelled=true",
 		"AttackEntity/monster":    "dimension.hunter | cancelled=true",
 	} {
 		if got := lines[name]; hookOrder == "" && !strings.Contains(got, want) {

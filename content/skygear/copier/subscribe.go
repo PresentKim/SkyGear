@@ -1,6 +1,9 @@
 package copier
 
 import (
+	"github.com/df-mc/dragonfly/server/item"
+	"github.com/df-mc/dragonfly/server/player"
+	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
@@ -14,7 +17,10 @@ func subscribe() {
 // The configuration copier copies and pastes settings and does nothing else.
 // Where the island does not allow building it leaves the click alone: the
 // island's guard refuses it. A held tool takes the click away from what the
-// block itself would do with it: the Low tier.
+// block itself would do with it: the Low tier. Used on the air the copier is
+// emptied: no block is asked first there, so that is the item's own Use
+// (sgitem.ConfigCopier), which Dragonfly calls unless a subscriber cancelled
+// the use.
 func subscribeUse() {
 	core.UseOnBlock.On(core.Low, "copier.use", func(e core.UseOnBlockEvent) {
 		if _, ok := e.Held.Item().(sgitem.ConfigCopier); ok && island.CanBuild(e.S, e.Pos) {
@@ -23,9 +29,13 @@ func subscribeUse() {
 			UseCopier(e.S, e.P, e.Tx, e.Pos, e.Face, e.Click, e.Held, off)
 		}
 	})
-	core.Use.On(core.Normal, "copier.clear", func(e core.UseEvent) {
-		if _, ok := e.Held.Item().(sgitem.ConfigCopier); ok {
-			ClearCopier(e.S, e.P, e.Held, e.Off)
+	sgitem.CopierUsed = func(tx *world.Tx, u item.User) {
+		p, ok := u.(*player.Player)
+		s, ok2 := core.Of(tx)
+		if !ok || !ok2 {
+			return
 		}
-	})
+		held, off := p.HeldItems()
+		ClearCopier(s, p, held, off)
+	}
 }

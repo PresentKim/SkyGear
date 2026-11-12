@@ -5,35 +5,35 @@ AttackEntity/huntingFairy: dimension.hunter | cancelled=true screens=- gift=fals
 AttackEntity/huntingMonster: dimension.hunter | cancelled=true screens=- held=-
 AttackEntity/monster: dimension.hunter | cancelled=true screens=- held=-
 AttackEntity/other: dimension.hunter fairy.touch | cancelled=false screens=- held=-
-Use/copierEmpty: dimension.hunting dimension.stone screens.menuItem tinker.veinToggle copier.clear wand.options autofill.use | cancelled=false screens=- card=-
-Use/copierFilled: dimension.hunting dimension.stone screens.menuItem tinker.veinToggle copier.clear wand.options autofill.use | cancelled=false screens=- card=-
-Use/copierFilledAfterWindow: dimension.hunting dimension.stone screens.menuItem tinker.veinToggle copier.clear wand.options autofill.use | cancelled=false screens=- card=-
-Use/copierFilledRepeat: dimension.hunting dimension.stone screens.menuItem tinker.veinToggle copier.clear wand.options autofill.use | cancelled=false screens=- card=held
+Use/copierEmpty: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- card=-
+Use/copierFilled: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- card=-
+Use/copierFilledAfterWindow: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- card=-
+Use/copierFilledRepeat: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- card=held
 Use/hunting: dimension.hunting | cancelled=true screens=- held=minecraft:stone:0x3
 Use/huntingStone: dimension.hunting | cancelled=true screens=- held=skygear:dimension_stone:0x1
-Use/ironHammerSneak: dimension.hunting dimension.stone screens.menuItem tinker.veinToggle copier.clear wand.options autofill.use | cancelled=false screens=- held=skygear:hammer:0x1 diagonal=true
-Use/ironHammerSneakAfterWindow: dimension.hunting dimension.stone screens.menuItem tinker.veinToggle copier.clear wand.options autofill.use | cancelled=false screens=- held=skygear:hammer:0x1 diagonal=false
-Use/ironHammerSneakRepeat: dimension.hunting dimension.stone screens.menuItem tinker.veinToggle copier.clear wand.options autofill.use | cancelled=false screens=- held=skygear:hammer:0x1 diagonal=true
-Use/ironHammerStanding: dimension.hunting dimension.stone screens.menuItem tinker.veinToggle copier.clear wand.options autofill.use | cancelled=false screens=- held=skygear:hammer:0x1 diagonal=false
-Use/lastMenuItem: dimension.hunting dimension.stone screens.menuItem | cancelled=true screens=screens.ShowMenu held=minecraft:nether_star:0x1
-Use/lastSnowball: dimension.hunting dimension.stone screens.menuItem tinker.veinToggle copier.clear wand.options autofill.use | cancelled=false screens=- held=minecraft:snowball:0x5
-Use/lastStone: dimension.hunting dimension.stone screens.menuItem tinker.veinToggle copier.clear wand.options autofill.use | cancelled=false screens=- held=minecraft:stone:0x5
-Use/menuItem: dimension.hunting dimension.stone screens.menuItem | cancelled=true screens=screens.ShowMenu held=minecraft:nether_star:0x1
-Use/menuItemAfterWindow: dimension.hunting dimension.stone screens.menuItem | cancelled=true screens=screens.ShowMenu held=minecraft:nether_star:0x1
-Use/menuItemExpanding: dimension.hunting dimension.stone screens.menuItem | cancelled=true screens=expand.showExpandPlane held=minecraft:nether_star:0x1
-Use/menuItemHunting: dimension.hunting dimension.stone screens.menuItem | cancelled=true screens=dimension.ShowRunMenu held=minecraft:nether_star:0x1
-Use/menuItemRepeat: dimension.hunting dimension.stone screens.menuItem | cancelled=true screens=- held=minecraft:nether_star:0x1
-Use/menuItemWatching: dimension.hunting dimension.stone screens.menuItem | cancelled=true screens=dimension.ShowWatchMenu held=minecraft:nether_star:0x1
-Use/plain: dimension.hunting dimension.stone screens.menuItem tinker.veinToggle copier.clear wand.options autofill.use | cancelled=false screens=- held=minecraft:stone:0x3
-Use/stone: dimension.hunting dimension.stone | cancelled=true screens=dimension.ShowWindow held=skygear:dimension_stone:0x1
-Use/stoneAfterWindow: dimension.hunting dimension.stone | cancelled=true screens=dimension.ShowWindow held=skygear:dimension_stone:0x1
-Use/stoneHammerSneak: dimension.hunting dimension.stone screens.menuItem tinker.veinToggle copier.clear wand.options autofill.use | cancelled=false screens=- held=skygear:stone_hammer:0x1 diagonal=false
-Use/stoneRepeat: dimension.hunting dimension.stone | cancelled=true screens=- held=skygear:dimension_stone:0x1
-Use/twoSnowballs: dimension.hunting dimension.stone screens.menuItem tinker.veinToggle copier.clear wand.options autofill.use | cancelled=false screens=- held=minecraft:snowball:0x1
-Use/wandSneak: dimension.hunting dimension.stone screens.menuItem tinker.veinToggle copier.clear wand.options autofill.use | cancelled=false screens=wand.ShowOptions held=skygear:stone_wand:0x1
-Use/wandSneakAfterWindow: dimension.hunting dimension.stone screens.menuItem tinker.veinToggle copier.clear wand.options autofill.use | cancelled=false screens=wand.ShowOptions held=skygear:stone_wand:0x1
-Use/wandSneakRepeat: dimension.hunting dimension.stone screens.menuItem tinker.veinToggle copier.clear wand.options autofill.use | cancelled=false screens=- held=skygear:stone_wand:0x1
-Use/wandStanding: dimension.hunting dimension.stone screens.menuItem tinker.veinToggle copier.clear wand.options autofill.use | cancelled=false screens=- held=skygear:stone_wand:0x1
+Use/ironHammerSneak: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=skygear:hammer:0x1 diagonal=true
+Use/ironHammerSneakAfterWindow: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=skygear:hammer:0x1 diagonal=false
+Use/ironHammerSneakRepeat: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=skygear:hammer:0x1 diagonal=true
+Use/ironHammerStanding: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=skygear:hammer:0x1 diagonal=false
+Use/lastMenuItem: dimension.hunting screens.menuItem | cancelled=true screens=screens.ShowMenu held=minecraft:nether_star:0x1
+Use/lastSnowball: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=minecraft:snowball:0x5
+Use/lastStone: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=minecraft:stone:0x5
+Use/menuItem: dimension.hunting screens.menuItem | cancelled=true screens=screens.ShowMenu held=minecraft:nether_star:0x1
+Use/menuItemAfterWindow: dimension.hunting screens.menuItem | cancelled=true screens=screens.ShowMenu held=minecraft:nether_star:0x1
+Use/menuItemExpanding: dimension.hunting screens.menuItem | cancelled=true screens=expand.showExpandPlane held=minecraft:nether_star:0x1
+Use/menuItemHunting: dimension.hunting screens.menuItem | cancelled=true screens=dimension.ShowRunMenu held=minecraft:nether_star:0x1
+Use/menuItemRepeat: dimension.hunting screens.menuItem | cancelled=true screens=- held=minecraft:nether_star:0x1
+Use/menuItemWatching: dimension.hunting screens.menuItem | cancelled=true screens=dimension.ShowWatchMenu held=minecraft:nether_star:0x1
+Use/plain: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=minecraft:stone:0x3
+Use/stone: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=dimension.ShowWindow held=skygear:dimension_stone:0x1
+Use/stoneAfterWindow: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=dimension.ShowWindow held=skygear:dimension_stone:0x1
+Use/stoneHammerSneak: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=skygear:stone_hammer:0x1 diagonal=false
+Use/stoneRepeat: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=skygear:dimension_stone:0x1
+Use/twoSnowballs: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=minecraft:snowball:0x1
+Use/wandSneak: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=wand.ShowOptions held=skygear:stone_wand:0x1
+Use/wandSneakAfterWindow: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=wand.ShowOptions held=skygear:stone_wand:0x1
+Use/wandSneakRepeat: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=skygear:stone_wand:0x1
+Use/wandStanding: dimension.hunting screens.menuItem autofill.use | cancelled=false screens=- held=skygear:stone_wand:0x1
 UseOnBlock/arena: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard | cancelled=true screens=- held=minecraft:stone:0x3
 UseOnBlock/boneMealCrop: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop | cancelled=true screens=- held=minecraft:bone_meal:0x3 dropped=none block=block.WheatSeeds
 UseOnBlock/boneMealCropSneaking: dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use conduit.plate storage.sneakUse fairy.time | cancelled=true screens=- held=minecraft:bone_meal:0x3 dropped=none block=block.WheatSeeds

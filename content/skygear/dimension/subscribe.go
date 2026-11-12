@@ -3,6 +3,7 @@ package dimension
 import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
+	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
@@ -99,9 +100,16 @@ func subscribeUse() {
 			e.Cancel()
 		}
 	})
-	core.Use.On(core.Lowest, "dimension.stone", func(e core.UseEvent) {
-		useStone(e.Actor, e.Held)
-	})
+	// On the air no block is asked before the item: the stone opens its
+	// window in its own Use (sgitem.DimensionStone), which Dragonfly calls
+	// unless a subscriber cancelled the use (a hunter's: dimension.hunting).
+	sgitem.StoneUsed = func(tx *world.Tx, u item.User) {
+		p, ok := u.(*player.Player)
+		s, ok2 := core.Of(tx)
+		if ok && ok2 && !Hunting(s, p) && !s.Debounced(p) {
+			ShowWindow(s, p, "")
+		}
+	}
 	core.UseOnEntity.On(core.Lowest, "dimension.hunting", func(e core.EntityEvent) {
 		if Hunting(e.S, e.P) {
 			e.Cancel()
@@ -114,8 +122,8 @@ func subscribeUse() {
 	})
 }
 
-// useStone opens the second dimension's window for a held teleport stone,
-// on a block or the air, and cancels the click it took. A hunter's stone
+// useStone opens the second dimension's window for a teleport stone held on a
+// block, and cancels the click it took: the block under it must not open. A hunter's stone
 // opens nothing: the hunter's use is refused (dimension.hunting).
 func useStone(a core.Actor, held item.Stack) {
 	if _, ok := held.Item().(sgitem.DimensionStone); !ok || Hunting(a.S, a.P) {
