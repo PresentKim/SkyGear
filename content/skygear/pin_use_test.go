@@ -696,7 +696,7 @@ func TestPinUse(t *testing.T) {
 	pinCheckReached(t, names, lines)
 
 	rows := map[string]string{
-		"UseOnBlock/plain": "dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use machine.noteFace conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide",
+		"UseOnBlock/plain": "dimension.hunting dimension.stone expand.guard screens.menuItem island.guard copier.use wand.use machine.noteFace conduit.plate storage.sneakUse fairy.time handwork.stick handwork.gather farm.composter farm.crop island.guardSide expand.guardSide handwork.stickOther",
 		"Use/plain":        "dimension.hunting dimension.stone screens.menuItem tinker.veinToggle copier.clear wand.options autofill.use",
 	}
 	for name, row := range rows {

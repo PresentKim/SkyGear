@@ -59,10 +59,7 @@ func subscribeBlocks() {
 	})
 }
 
-// A sneaking player uses a drawer with a held item that is no block. It is
-// registered before handwork.stick, in the same tier, and takes the click
-// first (a stick opens the drawer's menu and counts no stick use): that order
-// is one of the exceptions the tier order guard keeps (the root's orderKept).
+// A sneaking player uses a drawer with a held item that is no block.
 func subscribeSneakUse() {
 	core.UseOnBlock.Handle(core.Normal, "storage.sneakUse", func(e core.UseOnBlockEvent) bool {
 		if SneakUse(e.S, e.P, e.Tx, e.Pos, e.Held) {

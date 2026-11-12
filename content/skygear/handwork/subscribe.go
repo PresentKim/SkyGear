@@ -7,14 +7,10 @@ func subscribe() {
 	subscribeUse()
 }
 
-// A stick opens or fills a chest and strips; a bare hand strips fibre and
-// tills seeds.
-//
-// handwork.stick also counts a stick used on any other block, when the click
-// reaches it. storage.sneakUse and conduit.plate are in the same tier, are
-// registered before it and take such a click first, so it counts nothing:
-// that order is one of the exceptions the tier order guard keeps (the root's
-// orderKept).
+// A stick fills a chest (sneaking) and knocks pebbles out of grass and dirt;
+// a bare hand strips fibre and tills seeds. A stick used on any other block
+// is recorded when the click went through (nothing cancelled it): the record
+// handles the result, Monitor.
 func subscribeUse() {
 	core.UseOnBlock.Handle(core.Normal, "handwork.stick", func(e core.UseOnBlockEvent) bool {
 		if UseStickOnChest(e.S, e.P, e.Tx, e.Pos, e.Held) || UseStick(e.S, e.P, e.Tx, e.Pos, e.Face, e.Held) {
@@ -26,5 +22,8 @@ func subscribeUse() {
 	core.UseOnBlock.On(core.Normal, "handwork.gather", func(e core.UseOnBlockEvent) {
 		StripFiber(e.S, e.P, e.Tx, e.Pos, e.Face, e.Held)
 		TillSeeds(e.S, e.P, e.Tx, e.Pos, e.Face, e.Held)
+	})
+	core.UseOnBlock.On(core.Monitor, "handwork.stickOther", func(e core.UseOnBlockEvent) {
+		CountStickOther(e.S, e.P, e.Tx, e.Pos, e.Held)
 	})
 }

@@ -38,6 +38,7 @@ UseOnBlock HIGH farm.composter
 UseOnBlock HIGH farm.crop
 UseOnBlock HIGHEST island.guardSide
 UseOnBlock HIGHEST expand.guardSide
+UseOnBlock MONITOR handwork.stickOther
 UseOnEntity LOWEST dimension.hunting
 UseOnEntity NORMAL fairy.touch
 AttackEntity LOWEST dimension.hunter

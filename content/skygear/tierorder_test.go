@@ -43,10 +43,6 @@ var pinDump = os.Getenv("SKYGEAR_PIN_DUMP")
 // kept until it is decided how to remove it (docs/tech/extension.md); the
 // list does not grow.
 var orderKept = []string{
-	// a click the drawer menu or a connector plate takes counts no stick use
-	// (handwork.stick counts "stick_other" when the click reaches it)
-	"UseOnBlock storage.sneakUse handwork.stick",
-	"UseOnBlock conduit.plate handwork.stick",
 	// a connector plate's settings open before the hourglass in hand winds
 	// the machine the plate is on
 	"UseOnBlock conduit.plate fairy.time",

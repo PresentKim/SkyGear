@@ -97,9 +97,6 @@ func UseStick(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, fac
 	switch tx.Block(pos).(type) {
 	case block.Grass, block.Dirt:
 	default:
-		if !stickDebounced(s, p) {
-			achievement.Count(p, "stick_other", 1)
-		}
 		return false
 	}
 	if stickDebounced(s, p) {
@@ -120,6 +117,21 @@ func UseStick(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, fac
 	achievement.Count(p, "pebble_"+pebble.Kind, 1)
 	s.DropAt(tx, pos.Side(face).Vec3Centre(), item.NewStack(pebble, 1))
 	return true
+}
+
+// CountStickOther records a stick used on a block that is neither grass nor
+// dirt ("stick_other"); the same click sent twice counts once.
+func CountStickOther(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, held item.Stack) {
+	if _, ok := held.Item().(item.Stick); !ok {
+		return
+	}
+	switch tx.Block(pos).(type) {
+	case block.Grass, block.Dirt:
+		return
+	}
+	if !stickDebounced(s, p) {
+		achievement.Count(p, "stick_other", 1)
+	}
 }
 
 // StripFiber drops bark fibers by chance when a bark stripper (any axe, or

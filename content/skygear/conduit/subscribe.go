@@ -51,10 +51,9 @@ func subscribeBlocks() {
 // that conduit (a click on the conduit itself is ConduitBundle.Activate).
 // Sneaking places blocks instead.
 //
-// conduit.plate is registered before handwork.stick and fairy.time, which are
-// in the same tier, and takes the click first: a stick on a plate counts no
-// stick use and an hourglass on a plate opens the settings. That order is one
-// of the exceptions the tier order guard keeps (the root's orderKept).
+// conduit.plate is registered before fairy.time, which is in the same tier,
+// and takes the click first: an hourglass on a plate opens the settings. That
+// order is the exception the tier order guard keeps (the root's orderKept).
 func subscribePlate() {
 	core.UseOnBlock.Handle(core.Normal, "conduit.plate", func(e core.UseOnBlockEvent) bool {
 		if !e.P.Sneaking() && UsePlate(e.S, e.P, e.Tx, e.Pos, e.Face, e.Click, e.Held) {
