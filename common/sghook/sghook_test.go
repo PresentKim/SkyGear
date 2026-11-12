@@ -29,6 +29,7 @@ func TestInternals(t *testing.T) {
 	field[map[uuid.UUID]struct{}](s, "hiddenEntities")
 	field[world.BlockRegistry](s, "br")
 	field[int32](s, "chunkRadius")
+	field[*world.Loader](s, "chunkLoader")
 	field[[]protocol.ItemEntry](&server.Server{}, "customItems")
 	if sf, ok := reflect.TypeFor[server.Server]().FieldByName("customBlocks"); !ok || sf.Type != reflect.TypeFor[[]protocol.BlockEntry]() {
 		t.Fatal("server.Server has no field customBlocks []protocol.BlockEntry: Dragonfly moved the custom block entries, update EditCustomBlocks")

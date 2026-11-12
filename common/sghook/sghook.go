@@ -39,6 +39,7 @@ type Conn struct {
 	sess      atomic.Pointer[session.Session]
 	closeOnce sync.Once
 	join      joinMarks
+	cache     chunkCacheStats
 }
 
 // Session returns the session of the connection, once Of found it.
