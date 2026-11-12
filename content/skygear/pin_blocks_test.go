@@ -277,7 +277,7 @@ func TestPinBlocks(t *testing.T) {
 	// reorders the subscribers (TestTierOrder) has other traces.
 	rows := map[string]string{
 		"StartBreak/own":   "expand.guard island.guard tinker.autoTool",
-		"BlockBreak/stone": "expand.guard island.guard tinker.break machine.break conduit.break storage.break farm.break netstore.break achievement.break",
+		"BlockBreak/stone": "expand.guard island.guard storage.front tinker.break machine.break conduit.break storage.break farm.break netstore.break achievement.break",
 		"BlockPlace/dirt":  "expand.guard island.guard machine.place storage.place farm.plant autofill.place netstore.place achievement.place progress.dragonEgg conduit.place",
 	}
 	for name, row := range rows {
@@ -293,8 +293,8 @@ func TestPinBlocks(t *testing.T) {
 			t.Errorf("%s/expanding: %q, want prefix %q", name, got, want)
 		}
 	}
-	if got := lines["BlockBreak/drawerFront"]; hookOrder == "" && !strings.HasPrefix(got, rows["BlockBreak/stone"]+" | cancelled=true") {
-		t.Errorf("BlockBreak/drawerFront: %q", got)
+	if got, want := lines["BlockBreak/drawerFront"], "expand.guard island.guard storage.front | cancelled=true"; hookOrder == "" && !strings.HasPrefix(got, want) {
+		t.Errorf("BlockBreak/drawerFront: %q, want prefix %q", got, want)
 	}
 	if got := lines["BlockBreak/hammerCobble"]; !strings.Contains(got, "drops="+naming.ItemKey(block.Gravel{})+"x1") {
 		t.Errorf("BlockBreak/hammerCobble: %q lacks the hammer's drop", got)

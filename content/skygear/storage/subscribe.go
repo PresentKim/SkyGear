@@ -2,6 +2,7 @@ package storage
 
 import (
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/machine"
 )
 
@@ -20,17 +21,25 @@ func subscribeDisplays() {
 	})
 }
 
-// Hitting a drawer's front takes items out and never mines it; another drawer
-// loses its display. A set machine breaking or placed invalidates the
-// networks; a placed drawer is set up.
+// Hitting a drawer's front takes items out and never mines it: the break
+// that ends such a hit is refused before any step works on the block (Low),
+// where the island allows building (elsewhere the island's guard refuses it).
+// A drawer that does break loses its display. A set machine breaking or
+// placed invalidates the networks; a placed drawer is set up.
 func subscribeBlocks() {
+	core.BlockBreak.Handle(core.Low, "storage.front", func(e core.BlockBreakEvent) bool {
+		if _, ok := e.Block.(Drawer); !ok {
+			return false
+		}
+		if lp, ok := LastPunch.Of(e.S)[e.P.H()]; ok && lp.Pos == e.Pos && lp.Front && island.CanBuild(e.S, e.Pos) {
+			e.Cancel()
+			return true
+		}
+		return false
+	})
 	core.BlockBreak.On(core.Normal, "storage.break", func(e core.BlockBreakEvent) {
 		switch b := e.Block.(type) {
 		case Drawer:
-			if lp, ok := LastPunch.Of(e.S)[e.P.H()]; ok && lp.Pos == e.Pos && lp.Front {
-				e.Cancel()
-				return
-			}
 			RemoveDisplay(e.S, e.Tx, e.Pos)
 		case machine.Machine:
 			if IsSetMachine(b.Kind) {

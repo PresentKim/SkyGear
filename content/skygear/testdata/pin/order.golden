@@ -3,6 +3,7 @@ StartBreak LOW island.guard
 StartBreak NORMAL tinker.autoTool
 BlockBreak LOWEST expand.guard
 BlockBreak LOW island.guard
+BlockBreak LOW storage.front
 BlockBreak NORMAL tinker.break
 BlockBreak NORMAL machine.break
 BlockBreak NORMAL conduit.break
