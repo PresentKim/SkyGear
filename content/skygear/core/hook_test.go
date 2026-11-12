@@ -324,6 +324,81 @@ func TestRegisterAfterEmitPanics(t *testing.T) {
 	h.On(Normal, "b", func(int) {})
 }
 
+// TestRegisterAfterEmitPanicsForEveryKind: after the first Emit, live or
+// cancelled, a hook refuses a subscriber of every kind (On, Handle, Always),
+// and refuses none of them before it.
+func TestRegisterAfterEmitPanicsForEveryKind(t *testing.T) {
+	kinds := map[string]func(h *Hook[int], name string){
+		"on":     func(h *Hook[int], name string) { h.On(Normal, name, func(int) {}) },
+		"handle": func(h *Hook[int], name string) { h.Handle(Normal, name, func(int) bool { return false }) },
+		"always": func(h *Hook[int], name string) { h.Always(Monitor, name, func(int, bool) {}) },
+	}
+	for _, cancel := range []bool{false, true} {
+		for kind, add := range kinds {
+			ResetHooks()
+			h := NewHook[int]("late")
+			h.Handle(Low, "stop", func(int) bool { return cancel })
+			for other, add := range kinds {
+				add(h, "before."+other)
+			}
+			if h.Emit(0) != cancel {
+				t.Fatalf("cancel=%t: Emit did not report it", cancel)
+			}
+			func() {
+				defer mustPanic(t, "late", "after."+kind, "after the first Emit")
+				add(h, "after."+kind)
+			}()
+		}
+	}
+}
+
+// TestEmitConcurrentWithCancelAndAlways: many goroutines emit an event that a
+// Handle subscriber cancels; every Emit reports the cancel, the On and Always
+// subscribers before it run once with false, the Always subscribers after it
+// run once with true, the On subscribers after it never.
+func TestEmitConcurrentWithCancelAndAlways(t *testing.T) {
+	ResetHooks()
+	h := NewHook[int]("conccancel")
+	var onBefore, alwaysBeforeLive, alwaysBeforeCancelled, onAfter, alwaysAfterLive, alwaysAfterCancelled atomic.Int64
+	count := func(live, cancelled *atomic.Int64) func(int, bool) {
+		return func(_ int, c bool) {
+			if c {
+				cancelled.Add(1)
+			} else {
+				live.Add(1)
+			}
+		}
+	}
+	h.On(Lowest, "on.before", func(int) { onBefore.Add(1) })
+	h.Always(Low, "always.before", count(&alwaysBeforeLive, &alwaysBeforeCancelled))
+	h.Handle(Normal, "stop", func(int) bool { return true })
+	h.On(Normal, "on.after", func(int) { onAfter.Add(1) })
+	h.Always(High, "always.after", count(&alwaysAfterLive, &alwaysAfterCancelled))
+	h.On(Monitor, "monitor.after", func(int) { onAfter.Add(1) })
+	const goroutines, emits = 16, 1000
+	var notCancelled atomic.Int64
+	var wg sync.WaitGroup
+	for g := 0; g < goroutines; g++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for i := 0; i < emits; i++ {
+				if !h.Emit(1) {
+					notCancelled.Add(1)
+				}
+			}
+		}()
+	}
+	wg.Wait()
+	const n = goroutines * emits
+	if notCancelled.Load() != 0 || onBefore.Load() != n || alwaysBeforeLive.Load() != n || alwaysBeforeCancelled.Load() != 0 ||
+		onAfter.Load() != 0 || alwaysAfterLive.Load() != 0 || alwaysAfterCancelled.Load() != n {
+		t.Fatalf("not cancelled %d, on before %d, always before %d/%d (live/cancelled), on after %d, always after %d/%d",
+			notCancelled.Load(), onBefore.Load(), alwaysBeforeLive.Load(), alwaysBeforeCancelled.Load(),
+			onAfter.Load(), alwaysAfterLive.Load(), alwaysAfterCancelled.Load())
+	}
+}
+
 func TestEmptyEmitStillSealsRegistration(t *testing.T) {
 	ResetHooks()
 	h := NewHook[int]("early")
