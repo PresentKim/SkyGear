@@ -118,16 +118,11 @@ func arrow(turns int) image.Image {
 	return img
 }
 
-// chevron draws the "<" of the back button in pixels, two pixels thick.
+// chevron draws the "<" of the back button in pixels, one pixel thick.
 func chevron() image.Image {
-	img := image.NewNRGBA(image.Rect(0, 0, 16, 16))
-	set := func(x, y int) {
-		img.SetNRGBA(x, y, color.NRGBA{255, 255, 255, 255})
-		img.SetNRGBA(x+1, y, color.NRGBA{255, 255, 255, 255})
-	}
-	for i := range 6 {
-		set(10-i, 2+i)
-		set(5+i, 8+i)
+	img := image.NewNRGBA(image.Rect(0, 0, 15, 15))
+	for i, x := range []int{8, 7, 6, 7, 8} {
+		img.SetNRGBA(x, 5+i, color.NRGBA{255, 255, 255, 255})
 	}
 	return img
 }
