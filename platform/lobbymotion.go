@@ -11,8 +11,8 @@ import (
 	"github.com/presentkim/skygear/common/sghook"
 )
 
-// The lobby camera drifts around the island and the character idles and
-// gestures, sent to that player's client only.
+// The lobby camera drifts around the island and the character's model
+// (showLobbyModel) idles and gestures, sent to that player's client only.
 
 // lobbyGlide is how long the camera takes from one stop to the next; a new
 // stop is sent as the camera arrives, so it never rests.
@@ -90,7 +90,7 @@ func moveLobbyScene(p *player.Player, now time.Time) {
 		m.nextCamera = now.Add(lobbyGlide)
 	}
 	if !now.Before(m.nextGesture) {
-		sghook.Animate(p, lobbyGestures[rand.IntN(len(lobbyGestures))])
+		sghook.AnimateEntity(p, lobbyModelID, lobbyGestures[rand.IntN(len(lobbyGestures))])
 		m.nextGesture = now.Add(time.Duration(25+rand.IntN(15)) * time.Second)
 		m.nextLook = now.Add(5 * time.Second)
 		return
@@ -101,7 +101,7 @@ func moveLobbyScene(p *player.Player, now time.Time) {
 			next++ // never the same move twice
 		}
 		m.idle = next
-		sghook.Animate(p, lobbyIdles[next])
+		sghook.AnimateEntity(p, lobbyModelID, lobbyIdles[next])
 		m.nextLook = now.Add(time.Duration(5+rand.IntN(5)) * time.Second)
 	}
 }

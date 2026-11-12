@@ -5,9 +5,11 @@ package sghook
 
 import (
 	"sync"
+	_ "unsafe" // go:linkname
 
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/player"
+	"github.com/df-mc/dragonfly/server/player/skin"
 	"github.com/df-mc/dragonfly/server/player/title"
 	"github.com/df-mc/dragonfly/server/session"
 	"github.com/df-mc/dragonfly/server/world"
@@ -76,15 +78,77 @@ const selfRuntimeID = 1
 // Animate plays the resource pack animation name once on p's own player for
 // p's client only, over whatever the player model is doing (the way the
 // script API's playAnimation does). The server's player does not change.
-func Animate(p *player.Player, name string) {
+func Animate(p *player.Player, name string) { AnimateEntity(p, selfRuntimeID, name) }
+
+// AnimateEntity is Animate on the entity p's client knows by runtimeID (a
+// fake player of ViewFakePlayer).
+func AnimateEntity(p *player.Player, runtimeID uint64, name string) {
 	write(p, &packet.AnimateEntity{
 		Animation:        name,
 		NextState:        "default",
 		StopCondition:    "query.any_animation_finished",
 		Controller:       "__runtime_controller",
 		BlendOutTime:     0.2,
-		EntityRuntimeIDs: []uint64{selfRuntimeID},
+		EntityRuntimeIDs: []uint64{runtimeID},
 	})
+}
+
+// FakePlayer is a player model shown to one client only, in no world: it
+// stands where it was put, turned the way it was put, with the skin given.
+type FakePlayer struct {
+	// RuntimeID is the ID the client knows it by. It must not be one the
+	// session gives the world's entities (those count up from 1): a high
+	// number is safe.
+	RuntimeID uint64
+	Pos       mgl64.Vec3
+	// Yaw is the way it faces (degrees, 0 south).
+	Yaw  float64
+	Skin skin.Skin
+}
+
+// ViewFakePlayer shows f to p only: the skin goes in the player list for as
+// long as the model is added, and out again, so the list shows no one new.
+// A model of the same runtime ID shown before is removed first.
+func ViewFakePlayer(p *player.Player, f FakePlayer) {
+	if Session(p) == session.Nop {
+		return
+	}
+	RemoveFakeEntity(p, f.RuntimeID)
+	id := uuid.New()
+	write(p, &packet.PlayerList{Entries: []protocol.PlayerListEntry{{
+		ActionType:     protocol.PlayerListActionAdd,
+		UUID:           id,
+		EntityUniqueID: int64(f.RuntimeID),
+		BuildPlatform:  int32(protocol.DeviceUnknown),
+		Skin:           session_skinToProtocol(f.Skin),
+	}}})
+	meta := protocol.NewEntityMetadata()
+	meta[protocol.EntityDataKeyWidth] = float32(0.6)
+	meta[protocol.EntityDataKeyHeight] = float32(1.8)
+	meta[protocol.EntityDataKeyScale] = float32(1)
+	meta[protocol.EntityDataKeyName] = ""
+	meta[protocol.EntityDataKeyAlwaysShowNameTag] = byte(0)
+	write(p, &packet.AddPlayer{
+		UUID:            id,
+		EntityRuntimeID: f.RuntimeID,
+		Position:        vec32(f.Pos),
+		Yaw:             float32(f.Yaw),
+		HeadYaw:         float32(f.Yaw),
+		GameType:        packet.GameTypeAdventure,
+		EntityMetadata:  meta,
+		BuildPlatform:   int32(protocol.DeviceUnknown),
+		AbilityData: protocol.AbilityData{
+			EntityUniqueID: int64(f.RuntimeID),
+			Layers:         []protocol.AbilityLayer{{Type: protocol.AbilityLayerTypeBase, Abilities: protocol.AbilityCount - 1}},
+		},
+	})
+	write(p, &packet.PlayerList{Entries: []protocol.PlayerListEntry{{ActionType: protocol.PlayerListActionRemove, UUID: id}}})
+}
+
+// RemoveFakeEntity removes the entity p's client knows by runtimeID that
+// only it was shown (ViewFakePlayer).
+func RemoveFakeEntity(p *player.Player, runtimeID uint64) {
+	write(p, &packet.RemoveActor{EntityUniqueID: int64(runtimeID)})
 }
 
 // ClearCamera returns p's camera to normal.
@@ -222,3 +286,6 @@ func SendTitle(p *player.Player, t title.Title, rawJSON bool) {
 func vec32(v mgl64.Vec3) mgl32.Vec3 {
 	return mgl32.Vec3{float32(v[0]), float32(v[1]), float32(v[2])}
 }
+
+//go:linkname session_skinToProtocol github.com/df-mc/dragonfly/server/session.skinToProtocol
+func session_skinToProtocol(skin.Skin) protocol.Skin
