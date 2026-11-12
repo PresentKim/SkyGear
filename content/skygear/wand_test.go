@@ -110,7 +110,7 @@ func TestAutofillPlace(t *testing.T) {
 }
 
 // TestPreviewGlassBlock: there is a preview glass for every colour, each
-// drawing the vanilla stained glass of its colour on a slightly bigger cube, with collision and
+// drawing the vanilla stained glass of its colour, with collision and
 // selection boxes of no size (a point off the corner, as an all-zero box
 // means none set and the full cube), and none is an item to give. The wand
 // shows green and the hammer's vein blue.
@@ -121,10 +121,8 @@ func TestPreviewGlassBlock(t *testing.T) {
 	for _, c := range item.Colours() {
 		g := preview.Glass{Colour: c}
 		props := g.Properties()
-		// a cube a little bigger than the cell, so a solid block sharing the
-		// cell does not hide the glass behind its faces
-		if props.Geometry != preview.GlassGeometry {
-			t.Fatalf("%v: properties %+v, want geometry %s", c, props, preview.GlassGeometry)
+		if !props.Cube {
+			t.Fatalf("%v: properties %+v, want a cube", c, props)
 		}
 		for name, box := range map[string]cube.BBox{"collision": props.CollisionBox, "selection": props.SelectionBox} {
 			if box == (cube.BBox{}) {

@@ -60,19 +60,10 @@ func (Glass) Model() world.BlockModel { return model.Empty{} }
 // point sits off the corner.
 var noBox = cube.Box(0.5, 0.5, 0.5, 0.5, 0.5, 0.5)
 
-// GlassGeometry is the model of Glass (models/blocks/preview_glass.geo.json):
-// a cube a tenth of a pixel bigger than the cell on every side. A glass the
-// size of the cell lies in the faces of a solid block it shares the cell
-// with (the iron hammer's glass on the liquid layer of a block to be
-// broken): the client draws the block's faces first and the glass, in the
-// same plane, fails the depth test and does not show.
-const GlassGeometry = "geometry.skygear_preview_glass"
-
-// Properties are a slightly bigger cube of blended glass with boxes of no
-// size.
+// Properties are a cube of blended glass with boxes of no size.
 func (g Glass) Properties() customblock.Properties {
 	return customblock.Properties{
-		Geometry:     GlassGeometry,
+		Cube:         true,
 		Textures:     map[string]customblock.Material{"*": customblock.NewMaterial(GlassTexture(g.Colour), customblock.BlendRenderMethod())},
 		CollisionBox: noBox,
 		SelectionBox: noBox,
