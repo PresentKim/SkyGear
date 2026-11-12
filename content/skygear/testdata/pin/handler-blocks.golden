@@ -1,20 +1,20 @@
-BlockBreak/barrel: expand.guard island.guard storage.front tinker.break machine.break conduit.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:stone:0x1,minecraft:clay:0x3 xp=0
-BlockBreak/bundle: expand.guard island.guard storage.front tinker.break machine.break conduit.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0
-BlockBreak/composter: expand.guard island.guard storage.front tinker.break machine.break conduit.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:stone:0x1,minecraft:dirt:0x1 xp=0
-BlockBreak/crookLeaves: expand.guard island.guard storage.front tinker.break machine.break conduit.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:birch_sapling:0x1 xp=0
-BlockBreak/crookStone: expand.guard island.guard storage.front tinker.break machine.break conduit.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0
-BlockBreak/drawer: expand.guard island.guard storage.front tinker.break machine.break conduit.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0
+BlockBreak/barrel: expand.guard island.guard storage.front tinker.break machine.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:stone:0x1,minecraft:clay:0x3 xp=0
+BlockBreak/bundle: expand.guard island.guard storage.front tinker.break machine.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0
+BlockBreak/composter: expand.guard island.guard storage.front tinker.break machine.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:stone:0x1,minecraft:dirt:0x1 xp=0
+BlockBreak/crookLeaves: expand.guard island.guard storage.front tinker.break machine.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:birch_sapling:0x1 xp=0
+BlockBreak/crookStone: expand.guard island.guard storage.front tinker.break machine.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0
+BlockBreak/drawer: expand.guard island.guard storage.front tinker.break machine.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0
 BlockBreak/drawerFront: expand.guard island.guard storage.front | cancelled=true drops=minecraft:stone:0x1 xp=0
-BlockBreak/drawerSidePunch: expand.guard island.guard storage.front tinker.break machine.break conduit.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0
+BlockBreak/drawerSidePunch: expand.guard island.guard storage.front tinker.break machine.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0
 BlockBreak/expanding: expand.guard | cancelled=true drops=minecraft:stone:0x1 xp=0
-BlockBreak/hammerCobble: expand.guard island.guard storage.front tinker.break machine.break conduit.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:gravel:0x1 xp=0
-BlockBreak/hammerComposter: expand.guard island.guard storage.front tinker.break machine.break conduit.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:stone:0x1,minecraft:dirt:0x1 xp=0
-BlockBreak/machine: expand.guard island.guard storage.front tinker.break machine.break conduit.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0
-BlockBreak/netNode: expand.guard island.guard storage.front tinker.break machine.break conduit.break storage.break farm.break netstore.break achievement.break netstore.breakDeferred | cancelled=false drops=minecraft:stone:0x1 xp=0 filter=0
+BlockBreak/hammerCobble: expand.guard island.guard storage.front tinker.break machine.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:gravel:0x1 xp=0
+BlockBreak/hammerComposter: expand.guard island.guard storage.front tinker.break machine.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:stone:0x1,minecraft:dirt:0x1 xp=0
+BlockBreak/machine: expand.guard island.guard storage.front tinker.break machine.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0
+BlockBreak/netNode: expand.guard island.guard storage.front tinker.break machine.break storage.break farm.break netstore.break achievement.break netstore.breakDeferred | cancelled=false drops=minecraft:stone:0x1 xp=0 filter=0
 BlockBreak/outside: expand.guard island.guard | cancelled=true drops=minecraft:stone:0x1 xp=0
-BlockBreak/setMachine: expand.guard island.guard storage.front tinker.break machine.break conduit.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0
-BlockBreak/stone: expand.guard island.guard storage.front tinker.break machine.break conduit.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0
-BlockBreak/tinkerTool: expand.guard island.guard storage.front tinker.break machine.break conduit.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0 toolxp=1
+BlockBreak/setMachine: expand.guard island.guard storage.front tinker.break machine.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0
+BlockBreak/stone: expand.guard island.guard storage.front tinker.break machine.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0
+BlockBreak/tinkerTool: expand.guard island.guard storage.front tinker.break machine.break storage.break farm.break netstore.break achievement.break | cancelled=false drops=minecraft:stone:0x1 xp=0 toolxp=1
 BlockPlace/bundle: expand.guard island.guard machine.place storage.place farm.plant autofill.place netstore.place achievement.place progress.dragonEgg conduit.place | cancelled=false held=-
 BlockPlace/crop: expand.guard island.guard machine.place storage.place farm.plant autofill.place netstore.place achievement.place progress.dragonEgg conduit.place | cancelled=false crop=beetroot held=minecraft:beetroot_seeds:0x1
 BlockPlace/dirt: expand.guard island.guard machine.place storage.place farm.plant autofill.place netstore.place achievement.place progress.dragonEgg conduit.place | cancelled=false block=block.Air held=minecraft:dirt:0x1

@@ -31,14 +31,10 @@ func subscribeShares() {
 	})
 }
 
-// A conduit bundle breaking loses its visual; a placed one counts (a record:
-// Monitor).
+// A placed conduit bundle counts (a record: Monitor). A bundle that goes
+// needs no subscriber: Bundle.BlockChanged takes it out of the grids and
+// removes its display, whoever removed it.
 func subscribeBlocks() {
-	core.BlockBreak.On(core.Normal, "conduit.break", func(e core.BlockBreakEvent) {
-		if _, ok := e.Block.(Bundle); ok {
-			RemoveVisual(e.S, e.Tx, e.Pos)
-		}
-	})
 	core.BlockPlace.On(core.Monitor, "conduit.place", func(e core.BlockPlaceEvent) {
 		if _, ok := e.Block.(Bundle); ok {
 			achievement.Count(e.P, "conduit_place", 1)
