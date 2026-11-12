@@ -69,7 +69,6 @@ Death MONITOR achievement.death
 Respawn LOW dimension.respawned
 Respawn NORMAL tinker.restoreFood
 Hurt LOWEST dimension.frozen
-Hurt HIGHEST dimension.fallen
 Hurt MONITOR achievement.hurt
 PunchAir MONITOR achievement.punchAir
 Chat MONITOR achievement.chat

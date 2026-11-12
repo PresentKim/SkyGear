@@ -20,7 +20,9 @@ func subscribe() {
 	registerKinds()
 }
 
-// The second dimension's reaction to a death and a respawn.
+// A hunter that dies loses the run: the death ends it (dimension.died) and
+// the respawn brings the hunter back to where it came from, before the food
+// is put back (dimension.respawned sets the place the other steps read: Low).
 func subscribeLife() {
 	core.Death.On(core.Normal, "dimension.died", func(e core.NoticeEvent) {
 		Died(e.S, e.P.Tx(), e.P)
@@ -30,8 +32,8 @@ func subscribeLife() {
 	})
 }
 
-// The second dimension's reaction to a drop and a hurt. Whether a hit would
-// kill the hunter is asked last, of the damage the other steps left: Highest.
+// The second dimension's reaction to a drop and a hurt. A hit that kills the
+// hunter is not refused: the hunter dies and the run ends in dimension.died.
 func subscribeHurt() {
 	core.ItemDrop.On(core.Lowest, "dimension.hunting", func(e core.ItemEvent) {
 		if Hunting(e.S, e.P) {
@@ -41,11 +43,6 @@ func subscribeHurt() {
 	core.Hurt.On(core.Lowest, "dimension.frozen", func(e core.HurtEvent) {
 		if Frozen(e.S, e.P) {
 			e.Cancel() // the hunt waits while the hunter chooses an upgrade
-		}
-	})
-	core.Hurt.On(core.Highest, "dimension.fallen", func(e core.HurtEvent) {
-		if Fallen(e.S, e.Tx, e.P, *e.Damage) {
-			e.Cancel() // no hurt for the subscribers after it: the run ended instead
 		}
 	})
 }

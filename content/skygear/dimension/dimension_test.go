@@ -139,18 +139,6 @@ func TestHuntFails(t *testing.T) {
 			t.Error("the hunter stayed in the ground")
 		}
 
-		// a hit that would kill the hunter ends the run instead: no death,
-		// straight back, healed
-		dimension.Begin(s.Session, tx, p, sgitem.MobSlime)
-		if dimension.Fallen(s.Session, tx, p, 1) {
-			t.Fatal("a light hit felled the hunter")
-		}
-		if !dimension.Fallen(s.Session, tx, p, 1000) {
-			t.Fatal("a deadly hit did not fell the hunter")
-		}
-		if dimension.RunOf(s.Session) != nil || core.InArena(p.Position()) || p.Health() != p.MaxHealth() {
-			t.Errorf("after falling: run %v, at %v, health %v", dimension.RunOf(s.Session) != nil, p.Position(), p.Health())
-		}
 	})
 }
 

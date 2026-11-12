@@ -310,7 +310,9 @@ func (m *Monster) Tick(tx *world.Tx, _ int64) {
 		}
 		if v.Fuse == 0 && flat.Len() < monsterReach && math.Abs(to[1]) < 2 && d.cooldown == 0 {
 			d.cooldown = monsterCooldown
-			if _, hurt := target.Hurt(st.damage, entity.AttackDamageSource{Attacker: m}); hurt {
+			// A hit that killed the hunter leaves no effect on it: a death
+			// clears the effects and a respawn would bring this one home.
+			if _, hurt := target.Hurt(st.damage, entity.AttackDamageSource{Attacker: m}); hurt && !target.Dead() {
 				target.KnockBack(m.Data.Pos, 0.4, 0.3)
 				if v.Hit != nil {
 					target.AddEffect(*v.Hit)

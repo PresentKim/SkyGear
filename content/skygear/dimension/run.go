@@ -162,10 +162,17 @@ func (r *Run) fightTicks() int { return max(0, r.ticks-countdownTicks) }
 type runLocal struct {
 	// Run is the hunt being fought, nil when none.
 	Run *Run
-	// results wait for hunters that died to show once they are back.
-	results map[*world.EntityHandle]result
+	// fallen are the hunters that died and have not respawned yet: how the
+	// run went, to show once they are back, and where they go back to.
+	fallen map[*world.EntityHandle]fallen
 	// watchers are the players watching the run (window.go).
 	watchers map[*world.EntityHandle]watcher
+}
+
+// fallen is what waits for a hunter that died.
+type fallen struct {
+	res  result
+	back mgl64.Vec3
 }
 
 var runPart = core.NewPart(func() *runLocal { return &runLocal{} })
@@ -210,6 +217,10 @@ func Begin(s *core.Session, tx *world.Tx, p *player.Player, mob string) bool {
 	// PlaceAt holds the hunter on its spot until the client has the ground.
 	p.Teleport(start)
 	instance.PlaceAt(p, start, start)
+	// A hunter that dies is back at once: its client is told to respawn
+	// without the death screen while the run lasts (the game rule goes to
+	// this player alone; end and Respawned take it back).
+	p.EnableInstantRespawn()
 	achievement.Count(p, "dimension_enter", 1)
 	return true
 }
@@ -396,8 +407,8 @@ type result struct {
 }
 
 // end finishes the run: its monsters and gate go, the hunter (nil when gone)
-// goes back and sees how it went. A dead hunter sees it when it is back
-// (Respawned).
+// goes back and sees how it went. A dead hunter goes back and sees it when
+// it respawns (Respawned).
 func (r *Run) end(s *core.Session, tx *world.Tx, p *player.Player, how string) {
 	l := runPart.Of(s)
 	if l.Run != r {
@@ -450,24 +461,23 @@ func (r *Run) end(s *core.Session, tx *world.Tx, p *player.Player, how string) {
 	} else {
 		achievement.Count(p, "wave_fail", 1)
 	}
-	if how == endDied && !p.Dead() {
-		// fallen (Fallen): no death screen, straight back and healed
-		p.Heal(p.MaxHealth(), entity.FoodHealingSource{})
-	}
 	switch {
 	case how == endDied && p.Dead():
-		// the inventory is kept through death: the rewards go in now, the
-		// result shows once the hunter is back
+		// the inventory is kept through death (the platform keeps it for
+		// every death): the rewards go in now; the hunter goes back and sees
+		// the result when it respawns
 		deliver(s, tx, p, res)
-		if l.results == nil {
-			l.results = map[*world.EntityHandle]result{}
+		if l.fallen == nil {
+			l.fallen = map[*world.EntityHandle]fallen{}
 		}
-		l.results[p.H()] = res
+		l.fallen[p.H()] = fallen{res, r.Return}
 	case how == endQuit:
 		// leaving the save: back on the island before the state is stored
+		p.DisableInstantRespawn()
 		p.Teleport(r.Return)
 		deliver(s, tx, p, res)
 	default:
+		p.DisableInstantRespawn()
 		p.Teleport(r.Return)
 		instance.PlaceAt(p, r.Return, island.Spawn(s))
 		deliver(s, tx, p, res)
@@ -476,33 +486,35 @@ func (r *Run) end(s *core.Session, tx *world.Tx, p *player.Player, how string) {
 }
 
 // Respawned sends p, a hunter that died, back where it came from and shows
-// how the run went. It runs in HandleRespawn.
+// how the run went. It runs in HandleRespawn: pos is where Dragonfly puts the
+// respawned player. Once the player is back in the world it is held on safe
+// ground there until the client has the chunks (instance.PlaceAt), as at the
+// end of a run the hunter survived.
 func Respawned(s *core.Session, p *player.Player, pos *mgl64.Vec3) {
 	l := runPart.Of(s)
-	res, ok := l.results[p.H()]
+	f, ok := l.fallen[p.H()]
 	if !ok {
 		return
 	}
-	delete(l.results, p.H())
-	*pos = island.Spawn(s)
+	delete(l.fallen, p.H())
+	*pos = f.back
+	p.DisableInstantRespawn()
+	p.H().DoAfter(landAfter, func(tx *world.Tx, e world.Entity) {
+		if c, ok := core.Of(tx); ok && c == s {
+			instance.PlaceAt(e.(*player.Player), f.back, island.Spawn(s))
+		}
+	})
 	p.H().DoAfter(500*time.Millisecond, func(tx *world.Tx, e world.Entity) {
 		if c, ok := core.Of(tx); ok && c == s {
-			showResult(e.(*player.Player), res)
+			showResult(e.(*player.Player), f.res)
 		}
 	})
 }
 
-// Fallen ends the run of a hunter a hit of dmg would kill, before it dies:
-// there is no death screen, it goes straight back and sees the result. It
-// reports whether the hit is to be cancelled (HandleHurt).
-func Fallen(s *core.Session, tx *world.Tx, p *player.Player, dmg float64) bool {
-	r := RunOf(s)
-	if r == nil || r.Hunter != p.H() || p.Health()+p.Absorption()-dmg > 1e-6 {
-		return false
-	}
-	r.end(s, tx, p, endDied)
-	return true
-}
+// landAfter is how long after the respawn handler the respawned hunter is
+// put on safe ground: Dragonfly takes the player out of the world and adds it
+// again right after the handler.
+const landAfter = 50 * time.Millisecond
 
 // Frozen reports whether p is a hunter whose hunt waits for its level-up
 // choice: it cannot move or be hurt meanwhile.
@@ -524,7 +536,8 @@ func (r *Run) showTip(s *core.Session, p *player.Player) {
 	p.SendTip(tip)
 }
 
-// Died ends the run of a hunter that died.
+// Died ends the run of a hunter that died: the hunter has what it carried
+// again and its rewards; it goes back when it respawns (Respawned).
 func Died(s *core.Session, tx *world.Tx, p *player.Player) {
 	if r := RunOf(s); r != nil && r.Hunter == p.H() {
 		r.end(s, tx, p, endDied)
@@ -538,7 +551,7 @@ func Leave(s *core.Session, tx *world.Tx, p *player.Player) {
 		r.end(s, tx, p, endQuit)
 	}
 	StopWatching(s, p)
-	delete(runPart.Of(s).results, p.H())
+	delete(runPart.Of(s).fallen, p.H())
 }
 
 // Joined gives a player that was in a run when the server stopped what it

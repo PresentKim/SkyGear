@@ -3,9 +3,9 @@ Chat/plain: achievement.chat | cancelled=false
 Command/plain: achievement.command | cancelled=false
 Death/plain: tinker.keepFood dimension.died achievement.death | 
 HeldSlot/plain: achievement.heldSlot | cancelled=false
-Hurt/fallen: dimension.frozen dimension.fallen | cancelled=true
+Hurt/fallen: dimension.frozen achievement.hurt | cancelled=false
 Hurt/frozen: dimension.frozen | cancelled=true
-Hurt/plain: dimension.frozen dimension.fallen achievement.hurt | cancelled=false
+Hurt/plain: dimension.frozen achievement.hurt | cancelled=false
 ItemConsume/plain: autofill.consume achievement.eat | cancelled=false
 ItemDamage/ironHammer: tinker.ironHammer autofill.broken | damage=0
 ItemDamage/lastUse: tinker.ironHammer autofill.broken | damage=250
