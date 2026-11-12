@@ -58,6 +58,19 @@ var (
 	lobbyLantern, lobbyTorch = LobbySpawn.Add(cube.Pos{3, 0, -1}), LobbySpawn.Add(cube.Pos{-3, 0, 2})
 )
 
+// lobbyModelID is the runtime ID of the character's model in the lobby
+// scene (sghook.FakePlayer): far above the IDs the session gives entities.
+const lobbyModelID = 1 << 40
+
+// lobbyModelYaw is the way the model faces: south, towards the camera.
+const lobbyModelYaw = 0.0
+
+// showLobbyModel shows p the model of its character standing on the lobby
+// island, facing the camera, with p's skin.
+func showLobbyModel(p *player.Player) {
+	sghook.ViewFakePlayer(p, sghook.FakePlayer{RuntimeID: lobbyModelID, Pos: LobbySpawn.Vec3Middle(), Yaw: lobbyModelYaw, Skin: p.Skin()})
+}
+
 // lobbyLocks are the client inputs locked in the lobby: all but jumping and
 // sneaking.
 const lobbyLocks = packet.ClientInputLockCamera | packet.ClientInputLockMovement |
@@ -72,6 +85,12 @@ func showLobbyScene(p *player.Player, tx *world.Tx) {
 	sghook.SetCamera(p, lobbyCamera, lobbyPitch, lobbyYaw, 0)
 	sghook.HideHUD(p, true)
 	sghook.LockInputs(p, lobbyLocks)
+	// The scene shows a model of the character, not the player itself: the
+	// player's body turns the way the client last looked, the model always
+	// faces the camera. The body is hidden, the model is shown once the
+	// client has the island's chunks.
+	p.SetInvisible()
+	sghook.AfterClientReady(p, func(p *player.Player, _ *world.Tx) { showLobbyModel(p) })
 	for e := range tx.Players() {
 		if o := e.(*player.Player); o.H() != p.H() {
 			p.HideEntity(o)
@@ -84,6 +103,8 @@ func showLobbyScene(p *player.Player, tx *world.Tx) {
 // shows its players as its chunks arrive.
 func leaveLobbyScene(p *player.Player) {
 	stopLobbyMotion(p)
+	sghook.RemoveFakeEntity(p, lobbyModelID)
+	p.SetVisible()
 	sghook.ClearCamera(p)
 	sghook.HideHUD(p, false)
 	sghook.LockInputs(p, 0)
