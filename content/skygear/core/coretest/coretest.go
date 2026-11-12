@@ -86,6 +86,15 @@ func entityTypes() []world.EntityType {
 // (ReorderHooks).
 func Session(t testing.TB) core.Lifecycle {
 	t.Helper()
+	return SessionOver(t, nil, nil)
+}
+
+// SessionOver is Session over the save's state document state, as a server
+// that starts again reads it (nil: a new save). store is handed every
+// document the session stores (nil: none is kept); Session.Close stores the
+// last one before it returns.
+func SessionOver(t testing.TB, state []byte, store func([]byte) error) core.Lifecycle {
+	t.Helper()
 	world.DefaultBlockRegistry.Finalize()
 	ReorderHooks()
 	w := world.Config{Synchronous: true, Entities: entity.DefaultRegistry.Config().New(entityTypes())}.New()
@@ -93,6 +102,7 @@ func Session(t testing.TB) core.Lifecycle {
 	c := core.New(core.Config{
 		World: w, Clock: instance.NewClock(0, 1, 0, 20*time.Minute),
 		SaveID: 1, SaveName: "test", HostID: "host", Log: slog.Default(),
+		State: state, Store: store,
 	})
 	c.Rand = rand.New(rand.NewPCG(1, 2))
 	t.Cleanup(c.Close)

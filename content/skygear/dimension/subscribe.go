@@ -71,13 +71,13 @@ func subscribeTicks() {
 
 // The second dimension reacts to a player joining and leaving.
 //
-// dimension.joined is in the High tier, after the join steps of the other
-// features, as it always ran: a hunter the server stopped under gets back
-// what it carried, and what the earlier join steps put into the hunter's
-// inventory meanwhile is gone with the hunting kit. That keeps today's
-// behaviour; it is one of the listed exceptions (docs/tech/extension.md).
+// dimension.joined gives a player the server stopped under in the second
+// dimension back what it carried, and a watcher its game mode. It makes the
+// player ready before the join steps of the other features hand anything
+// out: Low. What they give (the fairy dust the save is owed) goes into the
+// inventory the player keeps.
 func subscribePresence() {
-	core.Join.On(core.High, "dimension.joined", func(e core.Presence) {
+	core.Join.On(core.Low, "dimension.joined", func(e core.Presence) {
 		Joined(e.S, e.P)
 		RetireItems(e.P)
 	})
