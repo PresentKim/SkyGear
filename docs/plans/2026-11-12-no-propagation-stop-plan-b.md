@@ -1,3 +1,5 @@
+> T136 to T139 of this plan are SUPERSEDED by plan C, D and E (`2026-11-12-no-propagation-stop-plan-c.md`, `-plan-d.md`, `-plan-e.md`, T140 to T150; reference `2026-11-12-no-propagation-stop-2.md`). T135 is committed (3848f7f); do not dispatch T136 to T139.
+
 # Plan B: no propagation stop (the last order pairs, the kernel switch, the documents, T135 to T139)
 
 **Review plan:** docs/plans/2026-11-10-cleanup-restructure.review.md
