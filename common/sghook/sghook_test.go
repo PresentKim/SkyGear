@@ -34,7 +34,7 @@ func TestInternals(t *testing.T) {
 		t.Fatal("server.Server has no field customBlocks []protocol.BlockEntry: Dragonfly moved the custom block entries, update EditCustomBlocks")
 	}
 	field[[]protocol.BlockEntry](&server.Server{}, "customBlocks")
-	_ = []any{session_handleRuntimeID, player_session, session_writePacket, session_sendInv, session_nextWindowID, session_closeCurrentContainer, tx_chunk}
+	_ = []any{session_craftingData, session_handleRuntimeID, player_session, session_writePacket, session_sendInv, session_nextWindowID, session_closeCurrentContainer, tx_chunk}
 }
 
 func TestFieldCached(t *testing.T) {

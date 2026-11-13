@@ -88,6 +88,7 @@ func run(log *slog.Logger) error {
 	chestui.Options.Debug = pconf.ChestUI.Debug
 	sghook.SendBasicVoxelShapes = pconf.Experimental.VoxelShapes
 	sghook.BlockActionDebug = pconf.Experimental.BlockActions
+	sghook.RecipeUnlock = pconf.Experimental.RecipeUnlock
 	locator.Enabled = pconf.Experimental.LocatorBar
 	platform.CameraSpline = pconf.Experimental.CameraSpline
 	intro.Spline = pconf.Experimental.CameraSpline

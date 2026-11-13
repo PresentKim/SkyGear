@@ -2,6 +2,8 @@ package platform
 
 import (
 	"log/slog"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -34,5 +36,18 @@ func TestStateFlushIntervalDefault(t *testing.T) {
 	m := instance.NewManager(slog.Default(), nil, instance.Config{}, instance.Lobby{}, nil)
 	if got := m.StateFlushInterval(); got != 10*time.Second {
 		t.Fatalf("StateFlushInterval = %v, want 10s", got)
+	}
+}
+
+func TestRecipeUnlockMode(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "platform.toml")
+	for mode, ok := range map[string]bool{"": true, "toast": true, "book": true, "all": false} {
+		if err := os.WriteFile(path, []byte("[Experimental]\n  RecipeUnlock = \""+mode+"\"\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := LoadConfig(path); (err == nil) != ok {
+			t.Errorf("mode %q: err %v", mode, err)
+		}
 	}
 }
