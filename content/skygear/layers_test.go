@@ -41,7 +41,7 @@ var layers = []string{
 	"progress", "island", "climate",
 	// features
 	"machine", "tinker", "conduit", "storage", "farm", "fairy", "dimension", "handwork", "expand", "copier", "wand",
-	"netstore", "elevator", "locator",
+	"netstore", "elevator", "locator", "intro",
 	// content lists
 	"catalog",
 	// screens
@@ -102,7 +102,7 @@ var siblings = map[string][]string{
 // featureLayer is the "features" group of layers.
 var featureLayer = []string{
 	"machine", "tinker", "conduit", "storage", "farm", "fairy", "dimension", "handwork", "expand", "copier", "wand",
-	"netstore", "elevator", "locator",
+	"netstore", "elevator", "locator", "intro",
 }
 
 // TestFeatureSiblings: a package of the feature layer imports a sibling only
@@ -268,7 +268,7 @@ func TestFeatureNames(t *testing.T) {
 	for _, f := range Features {
 		names = append(names, f.Name)
 	}
-	want := []string{"core", "achievement", "progress", "island", "climate", "locator", "network", "tinker", "autofill", "machine", "conduit", "storage", "farm", "fairy", "dimension", "handwork", "expand", "copier", "wand", "netstore", "elevator", "look", "screens", "items"}
+	want := []string{"core", "achievement", "progress", "island", "climate", "locator", "intro", "network", "tinker", "autofill", "machine", "conduit", "storage", "farm", "fairy", "dimension", "handwork", "expand", "copier", "wand", "netstore", "elevator", "look", "screens", "items"}
 	if !slices.Equal(names, want) {
 		t.Errorf("features %v, want %v", names, want)
 	}

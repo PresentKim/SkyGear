@@ -79,6 +79,7 @@ Join LOW dimension.joined
 Join NORMAL climate.showWeather
 Join NORMAL core.shapes
 Join NORMAL fairy.backfillDust
+Join NORMAL intro.firstEntry
 Join NORMAL island.purgeLost
 Join NORMAL locator.join
 Join NORMAL progress.sendRecipes

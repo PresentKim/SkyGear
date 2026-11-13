@@ -27,11 +27,11 @@ Fast/11: network.step dimension.watchdog look.updateAll | fastCount=11
 Fast/noPlayers: network.step dimension.watchdog look.updateAll | fastCount=1
 Fast/twoPlayers: network.step dimension.watchdog look.updateAll | fastCount=1 players=2
 Fast/watchdog: network.step dimension.watchdog look.updateAll | inArena=false
-Join/again: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather locator.join fairy.backfillDust screens.board | slot8=none players=1
-Join/first: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather locator.join fairy.backfillDust screens.board | slot8=minecraft:nether_star players=1
-Join/purge: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather locator.join fairy.backfillDust screens.board | lost=1
-Join/spectator: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather locator.join fairy.backfillDust screens.board | mode=world.survival
-Join/withOther: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather locator.join fairy.backfillDust screens.board | slot8=none players=2
+Join/again: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather locator.join intro.firstEntry fairy.backfillDust screens.board | slot8=none players=1
+Join/first: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather locator.join intro.firstEntry fairy.backfillDust screens.board | slot8=minecraft:nether_star players=1
+Join/purge: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather locator.join intro.firstEntry fairy.backfillDust screens.board | lost=1
+Join/spectator: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather locator.join intro.firstEntry fairy.backfillDust screens.board | mode=world.survival
+Join/withOther: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather locator.join intro.firstEntry fairy.backfillDust screens.board | slot8=none players=2
 Leave/expanding: locator.leave dimension.leave expand.stop progress.recipes look.clear screens.board core.shapes core.parts | expanding=false mode=world.survival
 Leave/hunting: locator.leave dimension.leave island.lost expand.stop progress.recipes look.clear screens.board core.shapes core.parts | hunting=false run=false inArena=false
 Leave/plain: locator.leave dimension.leave expand.stop progress.recipes look.clear screens.board core.shapes core.parts | diedFood=0 players=1
