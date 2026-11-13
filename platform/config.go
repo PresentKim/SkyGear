@@ -89,6 +89,9 @@ type Config struct {
 		// LocatorBar shows the other players of the save and the island's
 		// spawn on the locator bar.
 		LocatorBar bool
+		// CameraSpline plays the lobby camera and the first-entry camera as
+		// client-side camera splines.
+		CameraSpline bool
 	}
 	Admin struct {
 		// Operators are the XUIDs (digits) of the players allowed to use

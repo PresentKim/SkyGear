@@ -88,6 +88,7 @@ func run(log *slog.Logger) error {
 	sghook.SendBasicVoxelShapes = pconf.Experimental.VoxelShapes
 	sghook.BlockActionDebug = pconf.Experimental.BlockActions
 	locator.Enabled = pconf.Experimental.LocatorBar
+	platform.CameraSpline = pconf.Experimental.CameraSpline
 	d, err := db.Open(filepath.Join(pconf.Data.Dir, "platform.db"))
 	if err != nil {
 		return err
