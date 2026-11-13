@@ -86,6 +86,9 @@ type Config struct {
 		VoxelShapes bool
 		// BlockActions logs the block breaking actions clients send.
 		BlockActions bool
+		// LocatorBar shows the other players of the save and the island's
+		// spawn on the locator bar.
+		LocatorBar bool
 	}
 	Admin struct {
 		// Operators are the XUIDs (digits) of the players allowed to use

@@ -80,10 +80,12 @@ Join NORMAL climate.showWeather
 Join NORMAL core.shapes
 Join NORMAL fairy.backfillDust
 Join NORMAL island.purgeLost
+Join NORMAL locator.join
 Join NORMAL progress.sendRecipes
 Join MONITOR screens.board
 Leave NORMAL dimension.leave
 Leave NORMAL expand.stop
+Leave NORMAL locator.leave
 Leave HIGHEST look.clear
 Leave HIGHEST progress.recipes
 Leave HIGHEST screens.board
@@ -95,6 +97,7 @@ Second NORMAL fairy.tick
 Second NORMAL farm.barrels
 Second NORMAL farm.growCrops
 Second NORMAL farm.plants
+Second NORMAL locator.update
 Second NORMAL machine.monitor
 Second NORMAL tinker.effects
 Second MONITOR achievement.playSeconds

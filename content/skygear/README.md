@@ -53,6 +53,7 @@
 | | `wand` | 건축 지팡이(ConstructionWand 모드 이식): 면 넓히기, 설정, 되돌리기, 미리보기 |
 | | `netstore` | 저장망의 게임 쪽: 디스크·패턴, 저장망 기계 종류의 동작, `common/storagenet` 과 월드 잇기 |
 | | `elevator` | 양털 엘리베이터(점프하면 위로, 웅크리면 아래로 같은 색 엘리베이터까지 순간이동) |
+| | `locator` | 위치 표시 막대에 같은 세이브의 다른 플레이어와 섬 시작 위치 표시(실험, `[Experimental] LocatorBar`) |
 | 내용 목록 | `catalog` | 연구 트리, 게임 아이템 레시피, 공용 아이템(`sgitem`, `hopper`)의 크리에이티브 항목과 크리에이티브 목록 등록(`RegisterCreativeItems`) |
 | 화면 | `codex` | 도감(JEI 같은 레시피 보기) |
 | | `screens` | 게임 메뉴, 섬 관리, 분실물, 도움말, 연구·발전과제 화면, 사이드바와 퀘스트 판, 메뉴·메뉴 아이템·도감·도움말 명령어 |

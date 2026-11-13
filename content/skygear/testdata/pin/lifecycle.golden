@@ -27,23 +27,23 @@ Fast/11: network.step dimension.watchdog look.updateAll | fastCount=11
 Fast/noPlayers: network.step dimension.watchdog look.updateAll | fastCount=1
 Fast/twoPlayers: network.step dimension.watchdog look.updateAll | fastCount=1 players=2
 Fast/watchdog: network.step dimension.watchdog look.updateAll | inArena=false
-Join/again: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather fairy.backfillDust screens.board | slot8=none players=1
-Join/first: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather fairy.backfillDust screens.board | slot8=minecraft:nether_star players=1
-Join/purge: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather fairy.backfillDust screens.board | lost=1
-Join/spectator: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather fairy.backfillDust screens.board | mode=world.survival
-Join/withOther: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather fairy.backfillDust screens.board | slot8=none players=2
-Leave/expanding: dimension.leave expand.stop progress.recipes look.clear screens.board core.shapes core.parts | expanding=false mode=world.survival
-Leave/hunting: dimension.leave island.lost expand.stop progress.recipes look.clear screens.board core.shapes core.parts | hunting=false run=false inArena=false
-Leave/plain: dimension.leave expand.stop progress.recipes look.clear screens.board core.shapes core.parts | diedFood=0 players=1
-Leave/withOther: dimension.leave expand.stop progress.recipes look.clear screens.board core.shapes core.parts | diedFood=1 players=2
+Join/again: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather locator.join fairy.backfillDust screens.board | slot8=none players=1
+Join/first: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather locator.join fairy.backfillDust screens.board | slot8=minecraft:nether_star players=1
+Join/purge: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather locator.join fairy.backfillDust screens.board | lost=1
+Join/spectator: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather locator.join fairy.backfillDust screens.board | mode=world.survival
+Join/withOther: screens.menuItem dimension.joined core.shapes progress.sendRecipes island.purgeLost climate.showWeather locator.join fairy.backfillDust screens.board | slot8=none players=2
+Leave/expanding: locator.leave dimension.leave expand.stop progress.recipes look.clear screens.board core.shapes core.parts | expanding=false mode=world.survival
+Leave/hunting: locator.leave dimension.leave island.lost expand.stop progress.recipes look.clear screens.board core.shapes core.parts | hunting=false run=false inArena=false
+Leave/plain: locator.leave dimension.leave expand.stop progress.recipes look.clear screens.board core.shapes core.parts | diedFood=0 players=1
+Leave/withOther: locator.leave dimension.leave expand.stop progress.recipes look.clear screens.board core.shapes core.parts | diedFood=1 players=2
 NewDay/noPlayers: island.purgeLost game.newDay | lost=1 players=0
 NewDay/onePlayer: island.purgeLost game.newDay | lost=1 players=1
 NewDay/twoPlayers: island.purgeLost game.newDay | lost=0 players=2
-Second/01: progress.checkHeld climate.tick tinker.effects machine.monitor farm.growCrops farm.barrels farm.plants fairy.tick dimension.second achievement.playSeconds progress.collection screens.boards | dirty=true>dirty=false
-Second/02: progress.checkHeld climate.tick tinker.effects machine.monitor farm.growCrops farm.barrels farm.plants fairy.tick dimension.second achievement.playSeconds progress.collection screens.boards | dirty=true>dirty=true
-Second/03: progress.checkHeld climate.tick tinker.effects machine.monitor farm.growCrops farm.barrels farm.plants fairy.tick dimension.second achievement.playSeconds progress.collection screens.boards | dirty=true>dirty=false
-Second/04: progress.checkHeld climate.tick tinker.effects machine.monitor farm.growCrops farm.barrels farm.plants fairy.tick dimension.second achievement.playSeconds progress.collection screens.boards | dirty=false>dirty=false
-Second/advancement: progress.checkHeld climate.tick tinker.effects machine.monitor farm.growCrops farm.barrels farm.plants fairy.tick dimension.second achievement.playSeconds progress.collection screens.boards | advanced=true dirty=false stored=true
-Second/noPlayers: progress.checkHeld climate.tick tinker.effects machine.monitor farm.growCrops farm.barrels farm.plants fairy.tick dimension.second achievement.playSeconds progress.collection screens.boards | players=0
-Second/twoPlayers: progress.checkHeld climate.tick tinker.effects machine.monitor farm.growCrops farm.barrels farm.plants fairy.tick dimension.second achievement.playSeconds progress.collection screens.boards | players=2
+Second/01: progress.checkHeld climate.tick locator.update tinker.effects machine.monitor farm.growCrops farm.barrels farm.plants fairy.tick dimension.second achievement.playSeconds progress.collection screens.boards | dirty=true>dirty=false
+Second/02: progress.checkHeld climate.tick locator.update tinker.effects machine.monitor farm.growCrops farm.barrels farm.plants fairy.tick dimension.second achievement.playSeconds progress.collection screens.boards | dirty=true>dirty=true
+Second/03: progress.checkHeld climate.tick locator.update tinker.effects machine.monitor farm.growCrops farm.barrels farm.plants fairy.tick dimension.second achievement.playSeconds progress.collection screens.boards | dirty=true>dirty=false
+Second/04: progress.checkHeld climate.tick locator.update tinker.effects machine.monitor farm.growCrops farm.barrels farm.plants fairy.tick dimension.second achievement.playSeconds progress.collection screens.boards | dirty=false>dirty=false
+Second/advancement: progress.checkHeld climate.tick locator.update tinker.effects machine.monitor farm.growCrops farm.barrels farm.plants fairy.tick dimension.second achievement.playSeconds progress.collection screens.boards | advanced=true dirty=false stored=true
+Second/noPlayers: progress.checkHeld climate.tick locator.update tinker.effects machine.monitor farm.growCrops farm.barrels farm.plants fairy.tick dimension.second achievement.playSeconds progress.collection screens.boards | players=0
+Second/twoPlayers: progress.checkHeld climate.tick locator.update tinker.effects machine.monitor farm.growCrops farm.barrels farm.plants fairy.tick dimension.second achievement.playSeconds progress.collection screens.boards | players=2
 Start: farm.loadCrops island.keepLoaded climate.apply | 

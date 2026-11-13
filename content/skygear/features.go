@@ -14,6 +14,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/handwork"
 	"github.com/presentkim/skygear/content/skygear/island"
+	"github.com/presentkim/skygear/content/skygear/locator"
 	"github.com/presentkim/skygear/content/skygear/look"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
@@ -39,6 +40,7 @@ var Features = []*core.Feature{
 	progress.Feature,
 	island.Feature,
 	climate.Feature,
+	locator.Feature,
 	network.Feature,
 	tinker.Feature,
 	autofill.Feature,

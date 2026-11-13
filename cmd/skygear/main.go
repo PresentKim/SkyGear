@@ -30,6 +30,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear"
 	"github.com/presentkim/skygear/content/skygear/core"
 	_ "github.com/presentkim/skygear/content/skygear/locales" // this server's texts
+	"github.com/presentkim/skygear/content/skygear/locator"
 	"github.com/presentkim/skygear/content/skygear/migrate"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/platform"
@@ -86,6 +87,7 @@ func run(log *slog.Logger) error {
 	chestui.Options.Debug = pconf.ChestUI.Debug
 	sghook.SendBasicVoxelShapes = pconf.Experimental.VoxelShapes
 	sghook.BlockActionDebug = pconf.Experimental.BlockActions
+	locator.Enabled = pconf.Experimental.LocatorBar
 	d, err := db.Open(filepath.Join(pconf.Data.Dir, "platform.db"))
 	if err != nil {
 		return err

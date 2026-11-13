@@ -39,6 +39,8 @@ type Conn struct {
 	sess      atomic.Pointer[session.Session]
 	closeOnce sync.Once
 	join      joinMarks
+	// locatorBar is whether SetLocatorBar turned the bar on.
+	locatorBar atomic.Bool
 }
 
 // Session returns the session of the connection, once Of found it.
