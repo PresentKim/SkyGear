@@ -44,7 +44,13 @@ func start(p *player.Player, w *world.World) {
 	keys := Keys(p.Position(), p.Rotation().Pitch(), p.Rotation().Yaw())
 	sghook.HideHUD(p, true)
 	sghook.LockInputs(p, locks)
-	sghook.PlayCameraSpline(p, keys)
+	sghook.SetCamera(p, keys[0].Pos, keys[0].Pitch, keys[0].Yaw, 0)
+	sghook.GlideCamera(p, keys[1].Pos, keys[1].Pitch, keys[1].Yaw, out)
+	p.H().DoAfter(seconds(out+hold), func(tx *world.Tx, e world.Entity) {
+		if tx.World() == w {
+			sghook.GlideCamera(e.(*player.Player), keys[3].Pos, keys[3].Pitch, keys[3].Yaw, back)
+		}
+	})
 	p.H().DoAfter(seconds(out+hold+back), func(tx *world.Tx, e world.Entity) {
 		if tx.World() != w {
 			return // left the save: the new place sets its own camera

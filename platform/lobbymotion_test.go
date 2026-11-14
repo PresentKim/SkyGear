@@ -29,20 +29,3 @@ func TestLobbyCameraLooksAtTheIsland(t *testing.T) {
 		}
 	}
 }
-
-func TestLobbyLoopClosesOnTheFirstStop(t *testing.T) {
-	keys := lobbyLoop()
-	if len(keys) != len(lobbyOrbit)+1 {
-		t.Fatalf("%d keys", len(keys))
-	}
-	first, last := keys[0], keys[len(keys)-1]
-	if first.Pos != last.Pos || first.Yaw != last.Yaw || first.T != 0 {
-		t.Fatalf("loop ends at %+v, starts at %+v", last, first)
-	}
-	if want := lobbyGlide.Seconds() * float64(len(lobbyOrbit)); last.T != want {
-		t.Fatalf("length %v, want %v", last.T, want)
-	}
-	if pos, _, _ := lobbyCameraAt(0); first.Pos != pos {
-		t.Fatalf("starts at %v, the camera is at %v", first.Pos, pos)
-	}
-}
