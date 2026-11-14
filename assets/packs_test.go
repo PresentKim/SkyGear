@@ -140,3 +140,39 @@ func TestScreenTextures(t *testing.T) {
 		}
 	}
 }
+
+// TestPNGNotGrayscale fails on grayscale PNGs (IHDR color type 0 or 4): the
+// client draws them translucent, so pack textures must be RGB or RGBA.
+func TestPNGNotGrayscale(t *testing.T) {
+	var gray []string
+	packs, err := files.ReadDir("resourcepack")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, e := range packs {
+		name := e.Name()
+		dir := sub(t, name)
+		err := fs.WalkDir(dir, ".", func(p string, d fs.DirEntry, err error) error {
+			if err != nil || d.IsDir() || !strings.HasSuffix(p, ".png") {
+				return err
+			}
+			b, err := fs.ReadFile(dir, p)
+			if err != nil {
+				return err
+			}
+			// 8-byte signature, then IHDR: length, type, width, height, bit depth, color type.
+			if len(b) < 26 {
+				t.Errorf("%s/%s: too short for a PNG header", name, p)
+			} else if ct := b[25]; ct == 0 || ct == 4 {
+				gray = append(gray, name+"/"+p)
+			}
+			return nil
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	if len(gray) > 0 {
+		t.Errorf("grayscale PNGs (convert to RGB/RGBA):\n%s", strings.Join(gray, "\n"))
+	}
+}
