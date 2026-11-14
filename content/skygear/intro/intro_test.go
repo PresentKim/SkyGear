@@ -7,20 +7,20 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 )
 
-func TestKeysPullBackBehindThePlayer(t *testing.T) {
-	// Facing south (yaw 0, +z): the overview is north (-z) and above.
+func TestKeysStartHighAndEndAtTheEyes(t *testing.T) {
+	// Facing south (yaw 0, +z): the start is north (-z) of the eyes and above.
 	keys := Keys(mgl64.Vec3{0, 64, 0}, 5, 0)
-	if len(keys) != 4 {
+	if len(keys) != 2 {
 		t.Fatalf("%d keys", len(keys))
 	}
-	eye, far := keys[0].Pos, keys[1].Pos
-	if eye != (mgl64.Vec3{0, 65.62, 0}) || keys[3].Pos != eye {
-		t.Fatalf("eye %v, end %v", eye, keys[3].Pos)
+	high, eye := keys[0], keys[1]
+	if eye.Pos != (mgl64.Vec3{0, 65.62, 0}) || eye.Pitch != 5 || eye.T != glide {
+		t.Fatalf("end %+v", eye)
 	}
-	if math.Abs(far[0]) > 1e-9 || math.Abs(far[2]+distance) > 1e-9 || math.Abs(far[1]-(eye[1]+height)) > 1e-9 {
-		t.Fatalf("overview %v", far)
+	if math.Abs(high.Pos[0]) > 1e-9 || math.Abs(high.Pos[2]+behind) > 1e-9 || math.Abs(high.Pos[1]-(eye.Pos[1]+rise)) > 1e-9 {
+		t.Fatalf("start %v", high.Pos)
 	}
-	if keys[1].Pitch <= 0 || keys[2].Pos != far || keys[3].T != out+hold+back {
-		t.Fatalf("keys %+v", keys)
+	if high.T != 0 || high.Pitch != startPitch || high.Yaw != eye.Yaw {
+		t.Fatalf("start %+v", high)
 	}
 }

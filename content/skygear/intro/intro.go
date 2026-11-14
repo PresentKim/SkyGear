@@ -1,6 +1,6 @@
 // Package intro is the short camera move a player sees on first entering a
-// save: the camera pulls back from the player's eyes to show the island and
-// comes back, then the player takes over.
+// save: the camera starts high above the island looking down and glides to
+// the player's eyes, then the player takes over.
 package intro
 
 import (
@@ -18,12 +18,11 @@ import (
 const (
 	// delay lets the island's chunks reach the client first.
 	delay = 1500 * time.Millisecond
-	// out is how long the camera takes back to the overview, hold how long
-	// it stays there, back how long it takes back to the eyes.
-	out, hold, back = 1.3, 0.6, 1.3
-	// distance and height are where the overview is: behind the player and
-	// above its eyes.
-	distance, height = 10.0, 5.0
+	// glide is how long the camera takes from above the island to the eyes.
+	glide = 1.5
+	// rise and behind are where the camera starts: above the player's eyes
+	// and a few blocks back; startPitch is how far it looks down there.
+	rise, behind, startPitch = 14.0, 4.0, 60.0
 	// locks are the inputs locked during the move.
 	locks = packet.ClientInputLockCamera | packet.ClientInputLockMovement | packet.ClientInputLockLateralMovement |
 		packet.ClientInputLockMoveForward | packet.ClientInputLockMoveBackward |
@@ -45,13 +44,8 @@ func start(p *player.Player, w *world.World) {
 	sghook.HideHUD(p, true)
 	sghook.LockInputs(p, locks)
 	sghook.SetCamera(p, keys[0].Pos, keys[0].Pitch, keys[0].Yaw, 0)
-	sghook.GlideCamera(p, keys[1].Pos, keys[1].Pitch, keys[1].Yaw, out)
-	p.H().DoAfter(seconds(out+hold), func(tx *world.Tx, e world.Entity) {
-		if tx.World() == w {
-			sghook.GlideCamera(e.(*player.Player), keys[3].Pos, keys[3].Pitch, keys[3].Yaw, back)
-		}
-	})
-	p.H().DoAfter(seconds(out+hold+back), func(tx *world.Tx, e world.Entity) {
+	sghook.GlideCamera(p, keys[1].Pos, keys[1].Pitch, keys[1].Yaw, glide)
+	p.H().DoAfter(seconds(glide), func(tx *world.Tx, e world.Entity) {
 		if tx.World() != w {
 			return // left the save: the new place sets its own camera
 		}
@@ -63,19 +57,16 @@ func start(p *player.Player, w *world.World) {
 }
 
 // Keys are the camera's points for a player standing at pos looking at the
-// rotation: its eyes, the overview (twice, for the hold) and its eyes again.
+// rotation: above the island and a few blocks behind the player looking
+// down with the player's yaw, then the player's eyes.
 func Keys(pos mgl64.Vec3, pitch, yaw float64) []sghook.CameraKey {
 	eye := pos.Add(mgl64.Vec3{0, 1.62, 0})
 	a := mgl64.DegToRad(yaw)
 	forward := mgl64.Vec3{-math.Sin(a), 0, math.Cos(a)}
-	far := eye.Sub(forward.Mul(distance)).Add(mgl64.Vec3{0, height, 0})
-	farPitch := mgl64.RadToDeg(math.Atan2(height, distance))
-	ease := int32(protocol.EasingTypeInOutSine)
+	high := eye.Sub(forward.Mul(behind)).Add(mgl64.Vec3{0, rise, 0})
 	return []sghook.CameraKey{
-		{T: 0, Pos: eye, Pitch: pitch, Yaw: yaw},
-		{T: out, Pos: far, Pitch: farPitch, Yaw: yaw, Ease: ease},
-		{T: out + hold, Pos: far, Pitch: farPitch, Yaw: yaw},
-		{T: out + hold + back, Pos: eye, Pitch: pitch, Yaw: yaw, Ease: ease},
+		{T: 0, Pos: high, Pitch: startPitch, Yaw: yaw},
+		{T: glide, Pos: eye, Pitch: pitch, Yaw: yaw, Ease: int32(protocol.EasingTypeInOutSine)},
 	}
 }
 
