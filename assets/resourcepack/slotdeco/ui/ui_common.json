@@ -8,7 +8,7 @@
         "operation": "insert_front",
         "value": [
           {
-            "sg_deco@sg_slot.deco": {}
+            "sg_deco@sg_slot.front": {}
           }
         ]
       }

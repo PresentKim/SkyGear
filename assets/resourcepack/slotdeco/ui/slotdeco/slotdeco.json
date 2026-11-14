@@ -4,18 +4,6 @@
 // hand.
 {
   "namespace": "sg_slot",
-  "deco": {
-    "type": "panel",
-    "size": [
-      "100%",
-      "100%"
-    ],
-    "controls": [
-      {
-        "front@sg_slot.front": {}
-      }
-    ]
-  },
   "front": {
     "type": "image",
     "layer": 9,
