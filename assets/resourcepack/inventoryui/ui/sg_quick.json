@@ -119,7 +119,8 @@
       {
         "binding_type": "view",
         "source_property_name": "#moves_count",
-        "target_property_name": "#collection_length"
+        "target_property_name": "#collection_length",
+        "binding_condition": "once"
       }
     ]
   },
