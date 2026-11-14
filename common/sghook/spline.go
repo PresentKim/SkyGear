@@ -37,6 +37,8 @@ type SplineOptions struct {
 	ProgressScale float64
 	// NoProgress leaves out the progress key frames.
 	NoProgress bool
+	// Linear asks for a linear spline (type 1) instead of Catmull-Rom (0).
+	Linear bool
 }
 
 // PlayCameraSpline moves p's camera along a smooth (Catmull-Rom) path
@@ -53,7 +55,11 @@ func PlayCameraSpline(p *player.Player, keys []CameraKey, opt SplineOptions) {
 	if !opt.NoSet {
 		SetCamera(p, first.Pos, first.Pitch, first.Yaw, 0)
 	}
-	write(p, &packet.CameraInstruction{Spline: protocol.Option(cameraSpline(keys, last.T, opt))})
+	pk := &splinePacket{in: cameraSpline(keys, last.T, opt)}
+	if opt.Linear {
+		pk.splineType = 1
+	}
+	write(p, pk)
 }
 
 // Subdivide returns n keys evenly spaced in time between a and b, with the
@@ -116,4 +122,36 @@ func cameraSpline(keys []CameraKey, total float64, opt SplineOptions) protocol.C
 		})
 	}
 	return in
+}
+
+// splinePacket is a CameraInstruction that holds only a spline, encoded the
+// way the client reads it. gophertunnel v1.63.0 writes the spline type,
+// identifier and JSON flag as optional fields (a presence byte first); the
+// client reads them as plain fields, so any spline type but the default
+// shifts the rest of the packet. Upstream fixed this after v1.63.0.
+type splinePacket struct {
+	in         protocol.CameraSplineInstruction
+	splineType uint8
+}
+
+// ID ...
+func (*splinePacket) ID() uint32 { return packet.IDCameraInstruction }
+
+// Marshal writes the instruction with every field but the spline absent.
+func (pk *splinePacket) Marshal(io protocol.IO) {
+	absent, present := false, true
+	for range 6 { // Set, Clear, Fade, Target, RemoveTarget, FieldOfView
+		io.Bool(&absent)
+	}
+	io.Bool(&present)
+	io.Float32(&pk.in.TotalTime)
+	io.Uint8(&pk.splineType)
+	protocol.FuncSlice(io, &pk.in.Curve, io.Vec3)
+	protocol.Slice(io, &pk.in.ProgressKeyFrames)
+	protocol.Slice(io, &pk.in.RotationOptions)
+	id := ""
+	io.String(&id)
+	io.Bool(&absent) // LoadFromJson
+	io.Bool(&absent) // AttachToEntity
+	io.Bool(&absent) // DetachFromEntity
 }

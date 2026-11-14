@@ -21,7 +21,7 @@
 
 | 명령 | 하는 일 |
 |---|---|
-| `/sgdebug spline [rot=py\|yp] [flip] [noset] [rel] [wait] [tfrac\|tticks] [noprog] [endup]` | 첫 입장 카메라 이동(`intro.Keys`, 내 위치 기준: 위에서 내려다보는 자리에서 눈 위치까지 1.5초)을 서로 다른 점 다섯 개로 나눠(`sghook.Subdivide`, Catmull-Rom 은 점이 넷 이상 필요하고 연속된 같은 점에서 깨진다) 클라이언트 스플라인으로 재생하고 끝나면 카메라를 푼다. 진행도는 지나온 거리 ÷ 전체 길이(0~1)다. `rot=yp` 는 회전 값을 요, 피치 순서로 보내고(기본 `py` 는 피치, 요), `flip` 은 피치 부호를 뒤집고, `noset` 은 스플라인 앞의 시작 위치 `Set` 을 보내지 않으며, `rel` 은 제어점을 눈 위치 기준 상대 좌표로 보내고, `wait` 는 시작 위치 `Set` 을 먼저 보내고 1초 뒤 다른 틱에 스플라인을 보낸다. `tfrac`·`tticks` 는 진행도 키프레임의 시간을 전체 길이의 비율·틱으로 보내고, `noprog` 는 진행도 키프레임을 빼고 보낸다(클라이언트가 강제 종료된다). `endup` 은 끝점을 눈보다 6칸 위에 둔다. 함께 쓸 수 있다 |
+| `/sgdebug spline [rot=py\|yp] [flip] [noset] [rel] [wait] [tfrac\|tticks] [noprog] [endup] [lin]` | 첫 입장 카메라 이동(`intro.Keys`, 내 위치 기준: 위에서 내려다보는 자리에서 눈 위치까지 1.5초)을 서로 다른 점 다섯 개로 나눠(`sghook.Subdivide`, Catmull-Rom 은 점이 넷 이상 필요하고 연속된 같은 점에서 깨진다) 클라이언트 스플라인으로 재생하고 끝나면 카메라를 푼다. 진행도는 지나온 거리 ÷ 전체 길이(0~1)다. `rot=yp` 는 회전 값을 요, 피치 순서로 보내고(기본 `py` 는 피치, 요), `flip` 은 피치 부호를 뒤집고, `noset` 은 스플라인 앞의 시작 위치 `Set` 을 보내지 않으며, `rel` 은 제어점을 눈 위치 기준 상대 좌표로 보내고, `wait` 는 시작 위치 `Set` 을 먼저 보내고 1초 뒤 다른 틱에 스플라인을 보낸다. `tfrac`·`tticks` 는 진행도 키프레임의 시간을 전체 길이의 비율·틱으로 보내고, `noprog` 는 진행도 키프레임을 빼고 보낸다(클라이언트가 강제 종료된다). `endup` 은 끝점을 눈보다 6칸 위에 두고, `lin` 은 직선 스플라인(종류 1)으로 보낸다. 함께 쓸 수 있다 |
 | `/sgdebug oreinput` | Ore UI 페이지가 받는 입력 이벤트(마우스, 휠, 키, 터치, 포인터, 포커스, 글 입력, 게임패드)를 화면에 줄로 보이고 서버로 보낸다. 서버가 받은 줄과 그동안 클라이언트가 보낸 패킷(`ScriptMessage` 는 내용까지)이 창 위에 보인다([oreui-probes.md](oreui-probes.md)) |
 | `/sgdebug oreres` | 서버가 Ore UI 페이지에 화면 리소스를 줄 수 있는 길을 차례로 시험한다([oreui-probes.md](oreui-probes.md)) |
 | `/sgdebug research` | 연구 화면을 연다(연구대를 쓴 것과 같다. 게임 메뉴에는 연구 카드가 없다) |

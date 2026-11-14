@@ -63,3 +63,20 @@ func TestSubdivideGivesDistinctPointsAndDistanceProgress(t *testing.T) {
 		}
 	}
 }
+
+// The hand-written spline packet with the default type is byte for byte the
+// gophertunnel packet, and a linear one carries type 1 in place of it.
+func TestSplinePacketMatchesGophertunnel(t *testing.T) {
+	in := cameraSpline(Subdivide(CameraKey{Pos: mgl64.Vec3{0, 80, 0}, Pitch: 60}, CameraKey{T: 1.5, Pos: mgl64.Vec3{0, 64, 4}}, 5), 1.5, SplineOptions{})
+	var want, got bytes.Buffer
+	(&packet.CameraInstruction{Spline: protocol.Option(in)}).Marshal(protocol.NewWriter(&want, 0))
+	(&splinePacket{in: in}).Marshal(protocol.NewWriter(&got, 0))
+	if !bytes.Equal(want.Bytes(), got.Bytes()) {
+		t.Fatalf("spline packet differs:\n%x\n%x", want.Bytes(), got.Bytes())
+	}
+	var linear bytes.Buffer
+	(&splinePacket{in: in, splineType: 1}).Marshal(protocol.NewWriter(&linear, 0))
+	if linear.Len() != got.Len() || linear.Bytes()[11] != 1 {
+		t.Fatalf("linear packet % x", linear.Bytes()[:12])
+	}
+}
