@@ -32,6 +32,11 @@ type SplineOptions struct {
 	// Origin, when set, is subtracted from every control point (points
 	// relative to it instead of world positions).
 	Origin *mgl64.Vec3
+	// ProgressScale multiplies each progress key frame's Time (0 is 1):
+	// 1/total sends times as fractions of the length, 20 as ticks.
+	ProgressScale float64
+	// NoProgress leaves out the progress key frames.
+	NoProgress bool
 }
 
 // PlayCameraSpline moves p's camera along a smooth (Catmull-Rom) path
@@ -89,9 +94,15 @@ func cameraSpline(keys []CameraKey, total float64, opt SplineOptions) protocol.C
 		if length > 0 {
 			progress = float32(dist[i] / length)
 		}
-		in.ProgressKeyFrames = append(in.ProgressKeyFrames, protocol.CameraProgressOption{
-			Value: progress, Time: float32(k.T), EaseType: k.Ease,
-		})
+		scale := opt.ProgressScale
+		if scale == 0 {
+			scale = 1
+		}
+		if !opt.NoProgress {
+			in.ProgressKeyFrames = append(in.ProgressKeyFrames, protocol.CameraProgressOption{
+				Value: progress, Time: float32(k.T * scale), EaseType: k.Ease,
+			})
+		}
 		pitch := float32(k.Pitch)
 		if opt.FlipPitch {
 			pitch = -pitch

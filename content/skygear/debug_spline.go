@@ -17,7 +17,8 @@ import (
 // the lobby spline showed only sky. Variants: rot=py|yp (rotation Value
 // order), flip (pitch negated), noset (no Set before the spline), rel
 // (control points relative to the eyes), wait (the spline a second after
-// the Set). The move is split into five distinct
+// the Set), tfrac / tticks (progress times as fractions of the length or
+// as ticks), noprog (no progress key frames). The move is split into five distinct
 // points, as a Catmull-Rom spline needs at least four.
 type debugSpline struct {
 	adminBase
@@ -42,19 +43,28 @@ func (c debugSpline) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 			opt.FlipPitch = true
 		case "noset":
 			opt.NoSet = true
+		case "tfrac":
+			opt.ProgressScale = -1 // set from the length below
+		case "tticks":
+			opt.ProgressScale = 20
+		case "noprog":
+			opt.NoProgress = true
 		case "wait":
 			wait = true
 		case "rel":
 			eye := p.Position().Add(mgl64.Vec3{0, 1.62, 0})
 			opt.Origin = &eye
 		default:
-			o.Errorf("unknown variant %q (rot=py|yp, flip, noset, rel, wait)", a)
+			o.Errorf("unknown variant %q (rot=py|yp, flip, noset, rel, wait, tfrac, tticks, noprog)", a)
 			return
 		}
 	}
 	ends := intro.Keys(p.Position(), p.Rotation().Pitch(), p.Rotation().Yaw())
 	keys := sghook.Subdivide(ends[0], ends[len(ends)-1], 5)
 	total := keys[len(keys)-1].T
+	if opt.ProgressScale < 0 {
+		opt.ProgressScale = 1 / total
+	}
 	// wait sets the free camera at the first key now and sends the spline
 	// a second later, in another tick (a client may drop a camera
 	// instruction that comes in the same tick as another).
@@ -73,5 +83,5 @@ func (c debugSpline) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	p.H().DoAfter(delay+time.Duration(total*float64(time.Second)), func(tx *world.Tx, e world.Entity) {
 		sghook.ClearCamera(e.(*player.Player))
 	})
-	o.Printf("playing the spline for %.1fs (yawFirst=%v flip=%v noset=%v rel=%v wait=%v)", total, opt.YawFirst, opt.FlipPitch, opt.NoSet, opt.Origin != nil, wait)
+	o.Printf("playing the spline for %.1fs (yawFirst=%v flip=%v noset=%v rel=%v wait=%v progressScale=%v noprog=%v)", total, opt.YawFirst, opt.FlipPitch, opt.NoSet, opt.Origin != nil, wait, opt.ProgressScale, opt.NoProgress)
 }
