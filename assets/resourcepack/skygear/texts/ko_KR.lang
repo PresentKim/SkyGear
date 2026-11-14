@@ -413,7 +413,6 @@ item.skygear:item_vacuum.name=아이템 흡수기
 tile.skygear:item_vacuum.name=아이템 흡수기
 item.skygear:tree_feller.name=자동 벌목기
 tile.skygear:tree_feller.name=자동 벌목기
-sg.search.placeholder=검색
 item.skygear:net_controller.name=망 컨트롤러
 tile.skygear:net_controller.name=망 컨트롤러
 item.skygear:net_cable.name=망 케이블

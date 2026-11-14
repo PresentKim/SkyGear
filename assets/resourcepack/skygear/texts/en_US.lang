@@ -413,7 +413,6 @@ item.skygear:item_vacuum.name=Item Vacuum
 tile.skygear:item_vacuum.name=Item Vacuum
 item.skygear:tree_feller.name=Tree Feller
 tile.skygear:tree_feller.name=Tree Feller
-sg.search.placeholder=검색
 item.skygear:net_controller.name=Network Controller
 tile.skygear:net_controller.name=Network Controller
 item.skygear:net_cable.name=Network Cable
