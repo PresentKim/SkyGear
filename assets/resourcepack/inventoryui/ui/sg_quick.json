@@ -186,14 +186,16 @@
         }
       },
       {
+        // Opens to the left, over the window: the bar is already right of
+        // it, and a long name would run off a narrow screen.
         "tip": {
           "ignored": "(not $hover_state)",
           "type": "image",
           "texture": "textures/ui/purpleBorder",
           "size": [ "100%c + 8px", "100%c + 8px" ],
-          "anchor_from": "top_right",
-          "anchor_to": "top_left",
-          "offset": [ 4, -2 ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_right",
+          "offset": [ -4, -2 ],
           "layer": 30,
           "controls": [
             {
