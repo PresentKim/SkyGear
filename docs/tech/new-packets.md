@@ -4,7 +4,7 @@
 
 | 스위치 | 패킷 | 하는 일 | 코드 |
 |---|---|---|---|
-| `LocatorBar = true` | `GameRulesChanged(locatorBar)`, `LocatorBar`, `PlayerLocation` | 세이브에 들어오면 위치 표시 막대를 켜고 섬 시작 위치(`island.Spawn`)를 금색 웨이포인트로 단다. 매초 같은 세이브의 다른 플레이어 위치를 보내고, 나가면 지운 뒤 막대를 끈다(로비에는 막대가 없다) | `content/skygear/locator`, `common/sghook/locator.go` |
+| (항상) | `GameRulesChanged(locatorBar)`, `LocatorBar`, `PlayerLocation` | 세이브에 들어오면 위치 표시 막대를 켜고 섬 시작 위치(`island.Spawn`)를 금색 웨이포인트로 단다. 매초 같은 세이브의 다른 플레이어 위치를 보내고, 나가면 지운 뒤 막대를 끈다(로비에는 막대가 없다) | `content/skygear/locator`, `common/sghook/locator.go` |
 | `CameraSpline = true` | `CameraInstruction.Spline` | 로비 카메라: 14초마다 다음 지점으로 보내던 이동 대신, 다섯 지점을 한 바퀴 도는 스플라인(70초)을 한 번에 보내 클라이언트가 재생한다. 첫 입장 카메라도 스플라인으로 재생 | `platform/lobbymotion.go`, `common/sghook/spline.go` |
 | (항상) | `CameraInstruction.Set` (+`Spline`) | 세이브 첫 입장(그 세이브에 저장된 상태가 없을 때) 1.5초 뒤, 카메라가 눈 위치에서 뒤로 10칸·위로 5칸 빠져 섬을 보여 주고(1.3초), 0.6초 머문 뒤 돌아온다(1.3초). 그동안 입력을 잠그고 HUD 를 숨긴다. 스위치가 꺼져 있으면 감속 이동 두 번으로 한다 | `content/skygear/intro` |
 | `RecipeUnlock = "toast"` | `UnlockedRecipes`, `GameRulesChanged(recipesunlock)` | 지금처럼 연구한 레시피만 보내되, 레시피마다 해제가 필요하다고 표시하고(`UnlockRequirement`, 재료 없음) 보낸 목록을 해제로 알린다. 연구로 새로 생긴 레시피는 "새로 해제"로 보내 알림이 뜨는지 본다 | `common/sghook/recipeunlock.go` |

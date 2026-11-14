@@ -1,6 +1,5 @@
 // Package locator shows the island on the locator bar: the other players in
-// the save and the island's spawn. It is a test of the locator bar packets
-// and runs only while Enabled (platform.toml [Experimental] LocatorBar).
+// the save and the island's spawn. The bar is on in every save.
 package locator
 
 import (
@@ -11,9 +10,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/island"
 )
-
-// Enabled turns the locator bar on in saves. Set it once at startup.
-var Enabled bool
 
 // spawnID is the waypoint of the island's spawn on every player's bar.
 var spawnID = uuid.MustParse("6c0f3e3a-8d8e-4a9e-9e1b-2f6b5d0c1a01")

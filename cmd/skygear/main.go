@@ -31,7 +31,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/intro"
 	_ "github.com/presentkim/skygear/content/skygear/locales" // this server's texts
-	"github.com/presentkim/skygear/content/skygear/locator"
 	"github.com/presentkim/skygear/content/skygear/migrate"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/platform"
@@ -89,7 +88,6 @@ func run(log *slog.Logger) error {
 	sghook.SendBasicVoxelShapes = pconf.Experimental.VoxelShapes
 	sghook.BlockActionDebug = pconf.Experimental.BlockActions
 	sghook.RecipeUnlock = pconf.Experimental.RecipeUnlock
-	locator.Enabled = pconf.Experimental.LocatorBar
 	platform.CameraSpline = pconf.Experimental.CameraSpline
 	intro.Spline = pconf.Experimental.CameraSpline
 	d, err := db.Open(filepath.Join(pconf.Data.Dir, "platform.db"))
