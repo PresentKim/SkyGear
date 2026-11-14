@@ -129,14 +129,16 @@ func TestCameraPresetsOnSpawn(t *testing.T) {
 	f := &fakeConn{}
 	c := conn{&Conn{Conn: f}}
 	_ = c.WritePacket(&packet.AvailableActorIdentifiers{})
-	if len(f.out) != 2 || f.out[0].ID() != packet.IDCameraPresets || f.out[1].ID() != packet.IDAvailableActorIdentifiers {
+	ids := map[uint32]bool{}
+	for _, pk := range f.out {
+		ids[pk.ID()] = true
+	}
+	if !ids[packet.IDCameraPresets] || !ids[packet.IDAvailableActorIdentifiers] || f.out[len(f.out)-1].ID() != packet.IDAvailableActorIdentifiers {
 		t.Fatalf("written %T", f.out)
 	}
 }
 
 func TestVoxelShapesOnSpawn(t *testing.T) {
-	defer func(v bool) { SendBasicVoxelShapes = v }(SendBasicVoxelShapes)
-	SendBasicVoxelShapes = true
 	f := &fakeConn{}
 	_ = conn{&Conn{Conn: f}}.WritePacket(&packet.AvailableActorIdentifiers{})
 	ids := map[uint32]bool{}

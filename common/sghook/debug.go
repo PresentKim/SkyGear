@@ -10,11 +10,6 @@ import (
 )
 
 var (
-	// SendBasicVoxelShapes sends a minimal voxel shape registry
-	// (minecraft:empty and minecraft:unit_cube) when the player spawns.
-	// Dragonfly sends none and 1.26 clients log "Shape registry is full" /
-	// "minecraft:unit_cube doesn't exist" for it. Set it once at startup.
-	SendBasicVoxelShapes bool
 	// BlockActionDebug logs the block breaking actions clients send, at
 	// INFO level. Set it once at startup.
 	BlockActionDebug bool
@@ -22,7 +17,7 @@ var (
 
 func init() {
 	OnServerPacket(func(c *Conn, pk packet.Packet) bool {
-		if _, ok := pk.(*packet.AvailableActorIdentifiers); ok && SendBasicVoxelShapes {
+		if _, ok := pk.(*packet.AvailableActorIdentifiers); ok {
 			_ = c.Conn.WritePacket(basicVoxelShapes())
 		}
 		return false
@@ -45,6 +40,10 @@ func init() {
 	})
 }
 
+// basicVoxelShapes is the minimal voxel shape registry (minecraft:empty and
+// minecraft:unit_cube) sent when the player spawns. Dragonfly sends none and
+// 1.26 clients log "Shape registry is full" / "minecraft:unit_cube doesn't
+// exist" for it.
 func basicVoxelShapes() *packet.VoxelShapes {
 	return &packet.VoxelShapes{
 		Shapes: []protocol.VoxelShape{

@@ -84,7 +84,6 @@ func run(log *slog.Logger) error {
 	chestui.Options.WaitLatency = pconf.ChestUI.WaitLatency
 	chestui.Options.Retry = pconf.ChestUI.Retry
 	chestui.Options.Debug = pconf.ChestUI.Debug
-	sghook.SendBasicVoxelShapes = pconf.Experimental.VoxelShapes
 	sghook.BlockActionDebug = pconf.Experimental.BlockActions
 	sghook.RecipeUnlock = pconf.Experimental.RecipeUnlock
 	d, err := db.Open(filepath.Join(pconf.Data.Dir, "platform.db"))
