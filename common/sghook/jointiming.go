@@ -136,6 +136,7 @@ func (a timingAllower) Allow(addr net.Addr, d login.IdentityData, c login.Client
 // finished loading, logs the join timing.
 func (c *Conn) StartGameContext(ctx context.Context, data minecraft.GameData) error {
 	c.join.set(&c.join.start, time.Now())
+	data.GameRules = startLocatorRules(data.GameRules)
 	err := c.Conn.StartGameContext(ctx, data)
 	if err != nil {
 		return err

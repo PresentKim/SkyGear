@@ -4,6 +4,7 @@ package sghook
 // other players.
 
 import (
+	"strings"
 	_ "unsafe" // go:linkname
 
 	"github.com/df-mc/dragonfly/server/player"
@@ -19,6 +20,21 @@ import (
 // turns it off in the start game data.
 const LocatorBarRule = "locatorBar"
 
+// startLocatorRules turns the locator bar on in the start game data.
+// Dragonfly sends it off there (as "locatorBar"), and turning it on later
+// with GameRulesChanged did not show the bar in a client under any name, so
+// the start data carries it on, under the lower case name the other game
+// rules use and under Dragonfly's.
+func startLocatorRules(rules []protocol.GameRule) []protocol.GameRule {
+	out := rules[:0:0]
+	for _, r := range rules {
+		if !strings.EqualFold(r.Name, LocatorBarRule) {
+			out = append(out, r)
+		}
+	}
+	return append(out, protocol.GameRule{Name: "locatorbar", Value: true}, protocol.GameRule{Name: LocatorBarRule, Value: true})
+}
+
 // SetLocatorBar shows or hides p's locator bar (the game rule, for p only).
 // Turning it off is sent only if it was turned on.
 func SetLocatorBar(p *player.Player, on bool) {
@@ -26,7 +42,7 @@ func SetLocatorBar(p *player.Player, on bool) {
 	if c == nil || c.locatorBar.Swap(on) == on && !on {
 		return
 	}
-	write(p, &packet.GameRulesChanged{GameRules: []protocol.GameRule{{Name: LocatorBarRule, Value: on}}})
+	write(p, &packet.GameRulesChanged{GameRules: []protocol.GameRule{{Name: "locatorbar", Value: on}, {Name: LocatorBarRule, Value: on}}})
 }
 
 // Waypoint is a mark on p's locator bar.
