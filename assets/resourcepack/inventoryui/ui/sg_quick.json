@@ -166,6 +166,10 @@
   // hovered (a label, so the lang key is translated).
   "face@common_buttons.light_content_button": {
     "size": [ 18, 18 ],
+    // The vanilla button takes focus, so the first one would open hovered
+    // (its tip shown) with the window. The press goes to the hidden
+    // buttons underneath, so nothing needs this one focused.
+    "$focus_enabled": false,
     "layer": 1,
     "consume_hover_events": false,
     "$pressed_button_name": "button.sg_quick",
