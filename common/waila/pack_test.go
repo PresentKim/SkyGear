@@ -53,4 +53,13 @@ func TestPackTokens(t *testing.T) {
 			t.Errorf("the A: text expression does not strip %s", tok)
 		}
 	}
+	// Each container token gates its own inventory panel: the panel is
+	// ignored unless the title holds that token.
+	for _, l := range []Layout{LayoutChest, LayoutFurnace, LayoutHopper, LayoutBrewing} {
+		tok := Container{Layout: l}.token()
+		gate := `"ignored": "(($var_title_text - '` + tok + `') = $var_title_text)"`
+		if !strings.Contains(string(text), gate) {
+			t.Errorf("no inventory panel in main.json is gated by %s", tok)
+		}
+	}
 }

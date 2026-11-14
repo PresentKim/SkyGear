@@ -200,7 +200,7 @@
 																		},
 																		{
 																			"hopper_inventory@waila_tile.hopper_inventory": {
-																				"ignored": "(($var_title_text) = $var_title_text)"
+																				"ignored": "(($var_title_text - '__waila:inv.hopper__') = $var_title_text)"
 																			}
 																		}
 																	],
