@@ -15,11 +15,6 @@ import (
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
-// Spline plays the move as one client-side camera spline (platform.toml
-// [Experimental] CameraSpline); otherwise it is two eased camera moves. Set
-// it once at startup.
-var Spline bool
-
 const (
 	// delay lets the island's chunks reach the client first.
 	delay = 1500 * time.Millisecond
@@ -49,17 +44,7 @@ func start(p *player.Player, w *world.World) {
 	keys := Keys(p.Position(), p.Rotation().Pitch(), p.Rotation().Yaw())
 	sghook.HideHUD(p, true)
 	sghook.LockInputs(p, locks)
-	if Spline {
-		sghook.PlayCameraSpline(p, keys)
-	} else {
-		sghook.SetCamera(p, keys[0].Pos, keys[0].Pitch, keys[0].Yaw, 0)
-		sghook.GlideCamera(p, keys[1].Pos, keys[1].Pitch, keys[1].Yaw, out)
-		p.H().DoAfter(seconds(out+hold), func(tx *world.Tx, e world.Entity) {
-			if tx.World() == w {
-				sghook.GlideCamera(e.(*player.Player), keys[3].Pos, keys[3].Pitch, keys[3].Yaw, back)
-			}
-		})
-	}
+	sghook.PlayCameraSpline(p, keys)
 	p.H().DoAfter(seconds(out+hold+back), func(tx *world.Tx, e world.Entity) {
 		if tx.World() != w {
 			return // left the save: the new place sets its own camera

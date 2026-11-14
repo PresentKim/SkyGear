@@ -60,18 +60,6 @@ func SetCamera(p *player.Player, pos mgl64.Vec3, pitch, yaw, ease float64) {
 	write(p, &packet.CameraInstruction{Set: protocol.Option(set)})
 }
 
-// GlideCamera moves p's camera to pos and the rotation (pitch, yaw in
-// degrees) over seconds, starting and ending slowly (sine easing), for a
-// camera that drifts on its own.
-func GlideCamera(p *player.Player, pos mgl64.Vec3, pitch, yaw, seconds float64) {
-	write(p, &packet.CameraInstruction{Set: protocol.Option(protocol.CameraInstructionSet{
-		Preset:   cameraPresetFree,
-		Position: protocol.Option(vec32(pos)),
-		Rotation: protocol.Option(mgl32.Vec2{float32(pitch), float32(yaw)}),
-		Ease:     protocol.Option(protocol.CameraEase{Type: protocol.EasingTypeInOutSine, Duration: float32(seconds)}),
-	})})
-}
-
 // selfRuntimeID is the runtime ID a client knows its own player by.
 const selfRuntimeID = 1
 

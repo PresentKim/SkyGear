@@ -14,8 +14,8 @@ import (
 // The lobby camera drifts around the island and the character's model
 // (showLobbyModel) idles and gestures, sent to that player's client only.
 
-// lobbyGlide is how long the camera takes from one stop to the next; a new
-// stop is sent as the camera arrives, so it never rests.
+// lobbyGlide is how long the camera takes from one stop to the next along the
+// spline; a new loop is sent as the camera arrives, so it never rests.
 const lobbyGlide = 14 * time.Second
 
 // lobbyOrbit are the camera's stops: the angle around the island from the
@@ -34,11 +34,6 @@ func lobbyCameraAt(i int) (pos mgl64.Vec3, pitch, yaw float64) {
 	pos = pivot.Add(mgl64.Vec3{12 * math.Sin(a), s.height, 12 * math.Cos(a)})
 	return pos, mgl64.RadToDeg(math.Atan2(s.height, 12)), 180 - s.angle
 }
-
-// CameraSpline moves the lobby camera along one client-side spline through
-// every stop (platform.toml [Experimental] CameraSpline) instead of a glide
-// to the next stop every lobbyGlide. Set it once at startup.
-var CameraSpline bool
 
 // lobbyLoop is the spline from the first stop through every other and back,
 // lobbyGlide apart, easing in and out at the ends only.
@@ -62,7 +57,7 @@ var (
 
 // lobbyMotion is where one player's lobby scene is.
 type lobbyMotion struct {
-	stop, idle                        int
+	idle                              int
 	nextCamera, nextLook, nextGesture time.Time
 }
 
@@ -100,16 +95,9 @@ func moveLobbyScene(p *player.Player, now time.Time) {
 		return
 	}
 	if !now.Before(m.nextCamera) {
-		if CameraSpline {
-			// One client-side loop through every stop and back.
-			sghook.PlayCameraSpline(p, lobbyLoop())
-			m.nextCamera = now.Add(lobbyGlide * time.Duration(len(lobbyOrbit)))
-		} else {
-			m.stop = (m.stop + 1) % len(lobbyOrbit)
-			pos, pitch, yaw := lobbyCameraAt(m.stop)
-			sghook.GlideCamera(p, pos, pitch, yaw, lobbyGlide.Seconds())
-			m.nextCamera = now.Add(lobbyGlide)
-		}
+		// One client-side loop through every stop and back.
+		sghook.PlayCameraSpline(p, lobbyLoop())
+		m.nextCamera = now.Add(lobbyGlide * time.Duration(len(lobbyOrbit)))
 	}
 	if !now.Before(m.nextGesture) {
 		sghook.AnimateEntity(p, lobbyModelID, lobbyGestures[rand.IntN(len(lobbyGestures))])
