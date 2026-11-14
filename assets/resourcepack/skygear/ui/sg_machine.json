@@ -727,21 +727,22 @@
       }
     ]
   },
-  // A window button slot of the control bar. A machine with no output or no
-  // input leaves the take or put slot empty (machine.go); the empty slot is
-  // hidden so the stack folds it and the buttons stay next to the info icon.
+  // The info icon slot of the control bar (slot 26, always filled by
+  // machine.go). It is hidden while the slot is empty. The slot's value is
+  // read as #item_id_aux (as in inventoryui's sg_quick_match.json), not
+  // #hover_text, which clears while the slot is clicked and made the icon blink.
   "bar_button": {
     "type": "panel",
     "size": [ 18, 18 ],
     "bindings": [
       {
-        "binding_name": "#hover_text",
+        "binding_name": "#item_id_aux",
         "binding_type": "collection",
         "binding_collection_name": "container_items"
       },
       {
         "binding_type": "view",
-        "source_property_name": "(not (#hover_text = ''))",
+        "source_property_name": "(#item_id_aux > 0)",
         "target_property_name": "#visible"
       }
     ],
