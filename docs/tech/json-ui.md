@@ -43,7 +43,7 @@ HUD 는 게임과 상관없어 `assets/resourcepack/sgui` 에, 상자 창은 `as
 
 ## HUD (터치의 포켓 배치)
 
-터치 화면에서 UI 프로필이 포켓이면 바닐라 HUD 가 `not_centered_gui_elements` 를 써서 하트를 왼쪽 위, 배고픔을 오른쪽 위에 그린다. 그 자리는 이 서버의 일차·플레이 시간 줄과 겹치므로, `assets/resourcepack/sgui/ui/hud_screen.json` 이 그 판을 다시 정의해 하트·갑옷·배고픔·공기 방울·탈것 하트를 핫바 위(클래식 터치 배치, 바닐라 `centered_gui_elements_at_bottom_middle_touch` 와 같은 위치)에 둔다. 핫바는 포켓 배치가 따로 그리므로 넣지 않고, 종이 인형만 왼쪽 위에 남는다.
+터치 화면에서 UI 프로필이 포켓이면 바닐라 HUD 가 `not_centered_gui_elements` 를 써서 하트를 왼쪽 위, 배고픔을 오른쪽 위에 그린다. 그 자리는 이 서버의 일차·플레이 시간 줄과 겹치므로, `assets/resourcepack/sgui/ui/hud_screen.json` 이 경로 키로 그 판의 하트·갑옷·배고픔·공기 방울·탈것 하트를 `ignored` 로 끄고, `modifications` 의 `insert_back` 으로 같은 렌더러를 핫바 위(클래식 터치 배치, 바닐라 `centered_gui_elements_at_bottom_middle_touch` 와 같은 위치)에 둔 패널을 끼운다. 바닐라 `controls` 배열은 다시 쓰지 않으므로 종이 인형은 왼쪽 위에 그대로 남고, 바닐라가 나중에 더하는 컨트롤도 지워지지 않는다. 핫바는 포켓 배치가 따로 그리므로 넣지 않는다.
 
 ## 흑백 PNG
 
