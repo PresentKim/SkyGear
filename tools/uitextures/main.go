@@ -11,6 +11,8 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
+
+	"github.com/presentkim/skygear/tools/internal/imgio"
 )
 
 const dir = "assets/resourcepack/sgui/textures/ui/sg"
@@ -195,7 +197,7 @@ func write(name string, img image.Image) {
 		panic(err)
 	}
 	defer f.Close()
-	if err := png.Encode(f, img); err != nil {
+	if err := png.Encode(f, imgio.NRGBA(img)); err != nil {
 		panic(err)
 	}
 }

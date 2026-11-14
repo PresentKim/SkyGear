@@ -13,6 +13,8 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
+
+	"github.com/presentkim/skygear/tools/internal/imgio"
 )
 
 // rarityColours are the colours of the rarities, in the order of
@@ -127,7 +129,7 @@ func write(dir, name string, img image.Image, nineslice int) {
 	if err != nil {
 		panic(err)
 	}
-	if err := png.Encode(f, img); err != nil {
+	if err := png.Encode(f, imgio.NRGBA(img)); err != nil {
 		panic(err)
 	}
 	f.Close()
