@@ -45,7 +45,8 @@
         }
       },
       {
-        "container_ids@sg_quick_match.container_ids": {}
+        // Named so the put matching moves can read it (sg_quick_match.json).
+        "sg_quick_ids@sg_quick_match.container_ids": {}
       }
     ]
   },
