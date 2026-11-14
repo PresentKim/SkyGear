@@ -16,7 +16,8 @@ import (
 // operator's position) as a client-side spline, to try in a real client why
 // the lobby spline showed only sky. Variants: rot=py|yp (rotation Value
 // order), flip (pitch negated), noset (no Set before the spline), rel
-// (control points relative to the eyes). The move is split into five distinct
+// (control points relative to the eyes), wait (the spline a second after
+// the Set). The move is split into five distinct
 // points, as a Catmull-Rom spline needs at least four.
 type debugSpline struct {
 	adminBase
@@ -30,6 +31,7 @@ func (c debugSpline) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		return
 	}
 	var opt sghook.SplineOptions
+	wait := false
 	for _, a := range strings.Fields(string(c.Args)) {
 		switch strings.ToLower(a) {
 		case "rot=py":
@@ -40,20 +42,36 @@ func (c debugSpline) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 			opt.FlipPitch = true
 		case "noset":
 			opt.NoSet = true
+		case "wait":
+			wait = true
 		case "rel":
 			eye := p.Position().Add(mgl64.Vec3{0, 1.62, 0})
 			opt.Origin = &eye
 		default:
-			o.Errorf("unknown variant %q (rot=py|yp, flip, noset, rel)", a)
+			o.Errorf("unknown variant %q (rot=py|yp, flip, noset, rel, wait)", a)
 			return
 		}
 	}
 	ends := intro.Keys(p.Position(), p.Rotation().Pitch(), p.Rotation().Yaw())
 	keys := sghook.Subdivide(ends[0], ends[len(ends)-1], 5)
 	total := keys[len(keys)-1].T
-	sghook.PlayCameraSpline(p, keys, opt)
-	p.H().DoAfter(time.Duration(total*float64(time.Second)), func(tx *world.Tx, e world.Entity) {
+	// wait sets the free camera at the first key now and sends the spline
+	// a second later, in another tick (a client may drop a camera
+	// instruction that comes in the same tick as another).
+	delay := time.Duration(0)
+	if wait {
+		delay = time.Second
+		first := keys[0]
+		sghook.SetCamera(p, first.Pos, first.Pitch, first.Yaw, 0)
+		opt.NoSet = true
+		p.H().DoAfter(delay, func(tx *world.Tx, e world.Entity) {
+			sghook.PlayCameraSpline(e.(*player.Player), keys, opt)
+		})
+	} else {
+		sghook.PlayCameraSpline(p, keys, opt)
+	}
+	p.H().DoAfter(delay+time.Duration(total*float64(time.Second)), func(tx *world.Tx, e world.Entity) {
 		sghook.ClearCamera(e.(*player.Player))
 	})
-	o.Printf("playing the spline for %.1fs (yawFirst=%v flip=%v noset=%v rel=%v)", total, opt.YawFirst, opt.FlipPitch, opt.NoSet, opt.Origin != nil)
+	o.Printf("playing the spline for %.1fs (yawFirst=%v flip=%v noset=%v rel=%v wait=%v)", total, opt.YawFirst, opt.FlipPitch, opt.NoSet, opt.Origin != nil, wait)
 }
