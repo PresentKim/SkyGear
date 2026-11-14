@@ -25,29 +25,21 @@ func unlocks(pks []packet.Packet) map[uint32][]string {
 }
 
 func TestUnlockDiff(t *testing.T) {
-	first := unlocks(unlockDiff(nil, set("a", "b"), true, true))
+	first := unlocks(unlockDiff(nil, set("a", "b"), true))
 	if len(first) != 1 || len(first[packet.UnlockedRecipesTypeInitiallyUnlocked]) != 2 {
 		t.Fatalf("first %v", first)
 	}
-	// toast: the list was replaced, so the kept recipes are listed again and
+	// The list was replaced, so the kept recipes are listed again and
 	// the new one is newly unlocked.
-	toast := unlocks(unlockDiff(set("a", "b"), set("a", "b", "c"), false, true))
-	if got := toast[packet.UnlockedRecipesTypeInitiallyUnlocked]; len(got) != 2 {
-		t.Fatalf("toast kept %v", got)
+	next := unlocks(unlockDiff(set("a", "b"), set("a", "b", "c"), false))
+	if got := next[packet.UnlockedRecipesTypeInitiallyUnlocked]; len(got) != 2 {
+		t.Fatalf("kept %v", got)
 	}
-	if got := toast[packet.UnlockedRecipesTypeNewlyUnlocked]; len(got) != 1 || got[0] != "c" {
-		t.Fatalf("toast added %v", got)
+	if got := next[packet.UnlockedRecipesTypeNewlyUnlocked]; len(got) != 1 || got[0] != "c" {
+		t.Fatalf("added %v", got)
 	}
-	// book: the client keeps its list; removed recipes are locked again.
-	book := unlocks(unlockDiff(set("a", "b"), set("b", "c"), false, false))
-	if got := book[packet.UnlockedRecipesTypeRemoveUnlocked]; len(got) != 1 || got[0] != "a" {
-		t.Fatalf("book removed %v", got)
-	}
-	if _, ok := book[packet.UnlockedRecipesTypeInitiallyUnlocked]; ok {
-		t.Fatal("book relisted")
-	}
-	if got := unlockDiff(set("a"), set("a"), false, false); len(got) != 0 {
-		t.Fatalf("no change sent %v", got)
+	if got := unlockDiff(set("a"), set("a"), false); len(got) != 1 || got[0].(*packet.UnlockedRecipes).UnlockType != packet.UnlockedRecipesTypeInitiallyUnlocked {
+		t.Fatalf("unchanged list is sent again %v", got)
 	}
 }
 
