@@ -38,22 +38,28 @@ func TestCameraSplineOptions(t *testing.T) {
 		{T: 0, Pos: mgl64.Vec3{0, 70, 0}, Pitch: 10, Yaw: 180},
 		{T: 3, Pos: mgl64.Vec3{0, 75, 10}, Pitch: 20, Yaw: 90},
 	}
-	in := cameraSpline(keys, 3, SplineOptions{YawFirst: true, Pad: true})
-	if len(in.Curve) != 4 || in.Curve[0] != in.Curve[1] || in.Curve[2] != in.Curve[3] || len(in.ProgressKeyFrames) != 2 {
-		t.Fatalf("padded curve %+v", in.Curve)
-	}
-	if r := in.RotationOptions[1].Value; r[0] != 90 || r[1] != 20 {
-		t.Fatalf("yaw-first rotation %v", r)
+	in := cameraSpline(keys, 3, SplineOptions{YawFirst: true, FlipPitch: true})
+	if r := in.RotationOptions[1].Value; r[0] != 90 || r[1] != -20 {
+		t.Fatalf("rotation %v, want (90, -20)", r)
 	}
 }
 
-func TestCameraSplineIndexProgress(t *testing.T) {
-	keys := []CameraKey{{T: 0}, {T: 1.5}}
-	in := cameraSpline(keys, 1.5, SplineOptions{Pad: true, Index: true})
-	if len(in.Curve) != 4 {
-		t.Fatalf("curve has %d points, want 4", len(in.Curve))
+func TestSubdivideGivesDistinctPointsAndDistanceProgress(t *testing.T) {
+	a := CameraKey{T: 0, Pos: mgl64.Vec3{0, 80, 0}, Pitch: 60, Yaw: 0}
+	b := CameraKey{T: 1.5, Pos: mgl64.Vec3{0, 64, 4}, Pitch: 0, Yaw: 0}
+	keys := Subdivide(a, b, 5)
+	if len(keys) != 5 || keys[0].Pos != a.Pos || keys[4].Pos != b.Pos || keys[4].T != 1.5 || keys[2].Pitch != 30 {
+		t.Fatalf("keys %+v", keys)
 	}
-	if a, b := in.ProgressKeyFrames[0].Value, in.ProgressKeyFrames[1].Value; a != 1 || b != 2 {
-		t.Fatalf("progress values %v, %v, want 1, 2 (the keys' control points)", a, b)
+	for i := 1; i < len(keys); i++ {
+		if keys[i].Pos == keys[i-1].Pos {
+			t.Fatalf("points %d and %d are the same", i-1, i)
+		}
+	}
+	in := cameraSpline(keys, 1.5, SplineOptions{})
+	for i, want := range []float32{0, 0.25, 0.5, 0.75, 1} {
+		if got := in.ProgressKeyFrames[i].Value; got < want-1e-5 || got > want+1e-5 {
+			t.Fatalf("progress %d = %v, want %v", i, got, want)
+		}
 	}
 }

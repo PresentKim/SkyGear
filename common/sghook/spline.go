@@ -19,24 +19,22 @@ type CameraKey struct {
 	Ease int32
 }
 
-// SplineOptions are the variants /sgdebug spline tries to find why a spline
-// shows the wrong view; the zero value is the plain spline.
+// SplineOptions are the variants /sgdebug spline tries; the zero value is
+// the plain spline.
 type SplineOptions struct {
 	// YawFirst writes each rotation Value as (yaw, pitch) instead of
 	// (pitch, yaw).
 	YawFirst bool
-	// Pad repeats the first and last control points, since a Catmull-Rom
-	// curve does not pass through its end points.
-	Pad bool
-	// Index writes each progress Value as the index of the key's control
-	// point in Curve instead of a fraction of the way (0 to 1).
-	Index bool
+	// FlipPitch sends each pitch negated.
+	FlipPitch bool
 }
 
 // PlayCameraSpline moves p's camera along a smooth (Catmull-Rom) path
 // through keys, played by the client on its own: keys[0] is where it starts
-// (T 0) and the last key's T is the length. The camera stays at the last
-// key; clear or set it after. Fewer than two keys do nothing.
+// (T 0) and the last key's T is the length. The client needs at least four
+// distinct points and breaks on a point repeated in a row (see Subdivide).
+// The camera stays at the last key; clear or set it after. Fewer than two
+// keys do nothing.
 func PlayCameraSpline(p *player.Player, keys []CameraKey, opt SplineOptions) {
 	if len(keys) < 2 {
 		return
@@ -46,31 +44,54 @@ func PlayCameraSpline(p *player.Player, keys []CameraKey, opt SplineOptions) {
 	write(p, &packet.CameraInstruction{Spline: protocol.Option(cameraSpline(keys, last.T, opt))})
 }
 
+// Subdivide returns n keys evenly spaced in time between a and b, with the
+// position, pitch and yaw linearly between theirs, so a two-key move has
+// the distinct points a Catmull-Rom spline needs. Every key moves linearly
+// (an ease would restart at each point).
+func Subdivide(a, b CameraKey, n int) []CameraKey {
+	keys := make([]CameraKey, n)
+	for i := range keys {
+		f := float64(i) / float64(n-1)
+		keys[i] = CameraKey{
+			T:     a.T + (b.T-a.T)*f,
+			Pos:   a.Pos.Add(b.Pos.Sub(a.Pos).Mul(f)),
+			Pitch: a.Pitch + (b.Pitch-a.Pitch)*f,
+			Yaw:   a.Yaw + (b.Yaw-a.Yaw)*f,
+		}
+	}
+	return keys
+}
+
+// cameraSpline builds the instruction: the progress of each key is the
+// distance along the control points up to it over the whole length (0 to
+// 1), and each key's rotation is a rotation key frame at its time.
 func cameraSpline(keys []CameraKey, total float64, opt SplineOptions) protocol.CameraSplineInstruction {
 	in := protocol.CameraSplineInstruction{TotalTime: float32(total)}
-	n := float32(len(keys) - 1)
-	if opt.Pad {
-		in.Curve = append(in.Curve, vec32(keys[0].Pos))
+	dist := make([]float64, len(keys))
+	for i := 1; i < len(keys); i++ {
+		dist[i] = dist[i-1] + keys[i].Pos.Sub(keys[i-1].Pos).Len()
 	}
+	length := dist[len(dist)-1]
 	for i, k := range keys {
 		in.Curve = append(in.Curve, vec32(k.Pos))
-		progress := float32(i) / n
-		if opt.Index {
-			progress = float32(len(in.Curve) - 1)
+		progress := float32(i) / float32(len(keys)-1)
+		if length > 0 {
+			progress = float32(dist[i] / length)
 		}
 		in.ProgressKeyFrames = append(in.ProgressKeyFrames, protocol.CameraProgressOption{
 			Value: progress, Time: float32(k.T), EaseType: k.Ease,
 		})
-		rot := mgl32.Vec3{float32(k.Pitch), float32(k.Yaw), 0}
+		pitch := float32(k.Pitch)
+		if opt.FlipPitch {
+			pitch = -pitch
+		}
+		rot := mgl32.Vec3{pitch, float32(k.Yaw), 0}
 		if opt.YawFirst {
-			rot = mgl32.Vec3{float32(k.Yaw), float32(k.Pitch), 0}
+			rot = mgl32.Vec3{float32(k.Yaw), pitch, 0}
 		}
 		in.RotationOptions = append(in.RotationOptions, protocol.CameraRotationOption{
 			Value: rot, Time: float32(k.T), EaseType: k.Ease,
 		})
-	}
-	if opt.Pad {
-		in.Curve = append(in.Curve, vec32(keys[len(keys)-1].Pos))
 	}
 	return in
 }

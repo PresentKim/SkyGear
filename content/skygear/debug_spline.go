@@ -14,8 +14,8 @@ import (
 // debugSpline plays the first-entry camera move (intro.Keys from the
 // operator's position) as a client-side spline, to try in a real client why
 // the lobby spline showed only sky. Variants: rot=py|yp (rotation Value
-// order), pad (repeat the end control points), idx (progress values are
-// control point indices).
+// order), flip (pitch negated). The move is split into five distinct
+// points, as a Catmull-Rom spline needs at least four.
 type debugSpline struct {
 	adminBase
 	Sub  cmd.SubCommand `cmd:"spline"`
@@ -34,16 +34,15 @@ func (c debugSpline) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 			opt.YawFirst = false
 		case "rot=yp":
 			opt.YawFirst = true
-		case "idx":
-			opt.Index = true
-		case "pad":
-			opt.Pad = true
+		case "flip":
+			opt.FlipPitch = true
 		default:
-			o.Errorf("unknown variant %q (rot=py|yp, pad, idx)", a)
+			o.Errorf("unknown variant %q (rot=py|yp, flip)", a)
 			return
 		}
 	}
-	keys := intro.Keys(p.Position(), p.Rotation().Pitch(), p.Rotation().Yaw())
+	ends := intro.Keys(p.Position(), p.Rotation().Pitch(), p.Rotation().Yaw())
+	keys := sghook.Subdivide(ends[0], ends[len(ends)-1], 5)
 	total := keys[len(keys)-1].T
 	sghook.PlayCameraSpline(p, keys, opt)
 	p.H().DoAfter(time.Duration(total*float64(time.Second)), func(tx *world.Tx, e world.Entity) {
