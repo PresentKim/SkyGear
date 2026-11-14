@@ -132,9 +132,22 @@
     },
     "bindings": [
       {
+        "binding_name": "#objective_sidebar_name",
+        "binding_type": "global"
+      },
+      {
         "binding_name": "#scoreboard_sidebar_size",
-        "binding_type": "global",
-        "binding_name_override": "#collection_length"
+        "binding_type": "global"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(#objective_sidebar_name - '§d§h§u§d')",
+        "target_property_name": "#sg_objective_rest"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "((not (#sg_objective_rest = #objective_sidebar_name)) * #scoreboard_sidebar_size)",
+        "target_property_name": "#collection_length"
       }
     ]
   },
@@ -163,9 +176,22 @@
     },
     "bindings": [
       {
+        "binding_name": "#objective_sidebar_name",
+        "binding_type": "global"
+      },
+      {
         "binding_name": "#scoreboard_sidebar_size",
-        "binding_type": "global",
-        "binding_name_override": "#collection_length"
+        "binding_type": "global"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(#objective_sidebar_name - '§d§h§u§d')",
+        "target_property_name": "#sg_objective_rest"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "((not (#sg_objective_rest = #objective_sidebar_name)) * #scoreboard_sidebar_size)",
+        "target_property_name": "#collection_length"
       }
     ]
   },
@@ -305,9 +331,22 @@
     },
     "bindings": [
       {
+        "binding_name": "#objective_sidebar_name",
+        "binding_type": "global"
+      },
+      {
         "binding_name": "#scoreboard_sidebar_size",
-        "binding_type": "global",
-        "binding_name_override": "#collection_length"
+        "binding_type": "global"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(#objective_sidebar_name - '§d§h§u§d')",
+        "target_property_name": "#sg_objective_rest"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "((not (#sg_objective_rest = #objective_sidebar_name)) * #scoreboard_sidebar_size)",
+        "target_property_name": "#collection_length"
       }
     ]
   },
@@ -328,9 +367,22 @@
     },
     "bindings": [
       {
+        "binding_name": "#objective_sidebar_name",
+        "binding_type": "global"
+      },
+      {
         "binding_name": "#scoreboard_sidebar_size",
-        "binding_type": "global",
-        "binding_name_override": "#collection_length"
+        "binding_type": "global"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(#objective_sidebar_name - '§d§h§u§d')",
+        "target_property_name": "#sg_objective_rest"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "((not (#sg_objective_rest = #objective_sidebar_name)) * #scoreboard_sidebar_size)",
+        "target_property_name": "#collection_length"
       }
     ]
   },
@@ -464,9 +516,22 @@
                 },
                 "bindings": [
                   {
+                    "binding_name": "#objective_sidebar_name",
+                    "binding_type": "global"
+                  },
+                  {
                     "binding_name": "#scoreboard_sidebar_size",
-                    "binding_type": "global",
-                    "binding_name_override": "#collection_length"
+                    "binding_type": "global"
+                  },
+                  {
+                    "binding_type": "view",
+                    "source_property_name": "(#objective_sidebar_name - '§d§h§u§d')",
+                    "target_property_name": "#sg_objective_rest"
+                  },
+                  {
+                    "binding_type": "view",
+                    "source_property_name": "((#sg_objective_rest = #objective_sidebar_name) * #scoreboard_sidebar_size)",
+                    "target_property_name": "#collection_length"
                   }
                 ]
               }
