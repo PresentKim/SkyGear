@@ -1,7 +1,7 @@
 {
     "namespace": "chest",
 
-    "small_chest_screen@common.inventory_screen_common": {
+    "small_chest_screen": {
 		"$close_on_player_hurt|default": true,
 		"$use_custom_pocket_toast|default": false,
 		"close_on_player_hurt": "$close_on_player_hurt",
