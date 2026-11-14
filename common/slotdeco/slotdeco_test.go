@@ -168,16 +168,18 @@ func TestPackMatchesMarks(t *testing.T) {
 	for _, f := range []string{"ui/ui_common.json", "ui/inventory_screen.json"} {
 		var mods map[string]struct {
 			Modifications []struct {
-				Value map[string]any `json:"value"`
+				Value []map[string]any `json:"value"`
 			} `json:"modifications"`
 		}
 		readJSON(t, f, &mods)
 		for name, m := range mods {
 			for _, mod := range m.Modifications {
-				for ref := range mod.Value {
-					_, id, _ := strings.Cut(ref, "@sg_slot.")
-					if _, ok := ui[id]; !ok {
-						t.Errorf("%s: %s inserts %s, which slotdeco.json does not define", f, name, ref)
+				for _, ctl := range mod.Value {
+					for ref := range ctl {
+						_, id, _ := strings.Cut(ref, "@sg_slot.")
+						if _, ok := ui[id]; !ok {
+							t.Errorf("%s: %s inserts %s, which slotdeco.json does not define", f, name, ref)
+						}
 					}
 				}
 			}
