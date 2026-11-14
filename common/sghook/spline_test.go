@@ -46,3 +46,14 @@ func TestCameraSplineOptions(t *testing.T) {
 		t.Fatalf("yaw-first rotation %v", r)
 	}
 }
+
+func TestCameraSplineIndexProgress(t *testing.T) {
+	keys := []CameraKey{{T: 0}, {T: 1.5}}
+	in := cameraSpline(keys, 1.5, SplineOptions{Pad: true, Index: true})
+	if len(in.Curve) != 4 {
+		t.Fatalf("curve has %d points, want 4", len(in.Curve))
+	}
+	if a, b := in.ProgressKeyFrames[0].Value, in.ProgressKeyFrames[1].Value; a != 1 || b != 2 {
+		t.Fatalf("progress values %v, %v, want 1, 2 (the keys' control points)", a, b)
+	}
+}

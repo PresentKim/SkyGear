@@ -14,7 +14,8 @@ import (
 // debugSpline plays the first-entry camera move (intro.Keys from the
 // operator's position) as a client-side spline, to try in a real client why
 // the lobby spline showed only sky. Variants: rot=py|yp (rotation Value
-// order), pad (repeat the end control points).
+// order), pad (repeat the end control points), idx (progress values are
+// control point indices).
 type debugSpline struct {
 	adminBase
 	Sub  cmd.SubCommand `cmd:"spline"`
@@ -33,10 +34,12 @@ func (c debugSpline) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 			opt.YawFirst = false
 		case "rot=yp":
 			opt.YawFirst = true
+		case "idx":
+			opt.Index = true
 		case "pad":
 			opt.Pad = true
 		default:
-			o.Errorf("unknown variant %q (rot=py|yp, pad)", a)
+			o.Errorf("unknown variant %q (rot=py|yp, pad, idx)", a)
 			return
 		}
 	}

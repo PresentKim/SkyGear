@@ -28,6 +28,9 @@ type SplineOptions struct {
 	// Pad repeats the first and last control points, since a Catmull-Rom
 	// curve does not pass through its end points.
 	Pad bool
+	// Index writes each progress Value as the index of the key's control
+	// point in Curve instead of a fraction of the way (0 to 1).
+	Index bool
 }
 
 // PlayCameraSpline moves p's camera along a smooth (Catmull-Rom) path
@@ -51,8 +54,12 @@ func cameraSpline(keys []CameraKey, total float64, opt SplineOptions) protocol.C
 	}
 	for i, k := range keys {
 		in.Curve = append(in.Curve, vec32(k.Pos))
+		progress := float32(i) / n
+		if opt.Index {
+			progress = float32(len(in.Curve) - 1)
+		}
 		in.ProgressKeyFrames = append(in.ProgressKeyFrames, protocol.CameraProgressOption{
-			Value: float32(i) / n, Time: float32(k.T), EaseType: k.Ease,
+			Value: progress, Time: float32(k.T), EaseType: k.Ease,
 		})
 		rot := mgl32.Vec3{float32(k.Pitch), float32(k.Yaw), 0}
 		if opt.YawFirst {
