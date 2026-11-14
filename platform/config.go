@@ -81,22 +81,6 @@ type Config struct {
 		// steps of opening entity chests. Debug logs the open/close packets.
 		Ride, WaitLatency, Retry, Debug bool
 	}
-	Experimental struct {
-		// VoxelShapes sends a minimal voxel shape registry on spawn.
-		VoxelShapes bool
-		// BlockActions logs the block breaking actions clients send.
-		BlockActions bool
-		// LocatorBar shows the other players of the save and the island's
-		// spawn on the locator bar.
-		LocatorBar bool
-		// CameraSpline plays the lobby camera and the first-entry camera as
-		// client-side camera splines.
-		CameraSpline bool
-		// RecipeUnlock tests the recipe book's unlocking: "" (off), "toast"
-		// (unlock notices for new recipes) or "book" (every recipe sent once,
-		// the ones not researched locked).
-		RecipeUnlock string
-	}
 	Admin struct {
 		// Operators are the XUIDs (digits) of the players allowed to use
 		// operator tools such as /sgadmin. An entry that is not a number is a
@@ -189,9 +173,6 @@ func LoadConfig(path string) (Config, error) {
 	}
 	if c.Backup.Enabled && (c.Backup.DatabaseMinutes <= 0 || c.Backup.Dir == "") {
 		return c, errors.New("platform config: Backup.DatabaseMinutes must be positive and Backup.Dir set")
-	}
-	if m := c.Experimental.RecipeUnlock; m != "" && m != "toast" && m != "book" {
-		return c, errors.New(`platform config: Experimental.RecipeUnlock must be "", "toast" or "book"`)
 	}
 	return c, nil
 }

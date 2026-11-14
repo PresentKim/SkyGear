@@ -39,15 +39,19 @@ func TestStateFlushIntervalDefault(t *testing.T) {
 	}
 }
 
-func TestRecipeUnlockMode(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "platform.toml")
-	for mode, ok := range map[string]bool{"": true, "toast": true, "book": true, "all": false} {
-		if err := os.WriteFile(path, []byte("[Experimental]\n  RecipeUnlock = \""+mode+"\"\n"), 0o644); err != nil {
-			t.Fatal(err)
-		}
-		if _, err := LoadConfig(path); (err == nil) != ok {
-			t.Errorf("mode %q: err %v", mode, err)
-		}
+// TestLoadConfigIgnoresRetiredTables: a platform.toml written when it had an
+// [Experimental] table still loads, and the other keys in it are kept.
+func TestLoadConfigIgnoresRetiredTables(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "platform.toml")
+	old := "[Instance]\n  LoadRadius = 7\n\n[Experimental]\n  VoxelShapes = true\n  BlockActions = true\n  LocatorBar = true\n  CameraSpline = true\n  RecipeUnlock = \"book\"\n"
+	if err := os.WriteFile(path, []byte(old), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	c, err := LoadConfig(path)
+	if err != nil {
+		t.Fatalf("LoadConfig: %v", err)
+	}
+	if c.Instance.LoadRadius != 7 {
+		t.Fatalf("LoadRadius = %d, want 7", c.Instance.LoadRadius)
 	}
 }
