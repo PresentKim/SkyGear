@@ -9,7 +9,7 @@
 		"$layer": 1,
 		"layer": "$layer",
 
-		"$var_title_text": "($var_title_text1 - '__waila:anchor.top_left__' - '__waila:anchor.top_middle__' - '__waila:anchor.top_right__' - '__waila:anchor.left_middle__' - '__waila:anchor.center__' - '__waila:anchor.right_middle__' - '__waila:anchor.bottom_left__' - '__waila:anchor.bottom_middle__' - '__waila:anchor.bottom_right__')",		
+		"$var_title_text": "($var_title_text1 - '__waila:anchor.top_middle__')",		
 
 		"controls": [
 			{
@@ -160,11 +160,11 @@
 																				"variables": [
 																					{
 																						"requires": "($tooltip_renderer_type = 'A:')",
-																						"$text": "('' + ($var_title_text - ('%.19s' * $var_title_text)) - 'tile.' - 'entity.' - '.name' - '__waila:sg.line__' - '__waila:inv.furnace__' - '__waila:inv.brewstand__' - '__waila:inv.chest__' - '__waila:inv.dropper__' - '__waila:inv.hopper__' - '__waila:inv.size_1__' - '__waila:inv.size_2__' - '__waila:inv.size_3__' - '__waila:inv.size_4__' - '__waila:inv.size_5__' - '__waila:inv.size_6__' - '__waila:inv.size_7__' - '__waila:inv.size_8__' - '__waila:inv.size_9__' - '__waila:inv.size_10__' - '__waila:inv.size_11__' - '__waila:inv.size_12__' - '__waila:inv.size_13__' - '__waila:inv.size_14__' - '__waila:inv.size_15__' - '__waila:inv.size_16__' - '__waila:inv.size_17__' - '__waila:inv.size_18__' - '__waila:inv.size_19__' - '__waila:inv.size_20__' - '__waila:inv.size_21__' - '__waila:inv.size_22__' - '__waila:inv.size_23__' - '__waila:inv.size_24__' - '__waila:inv.size_25__' - '__waila:inv.size_26__' - '__waila:inv.size_27__' - '__waila:inv.size_28__' - '__waila:inv.size_29__' - '__waila:inv.size_30__' - '__waila:inv.size_31__' - '__waila:inv.size_32__' - '__waila:inv.size_33__' - '__waila:inv.size_34__' - '__waila:inv.size_35__' - '__waila:inv.size_36__' - '__waila:inv.size_37__' - '__waila:inv.size_38__' - '__waila:inv.size_39__' - '__waila:inv.size_40__' - '__waila:inv.size_41__' - '__waila:inv.size_42__' - '__waila:inv.size_43__' - '__waila:inv.size_44__' - '__waila:inv.size_45__' - '__waila:inv.size_46__' - '__waila:inv.size_47__' - '__waila:inv.size_48__' - '__waila:inv.size_49__' - '__waila:inv.size_50__' - '__waila:inv.size_51__' - '__waila:inv.size_52__' - '__waila:inv.size_53__' - '__waila:inv.size_54__' - '__waila:inv.size_55__' - '__waila:inv.size_56__' - '__waila:inv.size_57__' - '__waila:inv.size_58__' - '__waila:inv.size_59__' - '__waila:inv.size_60__' - '__waila:inv.size_61__' - '__waila:inv.size_62__' - '__waila:inv.size_63__' - '__waila:inv.size_64__' - '__waila:inv.size_65__' - '__waila:inv.size_66__' - '__waila:inv.size_67__' - '__waila:inv.size_68__' - '__waila:inv.size_69__' - '__waila:inv.size_70__' - '__waila:inv.size_71__' - '__waila:inv.size_72__' - '__waila:inv.size_73__' - '__waila:inv.size_74__' - '__waila:inv.size_75__' - '__waila:inv.size_76__' - '__waila:inv.size_77__' - '__waila:inv.size_78__' - '__waila:inv.size_79__' - '__waila:inv.size_80__' - '__waila:inv.size_81__' - '__waila:inv.size_82__' - '__waila:inv.size_83__' - '__waila:inv.size_84__' - '__waila:inv.size_85__' - '__waila:inv.size_86__' - '__waila:inv.size_87__' - '__waila:inv.size_88__' - '__waila:inv.size_89__' - '__waila:inv.size_90__' - '__waila:inv.size_91__' - '__waila:inv.size_92__' - '__waila:inv.size_93__' - '__waila:inv.size_94__' - '__waila:inv.size_95__' - '__waila:inv.size_96__' - '__waila:inv.size_97__' - '__waila:inv.size_98__' - '__waila:inv.size_99__')"
+																						"$text": "('' + ($var_title_text - ('%.19s' * $var_title_text)) - '__waila:inv.hopper__' - 'tile.' - 'entity.' - '.name' - '__waila:sg.line__' - '__waila:inv.furnace__' - '__waila:inv.brewstand__' - '__waila:inv.chest__')"
 																					},
 																					{
 																						"requires": "(not ($tooltip_renderer_type = 'A:'))",
-																						"$text": "('' + ($var_title_text - ('%.325s' * $var_title_text)) - 'tile.' - 'entity.' - '.name' - '__waila:humanoid.')"
+																						"$text": "('' + ($var_title_text - ('%.325s' * $var_title_text)) - '__waila:inv.hopper__' - 'tile.' - 'entity.' - '.name' - '__waila:humanoid.')"
 																					}
 																				]
 																			}
@@ -199,13 +199,8 @@
 																			}
 																		},
 																		{
-																			"dropper_inventory@waila_tile.dropper_inventory": {
-																				"ignored": "(($var_title_text - '__waila:inv.dropper__') = $var_title_text)"
-																			}
-																		},
-																		{
 																			"hopper_inventory@waila_tile.hopper_inventory": {
-																				"ignored": "(($var_title_text - '__waila:inv.hopper__') = $var_title_text)"
+																				"ignored": "(($var_title_text) = $var_title_text)"
 																			}
 																		}
 																	],
@@ -334,40 +329,8 @@
 
 		"variables": [
 			{
-				"requires": "(not (($var_title_text1 - '__waila:anchor.top_left__') = $var_title_text1))",
-				"$s_anchor": "top_left"
-			},
-			{
 				"requires": "(not (($var_title_text1 - '__waila:anchor.top_middle__') = $var_title_text1))",
 				"$s_anchor": "top_middle"
-			},
-			{
-				"requires": "(not (($var_title_text1 - '__waila:anchor.top_right__') = $var_title_text1))",
-				"$s_anchor": "top_right"
-			},
-			{
-				"requires": "(not (($var_title_text1 - '__waila:anchor.left_middle__') = $var_title_text1))",
-				"$s_anchor": "left_middle"
-			},
-			{
-				"requires": "(not (($var_title_text1 - '__waila:anchor.center__') = $var_title_text1))",
-				"$s_anchor": "center"
-			},
-			{
-				"requires": "(not (($var_title_text1 - '__waila:anchor.right_middle__') = $var_title_text1))",
-				"$s_anchor": "right_middle"
-			},
-			{
-				"requires": "(not (($var_title_text1 - '__waila:anchor.bottom_left__') = $var_title_text1))",
-				"$s_anchor": "bottom_left"
-			},
-			{
-				"requires": "(not (($var_title_text1 - '__waila:anchor.bottom_middle__') = $var_title_text1))",
-				"$s_anchor": "bottom_middle"
-			},
-			{
-				"requires": "(not (($var_title_text1 - '__waila:anchor.bottom_right__') = $var_title_text1))",
-				"$s_anchor": "bottom_right"
 			}
 		],
 
