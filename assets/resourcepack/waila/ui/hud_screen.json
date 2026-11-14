@@ -34,8 +34,6 @@
 	},
 
 	"root_panel": {
-		"size": ["100%", "100%"],
-
 		"modifications": [
 			{
 				"array_name": "controls",
