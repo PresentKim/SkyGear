@@ -24,9 +24,11 @@
                     "bindings": [
                         { "binding_name": "#hover_text", "binding_type": "collection", "binding_collection_name": "container_items" },
                         { "binding_type": "view", "source_control_name": "sg_search", "source_property_name": "#item_name", "target_property_name": "#sg_search" },
+                        // the subtraction goes in its own binding: comparing an inline subtraction inverts true/false
+                        { "binding_type": "view", "source_property_name": "(#sg_search - ' ')", "target_property_name": "#sg_trim" },
                         {
                             "binding_type": "view",
-                            "source_property_name": "(((#hover_text - #sg_search) = #hover_text) and (not ((#sg_search - ' ') = '')))",
+                            "source_property_name": "(((#hover_text - #sg_search) = #hover_text) and (not (#sg_trim = '')))",
                             "target_property_name": "#visible"
                         }
                     ]
