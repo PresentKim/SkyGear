@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/go-gl/mathgl/mgl64"
 	"strings"
 	"time"
 
@@ -14,7 +15,8 @@ import (
 // debugSpline plays the first-entry camera move (intro.Keys from the
 // operator's position) as a client-side spline, to try in a real client why
 // the lobby spline showed only sky. Variants: rot=py|yp (rotation Value
-// order), flip (pitch negated). The move is split into five distinct
+// order), flip (pitch negated), noset (no Set before the spline), rel
+// (control points relative to the eyes). The move is split into five distinct
 // points, as a Catmull-Rom spline needs at least four.
 type debugSpline struct {
 	adminBase
@@ -36,8 +38,13 @@ func (c debugSpline) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 			opt.YawFirst = true
 		case "flip":
 			opt.FlipPitch = true
+		case "noset":
+			opt.NoSet = true
+		case "rel":
+			eye := p.Position().Add(mgl64.Vec3{0, 1.62, 0})
+			opt.Origin = &eye
 		default:
-			o.Errorf("unknown variant %q (rot=py|yp, flip)", a)
+			o.Errorf("unknown variant %q (rot=py|yp, flip, noset, rel)", a)
 			return
 		}
 	}
@@ -48,5 +55,5 @@ func (c debugSpline) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	p.H().DoAfter(time.Duration(total*float64(time.Second)), func(tx *world.Tx, e world.Entity) {
 		sghook.ClearCamera(e.(*player.Player))
 	})
-	o.Printf("playing the spline for %.1fs (%+v)", total, opt)
+	o.Printf("playing the spline for %.1fs (yawFirst=%v flip=%v noset=%v rel=%v)", total, opt.YawFirst, opt.FlipPitch, opt.NoSet, opt.Origin != nil)
 }

@@ -27,6 +27,11 @@ type SplineOptions struct {
 	YawFirst bool
 	// FlipPitch sends each pitch negated.
 	FlipPitch bool
+	// NoSet skips the free camera Set at the first key before the spline.
+	NoSet bool
+	// Origin, when set, is subtracted from every control point (points
+	// relative to it instead of world positions).
+	Origin *mgl64.Vec3
 }
 
 // PlayCameraSpline moves p's camera along a smooth (Catmull-Rom) path
@@ -40,7 +45,9 @@ func PlayCameraSpline(p *player.Player, keys []CameraKey, opt SplineOptions) {
 		return
 	}
 	first, last := keys[0], keys[len(keys)-1]
-	SetCamera(p, first.Pos, first.Pitch, first.Yaw, 0)
+	if !opt.NoSet {
+		SetCamera(p, first.Pos, first.Pitch, first.Yaw, 0)
+	}
 	write(p, &packet.CameraInstruction{Spline: protocol.Option(cameraSpline(keys, last.T, opt))})
 }
 
@@ -73,7 +80,11 @@ func cameraSpline(keys []CameraKey, total float64, opt SplineOptions) protocol.C
 	}
 	length := dist[len(dist)-1]
 	for i, k := range keys {
-		in.Curve = append(in.Curve, vec32(k.Pos))
+		pos := k.Pos
+		if opt.Origin != nil {
+			pos = pos.Sub(*opt.Origin)
+		}
+		in.Curve = append(in.Curve, vec32(pos))
 		progress := float32(i) / float32(len(keys)-1)
 		if length > 0 {
 			progress = float32(dist[i] / length)
