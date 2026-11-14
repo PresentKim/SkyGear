@@ -49,8 +49,9 @@
     ],
     "controls": [
       {
-        "top_left@scoreboard.sg_top_left_stack": {
+        "top_left@scoreboard.sg_row_stack": {
           "ignored": "$touch",
+          "$sg_row_text": "(#player_name_sidebar - '§d§1')",
           "offset": [
             4,
             4
@@ -77,12 +78,19 @@
           ],
           "controls": [
             {
-              "top_left_touch@scoreboard.sg_top_left_touch_stack": {
-                "ignored": "(not $touch)"
+              "top_left_touch@scoreboard.sg_row_stack": {
+                "ignored": "(not $touch)",
+                "$sg_row_text": "(#player_name_sidebar - '§d§1')",
+                "$sg_row_anchor": "top_right",
+                "$sg_row_alignment": "right"
               }
             },
             {
-              "top_right@scoreboard.sg_top_right_stack": {}
+              "top_right@scoreboard.sg_row_stack": {
+                "$sg_row_text": "(#player_name_sidebar - '§d§2')",
+                "$sg_row_anchor": "top_right",
+                "$sg_row_alignment": "right"
+              }
             },
             {
               "quest_gap": {
@@ -115,20 +123,25 @@
       }
     ]
   },
-  "sg_top_left_stack": {
+  // One part of the HUD: a stack of the sidebar rows whose name starts with the part's marker. A
+  // stack is built only while the objective name has the HUD marker. $sg_row_text is the whole
+  // expression that drops the marker (a variable in part of an expression is not replaced), and the
+  // rows see the stack's variables.
+  "sg_row_stack": {
     "type": "stack_panel",
     "orientation": "vertical",
     "size": [
       "100%cm",
       "100%c"
     ],
-    "anchor_from": "top_left",
-    "anchor_to": "top_left",
+    "$sg_row_anchor|default": "top_left",
+    "anchor_from": "$sg_row_anchor",
+    "anchor_to": "$sg_row_anchor",
     "use_child_anchors": true,
     "collection_name": "scoreboard_players",
     "factory": {
       "name": "player_list_factory",
-      "control_name": "scoreboard.sg_row_top_left"
+      "control_name": "scoreboard.sg_row"
     },
     "bindings": [
       {
@@ -151,65 +164,24 @@
       }
     ]
   },
-  "sg_top_left_touch_stack@scoreboard.sg_top_left_stack": {
-    "anchor_from": "top_right",
-    "anchor_to": "top_right",
-    "factory": {
-      "name": "player_list_factory",
-      "control_name": "scoreboard.sg_row_top_left_touch"
-    }
-  },
-  "sg_top_right_stack": {
-    "type": "stack_panel",
-    "orientation": "vertical",
-    "size": [
-      "100%cm",
-      "100%c"
-    ],
-    "anchor_from": "top_right",
-    "anchor_to": "top_right",
-    "use_child_anchors": true,
-    "collection_name": "scoreboard_players",
-    "factory": {
-      "name": "player_list_factory",
-      "control_name": "scoreboard.sg_row_top_right"
-    },
-    "bindings": [
-      {
-        "binding_name": "#objective_sidebar_name",
-        "binding_type": "global"
-      },
-      {
-        "binding_name": "#scoreboard_sidebar_size",
-        "binding_type": "global"
-      },
-      {
-        "binding_type": "view",
-        "source_property_name": "(#objective_sidebar_name - '§d§h§u§d')",
-        "target_property_name": "#sg_objective_rest"
-      },
-      {
-        "binding_type": "view",
-        "source_property_name": "((not (#sg_objective_rest = #objective_sidebar_name)) * #scoreboard_sidebar_size)",
-        "target_property_name": "#collection_length"
-      }
-    ]
-  },
-  "sg_row_top_left": {
+  "sg_row": {
     "type": "label",
     "layer": 2,
     "localize": false,
     "locked_alpha": 1.0,
+    "$sg_row_anchor|default": "top_left",
+    "$sg_row_alignment|default": "left",
+    "$sg_row_max_size|default": [
+      260,
+      10
+    ],
     "size": [
       "default",
       10
     ],
-    "max_size": [
-      260,
-      10
-    ],
+    "max_size": "$sg_row_max_size",
     "text": "#text",
-    "text_alignment": "left",
+    "text_alignment": "$sg_row_alignment",
     "shadow": true,
     "bindings": [
       {
@@ -219,58 +191,17 @@
       },
       {
         "binding_type": "view",
-        "source_property_name": "(#player_name_sidebar - '§d§1')",
+        "source_property_name": "$sg_row_text",
         "target_property_name": "#text"
       },
       {
         "binding_type": "view",
-        "source_property_name": "(not ((#player_name_sidebar - '§d§1') = #player_name_sidebar))",
+        "source_property_name": "(not (#text = #player_name_sidebar))",
         "target_property_name": "#visible"
       }
     ],
-    "anchor_from": "top_left",
-    "anchor_to": "top_left"
-  },
-  "sg_row_top_left_touch@scoreboard.sg_row_top_left": {
-    "text_alignment": "right",
-    "anchor_from": "top_right",
-    "anchor_to": "top_right"
-  },
-  "sg_row_top_right": {
-    "type": "label",
-    "layer": 2,
-    "localize": false,
-    "locked_alpha": 1.0,
-    "size": [
-      "default",
-      10
-    ],
-    "max_size": [
-      260,
-      10
-    ],
-    "text": "#text",
-    "text_alignment": "right",
-    "shadow": true,
-    "bindings": [
-      {
-        "binding_name": "#player_name_sidebar",
-        "binding_type": "collection",
-        "binding_collection_name": "scoreboard_players"
-      },
-      {
-        "binding_type": "view",
-        "source_property_name": "(#player_name_sidebar - '§d§2')",
-        "target_property_name": "#text"
-      },
-      {
-        "binding_type": "view",
-        "source_property_name": "(not ((#player_name_sidebar - '§d§2') = #player_name_sidebar))",
-        "target_property_name": "#visible"
-      }
-    ],
-    "anchor_from": "top_right",
-    "anchor_to": "top_right"
+    "anchor_from": "$sg_row_anchor",
+    "anchor_to": "$sg_row_anchor"
   },
   "sg_quest": {
     "type": "image",
@@ -295,7 +226,9 @@
           "anchor_to": "center",
           "controls": [
             {
-              "title@scoreboard.sg_quest_title_stack": {}
+              "title@scoreboard.sg_row_stack": {
+                "$sg_row_text": "(#player_name_sidebar - '§d§3')"
+              }
             },
             {
               "gap": {
@@ -307,156 +240,18 @@
               }
             },
             {
-              "lines@scoreboard.sg_quest_line_stack": {}
+              "lines@scoreboard.sg_row_stack": {
+                "$sg_row_text": "(#player_name_sidebar - '§d§4')",
+                "$sg_row_max_size": [
+                  180,
+                  10
+                ]
+              }
             }
           ]
         }
       }
     ]
-  },
-  "sg_quest_title_stack": {
-    "type": "stack_panel",
-    "orientation": "vertical",
-    "size": [
-      "100%cm",
-      "100%c"
-    ],
-    "anchor_from": "top_left",
-    "anchor_to": "top_left",
-    "use_child_anchors": true,
-    "collection_name": "scoreboard_players",
-    "factory": {
-      "name": "player_list_factory",
-      "control_name": "scoreboard.sg_row_quest_title"
-    },
-    "bindings": [
-      {
-        "binding_name": "#objective_sidebar_name",
-        "binding_type": "global"
-      },
-      {
-        "binding_name": "#scoreboard_sidebar_size",
-        "binding_type": "global"
-      },
-      {
-        "binding_type": "view",
-        "source_property_name": "(#objective_sidebar_name - '§d§h§u§d')",
-        "target_property_name": "#sg_objective_rest"
-      },
-      {
-        "binding_type": "view",
-        "source_property_name": "((not (#sg_objective_rest = #objective_sidebar_name)) * #scoreboard_sidebar_size)",
-        "target_property_name": "#collection_length"
-      }
-    ]
-  },
-  "sg_quest_line_stack": {
-    "type": "stack_panel",
-    "orientation": "vertical",
-    "size": [
-      "100%cm",
-      "100%c"
-    ],
-    "anchor_from": "top_left",
-    "anchor_to": "top_left",
-    "use_child_anchors": true,
-    "collection_name": "scoreboard_players",
-    "factory": {
-      "name": "player_list_factory",
-      "control_name": "scoreboard.sg_row_quest"
-    },
-    "bindings": [
-      {
-        "binding_name": "#objective_sidebar_name",
-        "binding_type": "global"
-      },
-      {
-        "binding_name": "#scoreboard_sidebar_size",
-        "binding_type": "global"
-      },
-      {
-        "binding_type": "view",
-        "source_property_name": "(#objective_sidebar_name - '§d§h§u§d')",
-        "target_property_name": "#sg_objective_rest"
-      },
-      {
-        "binding_type": "view",
-        "source_property_name": "((not (#sg_objective_rest = #objective_sidebar_name)) * #scoreboard_sidebar_size)",
-        "target_property_name": "#collection_length"
-      }
-    ]
-  },
-  "sg_row_quest_title": {
-    "type": "label",
-    "layer": 2,
-    "localize": false,
-    "locked_alpha": 1.0,
-    "size": [
-      "default",
-      10
-    ],
-    "max_size": [
-      260,
-      10
-    ],
-    "text": "#text",
-    "text_alignment": "left",
-    "shadow": true,
-    "bindings": [
-      {
-        "binding_name": "#player_name_sidebar",
-        "binding_type": "collection",
-        "binding_collection_name": "scoreboard_players"
-      },
-      {
-        "binding_type": "view",
-        "source_property_name": "(#player_name_sidebar - '§d§3')",
-        "target_property_name": "#text"
-      },
-      {
-        "binding_type": "view",
-        "source_property_name": "(not ((#player_name_sidebar - '§d§3') = #player_name_sidebar))",
-        "target_property_name": "#visible"
-      }
-    ],
-    "anchor_from": "top_left",
-    "anchor_to": "top_left"
-  },
-  "sg_row_quest": {
-    "type": "label",
-    "layer": 2,
-    "localize": false,
-    "locked_alpha": 1.0,
-    "size": [
-      "default",
-      10
-    ],
-    "max_size": [
-      180,
-      10
-    ],
-    "text": "#text",
-    "text_alignment": "left",
-    "shadow": true,
-    "bindings": [
-      {
-        "binding_name": "#player_name_sidebar",
-        "binding_type": "collection",
-        "binding_collection_name": "scoreboard_players"
-      },
-      {
-        "binding_type": "view",
-        "source_property_name": "(#player_name_sidebar - '§d§4')",
-        "target_property_name": "#text"
-      },
-      {
-        "binding_type": "view",
-        "source_property_name": "(not ((#player_name_sidebar - '§d§4') = #player_name_sidebar))",
-        "target_property_name": "#visible"
-      }
-    ],
-    "anchor_from": "top_left",
-    "anchor_to": "top_left"
   },
   "sg_plain_sidebar": {
     "type": "image",
