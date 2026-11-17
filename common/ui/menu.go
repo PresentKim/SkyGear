@@ -3,6 +3,7 @@ package ui
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -314,12 +315,100 @@ func menuPageOf(name string, data any) *menuPage {
 		pg.buttons(invui.ListRows, invui.KindRow, v.Actions)
 		return pg
 	}
+	if v, ok := data.(homeData); ok {
+		return homePage(v)
+	}
 	pg := newMenuPage(invui.KeyMenu + invui.KeyRows)
 	chrome, body, rows := pressRows(data)
 	pg.chrome(chrome)
 	pg.text(invui.SlotBody, "§r"+ink(body))
 	pg.rows(0, rows)
 	return pg
+}
+
+// homePage is the lobby's main screen in the home slots (invui.Home*).
+func homePage(v homeData) *menuPage {
+	key := invui.KeyHome
+	if v.Overlay != nil {
+		key += invui.KeyOverlay
+	}
+	pg := newMenuPage(key)
+	cell := func(i int, s string) {
+		if s != "" {
+			pg.items[invui.Cell0+i] = item.NewStack(item.Paper{}, 1).WithCustomName("§r" + i18n.Plain(s))
+		}
+	}
+	row := func(i int, icon, label, kind, id string) {
+		pg.icon(invui.RowIcon0+i, icon, kind)
+		pg.button(invui.RowBtn0+i, label, kind, id)
+	}
+	pr := v.Profile
+	row(invui.HomeProfileRow, pr.Icon, pr.Name, invui.KindRow, pr.ID)
+	cell(invui.HomeTitleCell, pr.Title)
+	cell(invui.HomeLineCell, pr.Line)
+	pg.items[invui.Cell0+invui.HomeFillCell] = item.NewStack(item.Paper{}, 1).WithCustomName(fmt.Sprintf("w%02d", int(pr.Fill*invui.HomeFillSteps+0.5)))
+	for i, b := range v.Corner {
+		if i >= invui.HomeCorners {
+			break
+		}
+		row(invui.HomeCornerRow0+i, b.Icon, b.Label, invui.KindRow, b.ID)
+		if b.Badge > 0 {
+			cell(invui.HomeBadgeCell0+i, strconv.Itoa(b.Badge))
+		}
+	}
+	for i, b := range v.Side {
+		if i >= invui.HomeSides {
+			break
+		}
+		row(invui.HomeSideRow0+i, b.Icon, b.Label, invui.KindRow, b.ID)
+	}
+	for i, line := range v.Feed {
+		if i >= invui.HomeFeeds {
+			break
+		}
+		cell(invui.HomeFeedCell0+i, line)
+	}
+	s := v.Save
+	row(invui.HomeSaveRow, s.Icon, s.Name, invui.KindStatic, "")
+	cell(invui.HomeHeadCell, s.Head)
+	for i, line := range s.Lines {
+		if i >= invui.HomeLines {
+			break
+		}
+		cell(invui.HomeLineCell0+i, line)
+	}
+	if s.Arrows {
+		for slot, id := range map[int]string{invui.SlotPrev: s.Prev, invui.SlotNext: s.Next} {
+			kind := invui.KindRow
+			if id == "" {
+				kind = invui.KindStatic
+			}
+			pg.button(slot, "", kind, id)
+		}
+	}
+	row(invui.HomePlayRow, "", v.Play.Label, invui.KindRow, v.Play.ID)
+	cell(invui.HomeSubCell, v.Play.Sub)
+	if m := v.Manage; m != nil {
+		row(invui.HomeManageRow, "", m.Label, invui.KindRow, m.ID)
+	}
+	if o := v.Overlay; o != nil {
+		cell(invui.HomeOverTitle, o.Title)
+		cell(invui.HomeOverBody, o.Body)
+		for i, b := range o.Buttons {
+			if i >= invui.HomeOvers {
+				break
+			}
+			row(invui.HomeOverRow0+i, "", b.Label, invui.KindRow, b.ID)
+		}
+	}
+	return pg
+}
+
+// lobby draws the lobby's logo and name over the screen of pg.
+func (pg *menuPage) lobby(l *dLobby) {
+	pg.items[invui.SlotKey] = pg.items[invui.SlotKey].WithCustomName(pg.items[invui.SlotKey].CustomName() + invui.KeyLobby)
+	pg.icon(invui.SlotLogo, l.Logo, invui.KindIcon)
+	pg.text(invui.SlotGame, "§r"+i18n.Plain(l.Title))
 }
 
 // pressRows reads a screen's data: its chrome, its first texts and a list row

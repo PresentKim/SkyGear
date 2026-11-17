@@ -112,6 +112,8 @@
             }
           ],
           "default_control": "default",
+          "focus_enabled": true,
+          "focus_magnet_enabled": true,
           "hover_control": "hover",
           "layer": 1,
           "pressed_control": "pressed",
@@ -317,6 +319,8 @@
             }
           ],
           "default_control": "default",
+          "focus_enabled": true,
+          "focus_magnet_enabled": true,
           "hover_control": "hover",
           "layer": 1,
           "pressed_control": "pressed",
@@ -498,6 +502,8 @@
             }
           ],
           "default_control": "default",
+          "focus_enabled": true,
+          "focus_magnet_enabled": true,
           "hover_control": "hover",
           "layer": 1,
           "pressed_control": "pressed",
@@ -945,6 +951,8 @@
       }
     ],
     "default_control": "default",
+    "focus_enabled": true,
+    "focus_magnet_enabled": true,
     "hover_control": "hover",
     "layer": 1,
     "pressed_control": "pressed",
@@ -4776,6 +4784,4879 @@
     ],
     "type": "panel"
   },
+  "home_badge": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not (#hover_text = ''))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "edge": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "color": [
+            0.11764705882352941,
+            0.11764705882352941,
+            0.12156862745098039
+          ],
+          "layer": 1,
+          "size": [
+            11,
+            9
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "fill": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "color": [
+            0.8470588235294118,
+            0.22745098039215686,
+            0.22745098039215686
+          ],
+          "layer": 2,
+          "offset": [
+            1,
+            1
+          ],
+          "size": [
+            9,
+            7
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "l": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            1,
+            1,
+            1
+          ],
+          "font_scale_factor": 0.79,
+          "layer": 3,
+          "localize": false,
+          "size": [
+            11,
+            "default"
+          ],
+          "text": "#text",
+          "text_alignment": "center",
+          "type": "label"
+        }
+      }
+    ],
+    "size": [
+      11,
+      9
+    ],
+    "type": "panel"
+  },
+  "home_corner": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not (#hover_text = ''))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "b": {
+          "anchor_from": "right_middle",
+          "anchor_to": "right_middle",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_type": "collection_details"
+            }
+          ],
+          "button_mappings": [
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_select",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_ok",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_slot_hovered"
+            }
+          ],
+          "controls": [
+            {
+              "default": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.118,
+                        0.118,
+                        0.122
+                      ],
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "band": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.1411764705882353,
+                        0.1450980392156863,
+                        0.14901960784313725
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 2px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.2823529411764706,
+                        0.28627450980392155,
+                        0.2901960784313726
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 4px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "hover": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.118,
+                        0.118,
+                        0.122
+                      ],
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "band": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.1411764705882353,
+                        0.1450980392156863,
+                        0.14901960784313725
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 2px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.35294117647058826,
+                        0.3568627450980392,
+                        0.3607843137254902
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 4px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "tip": {
+                      "allow_clipping": false,
+                      "layer": 30,
+                      "renderer": "hover_text_renderer",
+                      "type": "custom"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "pressed": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.118,
+                        0.118,
+                        0.122
+                      ],
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "band": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.1411764705882353,
+                        0.1450980392156863,
+                        0.14901960784313725
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 2px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.35294117647058826,
+                        0.3568627450980392,
+                        0.3607843137254902
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        2
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 4px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            }
+          ],
+          "default_control": "default",
+          "focus_enabled": true,
+          "focus_magnet_enabled": true,
+          "hover_control": "hover",
+          "layer": 1,
+          "pressed_control": "pressed",
+          "size": [
+            22,
+            22
+          ],
+          "sound_name": "random.click",
+          "sound_pitch": 1,
+          "sound_volume": 1,
+          "type": "button"
+        }
+      },
+      {
+        "i": {
+          "anchor_from": "right_middle",
+          "anchor_to": "right_middle",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.icon_slot": {
+                "collection_index": "$icon_index",
+                "size": [
+                  10,
+                  10
+                ]
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            -6,
+            -1
+          ],
+          "orientation": "vertical",
+          "size": [
+            10,
+            10
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "badge": {
+          "anchor_from": "top_right",
+          "anchor_to": "top_right",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "b@sg_menu.home_badge": {
+                "collection_index": "$badge_index"
+              }
+            }
+          ],
+          "layer": 5,
+          "offset": [
+            6,
+            -6
+          ],
+          "orientation": "vertical",
+          "size": [
+            11,
+            9
+          ],
+          "type": "stack_panel"
+        }
+      }
+    ],
+    "size": [
+      26,
+      22
+    ],
+    "type": "panel"
+  },
+  "home_feed_line": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not (#hover_text = ''))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "bg": {
+          "alpha": 0.7,
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "color": [
+            0.11764705882352941,
+            0.11764705882352941,
+            0.12156862745098039
+          ],
+          "layer": 1,
+          "offset": [
+            0,
+            2
+          ],
+          "size": [
+            170,
+            11
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "band": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "color": [
+            0.3215686274509804,
+            0.6470588235294118,
+            0.20784313725490197
+          ],
+          "layer": 2,
+          "offset": [
+            0,
+            2
+          ],
+          "size": [
+            2,
+            11
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "l": {
+          "anchor_from": "left_middle",
+          "anchor_to": "left_middle",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            1,
+            1,
+            1
+          ],
+          "font_scale_factor": 0.86,
+          "layer": 3,
+          "localize": false,
+          "offset": [
+            6,
+            1
+          ],
+          "size": [
+            162,
+            "default"
+          ],
+          "text": "#text",
+          "type": "label"
+        }
+      }
+    ],
+    "size": [
+      170,
+      13
+    ],
+    "type": "panel"
+  },
+  "home_fill": {
+    "controls": [
+      {
+        "w01": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - 'w01') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "color": [
+            0.3843137254901961,
+            0.7607843137254902,
+            0.25098039215686274
+          ],
+          "layer": 2,
+          "size": [
+            4,
+            2
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "w02": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - 'w02') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "color": [
+            0.3843137254901961,
+            0.7607843137254902,
+            0.25098039215686274
+          ],
+          "layer": 2,
+          "size": [
+            9,
+            2
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "w03": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - 'w03') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "color": [
+            0.3843137254901961,
+            0.7607843137254902,
+            0.25098039215686274
+          ],
+          "layer": 2,
+          "size": [
+            14,
+            2
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "w04": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - 'w04') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "color": [
+            0.3843137254901961,
+            0.7607843137254902,
+            0.25098039215686274
+          ],
+          "layer": 2,
+          "size": [
+            18,
+            2
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "w05": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - 'w05') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "color": [
+            0.3843137254901961,
+            0.7607843137254902,
+            0.25098039215686274
+          ],
+          "layer": 2,
+          "size": [
+            23,
+            2
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "w06": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - 'w06') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "color": [
+            0.3843137254901961,
+            0.7607843137254902,
+            0.25098039215686274
+          ],
+          "layer": 2,
+          "size": [
+            28,
+            2
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "w07": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - 'w07') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "color": [
+            0.3843137254901961,
+            0.7607843137254902,
+            0.25098039215686274
+          ],
+          "layer": 2,
+          "size": [
+            32,
+            2
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "w08": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - 'w08') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "color": [
+            0.3843137254901961,
+            0.7607843137254902,
+            0.25098039215686274
+          ],
+          "layer": 2,
+          "size": [
+            37,
+            2
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "w09": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - 'w09') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "color": [
+            0.3843137254901961,
+            0.7607843137254902,
+            0.25098039215686274
+          ],
+          "layer": 2,
+          "size": [
+            42,
+            2
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "w10": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - 'w10') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "color": [
+            0.3843137254901961,
+            0.7607843137254902,
+            0.25098039215686274
+          ],
+          "layer": 2,
+          "size": [
+            47,
+            2
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "w11": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - 'w11') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "color": [
+            0.3843137254901961,
+            0.7607843137254902,
+            0.25098039215686274
+          ],
+          "layer": 2,
+          "size": [
+            51,
+            2
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "w12": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - 'w12') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "color": [
+            0.3843137254901961,
+            0.7607843137254902,
+            0.25098039215686274
+          ],
+          "layer": 2,
+          "size": [
+            56,
+            2
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "w13": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - 'w13') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "color": [
+            0.3843137254901961,
+            0.7607843137254902,
+            0.25098039215686274
+          ],
+          "layer": 2,
+          "size": [
+            61,
+            2
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "w14": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - 'w14') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "color": [
+            0.3843137254901961,
+            0.7607843137254902,
+            0.25098039215686274
+          ],
+          "layer": 2,
+          "size": [
+            65,
+            2
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "w15": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - 'w15') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "color": [
+            0.3843137254901961,
+            0.7607843137254902,
+            0.25098039215686274
+          ],
+          "layer": 2,
+          "size": [
+            70,
+            2
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "w16": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - 'w16') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "color": [
+            0.3843137254901961,
+            0.7607843137254902,
+            0.25098039215686274
+          ],
+          "layer": 2,
+          "size": [
+            75,
+            2
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "w17": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - 'w17') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "color": [
+            0.3843137254901961,
+            0.7607843137254902,
+            0.25098039215686274
+          ],
+          "layer": 2,
+          "size": [
+            79,
+            2
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "w18": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - 'w18') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "color": [
+            0.3843137254901961,
+            0.7607843137254902,
+            0.25098039215686274
+          ],
+          "layer": 2,
+          "size": [
+            84,
+            2
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "w19": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - 'w19') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "color": [
+            0.3843137254901961,
+            0.7607843137254902,
+            0.25098039215686274
+          ],
+          "layer": 2,
+          "size": [
+            89,
+            2
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "w20": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - 'w20') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "color": [
+            0.3843137254901961,
+            0.7607843137254902,
+            0.25098039215686274
+          ],
+          "layer": 2,
+          "size": [
+            94,
+            2
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      }
+    ],
+    "size": [
+      94,
+      2
+    ],
+    "type": "panel"
+  },
+  "home_gate": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not ((#hover_text - 'hm') = #hover_text))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "profile": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "controls": [
+            {
+              "card": {
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "c@sg_menu.home_profile": {
+                      "$icon_index": 34,
+                      "collection_index": 82
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  135,
+                  37
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "title": {
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "t@sg_menu.home_text_title": {
+                      "collection_index": 130
+                    }
+                  }
+                ],
+                "layer": 4,
+                "offset": [
+                  33,
+                  13
+                ],
+                "orientation": "vertical",
+                "size": [
+                  96,
+                  7
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "bar": {
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "controls": [
+                  {
+                    "bg": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.11764705882352941,
+                        0.11764705882352941,
+                        0.12156862745098039
+                      ],
+                      "layer": 1,
+                      "size": [
+                        96,
+                        4
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "f@sg_menu.home_fill": {
+                            "collection_index": 132
+                          }
+                        }
+                      ],
+                      "layer": 2,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        94,
+                        2
+                      ],
+                      "type": "stack_panel"
+                    }
+                  }
+                ],
+                "layer": 4,
+                "offset": [
+                  33,
+                  21
+                ],
+                "size": [
+                  96,
+                  4
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "line": {
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "t@sg_menu.home_text_line": {
+                      "collection_index": 131
+                    }
+                  }
+                ],
+                "layer": 4,
+                "offset": [
+                  33,
+                  27
+                ],
+                "orientation": "vertical",
+                "size": [
+                  96,
+                  6
+                ],
+                "type": "stack_panel"
+              }
+            }
+          ],
+          "offset": [
+            8,
+            7
+          ],
+          "size": [
+            135,
+            37
+          ],
+          "type": "panel"
+        }
+      },
+      {
+        "corner": {
+          "anchor_from": "top_right",
+          "anchor_to": "top_right",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "c0@sg_menu.home_corner": {
+                "$badge_index": 133,
+                "$icon_index": 35,
+                "collection_index": 83
+              }
+            },
+            {
+              "c1@sg_menu.home_corner": {
+                "$badge_index": 134,
+                "$icon_index": 36,
+                "collection_index": 84
+              }
+            },
+            {
+              "c2@sg_menu.home_corner": {
+                "$badge_index": 135,
+                "$icon_index": 37,
+                "collection_index": 85
+              }
+            },
+            {
+              "c3@sg_menu.home_corner": {
+                "$badge_index": 136,
+                "$icon_index": 38,
+                "collection_index": 86
+              }
+            },
+            {
+              "c4@sg_menu.home_corner": {
+                "$badge_index": 137,
+                "$icon_index": 39,
+                "collection_index": 87
+              }
+            },
+            {
+              "c5@sg_menu.home_corner": {
+                "$badge_index": 138,
+                "$icon_index": 40,
+                "collection_index": 88
+              }
+            }
+          ],
+          "offset": [
+            -8,
+            9
+          ],
+          "orientation": "horizontal",
+          "size": [
+            "100%c",
+            22
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "side": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "s0@sg_menu.home_tile": {
+                "$icon_index": 41,
+                "collection_index": 89
+              }
+            },
+            {
+              "s1@sg_menu.home_tile": {
+                "$icon_index": 42,
+                "collection_index": 90
+              }
+            },
+            {
+              "s2@sg_menu.home_tile": {
+                "$icon_index": 43,
+                "collection_index": 91
+              }
+            },
+            {
+              "s3@sg_menu.home_tile": {
+                "$icon_index": 44,
+                "collection_index": 92
+              }
+            },
+            {
+              "s4@sg_menu.home_tile": {
+                "$icon_index": 45,
+                "collection_index": 93
+              }
+            },
+            {
+              "s5@sg_menu.home_tile": {
+                "$icon_index": 46,
+                "collection_index": 94
+              }
+            },
+            {
+              "s6@sg_menu.home_tile": {
+                "$icon_index": 47,
+                "collection_index": 95
+              }
+            },
+            {
+              "s7@sg_menu.home_tile": {
+                "$icon_index": 48,
+                "collection_index": 96
+              }
+            }
+          ],
+          "offset": [
+            8,
+            53
+          ],
+          "orientation": "vertical",
+          "size": [
+            38,
+            "100%c"
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "feed": {
+          "anchor_from": "bottom_left",
+          "anchor_to": "bottom_left",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "f0@sg_menu.home_feed_line": {
+                "collection_index": 139
+              }
+            },
+            {
+              "f1@sg_menu.home_feed_line": {
+                "collection_index": 140
+              }
+            },
+            {
+              "f2@sg_menu.home_feed_line": {
+                "collection_index": 141
+              }
+            },
+            {
+              "f3@sg_menu.home_feed_line": {
+                "collection_index": 142
+              }
+            },
+            {
+              "f4@sg_menu.home_feed_line": {
+                "collection_index": 143
+              }
+            },
+            {
+              "f5@sg_menu.home_feed_line": {
+                "collection_index": 144
+              }
+            },
+            {
+              "f6@sg_menu.home_feed_line": {
+                "collection_index": 145
+              }
+            },
+            {
+              "f7@sg_menu.home_feed_line": {
+                "collection_index": 146
+              }
+            }
+          ],
+          "offset": [
+            8,
+            -9
+          ],
+          "orientation": "vertical",
+          "size": [
+            170,
+            "100%c"
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "start": {
+          "anchor_from": "bottom_right",
+          "anchor_to": "bottom_right",
+          "controls": [
+            {
+              "save": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.11764705882352941,
+                        0.11764705882352941,
+                        0.12156862745098039
+                      ],
+                      "layer": 1,
+                      "size": [
+                        156,
+                        46
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.19215686274509805,
+                        0.19607843137254902,
+                        0.2
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        154,
+                        44
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "pic": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "i@sg_menu.icon_slot": {
+                            "collection_index": 49,
+                            "size": [
+                              30,
+                              30
+                            ]
+                          }
+                        }
+                      ],
+                      "layer": 3,
+                      "offset": [
+                        5,
+                        8
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        30,
+                        30
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "text": {
+                      "anchor_from": "left_middle",
+                      "anchor_to": "left_middle",
+                      "controls": [
+                        {
+                          "head": {
+                            "collection_name": "container_items",
+                            "controls": [
+                              {
+                                "t@sg_menu.home_text_head": {
+                                  "collection_index": 147
+                                }
+                              }
+                            ],
+                            "orientation": "vertical",
+                            "size": [
+                              92,
+                              7
+                            ],
+                            "type": "stack_panel"
+                          }
+                        },
+                        {
+                          "name": {
+                            "collection_name": "container_items",
+                            "controls": [
+                              {
+                                "n@sg_menu.home_save_name": {
+                                  "collection_index": 97
+                                }
+                              }
+                            ],
+                            "orientation": "vertical",
+                            "size": [
+                              92,
+                              10
+                            ],
+                            "type": "stack_panel"
+                          }
+                        },
+                        {
+                          "lines": {
+                            "collection_name": "container_items",
+                            "controls": [
+                              {
+                                "l0@sg_menu.home_save_line": {
+                                  "collection_index": 148
+                                }
+                              },
+                              {
+                                "l1@sg_menu.home_save_line": {
+                                  "collection_index": 149
+                                }
+                              },
+                              {
+                                "l2@sg_menu.home_save_line": {
+                                  "collection_index": 150
+                                }
+                              },
+                              {
+                                "l3@sg_menu.home_save_line": {
+                                  "collection_index": 151
+                                }
+                              }
+                            ],
+                            "orientation": "vertical",
+                            "size": [
+                              92,
+                              "100%c"
+                            ],
+                            "type": "stack_panel"
+                          }
+                        }
+                      ],
+                      "layer": 3,
+                      "offset": [
+                        40,
+                        0
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        92,
+                        "100%c"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "arrows": {
+                      "anchor_from": "right_middle",
+                      "anchor_to": "right_middle",
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "prev@sg_menu.home_prev": {
+                            "collection_index": 4
+                          }
+                        },
+                        {
+                          "gap": {
+                            "controls": [],
+                            "size": [
+                              14,
+                              2
+                            ],
+                            "type": "panel"
+                          }
+                        },
+                        {
+                          "next@sg_menu.home_next": {
+                            "collection_index": 5
+                          }
+                        }
+                      ],
+                      "layer": 3,
+                      "offset": [
+                        -4,
+                        0
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        14,
+                        30
+                      ],
+                      "type": "stack_panel"
+                    }
+                  }
+                ],
+                "size": [
+                  156,
+                  46
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "gap": {
+                "controls": [],
+                "size": [
+                  156,
+                  4
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "play": {
+                "controls": [
+                  {
+                    "b": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "p@sg_menu.home_play": {
+                            "collection_index": 98
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        156,
+                        30
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "sub": {
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "s@sg_menu.home_play_sub": {
+                            "collection_index": 152
+                          }
+                        }
+                      ],
+                      "layer": 5,
+                      "offset": [
+                        0,
+                        -5
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        150,
+                        6
+                      ],
+                      "type": "stack_panel"
+                    }
+                  }
+                ],
+                "size": [
+                  156,
+                  30
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "manage": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "m@sg_menu.home_manage": {
+                      "collection_index": 99
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  156,
+                  "100%c"
+                ],
+                "type": "stack_panel"
+              }
+            }
+          ],
+          "offset": [
+            -8,
+            -8
+          ],
+          "orientation": "vertical",
+          "size": [
+            156,
+            "100%c"
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "overlay": {
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "g@sg_menu.home_overlay_gate": {
+                "collection_index": 0
+              }
+            }
+          ],
+          "layer": 20,
+          "orientation": "vertical",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "type": "stack_panel"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "home_manage": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not (#hover_text = ''))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "b": {
+          "anchor_from": "bottom_middle",
+          "anchor_to": "bottom_middle",
+          "controls": [
+            {
+              "b": {
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_type": "collection_details"
+                  }
+                ],
+                "button_mappings": [
+                  {
+                    "consume_event": false,
+                    "from_button_id": "button.menu_select",
+                    "mapping_type": "pressed",
+                    "to_button_id": "button.container_auto_place"
+                  },
+                  {
+                    "consume_event": false,
+                    "from_button_id": "button.menu_ok",
+                    "mapping_type": "pressed",
+                    "to_button_id": "button.container_auto_place"
+                  },
+                  {
+                    "mapping_type": "pressed",
+                    "to_button_id": "button.container_slot_hovered"
+                  }
+                ],
+                "controls": [
+                  {
+                    "default": {
+                      "controls": [
+                        {
+                          "edge": {
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "color": [
+                              0.118,
+                              0.118,
+                              0.122
+                            ],
+                            "layer": 1,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "texture": "textures/ui/White",
+                            "type": "image"
+                          }
+                        },
+                        {
+                          "band": {
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "color": [
+                              0.34509803921568627,
+                              0.34509803921568627,
+                              0.35294117647058826
+                            ],
+                            "layer": 1,
+                            "offset": [
+                              1,
+                              1
+                            ],
+                            "size": [
+                              "100% - 2px",
+                              "100% - 2px"
+                            ],
+                            "texture": "textures/ui/White",
+                            "type": "image"
+                          }
+                        },
+                        {
+                          "fill": {
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "color": [
+                              0.8156862745098039,
+                              0.8196078431372549,
+                              0.8313725490196079
+                            ],
+                            "layer": 1,
+                            "offset": [
+                              1,
+                              1
+                            ],
+                            "size": [
+                              "100% - 2px",
+                              "100% - 4px"
+                            ],
+                            "texture": "textures/ui/White",
+                            "type": "image"
+                          }
+                        }
+                      ],
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "panel"
+                    }
+                  },
+                  {
+                    "hover": {
+                      "controls": [
+                        {
+                          "edge": {
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "color": [
+                              0.118,
+                              0.118,
+                              0.122
+                            ],
+                            "layer": 1,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "texture": "textures/ui/White",
+                            "type": "image"
+                          }
+                        },
+                        {
+                          "band": {
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "color": [
+                              0.34509803921568627,
+                              0.34509803921568627,
+                              0.35294117647058826
+                            ],
+                            "layer": 1,
+                            "offset": [
+                              1,
+                              1
+                            ],
+                            "size": [
+                              "100% - 2px",
+                              "100% - 2px"
+                            ],
+                            "texture": "textures/ui/White",
+                            "type": "image"
+                          }
+                        },
+                        {
+                          "fill": {
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "color": [
+                              0.9019607843137255,
+                              0.9098039215686274,
+                              0.9215686274509803
+                            ],
+                            "layer": 1,
+                            "offset": [
+                              1,
+                              1
+                            ],
+                            "size": [
+                              "100% - 2px",
+                              "100% - 4px"
+                            ],
+                            "texture": "textures/ui/White",
+                            "type": "image"
+                          }
+                        }
+                      ],
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "panel"
+                    }
+                  },
+                  {
+                    "pressed": {
+                      "controls": [
+                        {
+                          "edge": {
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "color": [
+                              0.118,
+                              0.118,
+                              0.122
+                            ],
+                            "layer": 1,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "texture": "textures/ui/White",
+                            "type": "image"
+                          }
+                        },
+                        {
+                          "band": {
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "color": [
+                              0.34509803921568627,
+                              0.34509803921568627,
+                              0.35294117647058826
+                            ],
+                            "layer": 1,
+                            "offset": [
+                              1,
+                              1
+                            ],
+                            "size": [
+                              "100% - 2px",
+                              "100% - 2px"
+                            ],
+                            "texture": "textures/ui/White",
+                            "type": "image"
+                          }
+                        },
+                        {
+                          "fill": {
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "color": [
+                              0.9019607843137255,
+                              0.9098039215686274,
+                              0.9215686274509803
+                            ],
+                            "layer": 1,
+                            "offset": [
+                              1,
+                              2
+                            ],
+                            "size": [
+                              "100% - 2px",
+                              "100% - 4px"
+                            ],
+                            "texture": "textures/ui/White",
+                            "type": "image"
+                          }
+                        }
+                      ],
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "panel"
+                    }
+                  }
+                ],
+                "default_control": "default",
+                "focus_enabled": true,
+                "focus_magnet_enabled": true,
+                "hover_control": "hover",
+                "layer": 1,
+                "pressed_control": "pressed",
+                "size": [
+                  156,
+                  18
+                ],
+                "sound_name": "random.click",
+                "sound_pitch": 1,
+                "sound_volume": 1,
+                "type": "button"
+              }
+            },
+            {
+              "l": {
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "visible",
+                    "binding_name": "#hover_text",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_condition": "visible",
+                    "binding_type": "view",
+                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+                    "target_property_name": "#text"
+                  }
+                ],
+                "color": [
+                  0.11764705882352941,
+                  0.11764705882352941,
+                  0.12156862745098039
+                ],
+                "font_scale_factor": 0.93,
+                "layer": 4,
+                "localize": false,
+                "offset": [
+                  0,
+                  -1
+                ],
+                "size": [
+                  150,
+                  "default"
+                ],
+                "text": "#text",
+                "text_alignment": "center",
+                "type": "label"
+              }
+            }
+          ],
+          "size": [
+            156,
+            18
+          ],
+          "type": "panel"
+        }
+      }
+    ],
+    "size": [
+      156,
+      22
+    ],
+    "type": "panel"
+  },
+  "home_next": {
+    "controls": [
+      {
+        "b": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - '§z§a') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "button_mappings": [
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_select",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_ok",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_slot_hovered"
+            }
+          ],
+          "controls": [
+            {
+              "default": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.118,
+                        0.118,
+                        0.122
+                      ],
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "band": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.1411764705882353,
+                        0.1450980392156863,
+                        0.14901960784313725
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 2px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.2823529411764706,
+                        0.28627450980392155,
+                        0.2901960784313726
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 4px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "hover": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.118,
+                        0.118,
+                        0.122
+                      ],
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "band": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.1411764705882353,
+                        0.1450980392156863,
+                        0.14901960784313725
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 2px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.35294117647058826,
+                        0.3568627450980392,
+                        0.3607843137254902
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 4px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "pressed": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.118,
+                        0.118,
+                        0.122
+                      ],
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "band": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.1411764705882353,
+                        0.1450980392156863,
+                        0.14901960784313725
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 2px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.35294117647058826,
+                        0.3568627450980392,
+                        0.3607843137254902
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        2
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 4px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            }
+          ],
+          "default_control": "default",
+          "focus_enabled": true,
+          "focus_magnet_enabled": true,
+          "hover_control": "hover",
+          "layer": 1,
+          "pressed_control": "pressed",
+          "size": [
+            14,
+            14
+          ],
+          "sound_name": "random.click",
+          "sound_pitch": 1,
+          "sound_volume": 1,
+          "type": "button"
+        }
+      },
+      {
+        "a": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not (#hover_text = ''))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "layer": 3,
+          "size": [
+            8,
+            8
+          ],
+          "texture": "textures/ui/sg/chevron_right",
+          "type": "image"
+        }
+      }
+    ],
+    "size": [
+      14,
+      14
+    ],
+    "type": "panel"
+  },
+  "home_over_body": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not (#hover_text = ''))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "gap": {
+          "controls": [
+            {
+              "bg": {
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "color": [
+                  0.19215686274509805,
+                  0.19607843137254902,
+                  0.2
+                ],
+                "layer": 1,
+                "size": [
+                  150,
+                  4
+                ],
+                "texture": "textures/ui/White",
+                "type": "image"
+              }
+            }
+          ],
+          "size": [
+            150,
+            4
+          ],
+          "type": "panel"
+        }
+      },
+      {
+        "text": {
+          "controls": [
+            {
+              "l": {
+                "anchor_from": "top_middle",
+                "anchor_to": "top_middle",
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "visible",
+                    "binding_name": "#hover_text",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_condition": "visible",
+                    "binding_type": "view",
+                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+                    "target_property_name": "#text"
+                  }
+                ],
+                "color": [
+                  1,
+                  1,
+                  1
+                ],
+                "controls": [
+                  {
+                    "bg": {
+                      "anchor_from": "center",
+                      "anchor_to": "center",
+                      "color": [
+                        0.19215686274509805,
+                        0.19607843137254902,
+                        0.2
+                      ],
+                      "layer": -2,
+                      "size": [
+                        "100% + 20px",
+                        "100% + 4px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "font_scale_factor": 0.93,
+                "layer": 3,
+                "localize": false,
+                "size": [
+                  130,
+                  "default"
+                ],
+                "text": "#text",
+                "text_alignment": "center",
+                "type": "label"
+              }
+            }
+          ],
+          "size": [
+            150,
+            "100%c"
+          ],
+          "type": "panel"
+        }
+      }
+    ],
+    "orientation": "vertical",
+    "size": [
+      150,
+      "100%c"
+    ],
+    "type": "stack_panel"
+  },
+  "home_over_button": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not (#hover_text = ''))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "bg": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "color": [
+            0.19215686274509805,
+            0.19607843137254902,
+            0.2
+          ],
+          "layer": 1,
+          "size": [
+            150,
+            24
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "b": {
+          "anchor_from": "bottom_middle",
+          "anchor_to": "bottom_middle",
+          "controls": [
+            {
+              "b": {
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_type": "collection_details"
+                  }
+                ],
+                "button_mappings": [
+                  {
+                    "consume_event": false,
+                    "from_button_id": "button.menu_select",
+                    "mapping_type": "pressed",
+                    "to_button_id": "button.container_auto_place"
+                  },
+                  {
+                    "consume_event": false,
+                    "from_button_id": "button.menu_ok",
+                    "mapping_type": "pressed",
+                    "to_button_id": "button.container_auto_place"
+                  },
+                  {
+                    "mapping_type": "pressed",
+                    "to_button_id": "button.container_slot_hovered"
+                  }
+                ],
+                "controls": [
+                  {
+                    "default": {
+                      "controls": [
+                        {
+                          "edge": {
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "color": [
+                              0.118,
+                              0.118,
+                              0.122
+                            ],
+                            "layer": 1,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "texture": "textures/ui/White",
+                            "type": "image"
+                          }
+                        },
+                        {
+                          "band": {
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "color": [
+                              0.34509803921568627,
+                              0.34509803921568627,
+                              0.35294117647058826
+                            ],
+                            "layer": 1,
+                            "offset": [
+                              1,
+                              1
+                            ],
+                            "size": [
+                              "100% - 2px",
+                              "100% - 2px"
+                            ],
+                            "texture": "textures/ui/White",
+                            "type": "image"
+                          }
+                        },
+                        {
+                          "fill": {
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "color": [
+                              0.8156862745098039,
+                              0.8196078431372549,
+                              0.8313725490196079
+                            ],
+                            "layer": 1,
+                            "offset": [
+                              1,
+                              1
+                            ],
+                            "size": [
+                              "100% - 2px",
+                              "100% - 4px"
+                            ],
+                            "texture": "textures/ui/White",
+                            "type": "image"
+                          }
+                        }
+                      ],
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "panel"
+                    }
+                  },
+                  {
+                    "hover": {
+                      "controls": [
+                        {
+                          "edge": {
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "color": [
+                              0.118,
+                              0.118,
+                              0.122
+                            ],
+                            "layer": 1,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "texture": "textures/ui/White",
+                            "type": "image"
+                          }
+                        },
+                        {
+                          "band": {
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "color": [
+                              0.34509803921568627,
+                              0.34509803921568627,
+                              0.35294117647058826
+                            ],
+                            "layer": 1,
+                            "offset": [
+                              1,
+                              1
+                            ],
+                            "size": [
+                              "100% - 2px",
+                              "100% - 2px"
+                            ],
+                            "texture": "textures/ui/White",
+                            "type": "image"
+                          }
+                        },
+                        {
+                          "fill": {
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "color": [
+                              0.9019607843137255,
+                              0.9098039215686274,
+                              0.9215686274509803
+                            ],
+                            "layer": 1,
+                            "offset": [
+                              1,
+                              1
+                            ],
+                            "size": [
+                              "100% - 2px",
+                              "100% - 4px"
+                            ],
+                            "texture": "textures/ui/White",
+                            "type": "image"
+                          }
+                        }
+                      ],
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "panel"
+                    }
+                  },
+                  {
+                    "pressed": {
+                      "controls": [
+                        {
+                          "edge": {
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "color": [
+                              0.118,
+                              0.118,
+                              0.122
+                            ],
+                            "layer": 1,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "texture": "textures/ui/White",
+                            "type": "image"
+                          }
+                        },
+                        {
+                          "band": {
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "color": [
+                              0.34509803921568627,
+                              0.34509803921568627,
+                              0.35294117647058826
+                            ],
+                            "layer": 1,
+                            "offset": [
+                              1,
+                              1
+                            ],
+                            "size": [
+                              "100% - 2px",
+                              "100% - 2px"
+                            ],
+                            "texture": "textures/ui/White",
+                            "type": "image"
+                          }
+                        },
+                        {
+                          "fill": {
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "color": [
+                              0.9019607843137255,
+                              0.9098039215686274,
+                              0.9215686274509803
+                            ],
+                            "layer": 1,
+                            "offset": [
+                              1,
+                              2
+                            ],
+                            "size": [
+                              "100% - 2px",
+                              "100% - 4px"
+                            ],
+                            "texture": "textures/ui/White",
+                            "type": "image"
+                          }
+                        }
+                      ],
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "panel"
+                    }
+                  }
+                ],
+                "default_control": "default",
+                "focus_enabled": true,
+                "focus_magnet_enabled": true,
+                "hover_control": "hover",
+                "layer": 1,
+                "pressed_control": "pressed",
+                "size": [
+                  130,
+                  20
+                ],
+                "sound_name": "random.click",
+                "sound_pitch": 1,
+                "sound_volume": 1,
+                "type": "button"
+              }
+            },
+            {
+              "l": {
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "visible",
+                    "binding_name": "#hover_text",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_condition": "visible",
+                    "binding_type": "view",
+                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+                    "target_property_name": "#text"
+                  }
+                ],
+                "color": [
+                  0.11764705882352941,
+                  0.11764705882352941,
+                  0.12156862745098039
+                ],
+                "font_scale_factor": 0.93,
+                "layer": 4,
+                "localize": false,
+                "offset": [
+                  0,
+                  -1
+                ],
+                "size": [
+                  124,
+                  "default"
+                ],
+                "text": "#text",
+                "text_alignment": "center",
+                "type": "label"
+              }
+            }
+          ],
+          "layer": 2,
+          "size": [
+            130,
+            20
+          ],
+          "type": "panel"
+        }
+      }
+    ],
+    "size": [
+      150,
+      24
+    ],
+    "type": "panel"
+  },
+  "home_over_title": {
+    "controls": [
+      {
+        "bg": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "color": [
+            0.19215686274509805,
+            0.19607843137254902,
+            0.2
+          ],
+          "layer": 1,
+          "size": [
+            150,
+            12
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "l": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            1,
+            1,
+            1
+          ],
+          "font_scale_factor": 1.14,
+          "layer": 3,
+          "localize": false,
+          "size": [
+            130,
+            "default"
+          ],
+          "text": "#text",
+          "text_alignment": "center",
+          "type": "label"
+        }
+      }
+    ],
+    "size": [
+      150,
+      12
+    ],
+    "type": "panel"
+  },
+  "home_overlay_gate": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not ((#hover_text - 'V') = #hover_text))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "o": {
+          "controls": [
+            {
+              "dim": {
+                "alpha": 0.5,
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "color": [
+                  0,
+                  0,
+                  0
+                ],
+                "layer": 1,
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "texture": "textures/ui/White",
+                "type": "image"
+              }
+            },
+            {
+              "panel": {
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "controls": [
+                  {
+                    "pad": {
+                      "controls": [
+                        {
+                          "bg": {
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "color": [
+                              0.19215686274509805,
+                              0.19607843137254902,
+                              0.2
+                            ],
+                            "layer": 1,
+                            "size": [
+                              150,
+                              10
+                            ],
+                            "texture": "textures/ui/White",
+                            "type": "image"
+                          }
+                        }
+                      ],
+                      "size": [
+                        150,
+                        10
+                      ],
+                      "type": "panel"
+                    }
+                  },
+                  {
+                    "title": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "t@sg_menu.home_over_title": {
+                            "collection_index": 153
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        150,
+                        12
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "body": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "b@sg_menu.home_over_body": {
+                            "collection_index": 154
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        150,
+                        "100%c"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "buttons": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "b0@sg_menu.home_over_button": {
+                            "collection_index": 100
+                          }
+                        },
+                        {
+                          "b1@sg_menu.home_over_button": {
+                            "collection_index": 101
+                          }
+                        },
+                        {
+                          "b2@sg_menu.home_over_button": {
+                            "collection_index": 102
+                          }
+                        },
+                        {
+                          "b3@sg_menu.home_over_button": {
+                            "collection_index": 103
+                          }
+                        },
+                        {
+                          "b4@sg_menu.home_over_button": {
+                            "collection_index": 104
+                          }
+                        },
+                        {
+                          "b5@sg_menu.home_over_button": {
+                            "collection_index": 105
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        150,
+                        "100%c"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "pad2": {
+                      "controls": [
+                        {
+                          "bg": {
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "color": [
+                              0.19215686274509805,
+                              0.19607843137254902,
+                              0.2
+                            ],
+                            "layer": 1,
+                            "size": [
+                              150,
+                              10
+                            ],
+                            "texture": "textures/ui/White",
+                            "type": "image"
+                          }
+                        }
+                      ],
+                      "size": [
+                        150,
+                        10
+                      ],
+                      "type": "panel"
+                    }
+                  }
+                ],
+                "layer": 2,
+                "orientation": "vertical",
+                "size": [
+                  150,
+                  "100%c"
+                ],
+                "type": "stack_panel"
+              }
+            }
+          ],
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "type": "panel"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "home_play": {
+    "controls": [
+      {
+        "b": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_type": "collection_details"
+            }
+          ],
+          "button_mappings": [
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_select",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_ok",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_slot_hovered"
+            }
+          ],
+          "controls": [
+            {
+              "default": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.118,
+                        0.118,
+                        0.122
+                      ],
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "band": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.11372549019607843,
+                        0.30196078431372547,
+                        0.07450980392156863
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 2px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.23529411764705882,
+                        0.5215686274509804,
+                        0.15294117647058825
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 4px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "hover": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.118,
+                        0.118,
+                        0.122
+                      ],
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "band": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.11372549019607843,
+                        0.30196078431372547,
+                        0.07450980392156863
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 2px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.2901960784313726,
+                        0.6078431372549019,
+                        0.19215686274509805
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 4px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "pressed": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.118,
+                        0.118,
+                        0.122
+                      ],
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "band": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.11372549019607843,
+                        0.30196078431372547,
+                        0.07450980392156863
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 2px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.2901960784313726,
+                        0.6078431372549019,
+                        0.19215686274509805
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        2
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 4px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            }
+          ],
+          "default_control": "default",
+          "focus_enabled": true,
+          "focus_magnet_enabled": true,
+          "hover_control": "hover",
+          "layer": 1,
+          "pressed_control": "pressed",
+          "size": [
+            156,
+            30
+          ],
+          "sound_name": "random.click",
+          "sound_pitch": 1,
+          "sound_volume": 1,
+          "type": "button"
+        }
+      },
+      {
+        "top": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "color": [
+            0.4235294117647059,
+            0.7686274509803922,
+            0.2901960784313726
+          ],
+          "layer": 2,
+          "offset": [
+            1,
+            1
+          ],
+          "size": [
+            154,
+            1
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "l": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            1,
+            1,
+            1
+          ],
+          "font_scale_factor": 1.43,
+          "layer": 4,
+          "localize": false,
+          "offset": [
+            0,
+            -3
+          ],
+          "shadow": true,
+          "size": [
+            150,
+            "default"
+          ],
+          "text": "#text",
+          "text_alignment": "center",
+          "type": "label"
+        }
+      }
+    ],
+    "size": [
+      156,
+      30
+    ],
+    "type": "panel"
+  },
+  "home_play_sub": {
+    "controls": [
+      {
+        "l": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            0.8901960784313725,
+            0.9607843137254902,
+            0.8549019607843137
+          ],
+          "font_scale_factor": 0.79,
+          "layer": 3,
+          "localize": false,
+          "size": [
+            "100%",
+            "default"
+          ],
+          "text": "#text",
+          "text_alignment": "center",
+          "type": "label"
+        }
+      }
+    ],
+    "size": [
+      150,
+      6
+    ],
+    "type": "panel"
+  },
+  "home_prev": {
+    "controls": [
+      {
+        "b": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - '§z§a') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "button_mappings": [
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_select",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_ok",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_slot_hovered"
+            }
+          ],
+          "controls": [
+            {
+              "default": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.118,
+                        0.118,
+                        0.122
+                      ],
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "band": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.1411764705882353,
+                        0.1450980392156863,
+                        0.14901960784313725
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 2px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.2823529411764706,
+                        0.28627450980392155,
+                        0.2901960784313726
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 4px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "hover": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.118,
+                        0.118,
+                        0.122
+                      ],
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "band": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.1411764705882353,
+                        0.1450980392156863,
+                        0.14901960784313725
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 2px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.35294117647058826,
+                        0.3568627450980392,
+                        0.3607843137254902
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 4px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "pressed": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.118,
+                        0.118,
+                        0.122
+                      ],
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "band": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.1411764705882353,
+                        0.1450980392156863,
+                        0.14901960784313725
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 2px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.35294117647058826,
+                        0.3568627450980392,
+                        0.3607843137254902
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        2
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 4px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            }
+          ],
+          "default_control": "default",
+          "focus_enabled": true,
+          "focus_magnet_enabled": true,
+          "hover_control": "hover",
+          "layer": 1,
+          "pressed_control": "pressed",
+          "size": [
+            14,
+            14
+          ],
+          "sound_name": "random.click",
+          "sound_pitch": 1,
+          "sound_volume": 1,
+          "type": "button"
+        }
+      },
+      {
+        "a": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not (#hover_text = ''))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "layer": 3,
+          "size": [
+            8,
+            8
+          ],
+          "texture": "textures/ui/sg/chevron_left",
+          "type": "image"
+        }
+      }
+    ],
+    "size": [
+      14,
+      14
+    ],
+    "type": "panel"
+  },
+  "home_profile": {
+    "controls": [
+      {
+        "b": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_type": "collection_details"
+            }
+          ],
+          "button_mappings": [
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_select",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_ok",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_slot_hovered"
+            }
+          ],
+          "controls": [
+            {
+              "default": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.118,
+                        0.118,
+                        0.122
+                      ],
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "band": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.1411764705882353,
+                        0.1450980392156863,
+                        0.14901960784313725
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 2px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.2823529411764706,
+                        0.28627450980392155,
+                        0.2901960784313726
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 4px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "hover": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.118,
+                        0.118,
+                        0.122
+                      ],
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "band": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.1411764705882353,
+                        0.1450980392156863,
+                        0.14901960784313725
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 2px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.35294117647058826,
+                        0.3568627450980392,
+                        0.3607843137254902
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 4px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "pressed": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.118,
+                        0.118,
+                        0.122
+                      ],
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "band": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.1411764705882353,
+                        0.1450980392156863,
+                        0.14901960784313725
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 2px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.35294117647058826,
+                        0.3568627450980392,
+                        0.3607843137254902
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        2
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 4px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            }
+          ],
+          "default_control": "default",
+          "focus_enabled": true,
+          "focus_magnet_enabled": true,
+          "hover_control": "hover",
+          "layer": 1,
+          "pressed_control": "pressed",
+          "size": [
+            135,
+            37
+          ],
+          "sound_name": "random.click",
+          "sound_pitch": 1,
+          "sound_volume": 1,
+          "type": "button"
+        }
+      },
+      {
+        "head": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.icon_slot": {
+                "collection_index": "$icon_index",
+                "size": [
+                  23,
+                  23
+                ]
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            5,
+            6
+          ],
+          "orientation": "vertical",
+          "size": [
+            23,
+            23
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "name": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            1,
+            1,
+            1
+          ],
+          "font_scale_factor": 1.14,
+          "layer": 4,
+          "localize": false,
+          "offset": [
+            33,
+            4
+          ],
+          "size": [
+            96,
+            "default"
+          ],
+          "text": "#text",
+          "type": "label"
+        }
+      }
+    ],
+    "size": [
+      135,
+      37
+    ],
+    "type": "panel"
+  },
+  "home_save_line": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not (#hover_text = ''))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "l": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            0.6941176470588235,
+            0.6980392156862745,
+            0.7098039215686275
+          ],
+          "font_scale_factor": 0.79,
+          "layer": 3,
+          "localize": false,
+          "size": [
+            "100%",
+            "default"
+          ],
+          "text": "#text",
+          "type": "label"
+        }
+      }
+    ],
+    "size": [
+      92,
+      "100%c"
+    ],
+    "type": "panel"
+  },
+  "home_save_name": {
+    "controls": [
+      {
+        "l": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            1,
+            1,
+            1
+          ],
+          "font_scale_factor": 1.14,
+          "layer": 3,
+          "localize": false,
+          "size": [
+            "100%",
+            "default"
+          ],
+          "text": "#text",
+          "type": "label"
+        }
+      }
+    ],
+    "size": [
+      92,
+      10
+    ],
+    "type": "panel"
+  },
+  "home_text_head": {
+    "controls": [
+      {
+        "l": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            0.6941176470588235,
+            0.6980392156862745,
+            0.7098039215686275
+          ],
+          "font_scale_factor": 0.71,
+          "layer": 3,
+          "localize": false,
+          "shadow": false,
+          "size": [
+            "100%",
+            "default"
+          ],
+          "text": "#text",
+          "type": "label"
+        }
+      }
+    ],
+    "size": [
+      92,
+      7
+    ],
+    "type": "panel"
+  },
+  "home_text_line": {
+    "controls": [
+      {
+        "l": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            0.6941176470588235,
+            0.6980392156862745,
+            0.7098039215686275
+          ],
+          "font_scale_factor": 0.71,
+          "layer": 3,
+          "localize": false,
+          "shadow": false,
+          "size": [
+            "100%",
+            "default"
+          ],
+          "text": "#text",
+          "type": "label"
+        }
+      }
+    ],
+    "size": [
+      96,
+      6
+    ],
+    "type": "panel"
+  },
+  "home_text_title": {
+    "controls": [
+      {
+        "l": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            0.6941176470588235,
+            0.6980392156862745,
+            0.7098039215686275
+          ],
+          "font_scale_factor": 0.8,
+          "layer": 3,
+          "localize": false,
+          "shadow": false,
+          "size": [
+            "100%",
+            "default"
+          ],
+          "text": "#text",
+          "type": "label"
+        }
+      }
+    ],
+    "size": [
+      96,
+      7
+    ],
+    "type": "panel"
+  },
+  "home_tile": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not (#hover_text = ''))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "b": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_type": "collection_details"
+            }
+          ],
+          "button_mappings": [
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_select",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_ok",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_slot_hovered"
+            }
+          ],
+          "controls": [
+            {
+              "default": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.118,
+                        0.118,
+                        0.122
+                      ],
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "band": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.1411764705882353,
+                        0.1450980392156863,
+                        0.14901960784313725
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 2px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.2823529411764706,
+                        0.28627450980392155,
+                        0.2901960784313726
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 4px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "hover": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.118,
+                        0.118,
+                        0.122
+                      ],
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "band": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.1411764705882353,
+                        0.1450980392156863,
+                        0.14901960784313725
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 2px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.35294117647058826,
+                        0.3568627450980392,
+                        0.3607843137254902
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 4px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "pressed": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.118,
+                        0.118,
+                        0.122
+                      ],
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "band": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.1411764705882353,
+                        0.1450980392156863,
+                        0.14901960784313725
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 2px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.35294117647058826,
+                        0.3568627450980392,
+                        0.3607843137254902
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        2
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 4px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            }
+          ],
+          "default_control": "default",
+          "focus_enabled": true,
+          "focus_magnet_enabled": true,
+          "hover_control": "hover",
+          "layer": 1,
+          "pressed_control": "pressed",
+          "size": [
+            38,
+            28
+          ],
+          "sound_name": "random.click",
+          "sound_pitch": 1,
+          "sound_volume": 1,
+          "type": "button"
+        }
+      },
+      {
+        "i": {
+          "anchor_from": "top_middle",
+          "anchor_to": "top_middle",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.icon_slot": {
+                "collection_index": "$icon_index",
+                "size": [
+                  14,
+                  14
+                ]
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            0,
+            4
+          ],
+          "orientation": "vertical",
+          "size": [
+            14,
+            14
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "l": {
+          "anchor_from": "top_middle",
+          "anchor_to": "top_middle",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            1,
+            1,
+            1
+          ],
+          "font_scale_factor": 0.79,
+          "layer": 4,
+          "localize": false,
+          "offset": [
+            0,
+            19
+          ],
+          "size": [
+            36,
+            "default"
+          ],
+          "text": "#text",
+          "text_alignment": "center",
+          "type": "label"
+        }
+      }
+    ],
+    "size": [
+      38,
+      32
+    ],
+    "type": "panel"
+  },
   "icon_slot": {
     "controls": [
       {
@@ -5261,6 +10142,8 @@
             }
           ],
           "default_control": "default",
+          "focus_enabled": true,
+          "focus_magnet_enabled": true,
           "hover_control": "hover",
           "layer": 1,
           "pressed_control": "pressed",
@@ -5806,6 +10689,139 @@
     ],
     "type": "panel"
   },
+  "lobby_gate": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not ((#hover_text - 'Y') = #hover_text))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "head": {
+          "anchor_from": "top_middle",
+          "anchor_to": "top_middle",
+          "controls": [
+            {
+              "logo": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "i@sg_menu.icon_slot": {
+                      "collection_index": 241,
+                      "size": [
+                        16,
+                        16
+                      ]
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  16,
+                  16
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "gap": {
+                "controls": [],
+                "size": [
+                  5,
+                  18
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "name": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "n@sg_menu.lobby_name": {
+                      "collection_index": 242
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  "100%c",
+                  18
+                ],
+                "type": "stack_panel"
+              }
+            }
+          ],
+          "offset": [
+            0,
+            8
+          ],
+          "orientation": "horizontal",
+          "size": [
+            "100%c",
+            18
+          ],
+          "type": "stack_panel"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "lobby_name": {
+    "controls": [
+      {
+        "l": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            1,
+            1,
+            1
+          ],
+          "font_scale_factor": 1.86,
+          "layer": 3,
+          "localize": false,
+          "shadow": true,
+          "size": [
+            "default",
+            "default"
+          ],
+          "text": "#text",
+          "type": "label"
+        }
+      }
+    ],
+    "size": [
+      "100%c",
+      18
+    ],
+    "type": "panel"
+  },
   "mini_face": {
     "controls": [
       {
@@ -5998,6 +11014,8 @@
             }
           ],
           "default_control": "default",
+          "focus_enabled": true,
+          "focus_magnet_enabled": true,
           "hover_control": "hover",
           "layer": 1,
           "pressed_control": "pressed",
@@ -6089,7 +11107,58 @@
                     }
                   },
                   {
-                    "window@sg_menu.window": {}
+                    "window": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "g@sg_menu.window_gate": {
+                            "collection_index": 0
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "home": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "g@sg_menu.home_gate": {
+                            "collection_index": 0
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "lobby": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "g@sg_menu.lobby_gate": {
+                            "collection_index": 0
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "stack_panel"
+                    }
                   }
                 ],
                 "layer": 1,
@@ -6301,6 +11370,8 @@
             }
           ],
           "default_control": "default",
+          "focus_enabled": true,
+          "focus_magnet_enabled": true,
           "hover_control": "hover",
           "layer": 1,
           "pressed_control": "pressed",
@@ -6488,6 +11559,8 @@
                   }
                 ],
                 "default_control": "default",
+                "focus_enabled": true,
+                "focus_magnet_enabled": true,
                 "hover_control": "hover",
                 "layer": 1,
                 "pressed_control": "pressed",
@@ -7641,7 +12714,7 @@
                     }
                   }
                 ],
-                "layer": 3,
+                "layer": 11,
                 "size": [
                   24,
                   22
@@ -7779,6 +12852,8 @@
                   }
                 ],
                 "default_control": "default",
+                "focus_enabled": true,
+                "focus_magnet_enabled": true,
                 "hover_control": "hover",
                 "layer": 1,
                 "pressed_control": "pressed",
@@ -8248,6 +13323,32 @@
     "size": [
       326,
       166
+    ],
+    "type": "panel"
+  },
+  "window_gate": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "((#hover_text - 'hm') = #hover_text)",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "w@sg_menu.window": {}
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
     ],
     "type": "panel"
   }

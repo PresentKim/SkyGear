@@ -45,12 +45,54 @@ const (
 // Cells are the item slots of a screen's grid: one slot each, holding the
 // item itself named with its tooltip.
 const (
-	Cells = 113
+	Cells = 111
 	Cell0 = RowBtn0 + Rows
 )
 
-// Size is the number of slots of the menu window.
-const Size = Cell0 + Cells
+// SlotLogo and SlotGame are the logo and the game's name the lobby draws over
+// its screens (KeyLobby).
+const (
+	SlotLogo = Cell0 + Cells
+	SlotGame = SlotLogo + 1
+)
+
+// Size is the number of slots of the menu window: the most a window was seen
+// to read (bedrock-research HOST-16 and the entity examples use 243).
+const Size = SlotGame + 1
+
+// The slots of the home screen (KeyHome): the profile card, the square
+// buttons at the top right with their badges, the tiles down the left, the
+// feed lines, the chosen save's card, the play and manage buttons and the
+// overlay panel. Row numbers count from RowIcon0 and RowBtn0, cells from
+// Cell0.
+const (
+	HomeProfileRow = 0
+	HomeCornerRow0 = 1
+	HomeCorners    = 6
+	HomeSideRow0   = HomeCornerRow0 + HomeCorners
+	HomeSides      = 8
+	HomeSaveRow    = HomeSideRow0 + HomeSides
+	HomePlayRow    = HomeSaveRow + 1
+	HomeManageRow  = HomePlayRow + 1
+	HomeOverRow0   = HomeManageRow + 1
+	HomeOvers      = 6
+
+	HomeTitleCell  = 0
+	HomeLineCell   = 1
+	HomeFillCell   = 2
+	HomeBadgeCell0 = 3
+	HomeFeedCell0  = HomeBadgeCell0 + HomeCorners
+	HomeFeeds      = 8
+	HomeHeadCell   = HomeFeedCell0 + HomeFeeds
+	HomeLineCell0  = HomeHeadCell + 1
+	HomeLines      = 4
+	HomeSubCell    = HomeLineCell0 + HomeLines
+	HomeOverTitle  = HomeSubCell + 1
+	HomeOverBody   = HomeOverTitle + 1
+
+	// HomeFillSteps is how many widths the profile's bar is drawn in.
+	HomeFillSteps = 20
+)
 
 // The layouts of the screens, by the key in SlotKey. KeyList after a key
 // draws it on the list page (the body over the layout's content), and
@@ -63,7 +105,12 @@ const (
 	KeyBoard     = "bd"
 	KeySplit     = "sp"
 	KeyListSplit = "ls"
+	KeyHome      = "hm"
 	KeyRows      = "Q"
+	// KeyLobby after a key draws the lobby's logo and name over the screen.
+	KeyLobby = "Y"
+	// KeyOverlay after the home key draws the overlay panel.
+	KeyOverlay = "V"
 )
 
 // Family markers say which group of kinds a slot belongs to: the pack draws

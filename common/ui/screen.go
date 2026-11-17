@@ -282,7 +282,11 @@ func showScreen(p *player.Player, l *oreLayout, name string, data any) {
 			openInput(p, l, in)
 			return
 		}
-		openMenu(p, l, menuPageOf(name, data))
+		pg := menuPageOf(name, data)
+		if lobby != nil {
+			pg.lobby(lobby)
+		}
+		openMenu(p, l, pg)
 		return
 	}
 	openOre(p, l, rootOf(name, data, l.keys, lobby, p != nil && OreDebug(p)))

@@ -125,7 +125,7 @@ func button(size any, def, hover, pressed string, tip bool) obj {
 		return panel([]any{"100%", "100%"}, c...)
 	}
 	return obj{
-		"type": "button", "size": size, "layer": 1,
+		"type": "button", "size": size, "layer": 1, "focus_enabled": true, "focus_magnet_enabled": true,
 		"default_control": "default", "hover_control": "hover", "pressed_control": "pressed",
 		"sound_name": "random.click", "sound_volume": 1.0, "sound_pitch": 1.0,
 		"button_mappings": mappings,
@@ -137,6 +137,62 @@ func button(size any, def, hover, pressed string, tip bool) obj {
 		},
 	}
 }
+
+// flatButton is a button of the lobby: flat colours, a dark edge and a band
+// under it (oui-mc.css .mc-lobby .mc-btn). Its states draw only the faces.
+func flatButton(size any, fill, hover, band []any, tip bool) obj {
+	b := button(size, "", "", "", tip)
+	face := func(c []any, pressed bool) []any {
+		top, bottom := 1, 3
+		if pressed {
+			top, bottom = 2, 2
+		}
+		return []any{
+			obj{"edge": rect([]any{0.118, 0.118, 0.122}, []any{"100%", "100%"}, nil, 1)},
+			obj{"band": rect(band, []any{"100% - 2px", "100% - 2px"}, []any{1, 1}, 1)},
+			obj{"fill": rect(c, []any{"100% - 2px", fmt.Sprintf("100%% - %dpx", top+bottom)}, []any{1, top}, 1)},
+		}
+	}
+	states := b["controls"].([]any)
+	for i, s := range []struct {
+		c       []any
+		pressed bool
+	}{{fill, false}, {hover, false}, {hover, true}} {
+		for name, st := range states[i].(obj) {
+			p := st.(obj)
+			p["controls"] = append(face(s.c, s.pressed), p["controls"].([]any)...)
+			states[i] = obj{name: p}
+		}
+	}
+	return b
+}
+
+// rect is a rectangle of one colour.
+func rect(c []any, size []any, offset []any, layer int) obj {
+	r := obj{"type": "image", "texture": "textures/ui/White", "color": c, "size": size, "layer": layer, "anchor_from": "top_left", "anchor_to": "top_left"}
+	if offset != nil {
+		r["offset"] = offset
+	}
+	return r
+}
+
+func rgb(r, g, b int) []any { return []any{float64(r) / 255, float64(g) / 255, float64(b) / 255} }
+
+var (
+	lobbyFill  = rgb(0x48, 0x49, 0x4a)
+	lobbyHover = rgb(0x5a, 0x5b, 0x5c)
+	lobbyBand  = rgb(0x24, 0x25, 0x26)
+	lobbyPanel = rgb(0x31, 0x32, 0x33)
+	lobbyHead  = rgb(0xb1, 0xb2, 0xb5)
+	lobbyDark  = rgb(0x1e, 0x1e, 0x1f)
+	lightFill  = rgb(0xd0, 0xd1, 0xd4)
+	lightHover = rgb(0xe6, 0xe8, 0xeb)
+	lightBand  = rgb(0x58, 0x58, 0x5a)
+	playFill   = rgb(0x3c, 0x85, 0x27)
+	playHover  = rgb(0x4a, 0x9b, 0x31)
+	playBand   = rgb(0x1d, 0x4d, 0x13)
+	white      = []any{1.0, 1.0, 1.0}
+)
 
 const (
 	btnTex   = "textures/ui/sg/button"
@@ -181,15 +237,17 @@ func defs() obj {
 	for i := 0; i < invui.Tabs; i++ {
 		tabCells = append(tabCells, at(fmt.Sprintf("t%d", i), "tab_cell", invui.TabBtn0+i, obj{"$icon_index": invui.TabIcon0 + i}))
 	}
-	tabIcon := with(panel([]any{24, 22}, obj{"i": icon(14)}), top)
+	tabIcon := func(layer int) obj {
+		return with(panel([]any{24, 22}, obj{"i": icon(14)}), with(obj{"layer": layer}, top))
+	}
 	d["tab_cell"] = with(panel([]any{24, 24},
 		obj{"on": with(panel([]any{24, 24},
 			obj{"bg": image("textures/ui/TabTopFront", []any{24, 26}, 10, top)},
-			obj{"icon": with(tabIcon, obj{"layer": 11})},
+			obj{"icon": tabIcon(11)},
 		), obj{"bindings": shown(has(invui.KindTabOn))})},
 		obj{"off": with(panel([]any{24, 24},
 			obj{"b": with(button([]any{24, 28}, "textures/ui/TabTopBack", "textures/ui/TabTopBackHover", "textures/ui/TabTopBackHover", true), top)},
-			obj{"icon": with(tabIcon, obj{"layer": 3})},
+			obj{"icon": tabIcon(3)},
 		), obj{"bindings": shown(has(invui.KindTab))})},
 	), obj{"bindings": shown(filled)})
 
@@ -418,6 +476,8 @@ func defs() obj {
 		obj{"right": with(panel([]any{154, 142}, ref("s", "list_right_scroll", nil)), obj{"anchor_from": "top_right", "anchor_to": "top_right"})},
 	)
 
+	homeDefs(d)
+
 	pages := []any{}
 	for _, p := range []struct{ key, def string }{
 		{invui.KeyList, "list_page"}, {invui.KeySplit, "split_page"}, {invui.KeyListSplit, "listsplit_page"},
@@ -457,13 +517,206 @@ func defs() obj {
 					"type": "input_panel", "modal": true, "size": []any{"100%", "100%"}, "layer": 1,
 					"controls": []any{
 						obj{"sync": obj{"type": "grid", "size": []any{0, 0}, "maximum_grid_items": 27, "collection_name": "container_items", "grid_item_template": "sg_menu.empty"}},
-						ref("window", "window", nil),
+						obj{"window": slots("vertical", []any{"100%", "100%"}, []any{at("g", "window_gate", invui.SlotKey, nil)})},
+						obj{"home": slots("vertical", []any{"100%", "100%"}, []any{at("g", "home_gate", invui.SlotKey, nil)})},
+						obj{"lobby": slots("vertical", []any{"100%", "100%"}, []any{at("g", "lobby_gate", invui.SlotKey, nil)})},
 					},
 				}},
 			},
 		}}},
 	}
 	return d
+}
+
+// homeDefs adds the lobby's main screen (oui-mc.css .mc-home, in GUI pixels:
+// 1rem is 5): no window, the profile card at the top left, square buttons at
+// the top right, tiles down the left, the feed at the bottom left and the
+// chosen save with the play and manage buttons at the bottom right; and the
+// lobby's logo and name at the top middle of every lobby screen.
+func homeDefs(d obj) {
+	row := func(r int) (int, int) { return invui.RowIcon0 + r, invui.RowBtn0 + r }
+	cellSlot := func(c int) int { return invui.Cell0 + c }
+	textAt := func(name string, slot int, color []any, scale float64, size []any, props obj) obj {
+		def := "home_text_" + name
+		d[def] = panel(size, obj{"l": label(color, scale, []any{"100%", "default"}, with(obj{"shadow": false}, top))})
+		return obj{name: with(slots("vertical", size, []any{at("t", def, slot, nil)}), props)}
+	}
+	iconAt := func(name string, slot, size int, props obj) obj {
+		return obj{name: with(slots("vertical", []any{size, size}, []any{ref("i", "icon_slot", obj{"size": []any{size, size}, "collection_index": slot})}), props)}
+	}
+	pos := func(from string, x, y int) obj {
+		return obj{"anchor_from": from, "anchor_to": from, "offset": []any{x, y}}
+	}
+
+	// The profile card.
+	pi, pb := row(invui.HomeProfileRow)
+	d["home_profile"] = panel([]any{135, 37},
+		obj{"b": flatButton([]any{135, 37}, lobbyFill, lobbyHover, lobbyBand, false)},
+		obj{"head": with(icon(23), with(obj{"layer": 3, "offset": []any{5, 6}}, top))},
+		obj{"name": label(white, 1.14, []any{96, "default"}, with(obj{"layer": 4, "offset": []any{33, 4}}, top))},
+	)
+	// The bar's fill is one of invui.HomeFillSteps widths, chosen by the
+	// slot's name "w00" to "w20" (bedrock-research basic components 3.16
+	// draws bars this way).
+	fills := []any{}
+	for k := 1; k <= invui.HomeFillSteps; k++ {
+		fills = append(fills, obj{fmt.Sprintf("w%02d", k): with(rect(rgb(0x62, 0xc2, 0x40), []any{94 * k / invui.HomeFillSteps, 2}, nil, 2), obj{"bindings": shown(has(fmt.Sprintf("w%02d", k)))})})
+	}
+	d["home_fill"] = panel([]any{94, 2}, fills...)
+	profile := with(panel([]any{135, 37},
+		obj{"card": with(slots("vertical", []any{135, 37}, []any{at("c", "home_profile", pb, obj{"$icon_index": pi})}), top)},
+		textAt("title", cellSlot(invui.HomeTitleCell), lobbyHead, 0.8, []any{96, 7}, with(obj{"layer": 4, "offset": []any{33, 13}}, top)),
+		obj{"bar": with(panel([]any{96, 4},
+			obj{"bg": rect(lobbyDark, []any{96, 4}, nil, 1)},
+			obj{"fill": with(slots("vertical", []any{94, 2}, []any{at("f", "home_fill", cellSlot(invui.HomeFillCell), nil)}), with(obj{"offset": []any{1, 1}, "layer": 2}, top))},
+		), with(obj{"layer": 4, "offset": []any{33, 21}}, top))},
+		textAt("line", cellSlot(invui.HomeLineCell), lobbyHead, 0.71, []any{96, 6}, with(obj{"layer": 4, "offset": []any{33, 27}}, top)),
+	), pos("top_left", 8, 7))
+
+	// The square buttons at the top right, the label as the tooltip, the
+	// badge at the corner.
+	corners := []any{}
+	for i := 0; i < invui.HomeCorners; i++ {
+		ci, cb := row(invui.HomeCornerRow0 + i)
+		corners = append(corners, at(fmt.Sprintf("c%d", i), "home_corner", cb, obj{"$icon_index": ci, "$badge_index": cellSlot(invui.HomeBadgeCell0 + i)}))
+	}
+	d["home_badge"] = with(panel([]any{11, 9},
+		obj{"edge": rect(lobbyDark, []any{11, 9}, nil, 1)},
+		obj{"fill": rect(rgb(0xd8, 0x3a, 0x3a), []any{9, 7}, []any{1, 1}, 2)},
+		obj{"l": label(white, 0.79, []any{11, "default"}, obj{"layer": 3, "text_alignment": "center"})},
+	), obj{"bindings": shown(filled)})
+	d["home_corner"] = with(panel([]any{26, 22},
+		obj{"b": with(flatButton([]any{22, 22}, lobbyFill, lobbyHover, lobbyBand, true), obj{"anchor_from": "right_middle", "anchor_to": "right_middle"})},
+		obj{"i": with(icon(10), obj{"layer": 3, "offset": []any{-6, -1}, "anchor_from": "right_middle", "anchor_to": "right_middle"})},
+		obj{"badge": with(slots("vertical", []any{11, 9}, []any{ref("b", "home_badge", obj{"collection_index": "$badge_index"})}), obj{"layer": 5, "offset": []any{6, -6}, "anchor_from": "top_right", "anchor_to": "top_right"})},
+	), obj{"bindings": shown(filled)})
+	corner := with(slots("horizontal", []any{"100%c", 22}, corners), pos("top_right", -8, 9))
+
+	// The tiles down the left.
+	sides := []any{}
+	for i := 0; i < invui.HomeSides; i++ {
+		si, sb := row(invui.HomeSideRow0 + i)
+		sides = append(sides, at(fmt.Sprintf("s%d", i), "home_tile", sb, obj{"$icon_index": si}))
+	}
+	d["home_tile"] = with(panel([]any{38, 32},
+		obj{"b": with(flatButton([]any{38, 28}, lobbyFill, lobbyHover, lobbyBand, false), top)},
+		obj{"i": with(icon(14), obj{"layer": 3, "offset": []any{0, 4}, "anchor_from": "top_middle", "anchor_to": "top_middle"})},
+		obj{"l": label(white, 0.79, []any{36, "default"}, obj{"layer": 4, "offset": []any{0, 19}, "anchor_from": "top_middle", "anchor_to": "top_middle", "text_alignment": "center"})},
+	), obj{"bindings": shown(filled)})
+	side := with(slots("vertical", []any{38, "100%c"}, sides), pos("top_left", 8, 53))
+
+	// The feed at the bottom left.
+	feeds := []any{}
+	for i := 0; i < invui.HomeFeeds; i++ {
+		feeds = append(feeds, at(fmt.Sprintf("f%d", i), "home_feed_line", cellSlot(invui.HomeFeedCell0+i), nil))
+	}
+	d["home_feed_line"] = with(panel([]any{170, 13},
+		obj{"bg": with(rect(rgb(0x1e, 0x1e, 0x1f), []any{170, 11}, []any{0, 2}, 1), obj{"alpha": 0.7})},
+		obj{"band": rect(rgb(0x52, 0xa5, 0x35), []any{2, 11}, []any{0, 2}, 2)},
+		obj{"l": label(white, 0.86, []any{162, "default"}, obj{"layer": 3, "offset": []any{6, 1}, "anchor_from": "left_middle", "anchor_to": "left_middle"})},
+	), obj{"bindings": shown(filled)})
+	feed := with(slots("vertical", []any{170, "100%c"}, feeds), pos("bottom_left", 8, -9))
+
+	// The chosen save, the play and manage buttons at the bottom right.
+	si, sb := row(invui.HomeSaveRow)
+	saveLines := []any{}
+	for i := 0; i < invui.HomeLines; i++ {
+		saveLines = append(saveLines, at(fmt.Sprintf("l%d", i), "home_save_line", cellSlot(invui.HomeLineCell0+i), nil))
+	}
+	d["home_save_line"] = with(panel([]any{92, "100%c"}, obj{"l": label(lobbyHead, 0.79, []any{"100%", "default"}, top)}), obj{"bindings": shown(filled)})
+	arrow := func(dir string) obj {
+		return panel([]any{14, 14},
+			obj{"b": with(flatButton([]any{14, 14}, lobbyFill, lobbyHover, lobbyBand, false), obj{"bindings": shown(has(invui.KindRow))})},
+			obj{"a": image("textures/ui/sg/chevron_"+dir, []any{8, 8}, 3, obj{"bindings": shown(filled)})},
+		)
+	}
+	d["home_prev"] = arrow("left")
+	d["home_next"] = arrow("right")
+	d["home_save_name"] = panel([]any{92, 10}, obj{"l": label(white, 1.14, []any{"100%", "default"}, top)})
+	save := panel([]any{156, 46},
+		obj{"edge": rect(lobbyDark, []any{156, 46}, nil, 1)},
+		obj{"fill": rect(lobbyPanel, []any{154, 44}, []any{1, 1}, 1)},
+		iconAt("pic", si, 30, with(obj{"layer": 3, "offset": []any{5, 8}}, top)),
+		obj{"text": with(obj{"type": "stack_panel", "orientation": "vertical", "size": []any{92, "100%c"}, "layer": 3, "offset": []any{40, 0}, "controls": []any{
+			textAt("head", cellSlot(invui.HomeHeadCell), lobbyHead, 0.71, []any{92, 7}, nil),
+			obj{"name": slots("vertical", []any{92, 10}, []any{at("n", "home_save_name", sb, nil)})},
+			obj{"lines": slots("vertical", []any{92, "100%c"}, saveLines)},
+		}}, obj{"anchor_from": "left_middle", "anchor_to": "left_middle"})},
+		obj{"arrows": with(slots("vertical", []any{14, 30}, []any{
+			at("prev", "home_prev", invui.SlotPrev, nil),
+			obj{"gap": panel([]any{14, 2})},
+			at("next", "home_next", invui.SlotNext, nil),
+		}), obj{"layer": 3, "offset": []any{-4, 0}, "anchor_from": "right_middle", "anchor_to": "right_middle"})},
+	)
+	_, playB := row(invui.HomePlayRow)
+	d["home_play"] = panel([]any{156, 30},
+		obj{"b": flatButton([]any{156, 30}, playFill, playHover, playBand, false)},
+		obj{"top": rect(rgb(0x6c, 0xc4, 0x4a), []any{154, 1}, []any{1, 1}, 2)},
+		obj{"l": label(white, 1.43, []any{150, "default"}, obj{"layer": 4, "offset": []any{0, -3}, "text_alignment": "center", "shadow": true})},
+	)
+	d["home_play_sub"] = panel([]any{150, 6}, obj{"l": label(rgb(0xe3, 0xf5, 0xda), 0.79, []any{"100%", "default"}, obj{"text_alignment": "center"})})
+	play := panel([]any{156, 30},
+		obj{"b": slots("vertical", []any{156, 30}, []any{at("p", "home_play", playB, nil)})},
+		obj{"sub": with(slots("vertical", []any{150, 6}, []any{at("s", "home_play_sub", cellSlot(invui.HomeSubCell), nil)}), obj{"layer": 5, "offset": []any{0, -5}, "anchor_from": "bottom_middle", "anchor_to": "bottom_middle"})},
+	)
+	_, manageB := row(invui.HomeManageRow)
+	lightButton := func(w, h int) obj {
+		return panel([]any{w, h},
+			obj{"b": flatButton([]any{w, h}, lightFill, lightHover, lightBand, false)},
+			obj{"l": label(lobbyDark, 0.93, []any{w - 6, "default"}, obj{"layer": 4, "offset": []any{0, -1}, "text_alignment": "center"})},
+		)
+	}
+	d["home_manage"] = with(panel([]any{156, 22}, obj{"b": with(lightButton(156, 18), obj{"anchor_from": "bottom_middle", "anchor_to": "bottom_middle"})}), obj{"bindings": shown(filled)})
+	start := with(obj{"type": "stack_panel", "orientation": "vertical", "size": []any{156, "100%c"}, "controls": []any{
+		obj{"save": save},
+		obj{"gap": panel([]any{156, 4})},
+		obj{"play": play},
+		obj{"manage": slots("vertical", []any{156, "100%c"}, []any{at("m", "home_manage", manageB, nil)})},
+	}}, pos("bottom_right", -8, -8))
+
+	// The overlay panel over the dimmed screen.
+	overButtons := []any{}
+	for i := 0; i < invui.HomeOvers; i++ {
+		_, ob := row(invui.HomeOverRow0 + i)
+		overButtons = append(overButtons, at(fmt.Sprintf("b%d", i), "home_over_button", ob, nil))
+	}
+	stripe := func(h int, controls ...any) obj {
+		return panel([]any{150, h}, append([]any{obj{"bg": rect(lobbyPanel, []any{150, h}, nil, 1)}}, controls...)...)
+	}
+	d["home_over_button"] = with(stripe(24, obj{"b": with(lightButton(130, 20), obj{"layer": 2, "anchor_from": "bottom_middle", "anchor_to": "bottom_middle"})}), obj{"bindings": shown(filled)})
+	d["home_over_title"] = stripe(12, obj{"l": label(white, 1.14, []any{130, "default"}, obj{"layer": 3, "text_alignment": "center"})})
+	d["home_over_body"] = with(obj{"type": "stack_panel", "orientation": "vertical", "size": []any{150, "100%c"}, "controls": []any{
+		obj{"gap": stripe(4)},
+		obj{"text": panel([]any{150, "100%c"}, obj{"l": label(white, 0.93, []any{130, "default"}, obj{"layer": 3, "text_alignment": "center", "anchor_from": "top_middle", "anchor_to": "top_middle", "controls": []any{
+			obj{"bg": with(rect(lobbyPanel, []any{"100% + 20px", "100% + 4px"}, nil, -2), obj{"anchor_from": "center", "anchor_to": "center"})},
+		}})})},
+	}}, obj{"bindings": shown(filled)})
+	overlay := panel([]any{"100%", "100%"},
+		obj{"dim": with(rect([]any{0.0, 0.0, 0.0}, []any{"100%", "100%"}, nil, 1), obj{"alpha": 0.5})},
+		obj{"panel": with(obj{"type": "stack_panel", "orientation": "vertical", "size": []any{150, "100%c"}, "layer": 2, "controls": []any{
+			obj{"pad": stripe(10)},
+			obj{"title": slots("vertical", []any{150, 12}, []any{at("t", "home_over_title", cellSlot(invui.HomeOverTitle), nil)})},
+			obj{"body": slots("vertical", []any{150, "100%c"}, []any{at("b", "home_over_body", cellSlot(invui.HomeOverBody), nil)})},
+			obj{"buttons": slots("vertical", []any{150, "100%c"}, overButtons)},
+			obj{"pad2": stripe(10)},
+		}}, obj{"anchor_from": "center", "anchor_to": "center"})},
+	)
+	d["home_overlay_gate"] = with(panel([]any{"100%", "100%"}, obj{"o": overlay}), obj{"bindings": shown(has(invui.KeyOverlay))})
+
+	d["home_gate"] = with(panel([]any{"100%", "100%"},
+		obj{"profile": profile}, obj{"corner": corner}, obj{"side": side}, obj{"feed": feed}, obj{"start": start},
+		obj{"overlay": with(slots("vertical", []any{"100%", "100%"}, []any{at("g", "home_overlay_gate", invui.SlotKey, nil)}), obj{"layer": 20})},
+	), obj{"bindings": shown(has(invui.KeyHome))})
+	d["window_gate"] = with(panel([]any{"100%", "100%"}, ref("w", "window", nil)), obj{"bindings": shown("((#hover_text - '" + invui.KeyHome + "') = #hover_text)")})
+
+	d["lobby_name"] = panel([]any{"100%c", 18}, obj{"l": label(white, 1.86, []any{"default", "default"}, obj{"shadow": true})})
+	d["lobby_gate"] = with(panel([]any{"100%", "100%"},
+		obj{"head": with(obj{"type": "stack_panel", "orientation": "horizontal", "size": []any{"100%c", 18}, "controls": []any{
+			iconAt("logo", invui.SlotLogo, 16, nil),
+			obj{"gap": panel([]any{5, 18})},
+			obj{"name": slots("vertical", []any{"100%c", 18}, []any{at("n", "lobby_name", invui.SlotGame, nil)})},
+		}}, pos("top_middle", 0, 8))},
+	), obj{"bindings": shown(has(invui.KeyLobby))})
 }
 
 // onlyWhenVisible makes the bindings of every control that does not set its
