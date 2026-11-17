@@ -94,8 +94,10 @@ func (pg *menuPage) chrome(c dChrome) {
 	}
 }
 
-func (pg *menuPage) rows(items []dItem) {
-	for i, it := range items {
+// rows puts list rows in the rows from first.
+func (pg *menuPage) rows(first int, items []dItem) {
+	for n, it := range items {
+		i := first + n
 		if i >= invui.Rows {
 			break
 		}
@@ -118,23 +120,195 @@ func (pg *menuPage) rows(items []dItem) {
 	}
 }
 
+// buttons puts buttons with icons in the rows from first, with kind.
+func (pg *menuPage) buttons(first int, kind string, bs []dButton) {
+	for n, b := range bs {
+		i := first + n
+		if i >= invui.Rows {
+			break
+		}
+		k := kind
+		if b.ID == "" {
+			k = invui.KindStatic
+		}
+		pg.icon(invui.RowIcon0+i, b.Icon, k)
+		pg.button(invui.RowBtn0+i, b.Label, k, b.ID)
+	}
+}
+
+// cell puts an item slot in cell i: the item itself named with the
+// tooltip, its count as the stack's when it is a number up to 64, and a
+// texture icon as a paper named with the path (which has no tooltip). press
+// and view are the kinds of a slot that can and cannot be pressed.
+func (pg *menuPage) cell(i int, s dSlot, press, view string) {
+	if i < 0 || i >= invui.Cells {
+		return
+	}
+	slot := invui.Cell0 + i
+	kind := press
+	switch {
+	case s.Selected:
+		kind = invui.KindChosen
+	case s.ID == "":
+		kind = view
+	}
+	count := 1
+	if n, err := strconv.Atoi(s.Count); err == nil && n > 1 && n <= 64 {
+		count = n
+	}
+	switch {
+	case strings.HasPrefix(s.Icon, "aux:"):
+		aux, err := strconv.ParseInt(strings.TrimPrefix(s.Icon, "aux:"), 10, 64)
+		if err != nil {
+			return
+		}
+		it, ok := world.ItemByRuntimeID(int32(aux>>16), 0)
+		if !ok {
+			return
+		}
+		pg.items[slot] = item.NewStack(it, count).WithCustomName("§r" + i18n.Plain(s.Tip) + kind)
+	case strings.HasPrefix(s.Icon, "tex:"):
+		pg.items[slot] = item.NewStack(item.Paper{}, count).WithCustomName(strings.TrimPrefix(s.Icon, "tex:") + kind)
+	default:
+		pg.items[slot] = item.NewStack(item.Paper{}, count).WithCustomName("§r" + i18n.Plain(s.Tip) + kind)
+	}
+	if kind == press && s.ID != "" {
+		pg.ids[slot] = s.ID
+	}
+}
+
+// mark puts a cell that draws only its kind (a frame, an arrow) or a text.
+func (pg *menuPage) mark(i int, text, kind string) {
+	if i < 0 || i >= invui.Cells {
+		return
+	}
+	pg.items[invui.Cell0+i] = item.NewStack(item.Paper{}, 1).WithCustomName("§r" + text + kind)
+}
+
 // menuPageOf is the screen name with data as the slots of the menu window.
 // A screen without its own layout shows its body and a row per element that
 // can be pressed (pressRows).
 func menuPageOf(name string, data any) *menuPage {
 	switch v := data.(type) {
 	case menuData:
-		pg := newMenuPage("mn")
+		pg := newMenuPage(invui.KeyMenu)
 		pg.chrome(v.Chrome)
 		pg.text(invui.SlotBody, "§r"+ink(v.Body))
-		pg.rows(v.Items)
+		pg.rows(0, v.Items)
+		return pg
+	case cardsData:
+		pg := newMenuPage(invui.KeyCards)
+		pg.chrome(v.Chrome)
+		pg.text(invui.SlotBody, "§r"+ink(v.Body))
+		pg.buttons(0, invui.KindRow, v.Items)
+		return pg
+	case gridData:
+		pg := newMenuPage(invui.KeyGrid)
+		pg.chrome(v.Chrome)
+		pg.text(invui.SlotBody, "§r"+ink(v.Body))
+		i := 0
+		for _, sec := range v.Sections {
+			if sec.Heading != "" {
+				pg.mark(i, ink(sec.Heading), invui.KindHeading)
+				i += invui.GridColumns
+			}
+			for _, s := range sec.Slots {
+				pg.cell(i, s, invui.KindRow, invui.KindStatic)
+				i++
+			}
+			i = (i + invui.GridColumns - 1) / invui.GridColumns * invui.GridColumns
+		}
+		pg.rows(0, v.Items)
+		return pg
+	case boardData:
+		pg := newMenuPage(invui.KeyBoard)
+		pg.chrome(v.Chrome)
+		pg.text(invui.SlotBody, "§r"+ink(v.Body))
+		for r, row := range v.Rows {
+			i := r * invui.BoardColumns
+			pg.mark(i, "", invui.KindBlank)
+			for _, c := range row {
+				switch c.K {
+				case "slot":
+					pg.cell(i, *c.Slot, invui.KindRow, invui.KindStatic)
+				case "mini":
+					pg.cell(i, *c.Slot, invui.KindMini, invui.KindMiniView)
+				case "frame":
+					pg.mark(i, "", invui.KindFrame)
+				case "arrow":
+					pg.mark(i, "", invui.KindArrow)
+				case "text":
+					pg.mark(i, ink(c.Text), invui.KindText)
+					i += max(c.Span, 1) - 1
+				}
+				i++
+			}
+		}
+		pg.rows(0, v.Items)
+		return pg
+	case splitData:
+		pg := newMenuPage(invui.KeySplit)
+		pg.chrome(v.Chrome)
+		pg.text(invui.SlotBody, "§r"+ink(v.Detail.Body))
+		pg.text(invui.SlotInfo, "§r"+ink(v.Detail.Status))
+		for i := 0; i < invui.SplitCells; i++ {
+			if i < len(v.Slots) {
+				pg.cell(i, v.Slots[i], invui.KindRow, invui.KindStatic)
+			} else {
+				pg.mark(i, "", invui.KindFrame)
+			}
+		}
+		pager := func(slot int, id string) {
+			kind := invui.KindRow
+			if id == "" {
+				kind = invui.KindStatic
+			}
+			pg.button(slot, "", kind, id)
+		}
+		pager(invui.SlotPrev, v.Prev)
+		pager(invui.SlotNext, v.Next)
+		pg.icon(invui.RowIcon0, v.Detail.Icon, invui.KindStatic)
+		pg.button(invui.RowBtn0, ink(v.Detail.Name), invui.KindStatic, "")
+		pg.buttons(1, invui.KindRow, v.Actions)
+		i := invui.SplitCells
+		for _, r := range v.Rows {
+			if r.Heading != "" {
+				pg.mark(i, ink(r.Heading), invui.KindHeading)
+				i += invui.RightColumns
+			}
+			for _, s := range r.Slots {
+				pg.cell(i, s, invui.KindRow, invui.KindStatic)
+				i++
+			}
+			i = invui.SplitCells + (i-invui.SplitCells+invui.RightColumns-1)/invui.RightColumns*invui.RightColumns
+		}
+		return pg
+	case listSplitData:
+		pg := newMenuPage(invui.KeyListSplit)
+		pg.chrome(v.Chrome)
+		pg.text(invui.SlotBody, "§r"+ink(v.Body))
+		for n, r := range v.Rows {
+			if n >= invui.ListRows {
+				break
+			}
+			kind := invui.KindRow
+			if r.Selected {
+				kind = invui.KindChosen
+			}
+			pg.icon(invui.RowIcon0+n, r.Icon, kind)
+			pg.button(invui.RowBtn0+n, r.Name, kind, r.ID)
+			if r.Info != "" {
+				pg.mark(n, r.Info, invui.KindStatic)
+			}
+		}
+		pg.buttons(invui.ListRows, invui.KindRow, v.Actions)
 		return pg
 	}
-	pg := newMenuPage("mn")
+	pg := newMenuPage(invui.KeyMenu)
 	chrome, body, rows := pressRows(data)
 	pg.chrome(chrome)
 	pg.text(invui.SlotBody, "§r"+ink(body))
-	pg.rows(rows)
+	pg.rows(0, rows)
 	return pg
 }
 
