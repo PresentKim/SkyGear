@@ -1,0 +1,39 @@
+{
+  "namespace": "pocket_containers",
+
+  "panel": {
+    "modifications": [
+      { "array_name": "controls", "operation": "insert_back", "value": [ { "sg_menu_overlay@sg_menu.overlay": {} } ] }
+    ]
+  },
+
+  "header_area": {
+    "modifications": [
+      {
+        "array_name": "bindings",
+        "operation": "insert_back",
+        "value": [ { "binding_type": "view", "source_control_name": "entity_ui_hide_vanilla", "source_property_name": "#entity_ui_vanilla_visible", "target_property_name": "#visible", "binding_condition": "always" } ]
+      }
+    ]
+  },
+
+  "background_panel": {
+    "modifications": [
+      {
+        "array_name": "bindings",
+        "operation": "insert_back",
+        "value": [ { "binding_type": "view", "source_control_name": "entity_ui_hide_vanilla", "source_property_name": "#entity_ui_vanilla_visible", "target_property_name": "#visible", "binding_condition": "always" } ]
+      }
+    ]
+  },
+
+  "half_screen": {
+    "modifications": [
+      {
+        "array_name": "bindings",
+        "operation": "insert_back",
+        "value": [ { "binding_type": "view", "source_control_name": "entity_ui_hide_vanilla", "source_property_name": "#entity_ui_vanilla_visible", "target_property_name": "#visible", "binding_condition": "always" } ]
+      }
+    ]
+  }
+}

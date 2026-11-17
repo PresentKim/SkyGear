@@ -1,140 +1,4 @@
 {
-  "action_button": {
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_type": "collection_details"
-      }
-    ],
-    "button_mappings": [
-      {
-        "from_button_id": "button.menu_select",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "from_button_id": "button.menu_ok",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "from_button_id": "button.menu_secondary_select",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "from_button_id": "button.menu_auto_place",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "mapping_type": "pressed",
-        "to_button_id": "button.container_slot_hovered"
-      }
-    ],
-    "controls": [
-      {
-        "default": {
-          "controls": [
-            {
-              "bg": {
-                "layer": 1,
-                "size": [
-                  "100%",
-                  "100%"
-                ],
-                "texture": "textures/ui/sg/button",
-                "type": "image"
-              }
-            },
-            {
-              "content@$button_content": {}
-            }
-          ],
-          "size": [
-            "100%",
-            "100%"
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "hover": {
-          "controls": [
-            {
-              "bg": {
-                "layer": 1,
-                "size": [
-                  "100%",
-                  "100%"
-                ],
-                "texture": "textures/ui/sg/button_hover",
-                "type": "image"
-              }
-            },
-            {
-              "content@$button_content": {}
-            },
-            {
-              "tip": {
-                "$tip_visible|default": false,
-                "allow_clipping": false,
-                "layer": 30,
-                "renderer": "hover_text_renderer",
-                "type": "custom",
-                "visible": "$tip_visible"
-              }
-            }
-          ],
-          "size": [
-            "100%",
-            "100%"
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "pressed": {
-          "controls": [
-            {
-              "bg": {
-                "layer": 1,
-                "size": [
-                  "100%",
-                  "100%"
-                ],
-                "texture": "textures/ui/sg/button_pressed",
-                "type": "image"
-              }
-            },
-            {
-              "content@$button_content": {}
-            }
-          ],
-          "size": [
-            "100%",
-            "100%"
-          ],
-          "type": "panel"
-        }
-      }
-    ],
-    "default_control": "default",
-    "default_focus_precedence": 1,
-    "focus_enabled": true,
-    "focus_magnet_enabled": true,
-    "focus_wrap_enabled": false,
-    "hover_control": "hover",
-    "pressed_control": "pressed",
-    "size": [
-      "100%",
-      17
-    ],
-    "sound_name": "random.click",
-    "sound_pitch": 1,
-    "sound_volume": 1,
-    "type": "button"
-  },
   "action_cell": {
     "bindings": [
       {
@@ -152,21 +16,115 @@
     ],
     "controls": [
       {
-        "b@sg_menu.action_button": {
-          "$button_content": "sg_menu.action_content",
+        "b": {
           "anchor_from": "top_left",
-          "anchor_to": "top_left"
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_type": "collection_details"
+            }
+          ],
+          "button_mappings": [
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_select",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_ok",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_slot_hovered"
+            }
+          ],
+          "controls": [
+            {
+              "default": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/button",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "hover": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/button_hover",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "pressed": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/button_pressed",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            }
+          ],
+          "default_control": "default",
+          "hover_control": "hover",
+          "layer": 1,
+          "pressed_control": "pressed",
+          "size": [
+            "100%",
+            17
+          ],
+          "sound_name": "random.click",
+          "sound_pitch": 1,
+          "sound_volume": 1,
+          "type": "button"
         }
-      }
-    ],
-    "size": [
-      "100%",
-      19
-    ],
-    "type": "panel"
-  },
-  "action_content": {
-    "controls": [
+      },
       {
         "i": {
           "anchor_from": "left_middle",
@@ -195,9 +153,10 @@
               }
             }
           ],
+          "layer": 3,
           "offset": [
             2,
-            0
+            -1
           ],
           "size": [
             12,
@@ -213,14 +172,14 @@
           "bindings": [
             {
               "binding_collection_name": "container_items",
-              "binding_condition": "always",
+              "binding_condition": "visible",
               "binding_name": "#hover_text",
               "binding_type": "collection"
             },
             {
-              "binding_condition": "always",
+              "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -230,11 +189,11 @@
             0.97
           ],
           "font_scale_factor": 0.8,
-          "layer": 3,
+          "layer": 4,
           "localize": false,
           "offset": [
             15,
-            0
+            -1
           ],
           "size": [
             "100% - 17px",
@@ -247,135 +206,9 @@
     ],
     "size": [
       "100%",
-      "100%"
+      19
     ],
     "type": "panel"
-  },
-  "bar_button": {
-    "$tip_visible": true,
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_type": "collection_details"
-      }
-    ],
-    "button_mappings": [
-      {
-        "from_button_id": "button.menu_select",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "from_button_id": "button.menu_ok",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "from_button_id": "button.menu_secondary_select",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "from_button_id": "button.menu_auto_place",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "mapping_type": "pressed",
-        "to_button_id": "button.container_slot_hovered"
-      }
-    ],
-    "controls": [
-      {
-        "default": {
-          "controls": [
-            {
-              "content@$button_content": {}
-            }
-          ],
-          "size": [
-            "100%",
-            "100%"
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "hover": {
-          "controls": [
-            {
-              "bg": {
-                "layer": 1,
-                "size": [
-                  "100%",
-                  "100%"
-                ],
-                "texture": "textures/ui/sg/hover_flat",
-                "type": "image"
-              }
-            },
-            {
-              "content@$button_content": {}
-            },
-            {
-              "tip": {
-                "$tip_visible|default": false,
-                "allow_clipping": false,
-                "layer": 30,
-                "renderer": "hover_text_renderer",
-                "type": "custom",
-                "visible": "$tip_visible"
-              }
-            }
-          ],
-          "size": [
-            "100%",
-            "100%"
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "pressed": {
-          "controls": [
-            {
-              "bg": {
-                "layer": 1,
-                "size": [
-                  "100%",
-                  "100%"
-                ],
-                "texture": "textures/ui/sg/press_flat",
-                "type": "image"
-              }
-            },
-            {
-              "content@$button_content": {}
-            }
-          ],
-          "size": [
-            "100%",
-            "100%"
-          ],
-          "type": "panel"
-        }
-      }
-    ],
-    "default_control": "default",
-    "default_focus_precedence": 1,
-    "focus_enabled": true,
-    "focus_magnet_enabled": true,
-    "focus_wrap_enabled": false,
-    "hover_control": "hover",
-    "pressed_control": "pressed",
-    "size": [
-      15,
-      15
-    ],
-    "sound_name": "random.click",
-    "sound_pitch": 1,
-    "sound_volume": 1,
-    "type": "button"
   },
   "bar_cell": {
     "bindings": [
@@ -394,19 +227,109 @@
     ],
     "controls": [
       {
-        "b@sg_menu.bar_button": {
-          "$button_content": "sg_menu.bar_face"
+        "b": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_type": "collection_details"
+            }
+          ],
+          "button_mappings": [
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_select",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_ok",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_slot_hovered"
+            }
+          ],
+          "controls": [
+            {
+              "default": {
+                "controls": [],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "hover": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/hover_flat",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "tip": {
+                      "allow_clipping": false,
+                      "layer": 30,
+                      "renderer": "hover_text_renderer",
+                      "type": "custom"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "pressed": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/press_flat",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            }
+          ],
+          "default_control": "default",
+          "hover_control": "hover",
+          "layer": 1,
+          "pressed_control": "pressed",
+          "size": [
+            15,
+            15
+          ],
+          "sound_name": "random.click",
+          "sound_pitch": 1,
+          "sound_volume": 1,
+          "type": "button"
         }
-      }
-    ],
-    "size": [
-      15,
-      22
-    ],
-    "type": "panel"
-  },
-  "bar_face": {
-    "controls": [
+      },
       {
         "i": {
           "collection_name": "container_items",
@@ -421,6 +344,7 @@
               }
             }
           ],
+          "layer": 3,
           "orientation": "vertical",
           "size": [
             15,
@@ -458,598 +382,10 @@
       }
     ],
     "size": [
-      "100%",
-      "100%"
+      15,
+      22
     ],
     "type": "panel"
-  },
-  "board_page@common.scrolling_panel": {
-    "$scroll_bar_right_padding_size": [
-      0,
-      0
-    ],
-    "$scroll_size": [
-      4,
-      "100%"
-    ],
-    "$scrolling_content": "sg_menu.board_page_body",
-    "$scrolling_pane_offset": [
-      0,
-      0
-    ],
-    "$scrolling_pane_size": [
-      "100%",
-      "100%"
-    ],
-    "$show_background": false,
-    "anchor_from": "top_left",
-    "anchor_to": "top_left",
-    "size": [
-      "100%",
-      "100%"
-    ]
-  },
-  "board_page_body": {
-    "anchor_from": "top_left",
-    "anchor_to": "top_left",
-    "controls": [
-      {
-        "body": {
-          "collection_name": "container_items",
-          "controls": [
-            {
-              "t@sg_menu.text_slot": {
-                "$text_scale": 1,
-                "collection_index": 2
-              }
-            }
-          ],
-          "orientation": "vertical",
-          "size": [
-            "100%",
-            "100%c"
-          ],
-          "type": "stack_panel"
-        }
-      },
-      {
-        "gap": {
-          "size": [
-            "100%",
-            3
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "board": {
-          "controls": [
-            {
-              "g": {
-                "anchor_from": "top_middle",
-                "anchor_to": "top_middle",
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "r0@sg_menu.cell_row_130_11": {
-                      "collection_index": 130
-                    }
-                  },
-                  {
-                    "r1@sg_menu.cell_row_141_11": {
-                      "collection_index": 141
-                    }
-                  },
-                  {
-                    "r2@sg_menu.cell_row_152_11": {
-                      "collection_index": 152
-                    }
-                  },
-                  {
-                    "r3@sg_menu.cell_row_163_11": {
-                      "collection_index": 163
-                    }
-                  },
-                  {
-                    "r4@sg_menu.cell_row_174_11": {
-                      "collection_index": 174
-                    }
-                  },
-                  {
-                    "r5@sg_menu.cell_row_185_11": {
-                      "collection_index": 185
-                    }
-                  },
-                  {
-                    "r6@sg_menu.cell_row_196_11": {
-                      "collection_index": 196
-                    }
-                  },
-                  {
-                    "r7@sg_menu.cell_row_207_11": {
-                      "collection_index": 207
-                    }
-                  },
-                  {
-                    "r8@sg_menu.cell_row_218_11": {
-                      "collection_index": 218
-                    }
-                  },
-                  {
-                    "r9@sg_menu.cell_row_229_11": {
-                      "collection_index": 229
-                    }
-                  }
-                ],
-                "orientation": "vertical",
-                "size": [
-                  198,
-                  "100%c"
-                ],
-                "type": "stack_panel"
-              }
-            }
-          ],
-          "size": [
-            "100%",
-            "100%c"
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "gap": {
-          "size": [
-            "100%",
-            3
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "rows": {
-          "collection_name": "container_items",
-          "controls": [
-            {
-              "r0@sg_menu.row_cell": {
-                "$icon_index": 34,
-                "collection_index": 82
-              }
-            },
-            {
-              "r1@sg_menu.row_cell": {
-                "$icon_index": 35,
-                "collection_index": 83
-              }
-            },
-            {
-              "r2@sg_menu.row_cell": {
-                "$icon_index": 36,
-                "collection_index": 84
-              }
-            },
-            {
-              "r3@sg_menu.row_cell": {
-                "$icon_index": 37,
-                "collection_index": 85
-              }
-            },
-            {
-              "r4@sg_menu.row_cell": {
-                "$icon_index": 38,
-                "collection_index": 86
-              }
-            },
-            {
-              "r5@sg_menu.row_cell": {
-                "$icon_index": 39,
-                "collection_index": 87
-              }
-            },
-            {
-              "r6@sg_menu.row_cell": {
-                "$icon_index": 40,
-                "collection_index": 88
-              }
-            },
-            {
-              "r7@sg_menu.row_cell": {
-                "$icon_index": 41,
-                "collection_index": 89
-              }
-            },
-            {
-              "r8@sg_menu.row_cell": {
-                "$icon_index": 42,
-                "collection_index": 90
-              }
-            },
-            {
-              "r9@sg_menu.row_cell": {
-                "$icon_index": 43,
-                "collection_index": 91
-              }
-            },
-            {
-              "r10@sg_menu.row_cell": {
-                "$icon_index": 44,
-                "collection_index": 92
-              }
-            },
-            {
-              "r11@sg_menu.row_cell": {
-                "$icon_index": 45,
-                "collection_index": 93
-              }
-            },
-            {
-              "r12@sg_menu.row_cell": {
-                "$icon_index": 46,
-                "collection_index": 94
-              }
-            },
-            {
-              "r13@sg_menu.row_cell": {
-                "$icon_index": 47,
-                "collection_index": 95
-              }
-            },
-            {
-              "r14@sg_menu.row_cell": {
-                "$icon_index": 48,
-                "collection_index": 96
-              }
-            },
-            {
-              "r15@sg_menu.row_cell": {
-                "$icon_index": 49,
-                "collection_index": 97
-              }
-            },
-            {
-              "r16@sg_menu.row_cell": {
-                "$icon_index": 50,
-                "collection_index": 98
-              }
-            },
-            {
-              "r17@sg_menu.row_cell": {
-                "$icon_index": 51,
-                "collection_index": 99
-              }
-            },
-            {
-              "r18@sg_menu.row_cell": {
-                "$icon_index": 52,
-                "collection_index": 100
-              }
-            },
-            {
-              "r19@sg_menu.row_cell": {
-                "$icon_index": 53,
-                "collection_index": 101
-              }
-            },
-            {
-              "r20@sg_menu.row_cell": {
-                "$icon_index": 54,
-                "collection_index": 102
-              }
-            },
-            {
-              "r21@sg_menu.row_cell": {
-                "$icon_index": 55,
-                "collection_index": 103
-              }
-            },
-            {
-              "r22@sg_menu.row_cell": {
-                "$icon_index": 56,
-                "collection_index": 104
-              }
-            },
-            {
-              "r23@sg_menu.row_cell": {
-                "$icon_index": 57,
-                "collection_index": 105
-              }
-            },
-            {
-              "r24@sg_menu.row_cell": {
-                "$icon_index": 58,
-                "collection_index": 106
-              }
-            },
-            {
-              "r25@sg_menu.row_cell": {
-                "$icon_index": 59,
-                "collection_index": 107
-              }
-            },
-            {
-              "r26@sg_menu.row_cell": {
-                "$icon_index": 60,
-                "collection_index": 108
-              }
-            },
-            {
-              "r27@sg_menu.row_cell": {
-                "$icon_index": 61,
-                "collection_index": 109
-              }
-            },
-            {
-              "r28@sg_menu.row_cell": {
-                "$icon_index": 62,
-                "collection_index": 110
-              }
-            },
-            {
-              "r29@sg_menu.row_cell": {
-                "$icon_index": 63,
-                "collection_index": 111
-              }
-            },
-            {
-              "r30@sg_menu.row_cell": {
-                "$icon_index": 64,
-                "collection_index": 112
-              }
-            },
-            {
-              "r31@sg_menu.row_cell": {
-                "$icon_index": 65,
-                "collection_index": 113
-              }
-            },
-            {
-              "r32@sg_menu.row_cell": {
-                "$icon_index": 66,
-                "collection_index": 114
-              }
-            },
-            {
-              "r33@sg_menu.row_cell": {
-                "$icon_index": 67,
-                "collection_index": 115
-              }
-            },
-            {
-              "r34@sg_menu.row_cell": {
-                "$icon_index": 68,
-                "collection_index": 116
-              }
-            },
-            {
-              "r35@sg_menu.row_cell": {
-                "$icon_index": 69,
-                "collection_index": 117
-              }
-            },
-            {
-              "r36@sg_menu.row_cell": {
-                "$icon_index": 70,
-                "collection_index": 118
-              }
-            },
-            {
-              "r37@sg_menu.row_cell": {
-                "$icon_index": 71,
-                "collection_index": 119
-              }
-            },
-            {
-              "r38@sg_menu.row_cell": {
-                "$icon_index": 72,
-                "collection_index": 120
-              }
-            },
-            {
-              "r39@sg_menu.row_cell": {
-                "$icon_index": 73,
-                "collection_index": 121
-              }
-            },
-            {
-              "r40@sg_menu.row_cell": {
-                "$icon_index": 74,
-                "collection_index": 122
-              }
-            },
-            {
-              "r41@sg_menu.row_cell": {
-                "$icon_index": 75,
-                "collection_index": 123
-              }
-            },
-            {
-              "r42@sg_menu.row_cell": {
-                "$icon_index": 76,
-                "collection_index": 124
-              }
-            },
-            {
-              "r43@sg_menu.row_cell": {
-                "$icon_index": 77,
-                "collection_index": 125
-              }
-            },
-            {
-              "r44@sg_menu.row_cell": {
-                "$icon_index": 78,
-                "collection_index": 126
-              }
-            },
-            {
-              "r45@sg_menu.row_cell": {
-                "$icon_index": 79,
-                "collection_index": 127
-              }
-            },
-            {
-              "r46@sg_menu.row_cell": {
-                "$icon_index": 80,
-                "collection_index": 128
-              }
-            },
-            {
-              "r47@sg_menu.row_cell": {
-                "$icon_index": 81,
-                "collection_index": 129
-              }
-            }
-          ],
-          "orientation": "vertical",
-          "size": [
-            "100%",
-            "100%c"
-          ],
-          "type": "stack_panel"
-        }
-      }
-    ],
-    "orientation": "vertical",
-    "size": [
-      "100% - 8px",
-      "100%c"
-    ],
-    "type": "stack_panel"
-  },
-  "card_button": {
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_type": "collection_details"
-      }
-    ],
-    "button_mappings": [
-      {
-        "from_button_id": "button.menu_select",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "from_button_id": "button.menu_ok",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "from_button_id": "button.menu_secondary_select",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "from_button_id": "button.menu_auto_place",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "mapping_type": "pressed",
-        "to_button_id": "button.container_slot_hovered"
-      }
-    ],
-    "controls": [
-      {
-        "default": {
-          "controls": [
-            {
-              "bg": {
-                "layer": 1,
-                "size": [
-                  "100%",
-                  "100%"
-                ],
-                "texture": "textures/ui/sg/button",
-                "type": "image"
-              }
-            },
-            {
-              "content@$button_content": {}
-            }
-          ],
-          "size": [
-            "100%",
-            "100%"
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "hover": {
-          "controls": [
-            {
-              "bg": {
-                "layer": 1,
-                "size": [
-                  "100%",
-                  "100%"
-                ],
-                "texture": "textures/ui/sg/button_hover",
-                "type": "image"
-              }
-            },
-            {
-              "content@$button_content": {}
-            },
-            {
-              "tip": {
-                "$tip_visible|default": false,
-                "allow_clipping": false,
-                "layer": 30,
-                "renderer": "hover_text_renderer",
-                "type": "custom",
-                "visible": "$tip_visible"
-              }
-            }
-          ],
-          "size": [
-            "100%",
-            "100%"
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "pressed": {
-          "controls": [
-            {
-              "bg": {
-                "layer": 1,
-                "size": [
-                  "100%",
-                  "100%"
-                ],
-                "texture": "textures/ui/sg/button_pressed",
-                "type": "image"
-              }
-            },
-            {
-              "content@$button_content": {}
-            }
-          ],
-          "size": [
-            "100%",
-            "100%"
-          ],
-          "type": "panel"
-        }
-      }
-    ],
-    "default_control": "default",
-    "default_focus_precedence": 1,
-    "focus_enabled": true,
-    "focus_magnet_enabled": true,
-    "focus_wrap_enabled": false,
-    "hover_control": "hover",
-    "pressed_control": "pressed",
-    "size": [
-      72,
-      46
-    ],
-    "sound_name": "random.click",
-    "sound_pitch": 1,
-    "sound_volume": 1,
-    "type": "button"
   },
   "card_cell": {
     "bindings": [
@@ -1068,19 +404,113 @@
     ],
     "controls": [
       {
-        "b@sg_menu.card_button": {
-          "$button_content": "sg_menu.card_content"
+        "b": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_type": "collection_details"
+            }
+          ],
+          "button_mappings": [
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_select",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_ok",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_slot_hovered"
+            }
+          ],
+          "controls": [
+            {
+              "default": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/button",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "hover": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/button_hover",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "pressed": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/button_pressed",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            }
+          ],
+          "default_control": "default",
+          "hover_control": "hover",
+          "layer": 1,
+          "pressed_control": "pressed",
+          "size": [
+            72,
+            46
+          ],
+          "sound_name": "random.click",
+          "sound_pitch": 1,
+          "sound_volume": 1,
+          "type": "button"
         }
-      }
-    ],
-    "size": [
-      76,
-      50
-    ],
-    "type": "panel"
-  },
-  "card_content": {
-    "controls": [
+      },
       {
         "i": {
           "anchor_from": "top_middle",
@@ -1109,9 +539,10 @@
               }
             }
           ],
+          "layer": 3,
           "offset": [
-            0,
-            8
+            2,
+            10
           ],
           "size": [
             22,
@@ -1127,14 +558,14 @@
           "bindings": [
             {
               "binding_collection_name": "container_items",
-              "binding_condition": "always",
+              "binding_condition": "visible",
               "binding_name": "#hover_text",
               "binding_type": "collection"
             },
             {
-              "binding_condition": "always",
+              "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -1144,14 +575,14 @@
             0.97
           ],
           "font_scale_factor": 0.8,
-          "layer": 3,
+          "layer": 4,
           "localize": false,
           "offset": [
             0,
-            -4
+            -6
           ],
           "size": [
-            "100% - 6px",
+            66,
             "default"
           ],
           "text": "#text",
@@ -1161,539 +592,15 @@
       }
     ],
     "size": [
-      "100%",
-      "100%"
+      76,
+      50
     ],
     "type": "panel"
-  },
-  "cards_page@common.scrolling_panel": {
-    "$scroll_bar_right_padding_size": [
-      0,
-      0
-    ],
-    "$scroll_size": [
-      4,
-      "100%"
-    ],
-    "$scrolling_content": "sg_menu.cards_page_body",
-    "$scrolling_pane_offset": [
-      0,
-      0
-    ],
-    "$scrolling_pane_size": [
-      "100%",
-      "100%"
-    ],
-    "$show_background": false,
-    "anchor_from": "top_left",
-    "anchor_to": "top_left",
-    "size": [
-      "100%",
-      "100%"
-    ]
-  },
-  "cards_page_body": {
-    "anchor_from": "top_left",
-    "anchor_to": "top_left",
-    "controls": [
-      {
-        "body": {
-          "collection_name": "container_items",
-          "controls": [
-            {
-              "t@sg_menu.text_slot": {
-                "$text_scale": 1,
-                "collection_index": 2
-              }
-            }
-          ],
-          "orientation": "vertical",
-          "size": [
-            "100%",
-            "100%c"
-          ],
-          "type": "stack_panel"
-        }
-      },
-      {
-        "gap": {
-          "size": [
-            "100%",
-            6
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "cards": {
-          "anchor_from": "top_left",
-          "anchor_to": "top_left",
-          "controls": [
-            {
-              "r0": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 34,
-                      "collection_index": 82
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 35,
-                      "collection_index": 83
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 36,
-                      "collection_index": 84
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 37,
-                      "collection_index": 85
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r1": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 38,
-                      "collection_index": 86
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 39,
-                      "collection_index": 87
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 40,
-                      "collection_index": 88
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 41,
-                      "collection_index": 89
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r2": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 42,
-                      "collection_index": 90
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 43,
-                      "collection_index": 91
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 44,
-                      "collection_index": 92
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 45,
-                      "collection_index": 93
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r3": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 46,
-                      "collection_index": 94
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 47,
-                      "collection_index": 95
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 48,
-                      "collection_index": 96
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 49,
-                      "collection_index": 97
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r4": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 50,
-                      "collection_index": 98
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 51,
-                      "collection_index": 99
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 52,
-                      "collection_index": 100
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 53,
-                      "collection_index": 101
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r5": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 54,
-                      "collection_index": 102
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 55,
-                      "collection_index": 103
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 56,
-                      "collection_index": 104
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 57,
-                      "collection_index": 105
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r6": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 58,
-                      "collection_index": 106
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 59,
-                      "collection_index": 107
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 60,
-                      "collection_index": 108
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 61,
-                      "collection_index": 109
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r7": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 62,
-                      "collection_index": 110
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 63,
-                      "collection_index": 111
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 64,
-                      "collection_index": 112
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 65,
-                      "collection_index": 113
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r8": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 66,
-                      "collection_index": 114
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 67,
-                      "collection_index": 115
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 68,
-                      "collection_index": 116
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 69,
-                      "collection_index": 117
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r9": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 70,
-                      "collection_index": 118
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 71,
-                      "collection_index": 119
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 72,
-                      "collection_index": 120
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 73,
-                      "collection_index": 121
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r10": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 74,
-                      "collection_index": 122
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 75,
-                      "collection_index": 123
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 76,
-                      "collection_index": 124
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 77,
-                      "collection_index": 125
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r11": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 78,
-                      "collection_index": 126
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 79,
-                      "collection_index": 127
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 80,
-                      "collection_index": 128
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 81,
-                      "collection_index": 129
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            }
-          ],
-          "orientation": "vertical",
-          "size": [
-            "100%",
-            "100%c"
-          ],
-          "type": "stack_panel"
-        }
-      }
-    ],
-    "orientation": "vertical",
-    "size": [
-      "100% - 8px",
-      "100%c"
-    ],
-    "type": "stack_panel"
   },
   "cell": {
     "controls": [
       {
-        "press": {
+        "slot": {
           "bindings": [
             {
               "binding_collection_name": "container_items",
@@ -1704,11 +611,14 @@
             {
               "binding_condition": "always",
               "binding_type": "view",
-              "source_property_name": "(not ((#hover_text - '§z§a') = #hover_text))",
+              "source_property_name": "(not ((#hover_text - '§z§l') = #hover_text))",
               "target_property_name": "#visible"
             }
           ],
           "controls": [
+            {
+              "face@sg_menu.slot_face": {}
+            },
             {
               "b@sg_menu.cell_button": {}
             }
@@ -1721,7 +631,7 @@
         }
       },
       {
-        "view": {
+        "mini": {
           "bindings": [
             {
               "binding_collection_name": "container_items",
@@ -1732,41 +642,16 @@
             {
               "binding_condition": "always",
               "binding_type": "view",
-              "source_property_name": "(not ((#hover_text - '§z§s') = #hover_text))",
+              "source_property_name": "(not ((#hover_text - '§z§k') = #hover_text))",
               "target_property_name": "#visible"
             }
           ],
           "controls": [
             {
-              "b@sg_menu.cell_view": {}
-            }
-          ],
-          "size": [
-            18,
-            18
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "chosen": {
-          "bindings": [
-            {
-              "binding_collection_name": "container_items",
-              "binding_condition": "always",
-              "binding_name": "#hover_text",
-              "binding_type": "collection"
+              "face@sg_menu.mini_face": {}
             },
             {
-              "binding_condition": "always",
-              "binding_type": "view",
-              "source_property_name": "(not ((#hover_text - '§z§c') = #hover_text))",
-              "target_property_name": "#visible"
-            }
-          ],
-          "controls": [
-            {
-              "b@sg_menu.cell_chosen": {}
+              "b@sg_menu.cell_button": {}
             }
           ],
           "size": [
@@ -1794,63 +679,15 @@
           ],
           "controls": [
             {
-              "f@sg_menu.cell_frame": {}
-            }
-          ],
-          "size": [
-            18,
-            18
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "mini": {
-          "bindings": [
-            {
-              "binding_collection_name": "container_items",
-              "binding_condition": "always",
-              "binding_name": "#hover_text",
-              "binding_type": "collection"
-            },
-            {
-              "binding_condition": "always",
-              "binding_type": "view",
-              "source_property_name": "(not ((#hover_text - '§z§m') = #hover_text))",
-              "target_property_name": "#visible"
-            }
-          ],
-          "controls": [
-            {
-              "b@sg_menu.mini_button": {}
-            }
-          ],
-          "size": [
-            18,
-            18
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "mini_view": {
-          "bindings": [
-            {
-              "binding_collection_name": "container_items",
-              "binding_condition": "always",
-              "binding_name": "#hover_text",
-              "binding_type": "collection"
-            },
-            {
-              "binding_condition": "always",
-              "binding_type": "view",
-              "source_property_name": "(not ((#hover_text - '§z§n') = #hover_text))",
-              "target_property_name": "#visible"
-            }
-          ],
-          "controls": [
-            {
-              "b@sg_menu.mini_view": {}
+              "f": {
+                "layer": 1,
+                "size": [
+                  18,
+                  18
+                ],
+                "texture": "textures/ui/cell_image",
+                "type": "image"
+              }
             }
           ],
           "size": [
@@ -1920,14 +757,14 @@
                 "bindings": [
                   {
                     "binding_collection_name": "container_items",
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_name": "#hover_text",
                     "binding_type": "collection"
                   },
                   {
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e')",
+                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
                     "target_property_name": "#text"
                   }
                 ],
@@ -1983,14 +820,14 @@
                 "bindings": [
                   {
                     "binding_collection_name": "container_items",
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_name": "#hover_text",
                     "binding_type": "collection"
                   },
                   {
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e')",
+                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
                     "target_property_name": "#text"
                   }
                 ],
@@ -2030,7 +867,6 @@
     "type": "panel"
   },
   "cell_button": {
-    "$tip_visible": true,
     "bindings": [
       {
         "binding_collection_name": "container_items",
@@ -2039,24 +875,16 @@
     ],
     "button_mappings": [
       {
+        "consume_event": false,
         "from_button_id": "button.menu_select",
         "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
+        "to_button_id": "button.container_auto_place"
       },
       {
+        "consume_event": false,
         "from_button_id": "button.menu_ok",
         "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "from_button_id": "button.menu_secondary_select",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "from_button_id": "button.menu_auto_place",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
+        "to_button_id": "button.container_auto_place"
       },
       {
         "mapping_type": "pressed",
@@ -2066,14 +894,10 @@
     "controls": [
       {
         "default": {
-          "controls": [
-            {
-              "f@sg_menu.cell_face": {}
-            }
-          ],
+          "controls": [],
           "size": [
-            18,
-            18
+            "100%",
+            "100%"
           ],
           "type": "panel"
         }
@@ -2082,380 +906,56 @@
         "hover": {
           "controls": [
             {
-              "f@sg_menu.cell_lit": {}
-            },
-            {
               "tip": {
-                "$tip_visible|default": false,
                 "allow_clipping": false,
                 "layer": 30,
                 "renderer": "hover_text_renderer",
-                "type": "custom",
-                "visible": "$tip_visible"
+                "type": "custom"
+              }
+            },
+            {
+              "lit": {
+                "alpha": 0.3,
+                "layer": 4,
+                "size": [
+                  16,
+                  16
+                ],
+                "texture": "textures/ui/White",
+                "type": "image"
               }
             }
           ],
           "size": [
-            18,
-            18
+            "100%",
+            "100%"
           ],
           "type": "panel"
         }
       },
       {
         "pressed": {
-          "controls": [
-            {
-              "f@sg_menu.cell_lit": {}
-            }
-          ],
+          "controls": [],
           "size": [
-            18,
-            18
+            "100%",
+            "100%"
           ],
           "type": "panel"
         }
       }
     ],
     "default_control": "default",
-    "default_focus_precedence": 1,
-    "focus_enabled": true,
-    "focus_magnet_enabled": true,
-    "focus_wrap_enabled": false,
     "hover_control": "hover",
-    "pressed_control": "pressed",
-    "size": [
-      18,
-      18
-    ],
-    "sound_name": "random.click",
-    "sound_pitch": 1,
-    "sound_volume": 1,
-    "type": "button"
-  },
-  "cell_chosen": {
-    "$tip_visible": true,
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_type": "collection_details"
-      }
-    ],
-    "button_mappings": [
-      {
-        "mapping_type": "pressed",
-        "to_button_id": "button.container_slot_hovered"
-      }
-    ],
-    "controls": [
-      {
-        "default": {
-          "controls": [
-            {
-              "f@sg_menu.cell_face": {}
-            },
-            {
-              "on": {
-                "layer": 6,
-                "size": [
-                  18,
-                  18
-                ],
-                "texture": "textures/ui/sg/slot_chosen",
-                "type": "image"
-              }
-            }
-          ],
-          "size": [
-            18,
-            18
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "hover": {
-          "controls": [
-            {
-              "f@sg_menu.cell_face": {}
-            },
-            {
-              "tip": {
-                "$tip_visible|default": false,
-                "allow_clipping": false,
-                "layer": 30,
-                "renderer": "hover_text_renderer",
-                "type": "custom",
-                "visible": "$tip_visible"
-              }
-            },
-            {
-              "on": {
-                "layer": 6,
-                "size": [
-                  18,
-                  18
-                ],
-                "texture": "textures/ui/sg/slot_chosen",
-                "type": "image"
-              }
-            }
-          ],
-          "size": [
-            18,
-            18
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "pressed": {
-          "controls": [
-            {
-              "f@sg_menu.cell_face": {}
-            },
-            {
-              "tip": {
-                "$tip_visible|default": false,
-                "allow_clipping": false,
-                "layer": 30,
-                "renderer": "hover_text_renderer",
-                "type": "custom",
-                "visible": "$tip_visible"
-              }
-            },
-            {
-              "on": {
-                "layer": 6,
-                "size": [
-                  18,
-                  18
-                ],
-                "texture": "textures/ui/sg/slot_chosen",
-                "type": "image"
-              }
-            }
-          ],
-          "size": [
-            18,
-            18
-          ],
-          "type": "panel"
-        }
-      }
-    ],
-    "default_control": "default",
-    "default_focus_precedence": 1,
-    "focus_enabled": true,
-    "focus_magnet_enabled": true,
-    "focus_wrap_enabled": false,
-    "hover_control": "hover",
-    "pressed_control": "pressed",
-    "size": [
-      18,
-      18
-    ],
-    "sound_name": "random.click",
-    "sound_pitch": 1,
-    "sound_volume": 1,
-    "type": "button"
-  },
-  "cell_face": {
-    "controls": [
-      {
-        "f@sg_menu.cell_frame": {}
-      },
-      {
-        "i@sg_menu.cell_item": {}
-      },
-      {
-        "n": {
-          "anchor_from": "bottom_right",
-          "anchor_to": "bottom_right",
-          "bindings": [
-            {
-              "binding_collection_name": "container_items",
-              "binding_condition": "always",
-              "binding_name": "#inventory_stack_count",
-              "binding_type": "collection"
-            },
-            {
-              "binding_condition": "always",
-              "binding_type": "view",
-              "source_property_name": "('§r' + #inventory_stack_count)",
-              "target_property_name": "#text"
-            }
-          ],
-          "color": [
-            1,
-            1,
-            1
-          ],
-          "font_scale_factor": 0.86,
-          "layer": 5,
-          "localize": false,
-          "offset": [
-            0,
-            1
-          ],
-          "shadow": true,
-          "text": "#text",
-          "type": "label"
-        }
-      }
-    ],
-    "size": [
-      18,
-      18
-    ],
-    "type": "panel"
-  },
-  "cell_frame": {
     "layer": 1,
+    "pressed_control": "pressed",
     "size": [
       18,
       18
     ],
-    "texture": "textures/ui/cell_image",
-    "type": "image"
-  },
-  "cell_item": {
-    "controls": [
-      {
-        "image": {
-          "bindings": [
-            {
-              "binding_collection_name": "container_items",
-              "binding_condition": "always",
-              "binding_name": "#hover_text",
-              "binding_type": "collection"
-            },
-            {
-              "binding_condition": "always",
-              "binding_type": "view",
-              "source_property_name": "((#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e') - '§r' - '§f')",
-              "target_property_name": "#texture"
-            },
-            {
-              "binding_condition": "always",
-              "binding_type": "view",
-              "source_property_name": "(not ((#hover_text - 'textures/') = #hover_text))",
-              "target_property_name": "#visible"
-            }
-          ],
-          "size": [
-            "100%",
-            "100%"
-          ],
-          "texture": "#texture",
-          "type": "image"
-        }
-      },
-      {
-        "item": {
-          "bindings": [
-            {
-              "binding_collection_name": "container_items",
-              "binding_condition": "always",
-              "binding_name": "#hover_text",
-              "binding_type": "collection"
-            },
-            {
-              "binding_collection_name": "container_items",
-              "binding_condition": "always",
-              "binding_name": "#item_id_aux",
-              "binding_type": "collection"
-            },
-            {
-              "binding_condition": "always",
-              "binding_type": "view",
-              "source_property_name": "((#hover_text - 'textures/') = #hover_text)",
-              "target_property_name": "#visible"
-            }
-          ],
-          "property_bag": {
-            "#item_id_aux": 0
-          },
-          "renderer": "inventory_item_renderer",
-          "size": [
-            "100%",
-            "100%"
-          ],
-          "type": "custom"
-        }
-      }
-    ],
-    "layer": 2,
-    "size": [
-      16,
-      16
-    ],
-    "type": "panel"
-  },
-  "cell_lit": {
-    "controls": [
-      {
-        "f@sg_menu.cell_face": {}
-      },
-      {
-        "lit": {
-          "alpha": 0.3,
-          "layer": 4,
-          "size": [
-            16,
-            16
-          ],
-          "texture": "textures/ui/White",
-          "type": "image"
-        }
-      }
-    ],
-    "size": [
-      18,
-      18
-    ],
-    "type": "panel"
-  },
-  "cell_lit_mini": {
-    "controls": [
-      {
-        "f@sg_menu.cell_mini": {}
-      },
-      {
-        "lit": {
-          "alpha": 0.3,
-          "layer": 4,
-          "size": [
-            16,
-            16
-          ],
-          "texture": "textures/ui/White",
-          "type": "image"
-        }
-      }
-    ],
-    "size": [
-      18,
-      18
-    ],
-    "type": "panel"
-  },
-  "cell_mini": {
-    "controls": [
-      {
-        "i@sg_menu.cell_item": {
-          "size": [
-            12,
-            12
-          ]
-        }
-      }
-    ],
-    "size": [
-      18,
-      18
-    ],
-    "type": "panel"
+    "sound_name": "random.click",
+    "sound_pitch": 1,
+    "sound_volume": 1,
+    "type": "button"
   },
   "cell_row_130_11": {
     "bindings": [
@@ -5188,100 +3688,6 @@
     ],
     "type": "panel"
   },
-  "cell_view": {
-    "$tip_visible": true,
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_type": "collection_details"
-      }
-    ],
-    "button_mappings": [
-      {
-        "mapping_type": "pressed",
-        "to_button_id": "button.container_slot_hovered"
-      }
-    ],
-    "controls": [
-      {
-        "default": {
-          "controls": [
-            {
-              "f@sg_menu.cell_face": {}
-            }
-          ],
-          "size": [
-            18,
-            18
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "hover": {
-          "controls": [
-            {
-              "f@sg_menu.cell_face": {}
-            },
-            {
-              "tip": {
-                "$tip_visible|default": false,
-                "allow_clipping": false,
-                "layer": 30,
-                "renderer": "hover_text_renderer",
-                "type": "custom",
-                "visible": "$tip_visible"
-              }
-            }
-          ],
-          "size": [
-            18,
-            18
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "pressed": {
-          "controls": [
-            {
-              "f@sg_menu.cell_face": {}
-            },
-            {
-              "tip": {
-                "$tip_visible|default": false,
-                "allow_clipping": false,
-                "layer": 30,
-                "renderer": "hover_text_renderer",
-                "type": "custom",
-                "visible": "$tip_visible"
-              }
-            }
-          ],
-          "size": [
-            18,
-            18
-          ],
-          "type": "panel"
-        }
-      }
-    ],
-    "default_control": "default",
-    "default_focus_precedence": 1,
-    "focus_enabled": true,
-    "focus_magnet_enabled": true,
-    "focus_wrap_enabled": false,
-    "hover_control": "hover",
-    "pressed_control": "pressed",
-    "size": [
-      18,
-      18
-    ],
-    "sound_name": "random.click",
-    "sound_pitch": 1,
-    "sound_volume": 1,
-    "type": "button"
-  },
   "detail_big": {
     "controls": [
       {
@@ -5309,6 +3715,7 @@
               }
             }
           ],
+          "layer": 2,
           "orientation": "vertical",
           "size": [
             22,
@@ -5333,14 +3740,14 @@
           "bindings": [
             {
               "binding_collection_name": "container_items",
-              "binding_condition": "always",
+              "binding_condition": "visible",
               "binding_name": "#hover_text",
               "binding_type": "collection"
             },
             {
-              "binding_condition": "always",
+              "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -5372,13 +3779,14 @@
     "type": "panel"
   },
   "empty": {
+    "controls": [],
     "size": [
       0,
       0
     ],
     "type": "panel"
   },
-  "gate_bd": {
+  "gate_board": {
     "bindings": [
       {
         "binding_collection_name": "container_items",
@@ -5395,16 +3803,99 @@
     ],
     "controls": [
       {
-        "page@sg_menu.board_page": {}
+        "c0": {
+          "controls": [
+            {
+              "g": {
+                "anchor_from": "top_middle",
+                "anchor_to": "top_middle",
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "r0@sg_menu.cell_row_130_11": {
+                      "collection_index": 130
+                    }
+                  },
+                  {
+                    "r1@sg_menu.cell_row_141_11": {
+                      "collection_index": 141
+                    }
+                  },
+                  {
+                    "r2@sg_menu.cell_row_152_11": {
+                      "collection_index": 152
+                    }
+                  },
+                  {
+                    "r3@sg_menu.cell_row_163_11": {
+                      "collection_index": 163
+                    }
+                  },
+                  {
+                    "r4@sg_menu.cell_row_174_11": {
+                      "collection_index": 174
+                    }
+                  },
+                  {
+                    "r5@sg_menu.cell_row_185_11": {
+                      "collection_index": 185
+                    }
+                  },
+                  {
+                    "r6@sg_menu.cell_row_196_11": {
+                      "collection_index": 196
+                    }
+                  },
+                  {
+                    "r7@sg_menu.cell_row_207_11": {
+                      "collection_index": 207
+                    }
+                  },
+                  {
+                    "r8@sg_menu.cell_row_218_11": {
+                      "collection_index": 218
+                    }
+                  },
+                  {
+                    "r9@sg_menu.cell_row_229_11": {
+                      "collection_index": 229
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  198,
+                  "100%c"
+                ],
+                "type": "stack_panel"
+              }
+            }
+          ],
+          "size": [
+            "100%",
+            "100%c"
+          ],
+          "type": "panel"
+        }
+      },
+      {
+        "gap": {
+          "controls": [],
+          "size": [
+            "100%",
+            3
+          ],
+          "type": "panel"
+        }
       }
     ],
     "size": [
       "100%",
-      "100%"
+      "100%c"
     ],
     "type": "panel"
   },
-  "gate_cd": {
+  "gate_cards": {
     "bindings": [
       {
         "binding_collection_name": "container_items",
@@ -5421,16 +3912,471 @@
     ],
     "controls": [
       {
-        "page@sg_menu.cards_page": {}
+        "c0": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "controls": [
+            {
+              "r0": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "c0@sg_menu.card_cell": {
+                      "$icon_index": 34,
+                      "collection_index": 82
+                    }
+                  },
+                  {
+                    "c1@sg_menu.card_cell": {
+                      "$icon_index": 35,
+                      "collection_index": 83
+                    }
+                  },
+                  {
+                    "c2@sg_menu.card_cell": {
+                      "$icon_index": 36,
+                      "collection_index": 84
+                    }
+                  },
+                  {
+                    "c3@sg_menu.card_cell": {
+                      "$icon_index": 37,
+                      "collection_index": 85
+                    }
+                  }
+                ],
+                "orientation": "horizontal",
+                "size": [
+                  304,
+                  "100%cm"
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "r1": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "c0@sg_menu.card_cell": {
+                      "$icon_index": 38,
+                      "collection_index": 86
+                    }
+                  },
+                  {
+                    "c1@sg_menu.card_cell": {
+                      "$icon_index": 39,
+                      "collection_index": 87
+                    }
+                  },
+                  {
+                    "c2@sg_menu.card_cell": {
+                      "$icon_index": 40,
+                      "collection_index": 88
+                    }
+                  },
+                  {
+                    "c3@sg_menu.card_cell": {
+                      "$icon_index": 41,
+                      "collection_index": 89
+                    }
+                  }
+                ],
+                "orientation": "horizontal",
+                "size": [
+                  304,
+                  "100%cm"
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "r2": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "c0@sg_menu.card_cell": {
+                      "$icon_index": 42,
+                      "collection_index": 90
+                    }
+                  },
+                  {
+                    "c1@sg_menu.card_cell": {
+                      "$icon_index": 43,
+                      "collection_index": 91
+                    }
+                  },
+                  {
+                    "c2@sg_menu.card_cell": {
+                      "$icon_index": 44,
+                      "collection_index": 92
+                    }
+                  },
+                  {
+                    "c3@sg_menu.card_cell": {
+                      "$icon_index": 45,
+                      "collection_index": 93
+                    }
+                  }
+                ],
+                "orientation": "horizontal",
+                "size": [
+                  304,
+                  "100%cm"
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "r3": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "c0@sg_menu.card_cell": {
+                      "$icon_index": 46,
+                      "collection_index": 94
+                    }
+                  },
+                  {
+                    "c1@sg_menu.card_cell": {
+                      "$icon_index": 47,
+                      "collection_index": 95
+                    }
+                  },
+                  {
+                    "c2@sg_menu.card_cell": {
+                      "$icon_index": 48,
+                      "collection_index": 96
+                    }
+                  },
+                  {
+                    "c3@sg_menu.card_cell": {
+                      "$icon_index": 49,
+                      "collection_index": 97
+                    }
+                  }
+                ],
+                "orientation": "horizontal",
+                "size": [
+                  304,
+                  "100%cm"
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "r4": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "c0@sg_menu.card_cell": {
+                      "$icon_index": 50,
+                      "collection_index": 98
+                    }
+                  },
+                  {
+                    "c1@sg_menu.card_cell": {
+                      "$icon_index": 51,
+                      "collection_index": 99
+                    }
+                  },
+                  {
+                    "c2@sg_menu.card_cell": {
+                      "$icon_index": 52,
+                      "collection_index": 100
+                    }
+                  },
+                  {
+                    "c3@sg_menu.card_cell": {
+                      "$icon_index": 53,
+                      "collection_index": 101
+                    }
+                  }
+                ],
+                "orientation": "horizontal",
+                "size": [
+                  304,
+                  "100%cm"
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "r5": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "c0@sg_menu.card_cell": {
+                      "$icon_index": 54,
+                      "collection_index": 102
+                    }
+                  },
+                  {
+                    "c1@sg_menu.card_cell": {
+                      "$icon_index": 55,
+                      "collection_index": 103
+                    }
+                  },
+                  {
+                    "c2@sg_menu.card_cell": {
+                      "$icon_index": 56,
+                      "collection_index": 104
+                    }
+                  },
+                  {
+                    "c3@sg_menu.card_cell": {
+                      "$icon_index": 57,
+                      "collection_index": 105
+                    }
+                  }
+                ],
+                "orientation": "horizontal",
+                "size": [
+                  304,
+                  "100%cm"
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "r6": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "c0@sg_menu.card_cell": {
+                      "$icon_index": 58,
+                      "collection_index": 106
+                    }
+                  },
+                  {
+                    "c1@sg_menu.card_cell": {
+                      "$icon_index": 59,
+                      "collection_index": 107
+                    }
+                  },
+                  {
+                    "c2@sg_menu.card_cell": {
+                      "$icon_index": 60,
+                      "collection_index": 108
+                    }
+                  },
+                  {
+                    "c3@sg_menu.card_cell": {
+                      "$icon_index": 61,
+                      "collection_index": 109
+                    }
+                  }
+                ],
+                "orientation": "horizontal",
+                "size": [
+                  304,
+                  "100%cm"
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "r7": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "c0@sg_menu.card_cell": {
+                      "$icon_index": 62,
+                      "collection_index": 110
+                    }
+                  },
+                  {
+                    "c1@sg_menu.card_cell": {
+                      "$icon_index": 63,
+                      "collection_index": 111
+                    }
+                  },
+                  {
+                    "c2@sg_menu.card_cell": {
+                      "$icon_index": 64,
+                      "collection_index": 112
+                    }
+                  },
+                  {
+                    "c3@sg_menu.card_cell": {
+                      "$icon_index": 65,
+                      "collection_index": 113
+                    }
+                  }
+                ],
+                "orientation": "horizontal",
+                "size": [
+                  304,
+                  "100%cm"
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "r8": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "c0@sg_menu.card_cell": {
+                      "$icon_index": 66,
+                      "collection_index": 114
+                    }
+                  },
+                  {
+                    "c1@sg_menu.card_cell": {
+                      "$icon_index": 67,
+                      "collection_index": 115
+                    }
+                  },
+                  {
+                    "c2@sg_menu.card_cell": {
+                      "$icon_index": 68,
+                      "collection_index": 116
+                    }
+                  },
+                  {
+                    "c3@sg_menu.card_cell": {
+                      "$icon_index": 69,
+                      "collection_index": 117
+                    }
+                  }
+                ],
+                "orientation": "horizontal",
+                "size": [
+                  304,
+                  "100%cm"
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "r9": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "c0@sg_menu.card_cell": {
+                      "$icon_index": 70,
+                      "collection_index": 118
+                    }
+                  },
+                  {
+                    "c1@sg_menu.card_cell": {
+                      "$icon_index": 71,
+                      "collection_index": 119
+                    }
+                  },
+                  {
+                    "c2@sg_menu.card_cell": {
+                      "$icon_index": 72,
+                      "collection_index": 120
+                    }
+                  },
+                  {
+                    "c3@sg_menu.card_cell": {
+                      "$icon_index": 73,
+                      "collection_index": 121
+                    }
+                  }
+                ],
+                "orientation": "horizontal",
+                "size": [
+                  304,
+                  "100%cm"
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "r10": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "c0@sg_menu.card_cell": {
+                      "$icon_index": 74,
+                      "collection_index": 122
+                    }
+                  },
+                  {
+                    "c1@sg_menu.card_cell": {
+                      "$icon_index": 75,
+                      "collection_index": 123
+                    }
+                  },
+                  {
+                    "c2@sg_menu.card_cell": {
+                      "$icon_index": 76,
+                      "collection_index": 124
+                    }
+                  },
+                  {
+                    "c3@sg_menu.card_cell": {
+                      "$icon_index": 77,
+                      "collection_index": 125
+                    }
+                  }
+                ],
+                "orientation": "horizontal",
+                "size": [
+                  304,
+                  "100%cm"
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "r11": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "c0@sg_menu.card_cell": {
+                      "$icon_index": 78,
+                      "collection_index": 126
+                    }
+                  },
+                  {
+                    "c1@sg_menu.card_cell": {
+                      "$icon_index": 79,
+                      "collection_index": 127
+                    }
+                  },
+                  {
+                    "c2@sg_menu.card_cell": {
+                      "$icon_index": 80,
+                      "collection_index": 128
+                    }
+                  },
+                  {
+                    "c3@sg_menu.card_cell": {
+                      "$icon_index": 81,
+                      "collection_index": 129
+                    }
+                  }
+                ],
+                "orientation": "horizontal",
+                "size": [
+                  304,
+                  "100%cm"
+                ],
+                "type": "stack_panel"
+              }
+            }
+          ],
+          "orientation": "vertical",
+          "size": [
+            "100%",
+            "100%c"
+          ],
+          "type": "stack_panel"
+        }
       }
     ],
     "size": [
       "100%",
-      "100%"
+      "100%c"
     ],
     "type": "panel"
   },
-  "gate_gd": {
+  "gate_grid": {
     "bindings": [
       {
         "binding_collection_name": "container_items",
@@ -5447,153 +4393,7 @@
     ],
     "controls": [
       {
-        "page@sg_menu.grid_page": {}
-      }
-    ],
-    "size": [
-      "100%",
-      "100%"
-    ],
-    "type": "panel"
-  },
-  "gate_ls": {
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_condition": "always",
-        "binding_name": "#hover_text",
-        "binding_type": "collection"
-      },
-      {
-        "binding_condition": "always",
-        "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'ls') = #hover_text))",
-        "target_property_name": "#visible"
-      }
-    ],
-    "controls": [
-      {
-        "page@sg_menu.listsplit_page": {}
-      }
-    ],
-    "size": [
-      "100%",
-      "100%"
-    ],
-    "type": "panel"
-  },
-  "gate_mn": {
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_condition": "always",
-        "binding_name": "#hover_text",
-        "binding_type": "collection"
-      },
-      {
-        "binding_condition": "always",
-        "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'mn') = #hover_text))",
-        "target_property_name": "#visible"
-      }
-    ],
-    "controls": [
-      {
-        "page@sg_menu.menu_page": {}
-      }
-    ],
-    "size": [
-      "100%",
-      "100%"
-    ],
-    "type": "panel"
-  },
-  "gate_sp": {
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_condition": "always",
-        "binding_name": "#hover_text",
-        "binding_type": "collection"
-      },
-      {
-        "binding_condition": "always",
-        "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'sp') = #hover_text))",
-        "target_property_name": "#visible"
-      }
-    ],
-    "controls": [
-      {
-        "page@sg_menu.split_page": {}
-      }
-    ],
-    "size": [
-      "100%",
-      "100%"
-    ],
-    "type": "panel"
-  },
-  "grid_page@common.scrolling_panel": {
-    "$scroll_bar_right_padding_size": [
-      0,
-      0
-    ],
-    "$scroll_size": [
-      4,
-      "100%"
-    ],
-    "$scrolling_content": "sg_menu.grid_page_body",
-    "$scrolling_pane_offset": [
-      0,
-      0
-    ],
-    "$scrolling_pane_size": [
-      "100%",
-      "100%"
-    ],
-    "$show_background": false,
-    "anchor_from": "top_left",
-    "anchor_to": "top_left",
-    "size": [
-      "100%",
-      "100%"
-    ]
-  },
-  "grid_page_body": {
-    "anchor_from": "top_left",
-    "anchor_to": "top_left",
-    "controls": [
-      {
-        "body": {
-          "collection_name": "container_items",
-          "controls": [
-            {
-              "t@sg_menu.text_slot": {
-                "$text_scale": 1,
-                "collection_index": 2
-              }
-            }
-          ],
-          "orientation": "vertical",
-          "size": [
-            "100%",
-            "100%c"
-          ],
-          "type": "stack_panel"
-        }
-      },
-      {
-        "gap": {
-          "size": [
-            "100%",
-            3
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "grid": {
+        "c0": {
           "collection_name": "container_items",
           "controls": [
             {
@@ -5637,15 +4437,39 @@
       },
       {
         "gap": {
+          "controls": [],
           "size": [
             "100%",
             3
           ],
           "type": "panel"
         }
+      }
+    ],
+    "size": [
+      "100%",
+      "100%c"
+    ],
+    "type": "panel"
+  },
+  "gate_rows": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
       },
       {
-        "rows": {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not ((#hover_text - 'Q') = #hover_text))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "c0": {
           "collection_name": "container_items",
           "controls": [
             {
@@ -5946,12 +4770,11 @@
         }
       }
     ],
-    "orientation": "vertical",
     "size": [
-      "100% - 8px",
+      "100%",
       "100%c"
     ],
-    "type": "stack_panel"
+    "type": "panel"
   },
   "icon_slot": {
     "controls": [
@@ -5967,7 +4790,7 @@
             {
               "binding_condition": "always",
               "binding_type": "view",
-              "source_property_name": "((#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e') - '§r' - '§f')",
+              "source_property_name": "((#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k') - '§r' - '§f')",
               "target_property_name": "#texture"
             },
             {
@@ -6021,6 +4844,10 @@
         }
       }
     ],
+    "size": [
+      "100%",
+      "100%"
+    ],
     "type": "panel"
   },
   "info_slot": {
@@ -6032,14 +4859,14 @@
           "bindings": [
             {
               "binding_collection_name": "container_items",
-              "binding_condition": "always",
+              "binding_condition": "visible",
               "binding_name": "#hover_text",
               "binding_type": "collection"
             },
             {
-              "binding_condition": "always",
+              "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -6332,7 +5159,7 @@
     ],
     "controls": [
       {
-        "row": {
+        "b": {
           "bindings": [
             {
               "binding_collection_name": "container_items",
@@ -6347,24 +5174,110 @@
               "target_property_name": "#visible"
             }
           ],
+          "button_mappings": [
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_select",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_ok",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_slot_hovered"
+            }
+          ],
           "controls": [
             {
-              "b@sg_menu.row_button": {
-                "$button_content": "sg_menu.list_content",
-                "anchor_from": "top_left",
-                "anchor_to": "top_left"
+              "default": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/button",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "hover": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/button_hover",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "pressed": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/button_pressed",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
               }
             }
           ],
+          "default_control": "default",
+          "hover_control": "hover",
+          "layer": 1,
+          "pressed_control": "pressed",
           "size": [
             "100%",
-            32
+            30
           ],
-          "type": "panel"
+          "sound_name": "random.click",
+          "sound_pitch": 1,
+          "sound_volume": 1,
+          "type": "button"
         }
       },
       {
         "chosen": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
           "bindings": [
             {
               "binding_collection_name": "container_items",
@@ -6379,48 +5292,15 @@
               "target_property_name": "#visible"
             }
           ],
-          "controls": [
-            {
-              "bg": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "layer": 1,
-                "size": [
-                  "100%",
-                  30
-                ],
-                "texture": "textures/ui/sg/button_hover",
-                "type": "image"
-              }
-            },
-            {
-              "c@sg_menu.list_content": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "size": [
-                  "100%",
-                  30
-                ]
-              }
-            }
-          ],
+          "layer": 1,
           "size": [
             "100%",
-            32
+            30
           ],
-          "type": "panel"
+          "texture": "textures/ui/sg/button_hover",
+          "type": "image"
         }
-      }
-    ],
-    "orientation": "vertical",
-    "size": [
-      "100%",
-      "100%c"
-    ],
-    "type": "stack_panel"
-  },
-  "list_content": {
-    "controls": [
+      },
       {
         "i": {
           "anchor_from": "left_middle",
@@ -6449,9 +5329,10 @@
               }
             }
           ],
+          "layer": 3,
           "offset": [
             5,
-            0
+            -1
           ],
           "size": [
             20,
@@ -6467,14 +5348,14 @@
           "bindings": [
             {
               "binding_collection_name": "container_items",
-              "binding_condition": "always",
+              "binding_condition": "visible",
               "binding_name": "#hover_text",
               "binding_type": "collection"
             },
             {
-              "binding_condition": "always",
+              "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -6484,7 +5365,7 @@
             0.97
           ],
           "font_scale_factor": 1,
-          "layer": 3,
+          "layer": 4,
           "localize": false,
           "offset": [
             27,
@@ -6510,7 +5391,7 @@
               }
             }
           ],
-          "layer": 3,
+          "layer": 4,
           "offset": [
             27,
             16
@@ -6526,9 +5407,148 @@
     ],
     "size": [
       "100%",
-      "100%"
+      32
     ],
     "type": "panel"
+  },
+  "list_page@common.scrolling_panel": {
+    "$scroll_bar_right_padding_size": [
+      0,
+      0
+    ],
+    "$scroll_size": [
+      4,
+      "100%"
+    ],
+    "$scrolling_content": "sg_menu.list_page_body",
+    "$scrolling_pane_offset": [
+      0,
+      0
+    ],
+    "$scrolling_pane_size": [
+      "100%",
+      "100%"
+    ],
+    "$show_background": false,
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "size": [
+      "100%",
+      "100%"
+    ]
+  },
+  "list_page_body": {
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "controls": [
+      {
+        "body": {
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "t@sg_menu.text_slot": {
+                "$text_scale": 1,
+                "collection_index": 2
+              }
+            }
+          ],
+          "orientation": "vertical",
+          "size": [
+            "100%",
+            "100%c"
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "gap": {
+          "controls": [],
+          "size": [
+            "100%",
+            6
+          ],
+          "type": "panel"
+        }
+      },
+      {
+        "cards": {
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "g@sg_menu.gate_cards": {
+                "collection_index": 0
+              }
+            }
+          ],
+          "orientation": "vertical",
+          "size": [
+            "100%",
+            "100%c"
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "grid": {
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "g@sg_menu.gate_grid": {
+                "collection_index": 0
+              }
+            }
+          ],
+          "orientation": "vertical",
+          "size": [
+            "100%",
+            "100%c"
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "board": {
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "g@sg_menu.gate_board": {
+                "collection_index": 0
+              }
+            }
+          ],
+          "orientation": "vertical",
+          "size": [
+            "100%",
+            "100%c"
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "rows": {
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "g@sg_menu.gate_rows": {
+                "collection_index": 0
+              }
+            }
+          ],
+          "orientation": "vertical",
+          "size": [
+            "100%",
+            "100%c"
+          ],
+          "type": "stack_panel"
+        }
+      }
+    ],
+    "orientation": "vertical",
+    "size": [
+      "100% - 8px",
+      "100%c"
+    ],
+    "type": "stack_panel"
   },
   "list_right_body": {
     "anchor_from": "top_left",
@@ -6555,6 +5575,7 @@
       },
       {
         "gap": {
+          "controls": [],
           "size": [
             "100%",
             6
@@ -6745,7 +5766,6 @@
                     "s@sg_menu.list_scroll": {}
                   }
                 ],
-                "layer": 2,
                 "size": [
                   148,
                   134
@@ -6786,576 +5806,97 @@
     ],
     "type": "panel"
   },
-  "menu_page@common.scrolling_panel": {
-    "$scroll_bar_right_padding_size": [
-      0,
-      0
-    ],
-    "$scroll_size": [
-      4,
-      "100%"
-    ],
-    "$scrolling_content": "sg_menu.menu_page_body",
-    "$scrolling_pane_offset": [
-      0,
-      0
-    ],
-    "$scrolling_pane_size": [
-      "100%",
-      "100%"
-    ],
-    "$show_background": false,
-    "anchor_from": "top_left",
-    "anchor_to": "top_left",
-    "size": [
-      "100%",
-      "100%"
-    ]
-  },
-  "menu_page_body": {
-    "anchor_from": "top_left",
-    "anchor_to": "top_left",
+  "mini_face": {
     "controls": [
       {
-        "body": {
-          "collection_name": "container_items",
+        "icon": {
           "controls": [
             {
-              "t@sg_menu.text_slot": {
-                "$text_scale": 1,
-                "collection_index": 2
+              "image": {
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "always",
+                    "binding_name": "#hover_text",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_condition": "always",
+                    "binding_type": "view",
+                    "source_property_name": "((#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k') - '§r' - '§f')",
+                    "target_property_name": "#texture"
+                  },
+                  {
+                    "binding_condition": "always",
+                    "binding_type": "view",
+                    "source_property_name": "(not ((#hover_text - 'textures/') = #hover_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "layer": 2,
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "texture": "#texture",
+                "type": "image"
+              }
+            },
+            {
+              "item": {
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "always",
+                    "binding_name": "#hover_text",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "always",
+                    "binding_name": "#item_id_aux",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_condition": "always",
+                    "binding_type": "view",
+                    "source_property_name": "((#hover_text - 'textures/') = #hover_text)",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "layer": 2,
+                "property_bag": {
+                  "#item_id_aux": 0
+                },
+                "renderer": "inventory_item_renderer",
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "custom"
               }
             }
           ],
-          "orientation": "vertical",
+          "layer": 2,
           "size": [
-            "100%",
-            "100%c"
-          ],
-          "type": "stack_panel"
-        }
-      },
-      {
-        "gap": {
-          "size": [
-            "100%",
-            6
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "rows": {
-          "collection_name": "container_items",
-          "controls": [
-            {
-              "r0@sg_menu.row_cell": {
-                "$icon_index": 34,
-                "collection_index": 82
-              }
-            },
-            {
-              "r1@sg_menu.row_cell": {
-                "$icon_index": 35,
-                "collection_index": 83
-              }
-            },
-            {
-              "r2@sg_menu.row_cell": {
-                "$icon_index": 36,
-                "collection_index": 84
-              }
-            },
-            {
-              "r3@sg_menu.row_cell": {
-                "$icon_index": 37,
-                "collection_index": 85
-              }
-            },
-            {
-              "r4@sg_menu.row_cell": {
-                "$icon_index": 38,
-                "collection_index": 86
-              }
-            },
-            {
-              "r5@sg_menu.row_cell": {
-                "$icon_index": 39,
-                "collection_index": 87
-              }
-            },
-            {
-              "r6@sg_menu.row_cell": {
-                "$icon_index": 40,
-                "collection_index": 88
-              }
-            },
-            {
-              "r7@sg_menu.row_cell": {
-                "$icon_index": 41,
-                "collection_index": 89
-              }
-            },
-            {
-              "r8@sg_menu.row_cell": {
-                "$icon_index": 42,
-                "collection_index": 90
-              }
-            },
-            {
-              "r9@sg_menu.row_cell": {
-                "$icon_index": 43,
-                "collection_index": 91
-              }
-            },
-            {
-              "r10@sg_menu.row_cell": {
-                "$icon_index": 44,
-                "collection_index": 92
-              }
-            },
-            {
-              "r11@sg_menu.row_cell": {
-                "$icon_index": 45,
-                "collection_index": 93
-              }
-            },
-            {
-              "r12@sg_menu.row_cell": {
-                "$icon_index": 46,
-                "collection_index": 94
-              }
-            },
-            {
-              "r13@sg_menu.row_cell": {
-                "$icon_index": 47,
-                "collection_index": 95
-              }
-            },
-            {
-              "r14@sg_menu.row_cell": {
-                "$icon_index": 48,
-                "collection_index": 96
-              }
-            },
-            {
-              "r15@sg_menu.row_cell": {
-                "$icon_index": 49,
-                "collection_index": 97
-              }
-            },
-            {
-              "r16@sg_menu.row_cell": {
-                "$icon_index": 50,
-                "collection_index": 98
-              }
-            },
-            {
-              "r17@sg_menu.row_cell": {
-                "$icon_index": 51,
-                "collection_index": 99
-              }
-            },
-            {
-              "r18@sg_menu.row_cell": {
-                "$icon_index": 52,
-                "collection_index": 100
-              }
-            },
-            {
-              "r19@sg_menu.row_cell": {
-                "$icon_index": 53,
-                "collection_index": 101
-              }
-            },
-            {
-              "r20@sg_menu.row_cell": {
-                "$icon_index": 54,
-                "collection_index": 102
-              }
-            },
-            {
-              "r21@sg_menu.row_cell": {
-                "$icon_index": 55,
-                "collection_index": 103
-              }
-            },
-            {
-              "r22@sg_menu.row_cell": {
-                "$icon_index": 56,
-                "collection_index": 104
-              }
-            },
-            {
-              "r23@sg_menu.row_cell": {
-                "$icon_index": 57,
-                "collection_index": 105
-              }
-            },
-            {
-              "r24@sg_menu.row_cell": {
-                "$icon_index": 58,
-                "collection_index": 106
-              }
-            },
-            {
-              "r25@sg_menu.row_cell": {
-                "$icon_index": 59,
-                "collection_index": 107
-              }
-            },
-            {
-              "r26@sg_menu.row_cell": {
-                "$icon_index": 60,
-                "collection_index": 108
-              }
-            },
-            {
-              "r27@sg_menu.row_cell": {
-                "$icon_index": 61,
-                "collection_index": 109
-              }
-            },
-            {
-              "r28@sg_menu.row_cell": {
-                "$icon_index": 62,
-                "collection_index": 110
-              }
-            },
-            {
-              "r29@sg_menu.row_cell": {
-                "$icon_index": 63,
-                "collection_index": 111
-              }
-            },
-            {
-              "r30@sg_menu.row_cell": {
-                "$icon_index": 64,
-                "collection_index": 112
-              }
-            },
-            {
-              "r31@sg_menu.row_cell": {
-                "$icon_index": 65,
-                "collection_index": 113
-              }
-            },
-            {
-              "r32@sg_menu.row_cell": {
-                "$icon_index": 66,
-                "collection_index": 114
-              }
-            },
-            {
-              "r33@sg_menu.row_cell": {
-                "$icon_index": 67,
-                "collection_index": 115
-              }
-            },
-            {
-              "r34@sg_menu.row_cell": {
-                "$icon_index": 68,
-                "collection_index": 116
-              }
-            },
-            {
-              "r35@sg_menu.row_cell": {
-                "$icon_index": 69,
-                "collection_index": 117
-              }
-            },
-            {
-              "r36@sg_menu.row_cell": {
-                "$icon_index": 70,
-                "collection_index": 118
-              }
-            },
-            {
-              "r37@sg_menu.row_cell": {
-                "$icon_index": 71,
-                "collection_index": 119
-              }
-            },
-            {
-              "r38@sg_menu.row_cell": {
-                "$icon_index": 72,
-                "collection_index": 120
-              }
-            },
-            {
-              "r39@sg_menu.row_cell": {
-                "$icon_index": 73,
-                "collection_index": 121
-              }
-            },
-            {
-              "r40@sg_menu.row_cell": {
-                "$icon_index": 74,
-                "collection_index": 122
-              }
-            },
-            {
-              "r41@sg_menu.row_cell": {
-                "$icon_index": 75,
-                "collection_index": 123
-              }
-            },
-            {
-              "r42@sg_menu.row_cell": {
-                "$icon_index": 76,
-                "collection_index": 124
-              }
-            },
-            {
-              "r43@sg_menu.row_cell": {
-                "$icon_index": 77,
-                "collection_index": 125
-              }
-            },
-            {
-              "r44@sg_menu.row_cell": {
-                "$icon_index": 78,
-                "collection_index": 126
-              }
-            },
-            {
-              "r45@sg_menu.row_cell": {
-                "$icon_index": 79,
-                "collection_index": 127
-              }
-            },
-            {
-              "r46@sg_menu.row_cell": {
-                "$icon_index": 80,
-                "collection_index": 128
-              }
-            },
-            {
-              "r47@sg_menu.row_cell": {
-                "$icon_index": 81,
-                "collection_index": 129
-              }
-            }
-          ],
-          "orientation": "vertical",
-          "size": [
-            "100%",
-            "100%c"
-          ],
-          "type": "stack_panel"
-        }
-      }
-    ],
-    "orientation": "vertical",
-    "size": [
-      "100% - 8px",
-      "100%c"
-    ],
-    "type": "stack_panel"
-  },
-  "mini_button": {
-    "$tip_visible": true,
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_type": "collection_details"
-      }
-    ],
-    "button_mappings": [
-      {
-        "from_button_id": "button.menu_select",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "from_button_id": "button.menu_ok",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "from_button_id": "button.menu_secondary_select",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "from_button_id": "button.menu_auto_place",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "mapping_type": "pressed",
-        "to_button_id": "button.container_slot_hovered"
-      }
-    ],
-    "controls": [
-      {
-        "default": {
-          "controls": [
-            {
-              "f@sg_menu.cell_mini": {}
-            }
-          ],
-          "size": [
-            18,
-            18
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "hover": {
-          "controls": [
-            {
-              "f@sg_menu.cell_lit_mini": {}
-            },
-            {
-              "tip": {
-                "$tip_visible|default": false,
-                "allow_clipping": false,
-                "layer": 30,
-                "renderer": "hover_text_renderer",
-                "type": "custom",
-                "visible": "$tip_visible"
-              }
-            }
-          ],
-          "size": [
-            18,
-            18
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "pressed": {
-          "controls": [
-            {
-              "f@sg_menu.cell_lit_mini": {}
-            }
-          ],
-          "size": [
-            18,
-            18
+            12,
+            12
           ],
           "type": "panel"
         }
       }
     ],
-    "default_control": "default",
-    "default_focus_precedence": 1,
-    "focus_enabled": true,
-    "focus_magnet_enabled": true,
-    "focus_wrap_enabled": false,
-    "hover_control": "hover",
-    "pressed_control": "pressed",
     "size": [
       18,
       18
     ],
-    "sound_name": "random.click",
-    "sound_pitch": 1,
-    "sound_volume": 1,
-    "type": "button"
-  },
-  "mini_view": {
-    "$tip_visible": true,
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_type": "collection_details"
-      }
-    ],
-    "button_mappings": [
-      {
-        "mapping_type": "pressed",
-        "to_button_id": "button.container_slot_hovered"
-      }
-    ],
-    "controls": [
-      {
-        "default": {
-          "controls": [
-            {
-              "f@sg_menu.cell_mini": {}
-            }
-          ],
-          "size": [
-            18,
-            18
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "hover": {
-          "controls": [
-            {
-              "f@sg_menu.cell_mini": {}
-            },
-            {
-              "tip": {
-                "$tip_visible|default": false,
-                "allow_clipping": false,
-                "layer": 30,
-                "renderer": "hover_text_renderer",
-                "type": "custom",
-                "visible": "$tip_visible"
-              }
-            }
-          ],
-          "size": [
-            18,
-            18
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "pressed": {
-          "controls": [
-            {
-              "f@sg_menu.cell_mini": {}
-            },
-            {
-              "tip": {
-                "$tip_visible|default": false,
-                "allow_clipping": false,
-                "layer": 30,
-                "renderer": "hover_text_renderer",
-                "type": "custom",
-                "visible": "$tip_visible"
-              }
-            }
-          ],
-          "size": [
-            18,
-            18
-          ],
-          "type": "panel"
-        }
-      }
-    ],
-    "default_control": "default",
-    "default_focus_precedence": 1,
-    "focus_enabled": true,
-    "focus_magnet_enabled": true,
-    "focus_wrap_enabled": false,
-    "hover_control": "hover",
-    "pressed_control": "pressed",
-    "size": [
-      18,
-      18
-    ],
-    "sound_name": "random.click",
-    "sound_pitch": 1,
-    "sound_volume": 1,
-    "type": "button"
+    "type": "panel"
   },
   "namespace": "sg_menu",
   "next_cell": {
     "controls": [
       {
-        "on": {
+        "b": {
           "bindings": [
             {
               "binding_collection_name": "container_items",
@@ -7370,26 +5911,109 @@
               "target_property_name": "#visible"
             }
           ],
+          "button_mappings": [
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_select",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_ok",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_slot_hovered"
+            }
+          ],
           "controls": [
             {
-              "b@sg_menu.row_button": {
-                "$button_content": "sg_menu.pager_right",
+              "default": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/button",
+                      "type": "image"
+                    }
+                  }
+                ],
                 "size": [
-                  18,
-                  18
-                ]
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "hover": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/button_hover",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "pressed": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/button_pressed",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
               }
             }
           ],
+          "default_control": "default",
+          "hover_control": "hover",
+          "layer": 1,
+          "pressed_control": "pressed",
           "size": [
             18,
             18
           ],
-          "type": "panel"
+          "sound_name": "random.click",
+          "sound_pitch": 1,
+          "sound_volume": 1,
+          "type": "button"
         }
       },
       {
         "off": {
+          "alpha": 0.4,
           "bindings": [
             {
               "binding_collection_name": "container_items",
@@ -7404,37 +6028,24 @@
               "target_property_name": "#visible"
             }
           ],
-          "controls": [
-            {
-              "bg": {
-                "alpha": 0.4,
-                "layer": 1,
-                "size": [
-                  18,
-                  18
-                ],
-                "texture": "textures/ui/sg/button",
-                "type": "image"
-              }
-            },
-            {
-              "a": {
-                "alpha": 0.4,
-                "layer": 2,
-                "size": [
-                  12,
-                  12
-                ],
-                "texture": "textures/ui/sg/arrow_right",
-                "type": "image"
-              }
-            }
-          ],
+          "layer": 1,
           "size": [
             18,
             18
           ],
-          "type": "panel"
+          "texture": "textures/ui/sg/button",
+          "type": "image"
+        }
+      },
+      {
+        "a": {
+          "layer": 3,
+          "size": [
+            12,
+            12
+          ],
+          "texture": "textures/ui/sg/arrow_right",
+          "type": "image"
         }
       }
     ],
@@ -7451,9 +6062,9 @@
         "host": {
           "controls": [
             {
-              "sg_menu_hide_vanilla": {
+              "entity_ui_hide_vanilla": {
                 "property_bag": {
-                  "#sg_menu_vanilla_visible": false
+                  "#entity_ui_vanilla_visible": false
                 },
                 "size": [
                   0,
@@ -7481,6 +6092,7 @@
                     "window@sg_menu.window": {}
                   }
                 ],
+                "layer": 1,
                 "modal": true,
                 "size": [
                   "100%",
@@ -7499,25 +6111,31 @@
         }
       }
     ],
-    "layer": 50,
+    "layer": 1,
     "size": [
       "100%",
       "100%"
     ],
     "type": "panel"
   },
-  "pager_left": {
+  "page_list": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not ((#hover_text - 'L') = #hover_text))",
+        "target_property_name": "#visible"
+      }
+    ],
     "controls": [
       {
-        "a": {
-          "layer": 2,
-          "size": [
-            12,
-            12
-          ],
-          "texture": "textures/ui/sg/arrow_left",
-          "type": "image"
-        }
+        "page@sg_menu.list_page": {}
       }
     ],
     "size": [
@@ -7526,18 +6144,50 @@
     ],
     "type": "panel"
   },
-  "pager_right": {
+  "page_listsplit": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not ((#hover_text - 'ls') = #hover_text))",
+        "target_property_name": "#visible"
+      }
+    ],
     "controls": [
       {
-        "a": {
-          "layer": 2,
-          "size": [
-            12,
-            12
-          ],
-          "texture": "textures/ui/sg/arrow_right",
-          "type": "image"
-        }
+        "page@sg_menu.listsplit_page": {}
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "page_split": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not ((#hover_text - 'sp') = #hover_text))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "page@sg_menu.split_page": {}
       }
     ],
     "size": [
@@ -7549,7 +6199,7 @@
   "prev_cell": {
     "controls": [
       {
-        "on": {
+        "b": {
           "bindings": [
             {
               "binding_collection_name": "container_items",
@@ -7564,26 +6214,109 @@
               "target_property_name": "#visible"
             }
           ],
+          "button_mappings": [
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_select",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_ok",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_slot_hovered"
+            }
+          ],
           "controls": [
             {
-              "b@sg_menu.row_button": {
-                "$button_content": "sg_menu.pager_left",
+              "default": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/button",
+                      "type": "image"
+                    }
+                  }
+                ],
                 "size": [
-                  18,
-                  18
-                ]
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "hover": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/button_hover",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "pressed": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/button_pressed",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
               }
             }
           ],
+          "default_control": "default",
+          "hover_control": "hover",
+          "layer": 1,
+          "pressed_control": "pressed",
           "size": [
             18,
             18
           ],
-          "type": "panel"
+          "sound_name": "random.click",
+          "sound_pitch": 1,
+          "sound_volume": 1,
+          "type": "button"
         }
       },
       {
         "off": {
+          "alpha": 0.4,
           "bindings": [
             {
               "binding_collection_name": "container_items",
@@ -7598,37 +6331,24 @@
               "target_property_name": "#visible"
             }
           ],
-          "controls": [
-            {
-              "bg": {
-                "alpha": 0.4,
-                "layer": 1,
-                "size": [
-                  18,
-                  18
-                ],
-                "texture": "textures/ui/sg/button",
-                "type": "image"
-              }
-            },
-            {
-              "a": {
-                "alpha": 0.4,
-                "layer": 2,
-                "size": [
-                  12,
-                  12
-                ],
-                "texture": "textures/ui/sg/arrow_left",
-                "type": "image"
-              }
-            }
-          ],
+          "layer": 1,
           "size": [
             18,
             18
           ],
-          "type": "panel"
+          "texture": "textures/ui/sg/button",
+          "type": "image"
+        }
+      },
+      {
+        "a": {
+          "layer": 3,
+          "size": [
+            12,
+            12
+          ],
+          "texture": "textures/ui/sg/arrow_left",
+          "type": "image"
         }
       }
     ],
@@ -7637,142 +6357,6 @@
       18
     ],
     "type": "panel"
-  },
-  "row_button": {
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_type": "collection_details"
-      }
-    ],
-    "button_mappings": [
-      {
-        "from_button_id": "button.menu_select",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "from_button_id": "button.menu_ok",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "from_button_id": "button.menu_secondary_select",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "from_button_id": "button.menu_auto_place",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "mapping_type": "pressed",
-        "to_button_id": "button.container_slot_hovered"
-      }
-    ],
-    "controls": [
-      {
-        "default": {
-          "controls": [
-            {
-              "bg": {
-                "layer": 1,
-                "size": [
-                  "100%",
-                  "100%"
-                ],
-                "texture": "textures/ui/sg/button",
-                "type": "image"
-              }
-            },
-            {
-              "content@$button_content": {}
-            }
-          ],
-          "size": [
-            "100%",
-            "100%"
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "hover": {
-          "controls": [
-            {
-              "bg": {
-                "layer": 1,
-                "size": [
-                  "100%",
-                  "100%"
-                ],
-                "texture": "textures/ui/sg/button_hover",
-                "type": "image"
-              }
-            },
-            {
-              "content@$button_content": {}
-            },
-            {
-              "tip": {
-                "$tip_visible|default": false,
-                "allow_clipping": false,
-                "layer": 30,
-                "renderer": "hover_text_renderer",
-                "type": "custom",
-                "visible": "$tip_visible"
-              }
-            }
-          ],
-          "size": [
-            "100%",
-            "100%"
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "pressed": {
-          "controls": [
-            {
-              "bg": {
-                "layer": 1,
-                "size": [
-                  "100%",
-                  "100%"
-                ],
-                "texture": "textures/ui/sg/button_pressed",
-                "type": "image"
-              }
-            },
-            {
-              "content@$button_content": {}
-            }
-          ],
-          "size": [
-            "100%",
-            "100%"
-          ],
-          "type": "panel"
-        }
-      }
-    ],
-    "default_control": "default",
-    "default_focus_precedence": 1,
-    "focus_enabled": true,
-    "focus_magnet_enabled": true,
-    "focus_wrap_enabled": false,
-    "hover_control": "hover",
-    "pressed_control": "pressed",
-    "size": [
-      "100%",
-      30
-    ],
-    "sound_name": "random.click",
-    "sound_pitch": 1,
-    "sound_volume": 1,
-    "type": "button"
   },
   "row_cell": {
     "bindings": [
@@ -7802,49 +6386,146 @@
             {
               "binding_condition": "always",
               "binding_type": "view",
-              "source_property_name": "(not ((#hover_text - '§z§a') = #hover_text))",
+              "source_property_name": "(not ((#hover_text - '§z§g') = #hover_text))",
               "target_property_name": "#visible"
             }
           ],
           "controls": [
             {
-              "b@sg_menu.row_button": {
-                "$button_content": "sg_menu.row_content",
-                "anchor_from": "top_left",
-                "anchor_to": "top_left"
-              }
-            }
-          ],
-          "size": [
-            "100%",
-            32
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "static": {
-          "bindings": [
-            {
-              "binding_collection_name": "container_items",
-              "binding_condition": "always",
-              "binding_name": "#hover_text",
-              "binding_type": "collection"
-            },
-            {
-              "binding_condition": "always",
-              "binding_type": "view",
-              "source_property_name": "(not ((#hover_text - '§z§s') = #hover_text))",
-              "target_property_name": "#visible"
-            }
-          ],
-          "controls": [
-            {
-              "bg": {
-                "alpha": 0.6,
+              "b": {
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_type": "collection_details"
+                  }
+                ],
+                "button_mappings": [
+                  {
+                    "consume_event": false,
+                    "from_button_id": "button.menu_select",
+                    "mapping_type": "pressed",
+                    "to_button_id": "button.container_auto_place"
+                  },
+                  {
+                    "consume_event": false,
+                    "from_button_id": "button.menu_ok",
+                    "mapping_type": "pressed",
+                    "to_button_id": "button.container_auto_place"
+                  },
+                  {
+                    "mapping_type": "pressed",
+                    "to_button_id": "button.container_slot_hovered"
+                  }
+                ],
+                "controls": [
+                  {
+                    "default": {
+                      "controls": [
+                        {
+                          "bg": {
+                            "layer": 1,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "texture": "textures/ui/sg/button",
+                            "type": "image"
+                          }
+                        }
+                      ],
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "panel"
+                    }
+                  },
+                  {
+                    "hover": {
+                      "controls": [
+                        {
+                          "bg": {
+                            "layer": 1,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "texture": "textures/ui/sg/button_hover",
+                            "type": "image"
+                          }
+                        }
+                      ],
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "panel"
+                    }
+                  },
+                  {
+                    "pressed": {
+                      "controls": [
+                        {
+                          "bg": {
+                            "layer": 1,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "texture": "textures/ui/sg/button_pressed",
+                            "type": "image"
+                          }
+                        }
+                      ],
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "panel"
+                    }
+                  }
+                ],
+                "default_control": "default",
+                "hover_control": "hover",
                 "layer": 1,
+                "pressed_control": "pressed",
+                "size": [
+                  "100%",
+                  30
+                ],
+                "sound_name": "random.click",
+                "sound_pitch": 1,
+                "sound_volume": 1,
+                "type": "button"
+              }
+            },
+            {
+              "dim": {
+                "alpha": 0.4,
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "always",
+                    "binding_name": "#hover_text",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_condition": "always",
+                    "binding_type": "view",
+                    "source_property_name": "(not ((#hover_text - '§z§s') = #hover_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "color": [
+                  0.6,
+                  0.6,
+                  0.6
+                ],
+                "layer": 2,
                 "size": [
                   "100%",
                   30
@@ -7854,77 +6535,143 @@
               }
             },
             {
-              "c@sg_menu.row_content": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
+              "i": {
+                "anchor_from": "left_middle",
+                "anchor_to": "left_middle",
+                "controls": [
+                  {
+                    "i": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "i@sg_menu.icon_slot": {
+                            "collection_index": "$icon_index",
+                            "size": [
+                              20,
+                              20
+                            ]
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        20,
+                        20
+                      ],
+                      "type": "stack_panel"
+                    }
+                  }
+                ],
+                "layer": 3,
+                "offset": [
+                  5,
+                  -1
+                ],
                 "size": [
-                  "100%",
-                  30
-                ]
+                  20,
+                  20
+                ],
+                "type": "panel"
               }
-            }
-          ],
-          "size": [
-            "100%",
-            32
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "off": {
-          "bindings": [
-            {
-              "binding_collection_name": "container_items",
-              "binding_condition": "always",
-              "binding_name": "#hover_text",
-              "binding_type": "collection"
             },
             {
-              "binding_condition": "always",
-              "binding_type": "view",
-              "source_property_name": "(not ((#hover_text - '§z§o') = #hover_text))",
-              "target_property_name": "#visible"
-            }
-          ],
-          "controls": [
-            {
-              "b@sg_menu.row_button": {
-                "$button_content": "sg_menu.toggle_off_content",
-                "anchor_from": "top_left",
-                "anchor_to": "top_left"
+              "l": {
+                "anchor_from": "left_middle",
+                "anchor_to": "left_middle",
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "visible",
+                    "binding_name": "#hover_text",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_condition": "visible",
+                    "binding_type": "view",
+                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+                    "target_property_name": "#text"
+                  }
+                ],
+                "color": [
+                  0.95,
+                  0.95,
+                  0.97
+                ],
+                "font_scale_factor": 1,
+                "layer": 4,
+                "localize": false,
+                "offset": [
+                  29,
+                  -1
+                ],
+                "size": [
+                  "100% - 34px",
+                  "default"
+                ],
+                "text": "#text",
+                "type": "label"
               }
-            }
-          ],
-          "size": [
-            "100%",
-            32
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "on": {
-          "bindings": [
-            {
-              "binding_collection_name": "container_items",
-              "binding_condition": "always",
-              "binding_name": "#hover_text",
-              "binding_type": "collection"
             },
             {
-              "binding_condition": "always",
-              "binding_type": "view",
-              "source_property_name": "(not ((#hover_text - '§z§x') = #hover_text))",
-              "target_property_name": "#visible"
-            }
-          ],
-          "controls": [
+              "on": {
+                "anchor_from": "right_middle",
+                "anchor_to": "right_middle",
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "always",
+                    "binding_name": "#hover_text",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_condition": "always",
+                    "binding_type": "view",
+                    "source_property_name": "(not ((#hover_text - '§z§x') = #hover_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "layer": 3,
+                "offset": [
+                  -3,
+                  0
+                ],
+                "size": [
+                  30,
+                  16
+                ],
+                "texture": "textures/ui/toggle_on",
+                "type": "image"
+              }
+            },
             {
-              "b@sg_menu.row_button": {
-                "$button_content": "sg_menu.toggle_on_content",
-                "anchor_from": "top_left",
-                "anchor_to": "top_left"
+              "off": {
+                "anchor_from": "right_middle",
+                "anchor_to": "right_middle",
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "always",
+                    "binding_name": "#hover_text",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_condition": "always",
+                    "binding_type": "view",
+                    "source_property_name": "(not ((#hover_text - '§z§o') = #hover_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "layer": 3,
+                "offset": [
+                  -3,
+                  0
+                ],
+                "size": [
+                  30,
+                  16
+                ],
+                "texture": "textures/ui/toggle_off",
+                "type": "image"
               }
             }
           ],
@@ -7959,14 +6706,14 @@
                 "bindings": [
                   {
                     "binding_collection_name": "container_items",
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_name": "#hover_text",
                     "binding_type": "collection"
                   },
                   {
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e')",
+                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
                     "target_property_name": "#text"
                   }
                 ],
@@ -8047,51 +6794,133 @@
     ],
     "type": "stack_panel"
   },
-  "row_content": {
+  "slot_face": {
     "controls": [
       {
-        "i": {
-          "anchor_from": "left_middle",
-          "anchor_to": "left_middle",
+        "frame": {
+          "layer": 1,
+          "size": [
+            18,
+            18
+          ],
+          "texture": "textures/ui/cell_image",
+          "type": "image"
+        }
+      },
+      {
+        "icon": {
           "controls": [
             {
-              "i": {
-                "collection_name": "container_items",
-                "controls": [
+              "image": {
+                "bindings": [
                   {
-                    "i@sg_menu.icon_slot": {
-                      "collection_index": "$icon_index",
-                      "size": [
-                        20,
-                        20
-                      ]
-                    }
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "always",
+                    "binding_name": "#hover_text",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_condition": "always",
+                    "binding_type": "view",
+                    "source_property_name": "((#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k') - '§r' - '§f')",
+                    "target_property_name": "#texture"
+                  },
+                  {
+                    "binding_condition": "always",
+                    "binding_type": "view",
+                    "source_property_name": "(not ((#hover_text - 'textures/') = #hover_text))",
+                    "target_property_name": "#visible"
                   }
                 ],
-                "orientation": "vertical",
+                "layer": 2,
                 "size": [
-                  20,
-                  20
+                  "100%",
+                  "100%"
                 ],
-                "type": "stack_panel"
+                "texture": "#texture",
+                "type": "image"
+              }
+            },
+            {
+              "item": {
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "always",
+                    "binding_name": "#hover_text",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "always",
+                    "binding_name": "#item_id_aux",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_condition": "always",
+                    "binding_type": "view",
+                    "source_property_name": "((#hover_text - 'textures/') = #hover_text)",
+                    "target_property_name": "#visible"
+                  }
+                ],
+                "layer": 2,
+                "property_bag": {
+                  "#item_id_aux": 0
+                },
+                "renderer": "inventory_item_renderer",
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "custom"
               }
             }
           ],
-          "offset": [
-            5,
-            0
-          ],
+          "layer": 2,
           "size": [
-            20,
-            20
+            16,
+            16
           ],
           "type": "panel"
         }
       },
       {
-        "l": {
-          "anchor_from": "left_middle",
-          "anchor_to": "left_middle",
+        "count": {
+          "anchor_from": "bottom_right",
+          "anchor_to": "bottom_right",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#inventory_stack_count",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "('§r' + #inventory_stack_count)",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            1,
+            1,
+            1
+          ],
+          "font_scale_factor": 0.86,
+          "layer": 5,
+          "localize": false,
+          "offset": [
+            0,
+            1
+          ],
+          "shadow": true,
+          "text": "#text",
+          "type": "label"
+        }
+      },
+      {
+        "chosen": {
           "bindings": [
             {
               "binding_collection_name": "container_items",
@@ -8102,34 +6931,23 @@
             {
               "binding_condition": "always",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e')",
-              "target_property_name": "#text"
+              "source_property_name": "(not ((#hover_text - '§z§c') = #hover_text))",
+              "target_property_name": "#visible"
             }
           ],
-          "color": [
-            0.95,
-            0.95,
-            0.97
-          ],
-          "font_scale_factor": 1,
-          "layer": 3,
-          "localize": false,
-          "offset": [
-            29,
-            0
-          ],
+          "layer": 6,
           "size": [
-            "100% - 34px",
-            "default"
+            18,
+            18
           ],
-          "text": "#text",
-          "type": "label"
+          "texture": "textures/ui/sg/slot_chosen",
+          "type": "image"
         }
       }
     ],
     "size": [
-      "100%",
-      "100%"
+      18,
+      18
     ],
     "type": "panel"
   },
@@ -8203,6 +7021,7 @@
                   },
                   {
                     "fill": {
+                      "controls": [],
                       "size": [
                         "fill",
                         18
@@ -8251,7 +7070,6 @@
                     "s@sg_menu.split_right_scroll": {}
                   }
                 ],
-                "layer": 2,
                 "size": [
                   148,
                   134
@@ -8325,6 +7143,7 @@
       },
       {
         "gap": {
+          "controls": [],
           "size": [
             "100%",
             3
@@ -8648,6 +7467,7 @@
       },
       {
         "gap": {
+          "controls": [],
           "size": [
             "100%",
             3
@@ -8747,145 +7567,6 @@
       "100%"
     ]
   },
-  "tab_button": {
-    "$tip_visible": true,
-    "anchor_from": "top_left",
-    "anchor_to": "top_left",
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_type": "collection_details"
-      }
-    ],
-    "button_mappings": [
-      {
-        "from_button_id": "button.menu_select",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "from_button_id": "button.menu_ok",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "from_button_id": "button.menu_secondary_select",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "from_button_id": "button.menu_auto_place",
-        "mapping_type": "pressed",
-        "to_button_id": "button.drop_one"
-      },
-      {
-        "mapping_type": "pressed",
-        "to_button_id": "button.container_slot_hovered"
-      }
-    ],
-    "controls": [
-      {
-        "default": {
-          "controls": [
-            {
-              "bg": {
-                "layer": 1,
-                "size": [
-                  "100%",
-                  "100%"
-                ],
-                "texture": "textures/ui/TabTopBack",
-                "type": "image"
-              }
-            },
-            {
-              "content@$button_content": {}
-            }
-          ],
-          "size": [
-            "100%",
-            "100%"
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "hover": {
-          "controls": [
-            {
-              "bg": {
-                "layer": 1,
-                "size": [
-                  "100%",
-                  "100%"
-                ],
-                "texture": "textures/ui/TabTopBackHover",
-                "type": "image"
-              }
-            },
-            {
-              "content@$button_content": {}
-            },
-            {
-              "tip": {
-                "$tip_visible|default": false,
-                "allow_clipping": false,
-                "layer": 30,
-                "renderer": "hover_text_renderer",
-                "type": "custom",
-                "visible": "$tip_visible"
-              }
-            }
-          ],
-          "size": [
-            "100%",
-            "100%"
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "pressed": {
-          "controls": [
-            {
-              "bg": {
-                "layer": 1,
-                "size": [
-                  "100%",
-                  "100%"
-                ],
-                "texture": "textures/ui/TabTopBackHover",
-                "type": "image"
-              }
-            },
-            {
-              "content@$button_content": {}
-            }
-          ],
-          "size": [
-            "100%",
-            "100%"
-          ],
-          "type": "panel"
-        }
-      }
-    ],
-    "default_control": "default",
-    "default_focus_precedence": 1,
-    "focus_enabled": true,
-    "focus_magnet_enabled": true,
-    "focus_wrap_enabled": false,
-    "hover_control": "hover",
-    "pressed_control": "pressed",
-    "size": [
-      24,
-      28
-    ],
-    "sound_name": "random.click",
-    "sound_pitch": 1,
-    "sound_volume": 1,
-    "type": "button"
-  },
   "tab_cell": {
     "bindings": [
       {
@@ -8960,7 +7641,7 @@
                     }
                   }
                 ],
-                "layer": 11,
+                "layer": 3,
                 "size": [
                   24,
                   22
@@ -8994,8 +7675,157 @@
           ],
           "controls": [
             {
-              "b@sg_menu.tab_button": {
-                "$button_content": "sg_menu.tab_icon"
+              "b": {
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_type": "collection_details"
+                  }
+                ],
+                "button_mappings": [
+                  {
+                    "consume_event": false,
+                    "from_button_id": "button.menu_select",
+                    "mapping_type": "pressed",
+                    "to_button_id": "button.container_auto_place"
+                  },
+                  {
+                    "consume_event": false,
+                    "from_button_id": "button.menu_ok",
+                    "mapping_type": "pressed",
+                    "to_button_id": "button.container_auto_place"
+                  },
+                  {
+                    "mapping_type": "pressed",
+                    "to_button_id": "button.container_slot_hovered"
+                  }
+                ],
+                "controls": [
+                  {
+                    "default": {
+                      "controls": [
+                        {
+                          "bg": {
+                            "layer": 1,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "texture": "textures/ui/TabTopBack",
+                            "type": "image"
+                          }
+                        }
+                      ],
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "panel"
+                    }
+                  },
+                  {
+                    "hover": {
+                      "controls": [
+                        {
+                          "bg": {
+                            "layer": 1,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "texture": "textures/ui/TabTopBackHover",
+                            "type": "image"
+                          }
+                        },
+                        {
+                          "tip": {
+                            "allow_clipping": false,
+                            "layer": 30,
+                            "renderer": "hover_text_renderer",
+                            "type": "custom"
+                          }
+                        }
+                      ],
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "panel"
+                    }
+                  },
+                  {
+                    "pressed": {
+                      "controls": [
+                        {
+                          "bg": {
+                            "layer": 1,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "texture": "textures/ui/TabTopBackHover",
+                            "type": "image"
+                          }
+                        }
+                      ],
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "panel"
+                    }
+                  }
+                ],
+                "default_control": "default",
+                "hover_control": "hover",
+                "layer": 1,
+                "pressed_control": "pressed",
+                "size": [
+                  24,
+                  28
+                ],
+                "sound_name": "random.click",
+                "sound_pitch": 1,
+                "sound_volume": 1,
+                "type": "button"
+              }
+            },
+            {
+              "icon": {
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "controls": [
+                  {
+                    "i": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "i@sg_menu.icon_slot": {
+                            "collection_index": "$icon_index",
+                            "size": [
+                              14,
+                              14
+                            ]
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        14,
+                        14
+                      ],
+                      "type": "stack_panel"
+                    }
+                  }
+                ],
+                "layer": 3,
+                "size": [
+                  24,
+                  22
+                ],
+                "type": "panel"
               }
             }
           ],
@@ -9007,43 +7837,9 @@
         }
       }
     ],
-    "orientation": "vertical",
     "size": [
       24,
       24
-    ],
-    "type": "stack_panel"
-  },
-  "tab_icon": {
-    "anchor_from": "top_left",
-    "anchor_to": "top_left",
-    "controls": [
-      {
-        "i": {
-          "collection_name": "container_items",
-          "controls": [
-            {
-              "i@sg_menu.icon_slot": {
-                "collection_index": "$icon_index",
-                "size": [
-                  14,
-                  14
-                ]
-              }
-            }
-          ],
-          "orientation": "vertical",
-          "size": [
-            14,
-            14
-          ],
-          "type": "stack_panel"
-        }
-      }
-    ],
-    "size": [
-      24,
-      22
     ],
     "type": "panel"
   },
@@ -9057,14 +7853,14 @@
           "bindings": [
             {
               "binding_collection_name": "container_items",
-              "binding_condition": "always",
+              "binding_condition": "visible",
               "binding_name": "#hover_text",
               "binding_type": "collection"
             },
             {
-              "binding_condition": "always",
+              "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -9102,14 +7898,14 @@
           "bindings": [
             {
               "binding_collection_name": "container_items",
-              "binding_condition": "always",
+              "binding_condition": "visible",
               "binding_name": "#hover_text",
               "binding_type": "collection"
             },
             {
-              "binding_condition": "always",
+              "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -9134,134 +7930,6 @@
     "size": [
       310,
       10
-    ],
-    "type": "panel"
-  },
-  "toggle_off_content": {
-    "controls": [
-      {
-        "l": {
-          "anchor_from": "left_middle",
-          "anchor_to": "left_middle",
-          "bindings": [
-            {
-              "binding_collection_name": "container_items",
-              "binding_condition": "always",
-              "binding_name": "#hover_text",
-              "binding_type": "collection"
-            },
-            {
-              "binding_condition": "always",
-              "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e')",
-              "target_property_name": "#text"
-            }
-          ],
-          "color": [
-            0.95,
-            0.95,
-            0.97
-          ],
-          "font_scale_factor": 1,
-          "layer": 3,
-          "localize": false,
-          "offset": [
-            6,
-            0
-          ],
-          "size": [
-            "100% - 48px",
-            "default"
-          ],
-          "text": "#text",
-          "type": "label"
-        }
-      },
-      {
-        "s": {
-          "anchor_from": "right_middle",
-          "anchor_to": "right_middle",
-          "layer": 2,
-          "offset": [
-            -3,
-            0
-          ],
-          "size": [
-            30,
-            16
-          ],
-          "texture": "textures/ui/toggle_off",
-          "type": "image"
-        }
-      }
-    ],
-    "size": [
-      "100%",
-      "100%"
-    ],
-    "type": "panel"
-  },
-  "toggle_on_content": {
-    "controls": [
-      {
-        "l": {
-          "anchor_from": "left_middle",
-          "anchor_to": "left_middle",
-          "bindings": [
-            {
-              "binding_collection_name": "container_items",
-              "binding_condition": "always",
-              "binding_name": "#hover_text",
-              "binding_type": "collection"
-            },
-            {
-              "binding_condition": "always",
-              "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§o' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e')",
-              "target_property_name": "#text"
-            }
-          ],
-          "color": [
-            0.95,
-            0.95,
-            0.97
-          ],
-          "font_scale_factor": 1,
-          "layer": 3,
-          "localize": false,
-          "offset": [
-            6,
-            0
-          ],
-          "size": [
-            "100% - 48px",
-            "default"
-          ],
-          "text": "#text",
-          "type": "label"
-        }
-      },
-      {
-        "s": {
-          "anchor_from": "right_middle",
-          "anchor_to": "right_middle",
-          "layer": 2,
-          "offset": [
-            -3,
-            0
-          ],
-          "size": [
-            30,
-            16
-          ],
-          "texture": "textures/ui/toggle_on",
-          "type": "image"
-        }
-      }
-    ],
-    "size": [
-      "100%",
-      "100%"
     ],
     "type": "panel"
   },
@@ -9502,11 +8170,11 @@
               "pages": {
                 "controls": [
                   {
-                    "mn": {
+                    "list": {
                       "collection_name": "container_items",
                       "controls": [
                         {
-                          "g@sg_menu.gate_mn": {
+                          "g@sg_menu.page_list": {
                             "collection_index": 0
                           }
                         }
@@ -9520,11 +8188,11 @@
                     }
                   },
                   {
-                    "cd": {
+                    "split": {
                       "collection_name": "container_items",
                       "controls": [
                         {
-                          "g@sg_menu.gate_cd": {
+                          "g@sg_menu.page_split": {
                             "collection_index": 0
                           }
                         }
@@ -9538,65 +8206,11 @@
                     }
                   },
                   {
-                    "gd": {
+                    "listsplit": {
                       "collection_name": "container_items",
                       "controls": [
                         {
-                          "g@sg_menu.gate_gd": {
-                            "collection_index": 0
-                          }
-                        }
-                      ],
-                      "orientation": "vertical",
-                      "size": [
-                        "100%",
-                        "100%"
-                      ],
-                      "type": "stack_panel"
-                    }
-                  },
-                  {
-                    "bd": {
-                      "collection_name": "container_items",
-                      "controls": [
-                        {
-                          "g@sg_menu.gate_bd": {
-                            "collection_index": 0
-                          }
-                        }
-                      ],
-                      "orientation": "vertical",
-                      "size": [
-                        "100%",
-                        "100%"
-                      ],
-                      "type": "stack_panel"
-                    }
-                  },
-                  {
-                    "sp": {
-                      "collection_name": "container_items",
-                      "controls": [
-                        {
-                          "g@sg_menu.gate_sp": {
-                            "collection_index": 0
-                          }
-                        }
-                      ],
-                      "orientation": "vertical",
-                      "size": [
-                        "100%",
-                        "100%"
-                      ],
-                      "type": "stack_panel"
-                    }
-                  },
-                  {
-                    "ls": {
-                      "collection_name": "container_items",
-                      "controls": [
-                        {
-                          "g@sg_menu.gate_ls": {
+                          "g@sg_menu.page_listsplit": {
                             "collection_index": 0
                           }
                         }

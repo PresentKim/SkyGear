@@ -26,6 +26,10 @@ type menuPage struct {
 
 func newMenuPage(key string) *menuPage {
 	pg := &menuPage{items: make([]item.Stack, invui.Size), ids: map[int]string{}}
+	switch key[:2] {
+	case invui.KeyMenu, invui.KeyCards, invui.KeyGrid, invui.KeyBoard:
+		key += invui.KeyList
+	}
 	pg.text(invui.SlotKey, key)
 	return pg
 }
@@ -101,7 +105,7 @@ func (pg *menuPage) rows(first int, items []dItem) {
 		if i >= invui.Rows {
 			break
 		}
-		kind := invui.KindRow
+		kind := invui.KindRow + invui.FamRow
 		text := it.Label
 		switch {
 		case it.Kind == "heading":
@@ -109,11 +113,11 @@ func (pg *menuPage) rows(first int, items []dItem) {
 		case it.Kind == "divider":
 			kind, text = invui.KindDivider, ""
 		case it.Toggle && it.On:
-			kind = invui.KindToggleOn
+			kind = invui.KindToggleOn + invui.FamRow
 		case it.Toggle:
-			kind = invui.KindToggleOff
+			kind = invui.KindToggleOff + invui.FamRow
 		case it.ID == "":
-			kind = invui.KindStatic
+			kind = invui.KindStatic + invui.FamRow
 		}
 		pg.icon(invui.RowIcon0+i, it.Icon, kind)
 		pg.button(invui.RowBtn0+i, text, kind, it.ID)
@@ -152,6 +156,12 @@ func (pg *menuPage) cell(i int, s dSlot, press, view string) {
 	case s.ID == "":
 		kind = view
 	}
+	pressable := kind == press
+	if press == invui.KindMini {
+		kind += invui.FamMini
+	} else {
+		kind += invui.FamSlot
+	}
 	count := 1
 	if n, err := strconv.Atoi(s.Count); err == nil && n > 1 && n <= 64 {
 		count = n
@@ -172,7 +182,7 @@ func (pg *menuPage) cell(i int, s dSlot, press, view string) {
 	default:
 		pg.items[slot] = item.NewStack(item.Paper{}, count).WithCustomName("§r" + i18n.Plain(s.Tip) + kind)
 	}
-	if kind == press && s.ID != "" {
+	if pressable && s.ID != "" {
 		pg.ids[slot] = s.ID
 	}
 }
@@ -191,7 +201,7 @@ func (pg *menuPage) mark(i int, text, kind string) {
 func menuPageOf(name string, data any) *menuPage {
 	switch v := data.(type) {
 	case menuData:
-		pg := newMenuPage(invui.KeyMenu)
+		pg := newMenuPage(invui.KeyMenu + invui.KeyRows)
 		pg.chrome(v.Chrome)
 		pg.text(invui.SlotBody, "§r"+ink(v.Body))
 		pg.rows(0, v.Items)
@@ -203,7 +213,7 @@ func menuPageOf(name string, data any) *menuPage {
 		pg.buttons(0, invui.KindRow, v.Items)
 		return pg
 	case gridData:
-		pg := newMenuPage(invui.KeyGrid)
+		pg := newMenuPage(invui.KeyGrid + invui.KeyRows)
 		pg.chrome(v.Chrome)
 		pg.text(invui.SlotBody, "§r"+ink(v.Body))
 		i := 0
@@ -221,7 +231,7 @@ func menuPageOf(name string, data any) *menuPage {
 		pg.rows(0, v.Items)
 		return pg
 	case boardData:
-		pg := newMenuPage(invui.KeyBoard)
+		pg := newMenuPage(invui.KeyBoard + invui.KeyRows)
 		pg.chrome(v.Chrome)
 		pg.text(invui.SlotBody, "§r"+ink(v.Body))
 		for r, row := range v.Rows {
@@ -304,7 +314,7 @@ func menuPageOf(name string, data any) *menuPage {
 		pg.buttons(invui.ListRows, invui.KindRow, v.Actions)
 		return pg
 	}
-	pg := newMenuPage(invui.KeyMenu)
+	pg := newMenuPage(invui.KeyMenu + invui.KeyRows)
 	chrome, body, rows := pressRows(data)
 	pg.chrome(chrome)
 	pg.text(invui.SlotBody, "§r"+ink(body))
@@ -445,15 +455,14 @@ func openMenu(p *player.Player, l *oreLayout, pg *menuPage) {
 	}
 	closeRun := l.close
 	invui.Show(p, pg.items, func(p *player.Player, tx *world.Tx, slot int) {
-		if !current() {
+		run := l.runs[pg.ids[slot]]
+		if !current() || run == nil {
 			return
 		}
-		if run := l.runs[pg.ids[slot]]; run != nil {
-			func() {
-				defer recoverForm(p)
-				run(p, tx)
-			}()
-		}
+		func() {
+			defer recoverForm(p)
+			run(p, tx)
+		}()
 		if !current() {
 			return
 		}

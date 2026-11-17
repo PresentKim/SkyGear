@@ -217,8 +217,8 @@
 				"value": [
 					{
 						"binding_type": "view",
-						"source_control_name": "sg_menu_hide_vanilla",
-						"source_property_name": "#sg_menu_vanilla_visible",
+						"source_control_name": "entity_ui_hide_vanilla",
+						"source_property_name": "#entity_ui_vanilla_visible",
 						"target_property_name": "#visible",
 						"binding_condition": "always"
 					}

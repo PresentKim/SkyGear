@@ -126,13 +126,15 @@ func same(a, b item.Stack) bool {
 	return a.Comparable(b) && a.Count() == b.Count() && a.CustomName() == b.CustomName()
 }
 
-// handler keeps every item in place: a drop is a press of its slot.
+// handler keeps every item in place: taking a slot's item (the quick move a
+// slot button sends) or dropping it is a press of the slot.
 type handler struct{ w *window }
 
-func (h handler) HandleTake(ctx *inventory.Context, _ int, _ item.Stack)  { ctx.Cancel() }
-func (h handler) HandlePlace(ctx *inventory.Context, _ int, _ item.Stack) { ctx.Cancel() }
+func (h handler) HandleTake(ctx *inventory.Context, slot int, _ item.Stack) { h.press(ctx, slot) }
+func (h handler) HandleDrop(ctx *inventory.Context, slot int, _ item.Stack) { h.press(ctx, slot) }
+func (h handler) HandlePlace(ctx *inventory.Context, _ int, _ item.Stack)   { ctx.Cancel() }
 
-func (h handler) HandleDrop(ctx *inventory.Context, slot int, _ item.Stack) {
+func (h handler) press(ctx *inventory.Context, slot int) {
 	ctx.Cancel()
 	p, ok := ctx.Val().(*player.Player)
 	if !ok {

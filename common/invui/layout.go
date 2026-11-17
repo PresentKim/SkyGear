@@ -52,14 +52,26 @@ const (
 // Size is the number of slots of the menu window.
 const Size = Cell0 + Cells
 
-// The layouts of the screens, by the key in SlotKey.
+// The layouts of the screens, by the key in SlotKey. KeyList after a key
+// draws it on the list page (the body over the layout's content), and
+// KeyRows the list rows under that content.
 const (
+	KeyList      = "L"
 	KeyMenu      = "mn"
 	KeyCards     = "cd"
 	KeyGrid      = "gd"
 	KeyBoard     = "bd"
 	KeySplit     = "sp"
 	KeyListSplit = "ls"
+	KeyRows      = "Q"
+)
+
+// Family markers say which group of kinds a slot belongs to: the pack draws
+// one shape per family and tells its kinds apart with small parts only.
+const (
+	FamRow  = "§z§g"
+	FamSlot = "§z§l"
+	FamMini = "§z§k"
 )
 
 // The columns of the cell grids of the layouts.
@@ -97,4 +109,4 @@ const (
 )
 
 // Kinds are the kind markers in the order the pack strips them.
-var Kinds = []string{KindRow, KindStatic, KindChosen, KindHeading, KindDivider, KindToggleOff, KindToggleOn, KindTab, KindTabOn, KindBar, KindHelp, KindIcon, KindFrame, KindArrow, KindText, KindMini, KindMiniView, KindBlank}
+var Kinds = []string{KindRow, KindStatic, KindChosen, KindHeading, KindDivider, KindToggleOff, KindToggleOn, KindTab, KindTabOn, KindBar, KindHelp, KindIcon, KindFrame, KindArrow, KindText, KindMini, KindMiniView, KindBlank, FamRow, FamSlot, FamMini}
