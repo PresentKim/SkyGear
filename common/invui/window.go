@@ -35,6 +35,7 @@ func windowOf(p *player.Player) *window {
 	if w == nil {
 		w = &window{st: chestui.NewStorage(Size, Marker)}
 		w.st.Inventory().Handle(handler{w})
+		w.st.CloseWithClient()
 		windows.m[p.UUID()] = w
 	}
 	return w
@@ -43,8 +44,12 @@ func windowOf(p *player.Player) *window {
 // Forget drops the window of the player id once it left.
 func Forget(id uuid.UUID) {
 	windows.Lock()
+	w := windows.m[id]
 	delete(windows.m, id)
 	windows.Unlock()
+	if w != nil {
+		w.st.Discard()
+	}
 }
 
 // Show puts items in the slots of p's menu window and opens it if it is not

@@ -54,6 +54,20 @@ func NewStorage(size int, title string) *Storage {
 	return s
 }
 
+// strictInventories holds the inventories of the storages whose windows close
+// on the client's window 255 close (CloseWithClient).
+var strictInventories sync.Map
+
+// CloseWithClient makes the windows of s close when the client reports
+// closing window 255, which it does when another screen opens over the
+// window, or a form opens or closes. Use it for windows never shown with
+// forms.
+func (s *Storage) CloseWithClient() { strictInventories.Store(s.inv, true) }
+
+// Discard forgets what CloseWithClient keeps about s, once s is no longer
+// used.
+func (s *Storage) Discard() { strictInventories.Delete(s.inv) }
+
 // Inventory returns the inventory of the storage. Its Handler may be set to
 // validate moves; its SlotFunc must not be replaced (use OnChange).
 func (s *Storage) Inventory() *inventory.Inventory { return s.inv }

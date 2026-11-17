@@ -335,6 +335,9 @@ func clientPacket(c *sghook.Conn, pk packet.Packet) bool {
 		}
 		debug("client close", "window", pk.WindowID, "type", pk.ContainerType, "opening", w.opening())
 		if pk.WindowID == 0xff {
+			if _, strict := strictInventories.Load(w.inv); strict && !w.opening() {
+				w.h.Do(func(_ *world.Tx, e world.Entity) { Close(e.(*player.Player)) })
+			}
 			return true
 		}
 		if pk.WindowID != 0 && w.opening() {
