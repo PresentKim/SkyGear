@@ -85,6 +85,16 @@ type window struct {
 	state    windowState
 	windowID byte
 	stop     chan struct{}
+	openedAt time.Time
+}
+
+// settled reports whether w has been open long enough that a window 255
+// close from the client is about w: the client also sends one when it opens
+// a window while closing another screen (the chat that ran a command).
+func (w *window) settled() bool {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return w.state == open && time.Since(w.openedAt) > time.Second
 }
 
 // client is the window state of one connection.
@@ -283,10 +293,22 @@ func (w *window) ack() {
 		return
 	}
 	w.state = open
+	w.openedAt = time.Now()
 	w.mu.Unlock()
 	if w.cl.win.Load() == w && Options.Retry {
 		sghook.SendInventory(w.cl.s, w.inv, w.windowID)
 	}
+}
+
+// reopen sends the window again, for a client that ignored it while it was
+// closing another screen.
+func (w *window) reopen() {
+	if w.cl.win.Load() != w || w.current() != open {
+		return
+	}
+	debug("reopened", "actor", w.runtimeID, "window", w.windowID)
+	sghook.WritePacket(w.cl.s, w.openPacket())
+	sghook.SendInventory(w.cl.s, w.inv, w.windowID)
 }
 
 // current returns the state of the window.
@@ -335,8 +357,15 @@ func clientPacket(c *sghook.Conn, pk packet.Packet) bool {
 		}
 		debug("client close", "window", pk.WindowID, "type", pk.ContainerType, "opening", w.opening())
 		if pk.WindowID == 0xff {
-			if _, strict := strictInventories.Load(w.inv); strict && !w.opening() {
-				w.h.Do(func(_ *world.Tx, e world.Entity) { Close(e.(*player.Player)) })
+			if _, strict := strictInventories.Load(w.inv); strict {
+				w.h.Do(func(_ *world.Tx, e world.Entity) {
+					p := e.(*player.Player)
+					if w.settled() {
+						Close(p)
+						return
+					}
+					sghook.AfterClientSync(p, func(*player.Player, *world.Tx) { w.reopen() })
+				})
 			}
 			return true
 		}
