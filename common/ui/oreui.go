@@ -47,6 +47,9 @@ func touchDevice(p *player.Player) bool {
 // when none is open or it has no key. A screen that redraws itself while open
 // (a machine's) checks it so it never replaces another.
 func ShowingKey(p *player.Player) string {
+	if key, ok := formKey(p); ok {
+		return key
+	}
 	oreScreens.Lock()
 	defer oreScreens.Unlock()
 	st := oreScreens.m[p.UUID()]

@@ -3,6 +3,7 @@
         "ui/custom_pocket_containers.json",
         "ui/sg_quick.json",
         "ui/sg_quick_match.json",
+        "ui/sg_menu.json",
         "ui/inventoryui/vertical_screen.json",
         "ui/inventoryui/vertical_scroll_screen.json"
     ]

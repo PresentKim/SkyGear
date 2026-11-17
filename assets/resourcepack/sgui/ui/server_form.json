@@ -1,0 +1,32 @@
+{
+  "namespace": "server_form",
+
+  "third_party_server_screen": {
+    "$screen_content": "sg_form.root",
+    "$screen_animations": [],
+    "$background_animations": []
+  },
+
+  "long_form_scrolling_content/wrapping_panel": {
+    "visible": false,
+    "bindings": [
+      { "binding_name": "#title_text", "binding_condition": "always" },
+      {
+        "binding_type": "view",
+        "binding_condition": "always",
+        "source_property_name": "(not (('%.3s' * #title_text) = 'sg:'))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+
+  "long_form_dynamic_buttons_panel": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length",
+        "binding_condition": "visible"
+      }
+    ]
+  }
+}

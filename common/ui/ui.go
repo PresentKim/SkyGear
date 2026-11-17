@@ -52,6 +52,7 @@ func forget(id uuid.UUID) {
 	oreScreens.Lock()
 	delete(oreScreens.m, id)
 	oreScreens.Unlock()
+	forgetForm(id)
 }
 
 // Option is a menu button and the action it runs. Icon is an optional
@@ -81,7 +82,7 @@ func Toggle(label string, on bool, run func(p *player.Player, tx *world.Tx)) Opt
 }
 
 // FormOpen reports whether p has a DDUI screen open.
-func FormOpen(p *player.Player) bool { return oreOpen(p) }
+func FormOpen(p *player.Player) bool { return oreOpen(p) || formOpen(p) }
 
 // Idle, if set, runs when p closed a DDUI screen (closed: Esc or the close
 // button, title "") or pressed something on it that showed no other screen.

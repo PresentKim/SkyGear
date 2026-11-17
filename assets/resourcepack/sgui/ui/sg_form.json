@@ -1,0 +1,101 @@
+{
+  "namespace": "sg_form",
+
+  "root": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [
+      {
+        "vanilla": {
+          "type": "panel",
+          "size": [ "100%", "100%" ],
+          "bindings": [
+            { "binding_name": "#title_text" },
+            { "binding_type": "view", "source_property_name": "(not (('%.3s' * #title_text) = 'sg:'))", "target_property_name": "#visible" }
+          ],
+          "controls": [ { "content@server_form.main_screen_content": {} } ]
+        }
+      },
+      { "router@sg_form.router": {} }
+    ]
+  },
+
+  "router": {
+    "type": "collection_panel",
+    "size": [ "100%", "100%" ],
+    "factory": {
+      "name": "sg_screen",
+      "control_ids": { "in": "@sg_form.input_screen" }
+    },
+    "property_bag": {
+      "#sg:in:": [ "in" ]
+    },
+    "bindings": [
+      { "binding_name": "#title_text" },
+      { "binding_type": "view", "source_property_name": "('#' + ('%.6s' * #title_text))", "target_property_name": "#collection_length" }
+    ]
+  },
+
+  "input_screen": {
+    "type": "panel",
+    "size": [ 326, 166 ],
+    "controls": [
+      { "frame": { "type": "image", "layer": 1, "texture": "textures/ui/dialog_background_opaque", "size": [ "100%", "100%" ] } },
+      {
+        "title": {
+          "type": "label",
+          "layer": 3,
+          "localize": false,
+          "size": [ 310, 10 ],
+          "offset": [ 0, 6 ],
+          "anchor_from": "top_middle",
+          "anchor_to": "top_middle",
+          "text_alignment": "center",
+          "color": [ 0.25, 0.25, 0.25 ],
+          "text": "#text",
+          "bindings": [
+            { "binding_name": "#title_text" },
+            { "binding_type": "view", "source_property_name": "(#title_text - ('%.6s' * #title_text))", "target_property_name": "#text" }
+          ]
+        }
+      },
+      {
+        "close": {
+          "type": "panel",
+          "size": [ 17, 22 ],
+          "offset": [ 0, -22 ],
+          "anchor_from": "top_right",
+          "anchor_to": "top_right",
+          "controls": [
+            { "bg": { "type": "image", "texture": "textures/ui/toolbar_background", "size": [ 31, 25 ], "anchor_from": "top_right", "anchor_to": "top_right" } },
+            { "x@common.light_close_button": { "$close_button_offset": [ 0, 0 ], "size": [ 15, 15 ], "layer": 2, "anchor_from": "center", "anchor_to": "center" } }
+          ]
+        }
+      },
+      {
+        "content": {
+          "type": "stack_panel",
+          "orientation": "vertical",
+          "layer": 2,
+          "size": [ 314, "100%c" ],
+          "offset": [ 6, 18 ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "controls": [
+            { "fields@server_form.generated_contents": {} },
+            { "gap": { "type": "panel", "size": [ "100%", 6 ] } },
+            {
+              "submit@common_buttons.light_text_button": {
+                "$pressed_button_name": "button.submit_custom_form",
+                "size": [ "100%", 30 ],
+                "$button_text": "#submit_text",
+                "$button_text_binding_type": "global",
+                "$focus_enabled": false
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

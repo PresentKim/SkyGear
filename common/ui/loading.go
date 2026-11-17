@@ -54,6 +54,11 @@ func CloseLoading(p *player.Player) {
 		wait = minLoading - time.Since(st.loading)
 	}
 	oreScreens.Unlock()
+	formScreens.Lock()
+	if fs := formScreens.m[id]; fs.showing() && !fs.loading.IsZero() {
+		wait = minLoading - time.Since(fs.loading)
+	}
+	formScreens.Unlock()
 	if wait > 0 {
 		time.AfterFunc(wait, func() { closeLoading(id) })
 		return
@@ -63,6 +68,22 @@ func CloseLoading(p *player.Player) {
 
 // closeLoading closes the screen of the player id if it is a loading screen.
 func closeLoading(id uuid.UUID) {
+	formScreens.Lock()
+	fs := formScreens.m[id]
+	menu := false
+	if fs.showing() && !fs.loading.IsZero() {
+		fs.gen++
+		if fs.form != nil {
+			_ = fs.form.Close()
+			fs.form = nil
+		}
+		menu, fs.menu = fs.menu, false
+		fs.loading = time.Time{}
+	}
+	formScreens.Unlock()
+	if menu {
+		closeMenuOf(id)
+	}
 	oreScreens.Lock()
 	defer oreScreens.Unlock()
 	st := oreScreens.m[id]

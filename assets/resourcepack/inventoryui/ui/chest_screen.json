@@ -176,18 +176,53 @@
 			{
 				"requires": "(not (($container_title_copy - '§d§m§9') = $container_title_copy)) and $desktop_screen",
 				"$screen_content": "sg_machine.magicsieve_panel"
+			},
+
+			// skygear: the menu window of common/invui (ui/sg_menu.json, tools/invuigen)
+
+			{
+				"requires": "(not (($container_title_copy - '§s§g§m§u') = $container_title_copy)) and $desktop_screen",
+				"$screen_content": "chest.small_chest_panel"
+			},
+			{
+				"requires": "(not (($container_title_copy - '§s§g§m§u') = $container_title_copy)) and $pocket_screen",
+				"$screen_content": "pocket_containers.small_chest_panel"
 			}
 		]
     },
 
+	"small_chest_panel": {
+		"modifications": [
+			{
+				"array_name": "controls",
+				"operation": "insert_back",
+				"value": [ { "sg_menu_overlay@sg_menu.overlay": {} } ]
+			}
+		]
+	},
+
 	// The take all and put all bar (sg_quick.json) on the vanilla chest windows; the ender chest,
-	// shulker box and barrel windows are the small chest's.
+	// shulker box and barrel windows are the small chest's. The menu window of common/invui hides
+	// the vanilla window under it.
 	"small_chest_panel/root_panel": {
 		"modifications": [
 			{
 				"array_name": "controls",
 				"operation": "insert_back",
 				"value": [ { "quick_side_bar@sg_quick.side_bar": { "$quick_container_size": 27 } } ]
+			},
+			{
+				"array_name": "bindings",
+				"operation": "insert_back",
+				"value": [
+					{
+						"binding_type": "view",
+						"source_control_name": "sg_menu_hide_vanilla",
+						"source_property_name": "#sg_menu_vanilla_visible",
+						"target_property_name": "#visible",
+						"binding_condition": "always"
+					}
+				]
 			}
 		]
 	},

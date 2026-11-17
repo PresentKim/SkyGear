@@ -277,5 +277,13 @@ func showScreen(p *player.Player, l *oreLayout, name string, data any) {
 			lobby.Title, lobby.Logo = title, oreIcon(logo)
 		}
 	}
+	if oreShown == nil && p != nil {
+		if in, ok := data.(inputData); ok {
+			openInput(p, l, in)
+			return
+		}
+		openMenu(p, l, menuPageOf(name, data))
+		return
+	}
 	openOre(p, l, rootOf(name, data, l.keys, lobby, p != nil && OreDebug(p)))
 }
