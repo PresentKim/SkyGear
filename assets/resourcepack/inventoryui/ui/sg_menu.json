@@ -162,7 +162,7 @@
                 "collection_name": "container_items",
                 "controls": [
                   {
-                    "i@sg_menu.icon_slot": {
+                    "i@sg_menu.press_icon_slot": {
                       "collection_index": "$icon_index",
                       "size": [
                         12,
@@ -206,7 +206,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -390,7 +390,7 @@
           "collection_name": "container_items",
           "controls": [
             {
-              "i@sg_menu.icon_slot": {
+              "i@sg_menu.press_icon_slot": {
                 "collection_index": "$icon_index",
                 "size": [
                   15,
@@ -681,7 +681,7 @@
                       "collection_name": "container_items",
                       "controls": [
                         {
-                          "i@sg_menu.icon_slot": {
+                          "i@sg_menu.press_icon_slot": {
                             "collection_index": "$icon_index",
                             "size": [
                               22,
@@ -725,7 +725,7 @@
                   {
                     "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+                    "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
                     "target_property_name": "#text"
                   }
                 ],
@@ -790,7 +790,7 @@
                   {
                     "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+                    "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
                     "target_property_name": "#text"
                   }
                 ],
@@ -991,7 +991,7 @@
                   {
                     "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+                    "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
                     "target_property_name": "#text"
                   }
                 ],
@@ -1054,7 +1054,7 @@
                   {
                     "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+                    "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
                     "target_property_name": "#text"
                   }
                 ],
@@ -1177,20 +1177,6 @@
                 "allow_clipping": false,
                 "anchor_from": "top_right",
                 "anchor_to": "top_left",
-                "bindings": [
-                  {
-                    "binding_collection_name": "container_items",
-                    "binding_condition": "always",
-                    "binding_name": "#hover_text",
-                    "binding_type": "collection"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "(not ((((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k') = '§r'))",
-                    "target_property_name": "#visible"
-                  }
-                ],
                 "controls": [
                   {
                     "l": {
@@ -1206,7 +1192,7 @@
                         {
                           "binding_condition": "visible",
                           "binding_type": "view",
-                          "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+                          "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
                           "target_property_name": "#text"
                         }
                       ],
@@ -3957,7 +3943,7 @@
           "collection_name": "container_items",
           "controls": [
             {
-              "i@sg_menu.icon_slot": {
+              "i@sg_menu.press_icon_slot": {
                 "collection_index": "$icon_index",
                 "size": [
                   22,
@@ -3998,7 +3984,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -4257,7 +4243,7 @@
                 "collection_name": "container_items",
                 "controls": [
                   {
-                    "i@sg_menu.icon_slot": {
+                    "i@sg_menu.press_icon_slot": {
                       "collection_index": "$icon_index",
                       "size": [
                         12,
@@ -4301,7 +4287,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -4798,7 +4784,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -4994,7 +4980,7 @@
           "collection_name": "container_items",
           "controls": [
             {
-              "i@sg_menu.icon_slot": {
+              "i@sg_menu.press_icon_slot": {
                 "collection_index": "$icon_index",
                 "size": [
                   10,
@@ -5123,7 +5109,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -5971,7 +5957,7 @@
                   {
                     "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+                    "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
                     "target_property_name": "#text"
                   }
                 ],
@@ -6229,7 +6215,7 @@
                   {
                     "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+                    "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
                     "target_property_name": "#text"
                   }
                 ],
@@ -6472,7 +6458,7 @@
                   {
                     "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+                    "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
                     "target_property_name": "#text"
                   }
                 ],
@@ -6545,7 +6531,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -7201,13 +7187,15 @@
                   },
                   {
                     "pic": {
+                      "$icon_index": 49,
+                      "$press_index": 97,
                       "anchor_from": "top_left",
                       "anchor_to": "top_left",
                       "collection_name": "container_items",
                       "controls": [
                         {
-                          "i@sg_menu.icon_slot": {
-                            "collection_index": 49,
+                          "i@sg_menu.press_icon_slot": {
+                            "collection_index": "$icon_index",
                             "size": [
                               30,
                               30
@@ -7257,7 +7245,7 @@
                             "controls": [
                               {
                                 "n@sg_menu.home_save_name": {
-                                  "collection_index": 97
+                                  "collection_index": 49
                                 }
                               }
                             ],
@@ -7686,7 +7674,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -7733,7 +7721,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -8061,7 +8049,7 @@
           "collection_name": "container_items",
           "controls": [
             {
-              "i@sg_menu.icon_slot": {
+              "i@sg_menu.press_icon_slot": {
                 "collection_index": "$icon_index",
                 "size": [
                   23,
@@ -8097,7 +8085,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -8158,7 +8146,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -8201,7 +8189,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -8244,7 +8232,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -8288,7 +8276,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -8332,7 +8320,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -8520,7 +8508,7 @@
           "collection_name": "container_items",
           "controls": [
             {
-              "i@sg_menu.icon_slot": {
+              "i@sg_menu.press_icon_slot": {
                 "collection_index": "$icon_index",
                 "size": [
                   14,
@@ -8556,7 +8544,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -8664,7 +8652,7 @@
             {
               "binding_condition": "always",
               "binding_type": "view",
-              "source_property_name": "(((#hover_text - 'textures/') = #hover_text) and ((#hover_text - '§z§e') = #hover_text))",
+              "source_property_name": "((#hover_text - 'textures/' - '§z§e' - '§z§7§7') = #hover_text)",
               "target_property_name": "#visible"
             }
           ],
@@ -8703,7 +8691,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -9213,7 +9201,7 @@
                 "collection_name": "container_items",
                 "controls": [
                   {
-                    "i@sg_menu.icon_slot": {
+                    "i@sg_menu.press_icon_slot": {
                       "collection_index": "$icon_index",
                       "size": [
                         20,
@@ -9257,7 +9245,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -9852,7 +9840,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -10095,7 +10083,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -10138,7 +10126,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -10181,7 +10169,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -10224,7 +10212,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -10267,7 +10255,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -10310,7 +10298,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -10444,7 +10432,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -10526,7 +10514,7 @@
                   {
                     "binding_condition": "always",
                     "binding_type": "view",
-                    "source_property_name": "(((#hover_text - 'textures/') = #hover_text) and ((#hover_text - '§z§e') = #hover_text))",
+                    "source_property_name": "((#hover_text - 'textures/' - '§z§e' - '§z§7§7') = #hover_text)",
                     "target_property_name": "#visible"
                   }
                 ],
@@ -12321,7 +12309,7 @@
                 "collection_name": "container_items",
                 "controls": [
                   {
-                    "i@sg_menu.icon_slot": {
+                    "i@sg_menu.press_icon_slot": {
                       "collection_index": "$icon_index",
                       "size": [
                         24,
@@ -12365,7 +12353,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -12439,7 +12427,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -12595,6 +12583,141 @@
     "size": [
       "100%",
       106
+    ],
+    "type": "panel"
+  },
+  "press_icon_slot": {
+    "controls": [
+      {
+        "image": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "((('%.85s' * (#hover_text - '§o' - '§f')) - ('%.21s' * (#hover_text - '§o' - '§f'))) - ' ')",
+              "target_property_name": "#texture"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - 'textures/') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "layer": 2,
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "texture": "#texture",
+          "type": "image"
+        }
+      },
+      {
+        "item": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#item_id_aux",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "((#hover_text - 'textures/' - '§z§e' - '§z§7§7') = #hover_text)",
+              "target_property_name": "#visible"
+            }
+          ],
+          "layer": 2,
+          "property_bag": {
+            "#item_id_aux": 0
+          },
+          "renderer": "inventory_item_renderer",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "type": "custom"
+        }
+      },
+      {
+        "press": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - '§z§7§7') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "controls": [
+            {
+              "s": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "item": {
+                      "bindings": [
+                        {
+                          "binding_collection_name": "container_items",
+                          "binding_condition": "visible",
+                          "binding_name": "#item_id_aux",
+                          "binding_type": "collection"
+                        }
+                      ],
+                      "collection_index": "$press_index",
+                      "layer": 2,
+                      "property_bag": {
+                        "#item_id_aux": 0
+                      },
+                      "renderer": "inventory_item_renderer",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "custom"
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "stack_panel"
+              }
+            }
+          ],
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "type": "panel"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
     ],
     "type": "panel"
   },
@@ -14495,7 +14618,7 @@
                         {
                           "binding_condition": "always",
                           "binding_type": "view",
-                          "source_property_name": "(((#hover_text - 'textures/') = #hover_text) and ((#hover_text - '§z§e') = #hover_text))",
+                          "source_property_name": "((#hover_text - 'textures/' - '§z§e' - '§z§7§7') = #hover_text)",
                           "target_property_name": "#visible"
                         }
                       ],
@@ -14843,7 +14966,7 @@
                 "collection_name": "container_items",
                 "controls": [
                   {
-                    "i@sg_menu.icon_slot": {
+                    "i@sg_menu.press_icon_slot": {
                       "collection_index": "$icon_index",
                       "size": [
                         14,
@@ -14887,7 +15010,7 @@
             {
               "binding_condition": "always",
               "binding_type": "view",
-              "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             },
             {
@@ -14932,7 +15055,7 @@
             {
               "binding_condition": "always",
               "binding_type": "view",
-              "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             },
             {
@@ -15047,7 +15170,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -15167,7 +15290,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -17760,6 +17883,9 @@
         }
       },
       {
+        "tab_keys@sg_menu.tab_keys": {}
+      },
+      {
         "toolbar": {
           "anchor_from": "top_right",
           "anchor_to": "top_right",
@@ -17828,17 +17954,129 @@
                     "close": {
                       "controls": [
                         {
-                          "x@common.light_close_button": {
-                            "$close_button_offset": [
-                              0,
-                              0
-                            ],
+                          "x": {
                             "anchor_from": "center",
                             "anchor_to": "center",
+                            "collection_name": "container_items",
+                            "controls": [
+                              {
+                                "b": {
+                                  "bindings": [
+                                    {
+                                      "binding_collection_name": "container_items",
+                                      "binding_type": "collection_details"
+                                    }
+                                  ],
+                                  "button_mappings": [
+                                    {
+                                      "consume_event": false,
+                                      "from_button_id": "button.menu_select",
+                                      "mapping_type": "pressed",
+                                      "to_button_id": "button.container_auto_place"
+                                    },
+                                    {
+                                      "consume_event": false,
+                                      "from_button_id": "button.menu_ok",
+                                      "mapping_type": "pressed",
+                                      "to_button_id": "button.container_auto_place"
+                                    },
+                                    {
+                                      "mapping_type": "pressed",
+                                      "to_button_id": "button.container_slot_hovered"
+                                    }
+                                  ],
+                                  "collection_index": 242,
+                                  "controls": [
+                                    {
+                                      "default": {
+                                        "controls": [
+                                          {
+                                            "bg": {
+                                              "layer": 1,
+                                              "size": [
+                                                "100%",
+                                                "100%"
+                                              ],
+                                              "texture": "textures/ui/close_button_default_light",
+                                              "type": "image"
+                                            }
+                                          }
+                                        ],
+                                        "size": [
+                                          "100%",
+                                          "100%"
+                                        ],
+                                        "type": "panel"
+                                      }
+                                    },
+                                    {
+                                      "hover": {
+                                        "controls": [
+                                          {
+                                            "bg": {
+                                              "layer": 1,
+                                              "size": [
+                                                "100%",
+                                                "100%"
+                                              ],
+                                              "texture": "textures/ui/close_button_hover_light",
+                                              "type": "image"
+                                            }
+                                          }
+                                        ],
+                                        "size": [
+                                          "100%",
+                                          "100%"
+                                        ],
+                                        "type": "panel"
+                                      }
+                                    },
+                                    {
+                                      "pressed": {
+                                        "controls": [
+                                          {
+                                            "bg": {
+                                              "layer": 1,
+                                              "size": [
+                                                "100%",
+                                                "100%"
+                                              ],
+                                              "texture": "textures/ui/close_button_pressed_light",
+                                              "type": "image"
+                                            }
+                                          }
+                                        ],
+                                        "size": [
+                                          "100%",
+                                          "100%"
+                                        ],
+                                        "type": "panel"
+                                      }
+                                    }
+                                  ],
+                                  "default_control": "default",
+                                  "focus_enabled": false,
+                                  "focus_magnet_enabled": false,
+                                  "hover_control": "hover",
+                                  "layer": 1,
+                                  "pressed_control": "pressed",
+                                  "size": [
+                                    15,
+                                    15
+                                  ],
+                                  "sound_name": "random.click",
+                                  "sound_pitch": 1,
+                                  "sound_volume": 1,
+                                  "type": "button"
+                                }
+                              }
+                            ],
+                            "orientation": "vertical",
                             "size": [
                               15,
                               15
-                            ]
+                            ],
+                            "type": "stack_panel"
                           }
                         }
                       ],
@@ -18098,7 +18336,7 @@
                 "collection_name": "container_items",
                 "controls": [
                   {
-                    "i@sg_menu.icon_slot": {
+                    "i@sg_menu.press_icon_slot": {
                       "collection_index": "$icon_index",
                       "size": [
                         16,
@@ -18280,7 +18518,7 @@
                 "collection_name": "container_items",
                 "controls": [
                   {
-                    "i@sg_menu.icon_slot": {
+                    "i@sg_menu.press_icon_slot": {
                       "collection_index": "$icon_index",
                       "size": [
                         16,
@@ -18324,7 +18562,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -20006,7 +20244,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -20065,7 +20303,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -21084,7 +21322,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -21593,7 +21831,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -21652,7 +21890,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -21735,7 +21973,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -21976,7 +22214,7 @@
                       "collection_name": "container_items",
                       "controls": [
                         {
-                          "i@sg_menu.icon_slot": {
+                          "i@sg_menu.press_icon_slot": {
                             "collection_index": "$icon_index",
                             "size": [
                               20,
@@ -22020,7 +22258,7 @@
                   {
                     "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+                    "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
                     "target_property_name": "#text"
                   }
                 ],
@@ -22146,7 +22384,7 @@
                   {
                     "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+                    "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.85s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
                     "target_property_name": "#text"
                   }
                 ],
@@ -22292,7 +22530,7 @@
                   {
                     "binding_condition": "always",
                     "binding_type": "view",
-                    "source_property_name": "(((#hover_text - 'textures/') = #hover_text) and ((#hover_text - '§z§e') = #hover_text))",
+                    "source_property_name": "((#hover_text - 'textures/' - '§z§e' - '§z§7§7') = #hover_text)",
                     "target_property_name": "#visible"
                   }
                 ],
@@ -22728,12 +22966,13 @@
             {
               "big@sg_menu.detail_big": {
                 "$icon_index": 34,
+                "$press_index": 82,
                 "collection_index": 82
               }
             },
             {
               "name@sg_menu.detail_name": {
-                "collection_index": 82
+                "collection_index": 34
               }
             }
           ],
@@ -23288,7 +23527,7 @@
                       "collection_name": "container_items",
                       "controls": [
                         {
-                          "i@sg_menu.icon_slot": {
+                          "i@sg_menu.press_icon_slot": {
                             "collection_index": "$icon_index",
                             "size": [
                               14,
@@ -23494,7 +23733,7 @@
                       "collection_name": "container_items",
                       "controls": [
                         {
-                          "i@sg_menu.icon_slot": {
+                          "i@sg_menu.press_icon_slot": {
                             "collection_index": "$icon_index",
                             "size": [
                               14,
@@ -23535,6 +23774,227 @@
     ],
     "type": "panel"
   },
+  "tab_key_left": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not ((#hover_text - '§z§u') = #hover_text))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "s": {
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "b": {
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_type": "collection_details"
+                  }
+                ],
+                "button_mappings": [
+                  {
+                    "from_button_id": "button.menu_tab_left",
+                    "mapping_type": "global",
+                    "to_button_id": "button.container_auto_place"
+                  }
+                ],
+                "collection_index": "$press_index",
+                "default_control": "",
+                "hover_control": "",
+                "layer": 0,
+                "pressed_control": "",
+                "size": [
+                  1,
+                  1
+                ],
+                "type": "button"
+              }
+            }
+          ],
+          "orientation": "vertical",
+          "size": [
+            1,
+            1
+          ],
+          "type": "stack_panel"
+        }
+      }
+    ],
+    "size": [
+      1,
+      1
+    ],
+    "type": "panel"
+  },
+  "tab_key_right": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not ((#hover_text - '§z§u') = #hover_text))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "s": {
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "b": {
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_type": "collection_details"
+                  }
+                ],
+                "button_mappings": [
+                  {
+                    "from_button_id": "button.menu_tab_right",
+                    "mapping_type": "global",
+                    "to_button_id": "button.container_auto_place"
+                  }
+                ],
+                "collection_index": "$press_index",
+                "default_control": "",
+                "hover_control": "",
+                "layer": 0,
+                "pressed_control": "",
+                "size": [
+                  1,
+                  1
+                ],
+                "type": "button"
+              }
+            }
+          ],
+          "orientation": "vertical",
+          "size": [
+            1,
+            1
+          ],
+          "type": "stack_panel"
+        }
+      }
+    ],
+    "size": [
+      1,
+      1
+    ],
+    "type": "panel"
+  },
+  "tab_keys": {
+    "collection_name": "container_items",
+    "controls": [
+      {
+        "l0@sg_menu.tab_key_left": {
+          "$press_index": 14,
+          "collection_index": 7
+        }
+      },
+      {
+        "r0@sg_menu.tab_key_right": {
+          "$press_index": 15,
+          "collection_index": 6
+        }
+      },
+      {
+        "l1@sg_menu.tab_key_left": {
+          "$press_index": 15,
+          "collection_index": 8
+        }
+      },
+      {
+        "r1@sg_menu.tab_key_right": {
+          "$press_index": 16,
+          "collection_index": 7
+        }
+      },
+      {
+        "l2@sg_menu.tab_key_left": {
+          "$press_index": 16,
+          "collection_index": 9
+        }
+      },
+      {
+        "r2@sg_menu.tab_key_right": {
+          "$press_index": 17,
+          "collection_index": 8
+        }
+      },
+      {
+        "l3@sg_menu.tab_key_left": {
+          "$press_index": 17,
+          "collection_index": 10
+        }
+      },
+      {
+        "r3@sg_menu.tab_key_right": {
+          "$press_index": 18,
+          "collection_index": 9
+        }
+      },
+      {
+        "l4@sg_menu.tab_key_left": {
+          "$press_index": 18,
+          "collection_index": 11
+        }
+      },
+      {
+        "r4@sg_menu.tab_key_right": {
+          "$press_index": 19,
+          "collection_index": 10
+        }
+      },
+      {
+        "l5@sg_menu.tab_key_left": {
+          "$press_index": 19,
+          "collection_index": 12
+        }
+      },
+      {
+        "r5@sg_menu.tab_key_right": {
+          "$press_index": 20,
+          "collection_index": 11
+        }
+      },
+      {
+        "l6@sg_menu.tab_key_left": {
+          "$press_index": 20,
+          "collection_index": 13
+        }
+      },
+      {
+        "r6@sg_menu.tab_key_right": {
+          "$press_index": 21,
+          "collection_index": 12
+        }
+      }
+    ],
+    "orientation": "vertical",
+    "size": [
+      1,
+      1
+    ],
+    "type": "stack_panel"
+  },
   "text_slot": {
     "$text_scale|default": 1,
     "bindings": [
@@ -23566,7 +24026,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -23611,7 +24071,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§7' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -23765,6 +24225,9 @@
         }
       },
       {
+        "tab_keys@sg_menu.tab_keys": {}
+      },
+      {
         "toolbar": {
           "anchor_from": "top_right",
           "anchor_to": "top_right",
@@ -23833,17 +24296,129 @@
                     "close": {
                       "controls": [
                         {
-                          "x@common.light_close_button": {
-                            "$close_button_offset": [
-                              0,
-                              0
-                            ],
+                          "x": {
                             "anchor_from": "center",
                             "anchor_to": "center",
+                            "collection_name": "container_items",
+                            "controls": [
+                              {
+                                "b": {
+                                  "bindings": [
+                                    {
+                                      "binding_collection_name": "container_items",
+                                      "binding_type": "collection_details"
+                                    }
+                                  ],
+                                  "button_mappings": [
+                                    {
+                                      "consume_event": false,
+                                      "from_button_id": "button.menu_select",
+                                      "mapping_type": "pressed",
+                                      "to_button_id": "button.container_auto_place"
+                                    },
+                                    {
+                                      "consume_event": false,
+                                      "from_button_id": "button.menu_ok",
+                                      "mapping_type": "pressed",
+                                      "to_button_id": "button.container_auto_place"
+                                    },
+                                    {
+                                      "mapping_type": "pressed",
+                                      "to_button_id": "button.container_slot_hovered"
+                                    }
+                                  ],
+                                  "collection_index": 242,
+                                  "controls": [
+                                    {
+                                      "default": {
+                                        "controls": [
+                                          {
+                                            "bg": {
+                                              "layer": 1,
+                                              "size": [
+                                                "100%",
+                                                "100%"
+                                              ],
+                                              "texture": "textures/ui/close_button_default_light",
+                                              "type": "image"
+                                            }
+                                          }
+                                        ],
+                                        "size": [
+                                          "100%",
+                                          "100%"
+                                        ],
+                                        "type": "panel"
+                                      }
+                                    },
+                                    {
+                                      "hover": {
+                                        "controls": [
+                                          {
+                                            "bg": {
+                                              "layer": 1,
+                                              "size": [
+                                                "100%",
+                                                "100%"
+                                              ],
+                                              "texture": "textures/ui/close_button_hover_light",
+                                              "type": "image"
+                                            }
+                                          }
+                                        ],
+                                        "size": [
+                                          "100%",
+                                          "100%"
+                                        ],
+                                        "type": "panel"
+                                      }
+                                    },
+                                    {
+                                      "pressed": {
+                                        "controls": [
+                                          {
+                                            "bg": {
+                                              "layer": 1,
+                                              "size": [
+                                                "100%",
+                                                "100%"
+                                              ],
+                                              "texture": "textures/ui/close_button_pressed_light",
+                                              "type": "image"
+                                            }
+                                          }
+                                        ],
+                                        "size": [
+                                          "100%",
+                                          "100%"
+                                        ],
+                                        "type": "panel"
+                                      }
+                                    }
+                                  ],
+                                  "default_control": "default",
+                                  "focus_enabled": false,
+                                  "focus_magnet_enabled": false,
+                                  "hover_control": "hover",
+                                  "layer": 1,
+                                  "pressed_control": "pressed",
+                                  "size": [
+                                    15,
+                                    15
+                                  ],
+                                  "sound_name": "random.click",
+                                  "sound_pitch": 1,
+                                  "sound_volume": 1,
+                                  "type": "button"
+                                }
+                              }
+                            ],
+                            "orientation": "vertical",
                             "size": [
                               15,
                               15
-                            ]
+                            ],
+                            "type": "stack_panel"
                           }
                         }
                       ],

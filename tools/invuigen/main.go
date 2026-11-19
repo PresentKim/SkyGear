@@ -279,16 +279,17 @@ const (
 // or the item in the slot.
 func icon(size int) obj {
 	s := []any{size, size}
-	return slots("vertical", s, []any{ref("i", "icon_slot", obj{"size": s, "collection_index": "$icon_index"})})
+	return slots("vertical", s, []any{ref("i", "press_icon_slot", obj{"size": s, "collection_index": "$icon_index"})})
 }
 
 // cellTip is the tooltip of a hovered cell, right of it: the text after the
 // cell's face, wrapped to cellTipWidth. The client's own tooltip draws the
-// whole name unbroken, the padded path with it, and runs off the screen.
+// whole name unbroken, the padded path with it, and runs off the screen. It
+// sets no visibility of its own, so its text is read only while the cell is
+// hovered (onlyWhenVisible).
 func cellTip() obj {
 	return image("textures/ui/purpleBorder", []any{cellTipWidth + 8, "100%c + 8px"}, 30, obj{
 		"allow_clipping": false, "anchor_from": "top_right", "anchor_to": "top_left", "offset": []any{4, 0},
-		"bindings": []any{slotText(), view("(not ("+faceText()+" = '§r'))", "#visible")},
 		"controls": []any{obj{"l": label(white, 1.0, []any{cellTipWidth, "default"}, obj{
 			"layer": 1, "shadow": true, "anchor_from": "top_left", "anchor_to": "top_left", "offset": []any{4, 4},
 			"bindings": []any{slotText(), view(faceText(), "#text")},
@@ -301,7 +302,21 @@ const cellTipWidth = 150
 // faceIcon draws the icon of a face (invui.Face): its texture, its item, or
 // nothing for a blank one.
 func faceIcon(size []any) obj {
-	return iconOf(size, facePath(), "(((#hover_text - 'textures/') = #hover_text) and ((#hover_text - '"+invui.KindBlank+"') = #hover_text))")
+	return iconOf(size, facePath(), "((#hover_text - 'textures/' - '"+invui.KindBlank+"' - '"+invui.KindPressIcon+"') = #hover_text)")
+}
+
+// pressFaceIcon is faceIcon that also draws the item of an element's button
+// slot ($press_index) for a face of kind invui.KindPressIcon.
+func pressFaceIcon(size []any) obj {
+	p := faceIcon(size)
+	p["controls"] = append(p["controls"].([]any), obj{"press": with(panel([]any{"100%", "100%"},
+		obj{"s": slots("vertical", []any{"100%", "100%"}, []any{obj{"item": obj{
+			"type": "custom", "renderer": "inventory_item_renderer", "size": []any{"100%", "100%"}, "layer": 2,
+			"collection_index": "$press_index", "property_bag": obj{"#item_id_aux": 0},
+			"bindings": []any{slotValue("#item_id_aux")},
+		}}})},
+	), obj{"bindings": shown(has(invui.KindPressIcon))})})
+	return p
 }
 
 func iconOf(size []any, path, isItem string) obj {
@@ -347,6 +362,7 @@ func countLabel(long bool) obj {
 func defs() obj {
 	d := obj{"namespace": "sg_menu"}
 	d["icon_slot"] = faceIcon([]any{"100%", "100%"})
+	d["press_icon_slot"] = pressFaceIcon([]any{"100%", "100%"})
 	d["empty"] = panel([]any{0, 0})
 
 	textLabel := label(ink, 1.0, []any{"100% - 2px", "default"}, with(obj{"offset": []any{2, 0}, "font_scale_factor": "$text_scale"}, top))
@@ -644,11 +660,11 @@ func defs() obj {
 		obj{"f": image("textures/ui/cell_image", []any{28, 28}, 1, nil)},
 		obj{"i": with(icon(22), obj{"layer": 2})},
 	)
-	d["detail_name"] = panel([]any{"fill", 28}, obj{"l": label(ink, 0.8, []any{"100% - 4px", "default"}, obj{"offset": []any{4, 0}, "anchor_from": "left_middle", "anchor_to": "left_middle"})})
+	d["detail_name"] = panel([]any{"fill", 28}, obj{"l": faceLabel(ink, 0.8, []any{"100% - 4px", "default"}, obj{"offset": []any{4, 0}, "anchor_from": "left_middle", "anchor_to": "left_middle"})})
 	d["split_right_body"] = column("100% - 8px",
 		obj{"head": slots("horizontal", []any{"100%", 30}, []any{
-			at("big", "detail_big", invui.RowBtn0, obj{"$icon_index": invui.RowIcon0}),
-			at("name", "detail_name", invui.RowBtn0, nil),
+			at("big", "detail_big", invui.RowBtn0, face(invui.RowIcon0, invui.RowBtn0)),
+			at("name", "detail_name", invui.RowIcon0, nil),
 		})},
 		obj{"status": slots("vertical", []any{"100%", "100%c"}, []any{at("t", "text_slot", invui.SlotInfo, obj{"$text_scale": 0.8})})},
 		gap(3),
@@ -789,13 +805,16 @@ func defs() obj {
 			obj{"frame": image("textures/ui/dialog_background_opaque", []any{"100%", "100%"}, 1, nil)},
 			obj{"title": with(panel([]any{w - 16, 10}, obj{"s": slots("vertical", []any{w - 16, 10}, []any{at("t", "title_slot", invui.SlotTitle, nil)})}), with(obj{"offset": []any{8, 6}, "layer": 3}, top))},
 			obj{"tabs": with(tabs, top)},
+			ref("tab_keys", "tab_keys", nil),
 			obj{"toolbar": image("textures/ui/toolbar_background", []any{"100%c + 14px", 25}, 4, obj{
 				"offset": []any{0, -22}, "anchor_from": "top_right", "anchor_to": "top_right",
 				"controls": []any{obj{"row": with(obj{
 					"type": "stack_panel", "orientation": "horizontal", "size": []any{"100%c", 22}, "offset": []any{7, 1},
 					"controls": []any{
 						obj{"bar": slots("horizontal", []any{"100%c", 22}, barCells)},
-						obj{"close": panel([]any{17, 22}, obj{"x@common.light_close_button": obj{"$close_button_offset": []any{0, 0}, "size": []any{15, 15}, "anchor_from": "center", "anchor_to": "center"}})},
+						obj{"close": panel([]any{17, 22}, obj{"x": with(slots("vertical", []any{15, 15}, []any{
+							obj{"b": with(button([]any{15, 15}, "textures/ui/close_button_default_light", "textures/ui/close_button_hover_light", "textures/ui/close_button_pressed_light", false), obj{"collection_index": invui.SlotEsc})},
+						}), obj{"anchor_from": "center", "anchor_to": "center"})})},
 					},
 				}, top)}},
 			})},
@@ -803,6 +822,27 @@ func defs() obj {
 		)
 	}
 	d["window"] = window(326, 166, pages)
+	// The tab keys press the tab left or right of the one shown: the key
+	// of tab i is drawn while tab i+1 (or i-1) is the one shown.
+	keyButton := func(from string) obj {
+		return obj{
+			"type": "button", "size": []any{1, 1}, "layer": 0, "collection_index": "$press_index",
+			"default_control": "", "hover_control": "", "pressed_control": "",
+			"button_mappings": []any{obj{"from_button_id": from, "to_button_id": "button.container_auto_place", "mapping_type": "global"}},
+			"bindings":        []any{obj{"binding_type": "collection_details", "binding_collection_name": "container_items"}},
+		}
+	}
+	for _, k := range []string{"left", "right"} {
+		d["tab_key_"+k] = with(panel([]any{1, 1}, obj{"s": slots("vertical", []any{1, 1}, []any{obj{"b": keyButton("button.menu_tab_" + k)}})}), obj{"bindings": shown(has(invui.KindTabOn))})
+	}
+	tabKeys := []any{}
+	for i := 0; i+1 < invui.Tabs; i++ {
+		tabKeys = append(tabKeys,
+			at(fmt.Sprintf("l%d", i), "tab_key_left", invui.TabIcon0+i+1, obj{"$press_index": invui.TabBtn0 + i}),
+			at(fmt.Sprintf("r%d", i), "tab_key_right", invui.TabIcon0+i, obj{"$press_index": invui.TabBtn0 + i + 1}),
+		)
+	}
+	d["tab_keys"] = slots("vertical", []any{1, 1}, tabKeys)
 	d["esc_button"] = obj{
 		"type": "button", "size": []any{1, 1}, "layer": 0,
 		"default_control": "", "hover_control": "", "pressed_control": "",
@@ -1093,14 +1133,14 @@ func homeDefs(d obj) {
 	}
 	d["home_prev"] = arrow("left")
 	d["home_next"] = arrow("right")
-	d["home_save_name"] = panel([]any{92, 10}, obj{"l": label(white, 1.14, []any{"100%", "default"}, top)})
+	d["home_save_name"] = panel([]any{92, 10}, obj{"l": faceLabel(white, 1.14, []any{"100%", "default"}, top)})
 	save := panel([]any{156, 46},
 		obj{"edge": rect(lobbyDark, []any{156, 46}, nil, 1)},
 		obj{"fill": rect(lobbyPanel, []any{154, 44}, []any{1, 1}, 1)},
-		iconAt("pic", si, 30, with(obj{"layer": 3, "offset": []any{5, 8}}, top)),
+		obj{"pic": with(icon(30), with(obj{"layer": 3, "offset": []any{5, 8}, "$icon_index": si, "$press_index": sb}, top))},
 		obj{"text": with(obj{"type": "stack_panel", "orientation": "vertical", "size": []any{92, "100%c"}, "layer": 3, "offset": []any{40, 0}, "controls": []any{
 			textAt("head", cellSlot(invui.HomeHeadCell), lobbyHead, 0.71, []any{92, 7}, nil),
-			obj{"name": slots("vertical", []any{92, 10}, []any{at("n", "home_save_name", sb, nil)})},
+			obj{"name": slots("vertical", []any{92, 10}, []any{at("n", "home_save_name", si, nil)})},
 			obj{"lines": slots("vertical", []any{92, "100%c"}, saveLines)},
 		}}, obj{"anchor_from": "left_middle", "anchor_to": "left_middle"})},
 		obj{"arrows": with(slots("vertical", []any{14, 30}, []any{

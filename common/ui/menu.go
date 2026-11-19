@@ -88,7 +88,12 @@ func (pg *menuPage) faces() {
 				pg.icon(f[0]+i, "", "")
 			}
 			icon := pg.items[f[0]+i]
-			pg.items[f[0]+i] = icon.WithCustomName(icon.CustomName() + b.CustomName())
+			face := icon.CustomName()
+			if _, paper := icon.Item().(item.Paper); !paper {
+				pg.items[f[1]+i] = icon.WithCustomName(b.CustomName())
+				icon, face = item.NewStack(item.Paper{}, 1), face+invui.KindPressIcon
+			}
+			pg.items[f[0]+i] = icon.WithCustomName(face + b.CustomName())
 		}
 	}
 }
