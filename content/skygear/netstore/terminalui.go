@@ -181,11 +181,22 @@ func (w *termWindow) fill(p *player.Player, tx *world.Tx) {
 	want := make([]item.Stack, termlayout.Size)
 	set := func(slot int, st item.Stack) { want[slot] = st }
 	defer func() {
+		changed := false
 		for slot, st := range want {
 			if old, _ := inv.Item(slot); !sameStack(old, st) {
-				_ = inv.SetItem(slot, st)
+				changed = true
 			}
 		}
+		if !changed {
+			return
+		}
+		w.storage.Batch(func() {
+			for slot, st := range want {
+				if old, _ := inv.Item(slot); !sameStack(old, st) {
+					_ = inv.SetItem(slot, st)
+				}
+			}
+		})
 	}()
 	lang := i18n.Of(p)
 	t := w.list(p, tx)
