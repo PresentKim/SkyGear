@@ -127,14 +127,15 @@ func image(texture string, size []any, layer int, props obj) obj {
 	return with(obj{"type": "image", "texture": texture, "size": size, "layer": layer}, props)
 }
 
-// button is a slot pressed by moving its item to the player's inventory (a
-// quick move), which the server cancels and answers: the press that reaches
-// the server on touch screens too (entity-inventory-ui 2.5). Its states
-// draw only backgrounds and the tooltip; what it shows sits over it.
+// button is a slot pressed by dropping one of its items (bedrock-json-ui-research
+// INP-17), which the server turns into a press and keeps in place
+// (common/invui handler). The slot holds two, so the slot the client drops
+// one from before the answer stays filled. Its states draw only backgrounds
+// and the tooltip; what it shows sits over it.
 func button(size any, def, hover, pressed string, tip bool) obj {
 	mappings := []any{}
 	for _, from := range []string{"button.menu_select", "button.menu_ok"} {
-		mappings = append(mappings, obj{"from_button_id": from, "to_button_id": "button.container_auto_place", "mapping_type": "pressed", "consume_event": false})
+		mappings = append(mappings, obj{"from_button_id": from, "to_button_id": "button.drop_one", "mapping_type": "pressed", "consume_event": false})
 	}
 	mappings = append(mappings, obj{"to_button_id": "button.container_slot_hovered", "mapping_type": "pressed"})
 	state := func(texture string, withTip bool) obj {
@@ -755,8 +756,9 @@ func defs() obj {
 	d["esc_button"] = obj{
 		"type": "button", "size": []any{1, 1}, "layer": 0,
 		"default_control": "", "hover_control": "", "pressed_control": "",
+		"focus_enabled": true, "default_focus_precedence": 1000,
 		"button_mappings": []any{
-			obj{"from_button_id": "button.menu_cancel", "to_button_id": "button.container_auto_place", "mapping_type": "global"},
+			obj{"from_button_id": "button.menu_cancel", "to_button_id": "button.drop_one", "mapping_type": "global"},
 		},
 		"bindings": []any{obj{"binding_type": "collection_details", "binding_collection_name": "container_items"}},
 	}
@@ -845,9 +847,8 @@ func questDefs(d obj, gap func(int) obj) {
 		}
 		return []any{obj{name: with(panel([]any{18, 18}, out...), with(obj{"bindings": shown(cond)}, top))}}
 	}
-	round := "(" + has(invui.KindDiamond) + " or " + has(invui.KindCircle) + ")"
 	node := []any{}
-	node = append(node, shape("square", "(not "+round+")")...)
+	node = append(node, shape("square", has(invui.KindSquare))...)
 	node = append(node, shape("diamond", has(invui.KindDiamond))...)
 	node = append(node, shape("circle", has(invui.KindCircle))...)
 	node = append(node,

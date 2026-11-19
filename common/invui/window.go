@@ -16,9 +16,10 @@ import (
 type window struct {
 	st *chestui.Storage
 
-	mu     sync.Mutex
-	open   bool
-	quiet  bool
+	mu       sync.Mutex
+	open     bool
+	quiet    bool
+	dropping bool
 	press  func(p *player.Player, tx *world.Tx, slot int)
 	closed func(p *player.Player, tx *world.Tx)
 }
@@ -66,6 +67,9 @@ func Show(p *player.Player, items []item.Stack, press func(p *player.Player, tx 
 		var it item.Stack
 		if i < len(items) {
 			it = items[i]
+		}
+		if !it.Empty() && it.Count() < 2 && it.MaxCount() >= 2 {
+			it = it.Grow(2 - it.Count())
 		}
 		if old, _ := inv.Item(i); !same(old, it) {
 			_ = inv.SetItem(i, it)
@@ -126,16 +130,46 @@ func same(a, b item.Stack) bool {
 	return a.Comparable(b) && a.Count() == b.Count() && a.CustomName() == b.CustomName()
 }
 
-// handler keeps every item in place: taking a slot's item (the quick move a
-// slot button sends) or dropping it is a press of the slot.
+// handler keeps every item in place: dropping one of a slot's items (what a
+// slot button sends) or taking it is a press of the slot. The drop is let
+// through and the player's drop handler cancels the item it would throw
+// (SwallowDrop): a drop the inventory handler cancels fails the request, and
+// the client then draws no slot of the window. Show puts two of each item that
+// stacks, so the slot the client drops one from before the answer stays
+// filled and its button drawn.
 type handler struct{ w *window }
 
-func (h handler) HandleTake(ctx *inventory.Context, slot int, _ item.Stack) { h.press(ctx, slot) }
-func (h handler) HandleDrop(ctx *inventory.Context, slot int, _ item.Stack) { h.press(ctx, slot) }
-func (h handler) HandlePlace(ctx *inventory.Context, _ int, _ item.Stack)   { ctx.Cancel() }
+func (h handler) HandleTake(ctx *inventory.Context, slot int, _ item.Stack) {
+	ctx.Cancel()
+	h.press(ctx, slot)
+}
+
+func (h handler) HandleDrop(ctx *inventory.Context, slot int, _ item.Stack) {
+	h.w.mu.Lock()
+	h.w.dropping = true
+	h.w.mu.Unlock()
+	h.press(ctx, slot)
+}
+
+func (h handler) HandlePlace(ctx *inventory.Context, _ int, _ item.Stack) { ctx.Cancel() }
+
+// SwallowDrop reports whether the item p is dropping is a press of p's menu
+// window, which its drop handler cancels.
+func SwallowDrop(p *player.Player) bool {
+	windows.Lock()
+	w := windows.m[p.UUID()]
+	windows.Unlock()
+	if w == nil {
+		return false
+	}
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	d := w.dropping
+	w.dropping = false
+	return d
+}
 
 func (h handler) press(ctx *inventory.Context, slot int) {
-	ctx.Cancel()
 	p, ok := ctx.Val().(*player.Player)
 	if !ok {
 		return
@@ -143,6 +177,7 @@ func (h handler) press(ctx *inventory.Context, slot int) {
 	p.H().Do(func(tx *world.Tx, e world.Entity) {
 		h.w.mu.Lock()
 		press := h.w.press
+		h.w.dropping = false
 		h.w.mu.Unlock()
 		if press != nil {
 			press(e.(*player.Player), tx, slot)
