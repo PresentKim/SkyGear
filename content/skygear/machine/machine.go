@@ -539,9 +539,8 @@ type State struct {
 	// with a range; 0 is all its tier gives (Area).
 	RangeX, RangeY, RangeZ int
 	// OffsetX, OffsetY and OffsetZ move the centre of that range away from
-	// the machine (Offset); offsetPage is whether the range screen shows them.
+	// the machine (Offset).
 	OffsetX, OffsetY, OffsetZ int
-	offsetPage                bool
 	// rangeUntil is the tick the box over its range shows until (its button),
 	// peekUntil the same while a player sneaks and looks at it, rangeEntity
 	// that box, rangeSize its size and rangeAt where it stands (rangeview.go).

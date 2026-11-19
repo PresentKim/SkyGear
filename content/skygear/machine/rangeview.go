@@ -2,13 +2,20 @@ package machine
 
 import (
 	"fmt"
+	"slices"
+	"strings"
 
+	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/common/invui"
 	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/preview"
 )
 
 // The machines that work on an area around them (the harvester, the item
@@ -233,22 +240,18 @@ type rangeAxis struct {
 	keep           func(v int)
 }
 
-// showRangeScreen shows p the range screen of the machine of kind, as JE
-// Item Collectors lays it out: the size, an up arrow, "x: 5" and a down
-// arrow for each axis, and the box button. A side button turns the screen
-// to the offset of the area, the same arrows moving its centre. back goes
-// to the machine.
+// rangeOwner is the preview the range screen shows the area in.
+const rangeOwner = "machine.range"
+
+// showRangeScreen shows p the range screen of the machine of kind: the x,
+// y and z of the area's centre (its offset from the machine) and of its
+// reach, each with a minus and a plus button, beside a 3D preview of the
+// area, and the box button. back goes to the machine.
 func (st *State) showRangeScreen(p *player.Player, kind string, back func(p *player.Player, tx *world.Tx)) {
 	lang := i18n.Of(p)
+	tx := p.Tx()
 	again := func(p *player.Player, _ *world.Tx) { st.showRangeScreen(p, kind, back) }
-	axes, line := st.reachAxes(kind), st.sizeLine(lang, kind)
-	pageKey := "machine.range.to_offset"
-	if st.offsetPage {
-		axes, line = st.offsetAxes(kind), st.offsetLine(lang, kind)+"  §7"+line
-		pageKey = "machine.range.to_reach"
-	}
-	var steppers []ui.Stepper
-	for _, ax := range axes {
+	axisOf := func(ax rangeAxis) ui.RangeAxis {
 		set := func(v int) func(p *player.Player, tx *world.Tx) {
 			if v < ax.low || v > ax.top {
 				return nil
@@ -258,29 +261,92 @@ func (st *State) showRangeScreen(p *player.Player, kind string, back func(p *pla
 				again(p, tx)
 			}
 		}
-		up := fmt.Sprintf(i18n.T(lang, "machine.range.wider"), ax.top)
-		down := i18n.T(lang, "machine.range.narrower")
-		if st.offsetPage {
-			up = fmt.Sprintf(i18n.T(lang, "machine.range.shift_up"), ax.top)
-			down = fmt.Sprintf(i18n.T(lang, "machine.range.shift_down"), ax.low)
-		}
-		steppers = append(steppers, ui.Stepper{
-			Label: ax.name, Value: ax.show,
-			Up:   ui.Option{Label: up, Run: set(ax.have + 1)},
-			Down: ui.Option{Label: down, Run: set(ax.have - 1)},
-		})
+		return ui.RangeAxis{Label: ax.name, Value: ax.show, Minus: ui.Option{Run: set(ax.have - 1)}, Plus: ui.Option{Run: set(ax.have + 1)}}
 	}
-	page := ui.Option{Label: i18n.T(lang, pageKey), Icon: "textures/ui/sg/menu_expand", Run: func(p *player.Player, tx *world.Tx) {
-		st.offsetPage = !st.offsetPage
-		again(p, tx)
-	}}
-	ui.ShowSteppers(p, ui.StepperScreen{
-		Title:    st.Def.Title(lang),
-		Line:     line,
-		Steppers: steppers,
-		Side:     []ui.Option{st.rangeViewOption(lang, again), page},
-		Options:  []ui.Option{ui.Back(i18n.T(lang, "machine.range.back"), back)},
+	var offset, reach [3]ui.RangeAxis
+	for i, ax := range st.offsetAxes(kind) {
+		offset[i] = axisOf(ax)
+	}
+	for _, ax := range st.reachAxes(kind) {
+		reach[strings.Index("xyz", ax.name)] = axisOf(ax)
+	}
+	s, _ := core.Of(tx)
+	clear := func(p *player.Player, tx *world.Tx) {
+		if s != nil {
+			preview.Clear(s, p, tx, rangeOwner)
+		}
+	}
+	ui.ShowRange(p, ui.RangeScreen{
+		Title:         st.Def.Title(lang),
+		OffsetHeading: st.offsetLine(lang, kind),
+		ReachHeading:  st.sizeLine(lang, kind),
+		Offset:        offset,
+		Reach:         reach,
+		Preview:       st.showRangePreview(s, p, tx, kind),
+		Options: []ui.Option{st.rangeViewOption(lang, again), ui.Back(i18n.T(lang, "machine.range.back"), func(p *player.Player, tx *world.Tx) {
+			clear(p, tx)
+			back(p, tx)
+		})},
+		Close: clear,
 	})
+}
+
+// rangeEdge is the glass that outlines the area in the range screen's
+// preview.
+var rangeEdge = preview.Look{Block: preview.Glass{Colour: item.ColourLightBlue()}}
+
+// showRangePreview copies the machine, its area and the layer under them
+// into the smallest preview box of the range screen that holds them, for p
+// only: the blocks that are not air, and glass on the area's edges. It
+// returns the box's number (from 1), or 0 when none holds them.
+func (st *State) showRangePreview(s *core.Session, p *player.Player, tx *world.Tx, kind string) int {
+	if s == nil {
+		return 0
+	}
+	lo, hi := st.rangeBox(kind, st.pos)
+	alo, ahi := cube.PosFromVec3(lo), cube.PosFromVec3(hi)
+	var blo, bhi cube.Pos
+	for i := range 3 {
+		blo[i], bhi[i] = min(alo[i], st.pos[i]), max(ahi[i], st.pos[i]+1)
+	}
+	blo[1]--
+	span := max(bhi[0]-blo[0], bhi[1]-blo[1], bhi[2]-blo[2])
+	box := slices.IndexFunc(invui.RangePreviews[:], func(size int) bool { return size >= span })
+	if box < 0 {
+		preview.Clear(s, p, tx, rangeOwner)
+		return 0
+	}
+	size := invui.RangePreviews[box]
+	shift := cube.Pos{
+		-size/2 + (size-(bhi[0]-blo[0]))/2 - blo[0],
+		invui.PreviewY + (size-(bhi[1]-blo[1]))/2 - blo[1],
+		-size/2 + (size-(bhi[2]-blo[2]))/2 - blo[2],
+	}
+	edge := func(v, lo, hi int) int {
+		if v == lo || v == hi-1 {
+			return 1
+		}
+		return 0
+	}
+	looks := map[cube.Pos]preview.Look{}
+	for x := blo[0]; x < bhi[0]; x++ {
+		for y := blo[1]; y < bhi[1]; y++ {
+			for z := blo[2]; z < bhi[2]; z++ {
+				pos := cube.Pos{x, y, z}
+				b := tx.Block(pos)
+				if _, air := b.(block.Air); !air {
+					looks[pos.Add(shift)] = preview.Look{Block: b}
+					continue
+				}
+				inside := x >= alo[0] && x < ahi[0] && y >= alo[1] && y < ahi[1] && z >= alo[2] && z < ahi[2]
+				if inside && edge(x, alo[0], ahi[0])+edge(y, alo[1], ahi[1])+edge(z, alo[2], ahi[2]) >= 2 {
+					looks[pos.Add(shift)] = rangeEdge
+				}
+			}
+		}
+	}
+	preview.Set(s, p, tx, rangeOwner, looks)
+	return box + 1
 }
 
 // reachAxes are the range screen's axes of the reach of the machine of kind:

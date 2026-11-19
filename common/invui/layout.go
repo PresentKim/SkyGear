@@ -94,6 +94,27 @@ const (
 	HomeFillSteps = 20
 )
 
+// The slots of the range screen (KeyRange): an axis a line, the offset's x,
+// y and z then the reach's, each with its value in a cell and a minus and a
+// plus button in the rows; the two headings in the cells after the axes and
+// the 3D preview's box ("v1" to "v6", RangePreviews) in the next. The rows
+// from RangeRow0 are list rows.
+const (
+	RangeAxes  = 6
+	RangeHead0 = RangeAxes
+	RangeHead1 = RangeAxes + 1
+	RangeView  = RangeAxes + 2
+	RangeRow0  = 2 * RangeAxes
+)
+
+// RangePreviews are the sizes of the boxes the range screen's 3D preview
+// draws, each a cube from (-size/2, PreviewY, -size/2), left as a client
+// only copy of the area being set.
+var RangePreviews = [...]int{10, 16, 24, 32, 48, 64}
+
+// PreviewY is the height of the bottom of the preview boxes.
+const PreviewY = 256
+
 // The layouts of the screens, by the key in SlotKey. KeyList after a key
 // draws it on the list page (the body over the layout's content), and
 // KeyRows the list rows under that content.
@@ -111,6 +132,7 @@ const (
 	// line under it in SlotInfo, the line ending in dots in SlotBody and the
 	// tip in the first cell.
 	KeyLoading = "ld"
+	KeyRange   = "rg"
 	KeyRows      = "Q"
 	// KeyLobby after a key draws the lobby's logo and name over the screen.
 	KeyLobby = "Y"

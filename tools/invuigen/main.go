@@ -55,11 +55,23 @@ func view(src, target string) obj {
 	return obj{"binding_type": "view", "binding_condition": "always", "source_property_name": src, "target_property_name": target}
 }
 
+// view2 copies property of the control named from into the same property.
+func view2(from, property string) obj {
+	return obj{"binding_type": "view", "source_control_name": from, "source_property_name": property, "target_property_name": property}
+}
+
 func has(marker string) string { return "(not ((#hover_text - '" + marker + "') = #hover_text))" }
 
 const filled = "(not (#hover_text = ''))"
 
 func shown(cond string) []any { return []any{slotText(), view(cond, "#visible")} }
+
+// shownButton is the button b shown while cond holds. Its own bindings stay:
+// without its collection_details binding a press reaches no slot.
+func shownButton(b obj, cond string) obj {
+	b["bindings"] = append(b["bindings"].([]any), shown(cond)...)
+	return b
+}
 
 func with(o obj, props obj) obj {
 	for k, v := range props {
@@ -412,7 +424,7 @@ func defs() obj {
 	// the chosen slot's detail on the right.
 	pager := func(arrow string) obj {
 		return panel([]any{18, 18},
-			obj{"b": with(button([]any{18, 18}, btnTex, btnHover, btnPress, false), obj{"bindings": shown(has(invui.KindRow))})},
+			obj{"b": shownButton(button([]any{18, 18}, btnTex, btnHover, btnPress, false), has(invui.KindRow))},
 			obj{"off": image(btnTex, []any{18, 18}, 1, obj{"alpha": 0.4, "bindings": shown(has(invui.KindStatic))})},
 			obj{"a": image("textures/ui/sg/arrow_"+arrow, []any{12, 12}, 3, nil)},
 		)
@@ -461,7 +473,7 @@ func defs() obj {
 	infoLine := slots("vertical", []any{"100% - 30px", 8}, []any{ref("t", "info_slot", obj{"collection_index": "$info_index"})})
 	d["info_slot"] = panel([]any{"100%", 8}, obj{"l": label(dim, 0.7, []any{"100%", "default"}, top)})
 	d["list_cell"] = with(panel([]any{"100%", 32},
-		obj{"b": with(button([]any{"100%", 30}, btnTex, btnHover, btnPress, false), obj{"bindings": shown(has(invui.KindRow))})},
+		obj{"b": shownButton(button([]any{"100%", 30}, btnTex, btnHover, btnPress, false), has(invui.KindRow))},
 		obj{"chosen": image(btnHover, []any{"100%", 30}, 1, with(obj{"bindings": shown(has(invui.KindChosen))}, top))},
 		obj{"i": with(panel([]any{20, 20}, obj{"i": icon(20)}), obj{"layer": 3, "offset": []any{5, -1}, "anchor_from": "left_middle", "anchor_to": "left_middle"})},
 		obj{"name": label(light, 1.0, []any{"100% - 30px", 9}, with(obj{"layer": 4, "offset": []any{27, 5}}, top))},
@@ -476,11 +488,78 @@ func defs() obj {
 		obj{"right": with(panel([]any{154, 142}, ref("s", "list_right_scroll", nil)), obj{"anchor_from": "top_right", "anchor_to": "top_right"})},
 	)
 
+	// The range screen: the 3D preview of the area on the left, the offset
+	// and reach axes with their minus and plus buttons on the right.
+	d["range_minus"] = with(pager("left"), obj{"bindings": shown(filled)})
+	d["range_plus"] = with(pager("right"), obj{"bindings": shown(filled)})
+	d["range_value"] = with(panel([]any{50, 18},
+		obj{"l": label(ink, 1.0, []any{"100% - 4px", "default"}, obj{"offset": []any{4, 0}, "anchor_from": "left_middle", "anchor_to": "left_middle"})},
+	), obj{"bindings": shown(filled)})
+	d["range_heading"] = with(panel([]any{"100%", 13},
+		obj{"l": label(head, 0.8, []any{"100% - 2px", "default"}, obj{"offset": []any{2, 0}, "anchor_from": "left_middle", "anchor_to": "left_middle"})},
+	), obj{"bindings": shown(filled)})
+	axisLine := func(i int) obj {
+		return obj{fmt.Sprintf("a%d", i): slots("horizontal", []any{"100%", "100%cm"}, []any{
+			at("m", "range_minus", invui.RowBtn0+2*i, nil),
+			at("v", "range_value", invui.Cell0+i, nil),
+			at("p", "range_plus", invui.RowBtn0+2*i+1, nil),
+		})}
+	}
+	heading := func(name string, cell int) obj {
+		return obj{name: slots("vertical", []any{"100%", "100%c"}, []any{at("h", "range_heading", invui.Cell0+cell, nil)})}
+	}
+	rangeRows := []any{}
+	for i := invui.RangeRow0; i < invui.RangeRow0+4; i++ {
+		rangeRows = append(rangeRows, at(fmt.Sprintf("r%d", i), "action_cell", invui.RowBtn0+i, obj{"$icon_index": invui.RowIcon0 + i}))
+	}
+	right := []any{heading("h0", invui.RangeHead0)}
+	for i := 0; i < invui.RangeAxes; i++ {
+		if i == invui.RangeAxes/2 {
+			right = append(right, gap(4), heading("h1", invui.RangeHead1))
+		}
+		right = append(right, axisLine(i))
+	}
+	right = append(right, gap(4), obj{"rows": slots("vertical", []any{"100%", "100%c"}, rangeRows)})
+	d["range_right_body"] = column("100% - 8px", right...)
+	scroll("range_right_scroll", "range_right_body")
+	turn := "sg_range_turn"
+	views := []any{}
+	for k, size := range invui.RangePreviews {
+		def := fmt.Sprintf("range_view_%d", k)
+		d[def] = with(panel([]any{"100%", "100%"}, obj{"r": obj{
+			"type": "custom", "renderer": "3d_structure_renderer", "size": []any{200, 200}, "layer": 3,
+			"anchor_from": "center", "anchor_to": "center",
+			"property_bag": obj{
+				"#has_focus": false, "#block_position": []any{0, 0, 0},
+				"#bottom_left_block": []any{-size / 2, invui.PreviewY, -size / 2},
+				"#top_right_block":   []any{size / 2, invui.PreviewY + size, size / 2},
+				"#include_entities":  false, "#remove_blocks": false, "#include_players": false,
+			},
+			"bindings": []any{
+				view2(turn, "#gesture_delta_source"),
+				view2(turn, "#gesture_mouse_delta_x"),
+				view2(turn, "#gesture_mouse_delta_y"),
+			},
+		}}), obj{"bindings": shown(has(fmt.Sprintf("v%d", k+1)))})
+		views = append(views, obj{fmt.Sprintf("v%d", k): slots("vertical", []any{"100%", "100%"}, []any{at("g", def, invui.Cell0+invui.RangeView, nil)})})
+	}
+	d["range_page"] = panel([]any{"100%", "100%"},
+		obj{"left": image("textures/ui/sg/panel", []any{138, 138}, 1, with(obj{"offset": []any{0, 2}, "controls": []any{
+			obj{"clip": with(panel([]any{130, 130}, obj{turn: obj{
+				"type": "input_panel", "size": []any{"100%", "100%"}, "focus_enabled": true,
+				"gesture_tracking_button": "button.turn_structure",
+				"button_mappings": []any{obj{"from_button_id": "button.menu_select", "to_button_id": "button.turn_structure", "mapping_type": "pressed", "button_up_right_of_first_refusal": true}},
+				"controls": views,
+			}}), obj{"clips_children": true, "anchor_from": "center", "anchor_to": "center"})},
+		}}, top))},
+		obj{"right": with(panel([]any{170, 142}, ref("s", "range_right_scroll", nil)), obj{"anchor_from": "top_right", "anchor_to": "top_right"})},
+	)
+
 	homeDefs(d)
 
 	pages := []any{}
 	for _, p := range []struct{ key, def string }{
-		{invui.KeyList, "list_page"}, {invui.KeySplit, "split_page"}, {invui.KeyListSplit, "listsplit_page"},
+		{invui.KeyList, "list_page"}, {invui.KeySplit, "split_page"}, {invui.KeyListSplit, "listsplit_page"}, {invui.KeyRange, "range_page"},
 	} {
 		name := strings.ReplaceAll(p.def, "_page", "")
 		d["page_"+name] = with(panel([]any{"100%", "100%"}, ref("page", p.def, nil)), obj{"bindings": shown(has(p.key))})
@@ -627,7 +706,7 @@ func homeDefs(d obj) {
 	d["home_save_line"] = with(panel([]any{92, "100%c"}, obj{"l": label(lobbyHead, 0.79, []any{"100%", "default"}, top)}), obj{"bindings": shown(filled)})
 	arrow := func(dir string) obj {
 		return panel([]any{14, 14},
-			obj{"b": with(flatButton([]any{14, 14}, lobbyFill, lobbyHover, lobbyBand, false), obj{"bindings": shown(has(invui.KindRow))})},
+			obj{"b": shownButton(flatButton([]any{14, 14}, lobbyFill, lobbyHover, lobbyBand, false), has(invui.KindRow))},
 			obj{"a": image("textures/ui/sg/chevron_"+dir, []any{8, 8}, 3, obj{"bindings": shown(filled)})},
 		)
 	}

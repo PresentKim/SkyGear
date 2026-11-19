@@ -326,6 +326,8 @@ func menuPageOf(name string, data any) *menuPage {
 		return planePage(v)
 	case questData:
 		return questPage(v)
+	case rangeData:
+		return rangePage(v)
 	case homeData:
 		return homePage(v)
 	}

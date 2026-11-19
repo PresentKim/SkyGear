@@ -10,7 +10,7 @@ import (
 var FixtureNames = []string{
 	"menu", "confirm", "cards", "pick", "result", "equip", "grid", "sections", "board", "sieve", "split", "search", "listsplit", "input",
 	"slotmenu", "slotmenu-small", "choice", "sides", "sides-open", "plane", "quest", "quest-panel", "home", "home-overlay",
-	"lobby-menu", "loading", "console", "radial", "radial-group",
+	"lobby-menu", "loading", "console", "radial", "radial-group", "range",
 }
 
 // Fixtures are sample screens by name: each shows p exactly one screen with
@@ -293,6 +293,24 @@ func Fixtures(p *player.Player) map[string]func() {
 				{Icon: "textures/blocks/stone", Label: "무작위", Value: "꺼짐", Run: nop},
 				{Icon: "textures/items/arrow", Label: "되돌리기", Value: "0개 남음"},
 			}})
+		},
+		"range": func() {
+			axis := func(label, value string, minus, plus bool) RangeAxis {
+				run := func(on bool) func(*player.Player, *world.Tx) {
+					if on {
+						return nop
+					}
+					return nil
+				}
+				return RangeAxis{Label: label, Value: value, Minus: Option{Run: run(minus)}, Plus: Option{Run: run(plus)}}
+			}
+			ShowRange(p, RangeScreen{
+				Title: "자동 벌목기", OffsetHeading: "기준점 (+2, 0, -1)", ReachHeading: "범위 9×15×9",
+				Offset:  [3]RangeAxis{axis("x", "+2", true, true), axis("y", "0", true, true), axis("z", "-1", true, false)},
+				Reach:   [3]RangeAxis{axis("x", "4", true, true), axis("y", "14", true, false), axis("z", "4", false, true)},
+				Preview: 2,
+				Options: []Option{{Label: "범위 보기 (1분)", Icon: "textures/ui/sg/icon_cube", Run: nop}, Back("뒤로", nop)},
+			})
 		},
 		"radial-group": func() {
 			ShowRadial(p, RadialMenu{Title: "방향 제한", Info: "고르면 설정이 바뀌고 처음 메뉴로 돌아갑니다", Back: nop, BackTip: "뒤로", Items: []RadialItem{
