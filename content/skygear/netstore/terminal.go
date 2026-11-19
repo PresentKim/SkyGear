@@ -54,6 +54,14 @@ func netInsert(n *Network, st item.Stack) int64 {
 	return taken
 }
 
+// netFits reports whether the network of n takes all of st.
+func netFits(n *Network, st item.Stack) bool {
+	if n == nil || !n.Online() || st.Empty() {
+		return false
+	}
+	return n.Root.Insert(KeyOf(st), int64(st.Count()), true) >= int64(st.Count())
+}
+
 // netExtract takes up to cnt (at most one stack) of the kind k out of n.
 func netExtract(n *Network, k storagenet.Key, cnt int) item.Stack {
 	if n == nil || !n.Online() {

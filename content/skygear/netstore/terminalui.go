@@ -2,6 +2,7 @@ package netstore
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -171,17 +172,27 @@ func termButton(it world.Item, text string, lore ...string) item.Stack {
 }
 
 // fill writes the window's slots: the insert slots empty, the page of the
-// list as take and show slots, and the buttons.
+// list as take and show slots, and the buttons. Only the slots that change
+// are written: a slot written again is drawn empty for a moment.
 func (w *termWindow) fill(p *player.Player, tx *world.Tx) {
 	w.filling = true
 	defer func() { w.filling = false }()
+	inv := w.storage.Inventory()
+	want := make([]item.Stack, termlayout.Size)
+	set := func(slot int, st item.Stack) { want[slot] = st }
+	defer func() {
+		for slot, st := range want {
+			if old, _ := inv.Item(slot); !sameStack(old, st) {
+				_ = inv.SetItem(slot, st)
+			}
+		}
+	}()
 	lang := i18n.Of(p)
 	t := w.list(p, tx)
 	pages := max(1, (t.size()+termPage-1)/termPage)
 	w.page = min(max(w.page, 0), pages-1)
-	inv := w.storage.Inventory()
 	for slot := range termlayout.Take0 {
-		_ = inv.SetItem(slot, item.Stack{})
+		set(slot, item.Stack{})
 	}
 	for k := range termlayout.Kinds {
 		i := w.page*termPage + k
@@ -196,41 +207,48 @@ func (w *termWindow) fill(p *player.Player, tx *world.Tx) {
 			take = proto.Grow(1 - proto.Count()).WithValue(termCraft, true)
 			show = shown(lang, proto, "+", i18n.T(lang, "netstore.terminal.craftTip"))
 		}
-		_ = inv.SetItem(termlayout.Take0+k, take)
-		_ = inv.SetItem(termlayout.Show0+k, show)
+		set(termlayout.Take0+k, take)
+		set(termlayout.Show0+k, show)
 	}
 	for slot := termlayout.Button0; slot < termlayout.Size; slot++ {
-		_ = inv.SetItem(slot, item.Stack{})
+		set(slot, item.Stack{})
 	}
 	page := fmt.Sprintf(i18n.T(lang, "netstore.terminal.page"), w.page+1, pages)
 	if w.page > 0 {
-		_ = inv.SetItem(termlayout.Prev, termButton(item.Arrow{}, i18n.T(lang, "netstore.terminal.prev"), page))
+		set(termlayout.Prev, termButton(item.Arrow{}, i18n.T(lang, "netstore.terminal.prev"), page))
 	}
 	if w.page < pages-1 {
-		_ = inv.SetItem(termlayout.Next, termButton(item.Arrow{}, i18n.T(lang, "netstore.terminal.next"), page))
+		set(termlayout.Next, termButton(item.Arrow{}, i18n.T(lang, "netstore.terminal.next"), page))
 	}
 	search := i18n.T(lang, "netstore.terminal.search")
 	if w.query != "" {
 		search += "§r  §e" + w.query
 	}
-	_ = inv.SetItem(termlayout.Search, termButton(item.Spyglass{}, search, i18n.T(lang, "storage.search.label")))
-	_ = inv.SetItem(termlayout.Sort, termButton(item.Clock{}, i18n.T(lang, sortKeys[orders.Of(w.s)[w.h]]), i18n.T(lang, "netstore.terminal.sortNext")))
+	set(termlayout.Search, termButton(item.Spyglass{}, search, i18n.T(lang, "storage.search.label")))
+	set(termlayout.Sort, termButton(item.Clock{}, i18n.T(lang, sortKeys[orders.Of(w.s)[w.h]]), i18n.T(lang, "netstore.terminal.sortNext")))
 	if t.n == nil {
-		_ = inv.SetItem(termlayout.Info, termButton(machine.Info{}, i18n.T(lang, "netstore.terminal.title"), i18n.T(lang, "netstore.terminal.offline")))
+		set(termlayout.Info, termButton(machine.Info{}, i18n.T(lang, "netstore.terminal.title"), i18n.T(lang, "netstore.terminal.offline")))
 		return
 	}
 	var items int64
 	t.n.Root.Each(func(_ storagenet.Key, c int64) { items += c })
 	info := strings.Split(terminalInfo(lang, len(entriesOf(t.n)), items, w.query, t.found), "\n")
-	_ = inv.SetItem(termlayout.Info, termButton(machine.Info{}, i18n.T(lang, "netstore.terminal.title"), append(info, page)...))
+	set(termlayout.Info, termButton(machine.Info{}, i18n.T(lang, "netstore.terminal.title"), append(info, page)...))
 	if _, ok := gridOf(tx, w.pos); ok {
-		_ = inv.SetItem(termlayout.Grid, termButton(block.CraftingTable{}, i18n.T(lang, "netstore.terminal.grid")))
+		set(termlayout.Grid, termButton(block.CraftingTable{}, i18n.T(lang, "netstore.terminal.grid")))
 	}
 	if MonitorHook != nil {
-		_ = inv.SetItem(termlayout.Tasks, termButton(item.Book{}, i18n.T(lang, "netstore.terminal.monitor")))
+		set(termlayout.Tasks, termButton(item.Book{}, i18n.T(lang, "netstore.terminal.monitor")))
 	}
-	_ = inv.SetItem(termlayout.TakeMatching, termButton(block.Chest{}, i18n.T(lang, "netstore.terminal.takeMatching")))
-	_ = inv.SetItem(termlayout.PutAll, termButton(block.Hopper{}, i18n.T(lang, "netstore.terminal.putAll")))
+	set(termlayout.TakeMatching, termButton(block.Chest{}, i18n.T(lang, "netstore.terminal.takeMatching")))
+	set(termlayout.PutAll, termButton(block.Hopper{}, i18n.T(lang, "netstore.terminal.putAll")))
+}
+
+func sameStack(a, b item.Stack) bool {
+	if a.Empty() || b.Empty() {
+		return a.Empty() == b.Empty()
+	}
+	return a.Comparable(b) && a.Count() == b.Count() && a.CustomName() == b.CustomName() && slices.Equal(a.Lore(), b.Lore())
 }
 
 // sortKeys name the orders of the list by their index (terminalList).
@@ -348,9 +366,13 @@ func (h termHandler) HandleTake(ctx *inventory.Context, slot int, it item.Stack)
 	}
 }
 
-func (h termHandler) HandlePlace(ctx *inventory.Context, slot int, _ item.Stack) {
+// HandlePlace lets an item in only when the network takes all of it, so a
+// put the network has no room for is refused, not given back.
+func (h termHandler) HandlePlace(ctx *inventory.Context, slot int, it item.Stack) {
 	if slot < termlayout.Show0 {
-		return
+		if p, ok := ctx.Val().(*player.Player); ok && netFits(At(p.Tx(), h.w.pos), it) {
+			return
+		}
 	}
 	ctx.Cancel()
 }
