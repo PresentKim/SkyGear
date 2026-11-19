@@ -125,8 +125,8 @@ func pixels(path string) (string, bool) {
 var blockPath = regexp.MustCompile(`textures/blocks/[A-Za-z0-9_/-]+`)
 
 // otherReferences are the textures/blocks paths named by the text files of
-// the repository the pack is in (every pack, the Go code, the Ore UI
-// sources) other than the terrain atlas itself.
+// the repository the pack is in (every pack, the Go code) other than the
+// terrain atlas itself.
 func otherReferences(pack string) map[string]bool {
 	root, err := filepath.Abs(pack)
 	if err != nil {

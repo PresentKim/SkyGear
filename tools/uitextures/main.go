@@ -1,6 +1,6 @@
-// Command uitextures writes the textures of the menus' DDUI screens
+// Command uitextures writes the textures of the menus
 // (assets/resourcepack/sgui/textures/ui/sg: buttons, the window, page arrows, chevrons, the
-// chosen slot, the lobby's buttons and icons), which the oreui pack's CSS and
+// chosen slot, the lobby's buttons and icons), which the menu window and
 // common/ui draw. Run it from the repository root: go run ./tools/uitextures writes the
 // missing pictures, -f writes all.
 package main
@@ -224,7 +224,7 @@ func main() {
 	write("arrow_up", arrow(3))
 	write("chevron_right", mirror(chevron()))
 
-	// the Ore UI lobby screens' buttons and windows (oui-mc.css .mc-lobby)
+	// the lobby screens' buttons and windows
 	write("launcher_button", launcherBox(color.NRGBA{18, 28, 48, 200}, color.NRGBA{110, 135, 170, 230}, 1))
 	write("icon_cube", glyph(
 		".......##.......",

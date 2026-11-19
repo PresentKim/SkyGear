@@ -106,7 +106,7 @@ func run(log *slog.Logger) error {
 		}
 	}
 	// This server's pack, then the common packs (HUD and menu textures,
-	// chest windows, WAILA, slot decorations, the Ore UI page of the menus).
+	// chest windows and the menu window, WAILA, slot decorations).
 	// The first pack is the top of the stack.
 	sgPack, err := assets.Pack("skygear")
 	if err != nil {
@@ -119,7 +119,6 @@ func run(log *slog.Logger) error {
 	if pconf.ResourcePack.SlotDeco {
 		packNames = append(packNames, "slotdeco")
 	}
-	packNames = append(packNames, "oreui")
 	packOpt.CacheDir = filepath.Join(pconf.Data.Dir, "packcache")
 	// The packs build concurrently; conf.Resources keeps the list order.
 	base := len(conf.Resources)

@@ -122,24 +122,6 @@ func TestThemeStandsAlone(t *testing.T) {
 	}
 }
 
-// TestScreenTextures: the pictures the oreui pack's CSS takes from the sgui
-// pack exist.
-func TestScreenTextures(t *testing.T) {
-	oreui, sgui := sub(t, "oreui"), sub(t, "sgui")
-	css, err := fs.ReadFile(oreui, "hbui/oui-mc.css")
-	if err != nil {
-		t.Fatal(err)
-	}
-	refs := regexp.MustCompile(`pack://(textures/ui/sg/\w+\.png)`).FindAllStringSubmatch(string(css), -1)
-	if len(refs) == 0 {
-		t.Fatal("the CSS takes no pictures from the sgui pack")
-	}
-	for _, m := range refs {
-		if _, err := fs.Stat(sgui, m[1]); err != nil {
-			t.Error(err)
-		}
-	}
-}
 
 // TestPNGNotGrayscale fails on grayscale PNGs (IHDR color type 0 or 4): the
 // client draws them translucent, so pack textures must be RGB or RGBA.

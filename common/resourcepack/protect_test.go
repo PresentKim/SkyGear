@@ -263,7 +263,7 @@ func TestEncryptDirMatchesSequential(t *testing.T) {
 // TestRepositoryPacksMinify: every pack of the repository survives
 // minifying, and keeps the same JSON content.
 func TestRepositoryPacksMinify(t *testing.T) {
-	for _, name := range []string{"inventoryui", "waila", "slotdeco", "oreui"} {
+	for _, name := range []string{"inventoryui", "waila", "slotdeco", "sgui"} {
 		dir := filepath.Join("..", "..", "assets", "resourcepack", name)
 		if _, err := LoadWith(dir, Options{Minify: true, Encrypt: true, Secret: []byte("test secret test secret test sec")}); err != nil {
 			t.Errorf("%s: %v", name, err)
