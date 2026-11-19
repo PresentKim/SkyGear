@@ -13001,20 +13001,6 @@
         "map": {
           "anchor_from": "top_left",
           "anchor_to": "top_left",
-          "bindings": [
-            {
-              "binding_collection_name": "container_items",
-              "binding_condition": "always",
-              "binding_name": "#hover_text",
-              "binding_type": "collection"
-            },
-            {
-              "binding_condition": "always",
-              "binding_type": "view",
-              "source_property_name": "(not ((#hover_text - '§z§8') = #hover_text))",
-              "target_property_name": "#visible"
-            }
-          ],
           "controls": [
             {
               "canvas": {
@@ -13035,948 +13021,251 @@
               }
             },
             {
-              "open": {
+              "n": {
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
                 "bindings": [
                   {
                     "binding_collection_name": "container_items",
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_name": "#hover_text",
                     "binding_type": "collection"
                   },
                   {
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "((#hover_text - '§z§5') = #hover_text) and ((#hover_text - '§z§6') = #hover_text)",
-                    "target_property_name": "#visible"
+                    "source_property_name": "('textures/ui/sg/ql' + (('%.91s' * (#hover_text - '§o' - '§f')) - ('%.90s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
+                    "target_property_name": "#texture"
                   }
                 ],
-                "controls": [
-                  {
-                    "n": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§1') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.6039215686274509,
-                        0.6039215686274509,
-                        0.6509803921568628
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        8,
-                        0
-                      ],
-                      "size": [
-                        2,
-                        10
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "s": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§2') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.6039215686274509,
-                        0.6039215686274509,
-                        0.6509803921568628
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        8,
-                        8
-                      ],
-                      "size": [
-                        2,
-                        16
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "w": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§3') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.6039215686274509,
-                        0.6039215686274509,
-                        0.6509803921568628
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        0,
-                        8
-                      ],
-                      "size": [
-                        10,
-                        2
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "e": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§4') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.6039215686274509,
-                        0.6039215686274509,
-                        0.6509803921568628
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        8,
-                        8
-                      ],
-                      "size": [
-                        10,
-                        2
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "gw": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§7§1') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.6039215686274509,
-                        0.6039215686274509,
-                        0.6509803921568628
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        18,
-                        8
-                      ],
-                      "size": [
-                        5,
-                        2
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "ge": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§7§2') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.6039215686274509,
-                        0.6039215686274509,
-                        0.6509803921568628
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        21,
-                        8
-                      ],
-                      "size": [
-                        3,
-                        2
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "gn": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§7§3') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.6039215686274509,
-                        0.6039215686274509,
-                        0.6509803921568628
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        21,
-                        0
-                      ],
-                      "size": [
-                        2,
-                        10
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "gs": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§7§4') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.6039215686274509,
-                        0.6039215686274509,
-                        0.6509803921568628
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        21,
-                        8
-                      ],
-                      "size": [
-                        2,
-                        16
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  }
+                "layer": 1,
+                "offset": [
+                  8,
+                  0
                 ],
                 "size": [
-                  24,
-                  24
+                  2,
+                  10
                 ],
-                "type": "panel"
+                "texture": "#texture",
+                "type": "image"
               }
             },
             {
-              "done": {
+              "s": {
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
                 "bindings": [
                   {
                     "binding_collection_name": "container_items",
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_name": "#hover_text",
                     "binding_type": "collection"
                   },
                   {
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(not ((#hover_text - '§z§5') = #hover_text))",
-                    "target_property_name": "#visible"
+                    "source_property_name": "('textures/ui/sg/ql' + (('%.94s' * (#hover_text - '§o' - '§f')) - ('%.93s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
+                    "target_property_name": "#texture"
                   }
                 ],
-                "controls": [
-                  {
-                    "n": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§1') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.2980392156862745,
-                        0.788235294117647,
-                        0.23529411764705882
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        8,
-                        0
-                      ],
-                      "size": [
-                        2,
-                        10
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "s": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§2') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.2980392156862745,
-                        0.788235294117647,
-                        0.23529411764705882
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        8,
-                        8
-                      ],
-                      "size": [
-                        2,
-                        16
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "w": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§3') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.2980392156862745,
-                        0.788235294117647,
-                        0.23529411764705882
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        0,
-                        8
-                      ],
-                      "size": [
-                        10,
-                        2
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "e": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§4') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.2980392156862745,
-                        0.788235294117647,
-                        0.23529411764705882
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        8,
-                        8
-                      ],
-                      "size": [
-                        10,
-                        2
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "gw": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§7§1') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.2980392156862745,
-                        0.788235294117647,
-                        0.23529411764705882
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        18,
-                        8
-                      ],
-                      "size": [
-                        5,
-                        2
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "ge": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§7§2') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.2980392156862745,
-                        0.788235294117647,
-                        0.23529411764705882
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        21,
-                        8
-                      ],
-                      "size": [
-                        3,
-                        2
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "gn": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§7§3') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.2980392156862745,
-                        0.788235294117647,
-                        0.23529411764705882
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        21,
-                        0
-                      ],
-                      "size": [
-                        2,
-                        10
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "gs": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§7§4') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.2980392156862745,
-                        0.788235294117647,
-                        0.23529411764705882
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        21,
-                        8
-                      ],
-                      "size": [
-                        2,
-                        16
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  }
+                "layer": 1,
+                "offset": [
+                  8,
+                  8
                 ],
                 "size": [
-                  24,
-                  24
+                  2,
+                  16
                 ],
-                "type": "panel"
+                "texture": "#texture",
+                "type": "image"
               }
             },
             {
-              "locked": {
+              "w": {
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
                 "bindings": [
                   {
                     "binding_collection_name": "container_items",
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_name": "#hover_text",
                     "binding_type": "collection"
                   },
                   {
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(not ((#hover_text - '§z§6') = #hover_text))",
-                    "target_property_name": "#visible"
+                    "source_property_name": "('textures/ui/sg/ql' + (('%.97s' * (#hover_text - '§o' - '§f')) - ('%.96s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
+                    "target_property_name": "#texture"
                   }
                 ],
-                "controls": [
-                  {
-                    "n": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§1') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.2901960784313726,
-                        0.2901960784313726,
-                        0.3333333333333333
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        8,
-                        0
-                      ],
-                      "size": [
-                        2,
-                        10
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "s": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§2') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.2901960784313726,
-                        0.2901960784313726,
-                        0.3333333333333333
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        8,
-                        8
-                      ],
-                      "size": [
-                        2,
-                        16
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "w": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§3') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.2901960784313726,
-                        0.2901960784313726,
-                        0.3333333333333333
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        0,
-                        8
-                      ],
-                      "size": [
-                        10,
-                        2
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "e": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§4') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.2901960784313726,
-                        0.2901960784313726,
-                        0.3333333333333333
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        8,
-                        8
-                      ],
-                      "size": [
-                        10,
-                        2
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "gw": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§7§1') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.2901960784313726,
-                        0.2901960784313726,
-                        0.3333333333333333
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        18,
-                        8
-                      ],
-                      "size": [
-                        5,
-                        2
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "ge": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§7§2') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.2901960784313726,
-                        0.2901960784313726,
-                        0.3333333333333333
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        21,
-                        8
-                      ],
-                      "size": [
-                        3,
-                        2
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "gn": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§7§3') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.2901960784313726,
-                        0.2901960784313726,
-                        0.3333333333333333
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        21,
-                        0
-                      ],
-                      "size": [
-                        2,
-                        10
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "gs": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - '§z§7§4') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.2901960784313726,
-                        0.2901960784313726,
-                        0.3333333333333333
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        21,
-                        8
-                      ],
-                      "size": [
-                        2,
-                        16
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  }
+                "layer": 1,
+                "offset": [
+                  0,
+                  8
                 ],
                 "size": [
-                  24,
-                  24
+                  10,
+                  2
                 ],
-                "type": "panel"
+                "texture": "#texture",
+                "type": "image"
+              }
+            },
+            {
+              "e": {
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "visible",
+                    "binding_name": "#hover_text",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_condition": "visible",
+                    "binding_type": "view",
+                    "source_property_name": "('textures/ui/sg/ql' + (('%.100s' * (#hover_text - '§o' - '§f')) - ('%.99s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
+                    "target_property_name": "#texture"
+                  }
+                ],
+                "layer": 1,
+                "offset": [
+                  8,
+                  8
+                ],
+                "size": [
+                  10,
+                  2
+                ],
+                "texture": "#texture",
+                "type": "image"
+              }
+            },
+            {
+              "gw": {
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "visible",
+                    "binding_name": "#hover_text",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_condition": "visible",
+                    "binding_type": "view",
+                    "source_property_name": "('textures/ui/sg/ql' + (('%.103s' * (#hover_text - '§o' - '§f')) - ('%.102s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
+                    "target_property_name": "#texture"
+                  }
+                ],
+                "layer": 1,
+                "offset": [
+                  18,
+                  8
+                ],
+                "size": [
+                  5,
+                  2
+                ],
+                "texture": "#texture",
+                "type": "image"
+              }
+            },
+            {
+              "ge": {
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "visible",
+                    "binding_name": "#hover_text",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_condition": "visible",
+                    "binding_type": "view",
+                    "source_property_name": "('textures/ui/sg/ql' + (('%.106s' * (#hover_text - '§o' - '§f')) - ('%.105s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
+                    "target_property_name": "#texture"
+                  }
+                ],
+                "layer": 1,
+                "offset": [
+                  21,
+                  8
+                ],
+                "size": [
+                  3,
+                  2
+                ],
+                "texture": "#texture",
+                "type": "image"
+              }
+            },
+            {
+              "gn": {
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "visible",
+                    "binding_name": "#hover_text",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_condition": "visible",
+                    "binding_type": "view",
+                    "source_property_name": "('textures/ui/sg/ql' + (('%.109s' * (#hover_text - '§o' - '§f')) - ('%.108s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
+                    "target_property_name": "#texture"
+                  }
+                ],
+                "layer": 1,
+                "offset": [
+                  21,
+                  0
+                ],
+                "size": [
+                  2,
+                  10
+                ],
+                "texture": "#texture",
+                "type": "image"
+              }
+            },
+            {
+              "gs": {
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "visible",
+                    "binding_name": "#hover_text",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_condition": "visible",
+                    "binding_type": "view",
+                    "source_property_name": "('textures/ui/sg/ql' + (('%.112s' * (#hover_text - '§o' - '§f')) - ('%.111s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
+                    "target_property_name": "#texture"
+                  }
+                ],
+                "layer": 1,
+                "offset": [
+                  21,
+                  8
+                ],
+                "size": [
+                  2,
+                  16
+                ],
+                "texture": "#texture",
+                "type": "image"
               }
             }
           ],
@@ -14007,426 +13296,70 @@
           ],
           "controls": [
             {
-              "square": {
+              "fill": {
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
                 "bindings": [
                   {
                     "binding_collection_name": "container_items",
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_name": "#hover_text",
                     "binding_type": "collection"
                   },
                   {
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(not ((#hover_text - '§z§7§9') = #hover_text))",
-                    "target_property_name": "#visible"
+                    "source_property_name": "('textures/ui/sg/qf' + (('%.115s' * (#hover_text - '§o' - '§f')) - ('%.114s' * (#hover_text - '§o' - '§f'))))",
+                    "target_property_name": "#texture"
                   }
                 ],
-                "controls": [
-                  {
-                    "square_fill": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.17254901960784313,
-                        0.17254901960784313,
-                        0.20392156862745098
-                      ],
-                      "layer": 2,
-                      "size": [
-                        18,
-                        18
-                      ],
-                      "texture": "textures/ui/sg/quest_square",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "square_open": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(((#hover_text - '§z§5') = #hover_text) and ((#hover_text - '§z§6') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.8627450980392157,
-                        0.8627450980392157,
-                        0.8862745098039215
-                      ],
-                      "layer": 3,
-                      "size": [
-                        18,
-                        18
-                      ],
-                      "texture": "textures/ui/sg/quest_square_edge",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "square_done": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "((not ((#hover_text - '§z§5') = #hover_text)))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.2980392156862745,
-                        0.788235294117647,
-                        0.23529411764705882
-                      ],
-                      "layer": 3,
-                      "size": [
-                        18,
-                        18
-                      ],
-                      "texture": "textures/ui/sg/quest_square_edge",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "square_locked": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "((not ((#hover_text - '§z§6') = #hover_text)))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.41568627450980394,
-                        0.41568627450980394,
-                        0.4549019607843137
-                      ],
-                      "layer": 3,
-                      "size": [
-                        18,
-                        18
-                      ],
-                      "texture": "textures/ui/sg/quest_square_edge",
-                      "type": "image"
-                    }
-                  }
+                "color": [
+                  0.17254901960784313,
+                  0.17254901960784313,
+                  0.20392156862745098
+                ],
+                "layer": 2,
+                "offset": [
+                  0,
+                  0
                 ],
                 "size": [
                   18,
                   18
                 ],
-                "type": "panel"
+                "texture": "#texture",
+                "type": "image"
               }
             },
             {
-              "diamond": {
+              "edge": {
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
                 "bindings": [
                   {
                     "binding_collection_name": "container_items",
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_name": "#hover_text",
                     "binding_type": "collection"
                   },
                   {
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(not ((#hover_text - '§z§7§5') = #hover_text))",
-                    "target_property_name": "#visible"
+                    "source_property_name": "('textures/ui/sg/qe' + (('%.115s' * (#hover_text - '§o' - '§f')) - ('%.114s' * (#hover_text - '§o' - '§f'))) + (('%.118s' * (#hover_text - '§o' - '§f')) - ('%.117s' * (#hover_text - '§o' - '§f'))))",
+                    "target_property_name": "#texture"
                   }
                 ],
-                "controls": [
-                  {
-                    "diamond_fill": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.17254901960784313,
-                        0.17254901960784313,
-                        0.20392156862745098
-                      ],
-                      "layer": 2,
-                      "size": [
-                        18,
-                        18
-                      ],
-                      "texture": "textures/ui/sg/quest_diamond",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "diamond_open": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(((#hover_text - '§z§5') = #hover_text) and ((#hover_text - '§z§6') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.8627450980392157,
-                        0.8627450980392157,
-                        0.8862745098039215
-                      ],
-                      "layer": 3,
-                      "size": [
-                        18,
-                        18
-                      ],
-                      "texture": "textures/ui/sg/quest_diamond_edge",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "diamond_done": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "((not ((#hover_text - '§z§5') = #hover_text)))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.2980392156862745,
-                        0.788235294117647,
-                        0.23529411764705882
-                      ],
-                      "layer": 3,
-                      "size": [
-                        18,
-                        18
-                      ],
-                      "texture": "textures/ui/sg/quest_diamond_edge",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "diamond_locked": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "((not ((#hover_text - '§z§6') = #hover_text)))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.41568627450980394,
-                        0.41568627450980394,
-                        0.4549019607843137
-                      ],
-                      "layer": 3,
-                      "size": [
-                        18,
-                        18
-                      ],
-                      "texture": "textures/ui/sg/quest_diamond_edge",
-                      "type": "image"
-                    }
-                  }
+                "layer": 3,
+                "offset": [
+                  0,
+                  0
                 ],
                 "size": [
                   18,
                   18
                 ],
-                "type": "panel"
-              }
-            },
-            {
-              "circle": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "bindings": [
-                  {
-                    "binding_collection_name": "container_items",
-                    "binding_condition": "always",
-                    "binding_name": "#hover_text",
-                    "binding_type": "collection"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "(not ((#hover_text - '§z§7§6') = #hover_text))",
-                    "target_property_name": "#visible"
-                  }
-                ],
-                "controls": [
-                  {
-                    "circle_fill": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.17254901960784313,
-                        0.17254901960784313,
-                        0.20392156862745098
-                      ],
-                      "layer": 2,
-                      "size": [
-                        18,
-                        18
-                      ],
-                      "texture": "textures/ui/sg/quest_circle",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "circle_open": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "(((#hover_text - '§z§5') = #hover_text) and ((#hover_text - '§z§6') = #hover_text))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.8627450980392157,
-                        0.8627450980392157,
-                        0.8862745098039215
-                      ],
-                      "layer": 3,
-                      "size": [
-                        18,
-                        18
-                      ],
-                      "texture": "textures/ui/sg/quest_circle_edge",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "circle_done": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "((not ((#hover_text - '§z§5') = #hover_text)))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.2980392156862745,
-                        0.788235294117647,
-                        0.23529411764705882
-                      ],
-                      "layer": 3,
-                      "size": [
-                        18,
-                        18
-                      ],
-                      "texture": "textures/ui/sg/quest_circle_edge",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "circle_locked": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "bindings": [
-                        {
-                          "binding_collection_name": "container_items",
-                          "binding_condition": "always",
-                          "binding_name": "#hover_text",
-                          "binding_type": "collection"
-                        },
-                        {
-                          "binding_condition": "always",
-                          "binding_type": "view",
-                          "source_property_name": "((not ((#hover_text - '§z§6') = #hover_text)))",
-                          "target_property_name": "#visible"
-                        }
-                      ],
-                      "color": [
-                        0.41568627450980394,
-                        0.41568627450980394,
-                        0.4549019607843137
-                      ],
-                      "layer": 3,
-                      "size": [
-                        18,
-                        18
-                      ],
-                      "texture": "textures/ui/sg/quest_circle_edge",
-                      "type": "image"
-                    }
-                  }
-                ],
-                "size": [
-                  18,
-                  18
-                ],
-                "type": "panel"
+                "texture": "#texture",
+                "type": "image"
               }
             },
             {

@@ -100,6 +100,30 @@ func chosenBox(size int) image.Image {
 	return img
 }
 
+// solid is a 2×2 picture of one colour.
+func solid(c color.NRGBA) image.Image {
+	img := image.NewNRGBA(image.Rect(0, 0, 2, 2))
+	for x := range 2 {
+		for y := range 2 {
+			img.SetNRGBA(x, y, c)
+		}
+	}
+	return img
+}
+
+// tint is a white picture in colour c, its alpha kept.
+func tint(src image.Image, c color.NRGBA) image.Image {
+	b := src.Bounds()
+	img := image.NewNRGBA(b)
+	for x := b.Min.X; x < b.Max.X; x++ {
+		for y := b.Min.Y; y < b.Max.Y; y++ {
+			_, _, _, a := src.At(x, y).RGBA()
+			img.SetNRGBA(x, y, color.NRGBA{c.R, c.G, c.B, uint8(a >> 8)})
+		}
+	}
+	return img
+}
+
 // frame is an 8×8 white edge thick pixels wide around a clear middle, drawn
 // tinted and nine-sliced (frame*.json) at any size.
 func frame(thick int) image.Image {
@@ -355,6 +379,22 @@ func main() {
 		write("quest_"+s+"_edge", questShape(s, true))
 	}
 	write("quest_locked", noEntry())
+	// A quest canvas cell names its pictures from its code (invui.QuestCode):
+	// ql<flag><state> a line piece, qf<shape> a quest's fill, qe<shape><state>
+	// its edge. States are open, done and locked; shapes square, diamond and
+	// circle.
+	lines := []color.NRGBA{{0x9a, 0x9a, 0xa6, 255}, {0x4c, 0xc9, 0x3c, 255}, {0x4a, 0x4a, 0x55, 255}}
+	edges := []color.NRGBA{{0xdc, 0xdc, 0xe2, 255}, {0x4c, 0xc9, 0x3c, 255}, {0x6a, 0x6a, 0x74, 255}}
+	for st, c := range lines {
+		write(fmt.Sprintf("ql1%d", st), solid(c))
+		write(fmt.Sprintf("ql0%d", st), solid(color.NRGBA{}))
+	}
+	for sh, name := range []string{"square", "diamond", "circle"} {
+		write(fmt.Sprintf("qf%d", sh), questShape(name, false))
+		for st, c := range edges {
+			write(fmt.Sprintf("qe%d%d", sh, st), tint(questShape(name, true), c))
+		}
+	}
 	sliced("frame1", frame(1), 1)
 	sliced("frame2", frame(2), 2)
 	for _, s := range []struct {

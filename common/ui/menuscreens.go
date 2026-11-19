@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/df-mc/dragonfly/server/block"
+	"github.com/df-mc/dragonfly/server/item"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/invui"
 )
@@ -557,15 +558,18 @@ func questCanvas(v questData, c dChrome) *menuPage {
 			mark(x1/2, r+1, up, k)
 		}
 	}
-	state := map[int]string{0: invui.KindLocked, 2: invui.KindDone}
-	for p, k := range kinds {
-		pg.mark(p.r*cols+left+p.c, "", k+state[rank[p]]+invui.KindCanvas)
+	lineState := map[int]int{0: invui.QuestLocked, 1: invui.QuestOpen, 2: invui.QuestDone}
+	code := func(p at, shape, state int) string {
+		lines := invui.QuestOpen
+		if k, ok := rank[p]; ok {
+			lines = lineState[k]
+		}
+		return invui.QuestCode(lines, kinds[p], shape, state)
 	}
 	for r := range ys {
 		for c := -left; c < cols-left; c++ {
-			if _, ok := kinds[at{c, r}]; !ok {
-				pg.mark(r*cols+left+c, "", invui.KindCanvas)
-			}
+			p := at{c, r}
+			pg.items[invui.Cell0+r*cols+left+c] = item.NewStack(item.Paper{}, 1).WithCustomName(invui.CellFace("", "") + code(p, invui.QuestSquare, invui.QuestOpen) + invui.KindCanvas)
 		}
 	}
 	for _, n := range v.Nodes {
@@ -575,22 +579,19 @@ func questCanvas(v questData, c dChrome) *menuPage {
 		p := at{place(xs, n.X) / 2, row(n.Y)}
 		i := p.r*cols + left + p.c
 		pg.cell(i, dSlot{ID: n.ID, Icon: n.Icon, Tip: n.Tip, Selected: n.Tracked}, invui.KindRow, invui.KindStatic)
-		extra := kinds[p] + invui.KindCanvas
+		extra := invui.KindCanvas
+		shape, state := invui.QuestSquare, invui.QuestOpen
 		switch n.Shape {
 		case ShapeDiamond:
-			extra += invui.KindDiamond
+			shape = invui.QuestDiamond
 		case ShapeCircle:
-			extra += invui.KindCircle
-		case ShapeGate:
-			extra += invui.KindGate + invui.KindSquare
-		default:
-			extra += invui.KindSquare
+			shape = invui.QuestCircle
 		}
 		switch n.State {
 		case QuestDone:
-			extra += invui.KindDone
+			state, extra = invui.QuestDone, extra+invui.KindDone
 		case QuestLocked:
-			extra += invui.KindLocked
+			state, extra = invui.QuestLocked, extra+invui.KindLocked
 		}
 		if n.New {
 			extra += invui.KindNew
@@ -598,7 +599,7 @@ func questCanvas(v questData, c dChrome) *menuPage {
 		slot := invui.Cell0 + i
 		if !pg.items[slot].Empty() {
 			name := pg.items[slot].CustomName()
-			pg.items[slot] = pg.items[slot].WithCustomName(name[:invui.FaceBytes] + extra + name[invui.FaceBytes:])
+			pg.items[slot] = pg.items[slot].WithCustomName(name[:invui.FaceBytes] + code(p, shape, state) + extra + name[invui.FaceBytes:])
 		}
 	}
 	return pg

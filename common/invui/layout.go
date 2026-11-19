@@ -372,6 +372,46 @@ const FaceBytes = 3*CountChars + FacePathBytes
 // stays drawn meanwhile.
 var Faces = [][3]int{{TabIcon0, TabBtn0, Tabs}, {BarIcon0, BarBtn0, Bars}, {RowIcon0, RowBtn0, Rows}}
 
+// QuestPieces are the line pieces of a quest canvas cell, in the order of
+// their flags in QuestCode.
+var QuestPieces = []string{KindLineN, KindLineS, KindLineW, KindLineE, KindGapW, KindGapE, KindGapN, KindGapS}
+
+// The states and shapes of QuestCode.
+const (
+	QuestOpen = iota
+	QuestDone
+	QuestLocked
+)
+
+const (
+	QuestSquare = iota
+	QuestDiamond
+	QuestCircle
+)
+
+// QuestCodeChars is how many digits QuestCode writes.
+const QuestCodeChars = 3 + 8
+
+// QuestCode follows the face (CellFace) of a quest canvas cell: the state
+// of its lines, a flag a piece of QuestPieces it draws, its quest's shape
+// and its quest's state, each a digit after a format sign. The pack builds
+// the pictures' names from the digits at their fixed places.
+func QuestCode(lines int, pieces string, shape, state int) string {
+	var b strings.Builder
+	digit := func(n int) { b.WriteString("§" + string(rune('0'+n))) }
+	digit(lines)
+	for _, p := range QuestPieces {
+		if strings.Contains(pieces, p) {
+			digit(1)
+		} else {
+			digit(0)
+		}
+	}
+	digit(shape)
+	digit(state)
+	return b.String()
+}
+
 // FaceTextBytes is how many bytes follow the start of a face (Face): its
 // kinds and label, cut or padded with reset codes to that length. The client
 // adds an item's own lines (a tool's damage) after its name, and the pack

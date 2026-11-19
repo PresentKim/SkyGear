@@ -23,17 +23,16 @@ func TestQuestCanvasDrawsLineThroughLane(t *testing.T) {
 	left := (cols - 2) / 2
 	for _, c := range []struct {
 		cell int
-		want []string
+		node bool
+		code string
 	}{
-		{left, []string{invui.FamSlot, invui.KindLineE, invui.KindGapW, invui.KindGapS}},
-		{cols + left, []string{invui.KindGapN, invui.KindGapE, invui.KindDone}},
-		{cols + left + 1, []string{invui.FamSlot, invui.KindLineW}},
+		{left, true, invui.QuestCode(invui.QuestDone, invui.KindLineE+invui.KindGapW+invui.KindGapS, invui.QuestSquare, invui.QuestDone)},
+		{cols + left, false, invui.QuestCode(invui.QuestDone, invui.KindGapN+invui.KindGapE, invui.QuestSquare, invui.QuestOpen)},
+		{cols + left + 1, true, invui.QuestCode(invui.QuestDone, invui.KindLineW, invui.QuestSquare, invui.QuestDone)},
 	} {
 		name := pg.items[invui.Cell0+c.cell].CustomName()
-		for _, w := range c.want {
-			if !strings.Contains(name, w) {
-				t.Errorf("cell %d = %q, want %q", c.cell, name, w)
-			}
+		if !strings.HasPrefix(name[invui.FaceBytes:], c.code) || strings.Contains(name, invui.FamSlot) != c.node {
+			t.Errorf("cell %d = %q, want code %q", c.cell, name, c.code)
 		}
 	}
 }

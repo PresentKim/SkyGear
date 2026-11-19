@@ -916,54 +916,40 @@ const (
 )
 
 func questDefs(d obj, gap func(int) obj) {
-	lacks := func(marker string) string { return "((#hover_text - '" + marker + "') = #hover_text)" }
-	states := []struct {
-		name string
-		c    []any
-		cond string
-	}{
-		{"open", rgb(0x9a, 0x9a, 0xa6), lacks(invui.KindDone) + " and " + lacks(invui.KindLocked)},
-		{"done", chosenGreen, has(invui.KindDone)},
-		{"locked", rgb(0x4a, 0x4a, 0x55), has(invui.KindLocked)},
+	// The pictures of a cell are named from the digits of its code
+	// (invui.QuestCode) after its face: no picture is drawn hidden.
+	text := "(#hover_text - '§o' - '§f')"
+	digit := func(k int) string {
+		at := invui.FaceBytes + 3*k
+		return fmt.Sprintf("(('%%.%ds' * %s) - ('%%.%ds' * %s))", at+3, text, at+2, text)
 	}
-	// The lines of a cell share one state: a panel a state, and in it a
-	// piece a direction, so only the shown state's pieces read the slot.
+	pictured := func(name, texture string, size, offset []any, layer int) obj {
+		return obj{name: image("#texture", size, layer, with(obj{"offset": offset,
+			"bindings": []any{slotText(), view("('textures/ui/sg/"+texture, "#texture")}}, top))}
+	}
 	parts := []any{obj{"canvas": rect(rgb(0x1c, 0x1c, 0x22), []any{questCellW, questCellH}, nil, 0)}}
-	for _, st := range states {
-		pieces := []any{}
-		for _, ln := range []struct {
-			name, marker string
-			size, offset []any
-		}{
-			{"n", invui.KindLineN, []any{2, 10}, []any{8, 0}},
-			{"s", invui.KindLineS, []any{2, questCellH - 8}, []any{8, 8}},
-			{"w", invui.KindLineW, []any{10, 2}, []any{0, 8}},
-			{"e", invui.KindLineE, []any{10, 2}, []any{8, 8}},
-			{"gw", invui.KindGapW, []any{laneX + 2 - 18, 2}, []any{18, 8}},
-			{"ge", invui.KindGapE, []any{questCellW - laneX, 2}, []any{laneX, 8}},
-			{"gn", invui.KindGapN, []any{2, 10}, []any{laneX, 0}},
-			{"gs", invui.KindGapS, []any{2, questCellH - 8}, []any{laneX, 8}},
-		} {
-			r := rect(st.c, ln.size, ln.offset, 1)
-			r["bindings"] = shown(has(ln.marker))
-			pieces = append(pieces, obj{ln.name: r})
-		}
-		parts = append(parts, obj{st.name: with(panel([]any{questCellW, questCellH}, pieces...), with(obj{"bindings": shown(st.cond)}, top))})
+	for p, ln := range []struct {
+		name         string
+		size, offset []any
+	}{
+		{"n", []any{2, 10}, []any{8, 0}},
+		{"s", []any{2, questCellH - 8}, []any{8, 8}},
+		{"w", []any{10, 2}, []any{0, 8}},
+		{"e", []any{10, 2}, []any{8, 8}},
+		{"gw", []any{laneX + 2 - 18, 2}, []any{18, 8}},
+		{"ge", []any{questCellW - laneX, 2}, []any{laneX, 8}},
+		{"gn", []any{2, 10}, []any{laneX, 0}},
+		{"gs", []any{2, questCellH - 8}, []any{laneX, 8}},
+	} {
+		parts = append(parts, pictured(ln.name, "ql' + "+digit(1+p)+" + "+digit(0)+")", ln.size, ln.offset, 1))
 	}
-	shape := func(name, cond string) []any {
-		out := []any{obj{name + "_fill": image("textures/ui/sg/quest_"+name, []any{18, 18}, 2, with(obj{"color": rgb(0x2c, 0x2c, 0x34)}, top))}}
-		edge := map[string][]any{"open": rgb(0xdc, 0xdc, 0xe2), "done": chosenGreen, "locked": rgb(0x6a, 0x6a, 0x74)}
-		for _, st := range states {
-			out = append(out, obj{name + "_" + st.name: image("textures/ui/sg/quest_"+name+"_edge", []any{18, 18}, 3, with(obj{"color": edge[st.name]}, top))})
-			last := out[len(out)-1].(obj)[name+"_"+st.name].(obj)
-			last["bindings"] = shown("(" + st.cond + ")")
-		}
-		return []any{obj{name: with(panel([]any{18, 18}, out...), with(obj{"bindings": shown(cond)}, top))}}
+	shapeDigit, stateDigit := digit(1+len(invui.QuestPieces)), digit(2+len(invui.QuestPieces))
+	fill := pictured("fill", "qf' + "+shapeDigit+")", []any{18, 18}, []any{0, 0}, 2)
+	fill["fill"].(obj)["color"] = rgb(0x2c, 0x2c, 0x34)
+	node := []any{
+		fill,
+		pictured("edge", "qe' + "+shapeDigit+" + "+stateDigit+")", []any{18, 18}, []any{0, 0}, 3),
 	}
-	node := []any{}
-	node = append(node, shape("square", has(invui.KindSquare))...)
-	node = append(node, shape("diamond", has(invui.KindDiamond))...)
-	node = append(node, shape("circle", has(invui.KindCircle))...)
 	node = append(node,
 		obj{"icon": with(faceIcon([]any{12, 12}), obj{"layer": 4, "offset": []any{3, 3}, "anchor_from": "top_left", "anchor_to": "top_left"})},
 		obj{"locked": image("textures/ui/sg/quest_locked", []any{14, 14}, 6, with(obj{"offset": []any{2, 2}, "bindings": shown(has(invui.KindLocked))}, top))},
@@ -973,7 +959,7 @@ func questDefs(d obj, gap func(int) obj) {
 	)
 	node[len(node)-2].(obj)["new"].(obj)["bindings"] = shown(has(invui.KindNew))
 	d["quest_cell"] = panel([]any{questCellW, questCellH},
-		obj{"map": with(panel([]any{questCellW, questCellH}, parts...), with(obj{"bindings": shown(has(invui.KindCanvas))}, top))},
+		obj{"map": with(panel([]any{questCellW, questCellH}, parts...), top)},
 		obj{"node": with(panel([]any{18, 18}, node...), with(obj{"bindings": shown(has(invui.FamSlot))}, top))},
 	)
 
@@ -1024,7 +1010,7 @@ func questDefs(d obj, gap func(int) obj) {
 		obj{"new": rect(rgb(0xff, 0xd7, 0x5e), []any{4, 4}, []any{2, 2}, 6)},
 	), obj{"bindings": shown(filled)})
 	ch := d["quest_chapter"].(obj)["controls"].([]any)
-	ch[3].(obj)["l"].(obj)["bindings"] = append(ch[3].(obj)["l"].(obj)["bindings"].([]any), view(lacks(invui.KindChosen), "#visible"))
+	ch[3].(obj)["l"].(obj)["bindings"] = append(ch[3].(obj)["l"].(obj)["bindings"].([]any), view("((#hover_text - '"+invui.KindChosen+"') = #hover_text)", "#visible"))
 	ch[4].(obj)["lon"].(obj)["bindings"] = append(ch[4].(obj)["lon"].(obj)["bindings"].([]any), view(has(invui.KindChosen), "#visible"))
 	ch[6].(obj)["new"].(obj)["bindings"] = shown(has(invui.KindNew))
 	d["quest_side_body"] = with(obj{"type": "stack_panel", "orientation": "vertical", "size": []any{"100% - 6px", "100%c"}, "controls": []any{
