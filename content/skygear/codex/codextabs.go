@@ -36,7 +36,7 @@ var TabKeys = [CodexTabCount]string{"codex.tab.search", "codex.tab.sieve", "code
 func codexTabIcon(t Tab) string {
 	switch t {
 	case codexSearchTab:
-		return formicon.Of(item.NewStack(item.Compass{}, 1))
+		return "textures/items/compass_item"
 	case codexSieveTab:
 		return formicon.Of(machine.Item(machine.KindSieve))
 	case codexProcessTab:

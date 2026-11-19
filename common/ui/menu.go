@@ -161,10 +161,10 @@ func (pg *menuPage) buttons(first int, kind string, bs []dButton) {
 	}
 }
 
-// cell puts an item slot in cell i: the item itself named with its count
-// text (invui.CountMark) and the tooltip, and a texture icon as a paper
-// named with its count text and the path (which has no tooltip). press
-// and view are the kinds of a slot that can and cannot be pressed.
+// cell puts an item slot in cell i: the item itself, or a paper for a
+// texture icon, named its count text and texture path (invui.CellFace), its
+// kind and its tooltip. press and view are the kinds of a slot that can and
+// cannot be pressed.
 func (pg *menuPage) cell(i int, s dSlot, press, view string) {
 	if i < 0 || i >= invui.Cells {
 		return
@@ -193,11 +193,11 @@ func (pg *menuPage) cell(i int, s dSlot, press, view string) {
 		if !ok {
 			return
 		}
-		pg.items[slot] = item.NewStack(it, 1).WithCustomName(invui.CountMark(s.Count) + kind + "§r" + i18n.Plain(s.Tip))
+		pg.items[slot] = item.NewStack(it, 1).WithCustomName(invui.CellFace(s.Count, "") + kind + "§r" + i18n.Plain(s.Tip))
 	case strings.HasPrefix(s.Icon, "tex:"):
-		pg.items[slot] = item.NewStack(item.Paper{}, 1).WithCustomName(invui.CountMark(s.Count) + kind + strings.TrimPrefix(s.Icon, "tex:"))
+		pg.items[slot] = item.NewStack(item.Paper{}, 1).WithCustomName(invui.CellFace(s.Count, strings.TrimPrefix(s.Icon, "tex:")) + kind + "§r" + i18n.Plain(s.Tip))
 	default:
-		pg.items[slot] = item.NewStack(item.Paper{}, 1).WithCustomName(invui.CountMark(s.Count) + kind + "§r" + i18n.Plain(s.Tip))
+		pg.items[slot] = item.NewStack(item.Paper{}, 1).WithCustomName(invui.CellFace(s.Count, "") + kind + "§r" + i18n.Plain(s.Tip))
 	}
 	if pressable && s.ID != "" {
 		pg.ids[slot] = s.ID
@@ -526,6 +526,9 @@ func walkJSON(dec *json.Decoder, f func(map[string]any)) {
 	walk()
 }
 
+// closeID is the id of a button that closes the screen as Esc does.
+const closeID = "\x00close"
+
 // closeMenuOf closes the menu window of the player id in its world.
 func closeMenuOf(id uuid.UUID) {
 	formScreens.Lock()
@@ -572,7 +575,7 @@ func openMenu(p *player.Player, l *oreLayout, pg *menuPage) {
 	pg.text(invui.SlotEsc, "§r")
 	pg.faces()
 	invui.Show(p, pg.items, func(p *player.Player, tx *world.Tx, slot int) {
-		if slot == invui.SlotEsc {
+		if slot == invui.SlotEsc || pg.ids[slot] == closeID {
 			if !current() {
 				return
 			}

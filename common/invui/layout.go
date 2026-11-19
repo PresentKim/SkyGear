@@ -186,8 +186,13 @@ func LayoutOf(key string) string {
 
 // Shared are the layouts a window opened for a screen of the key's layout
 // also draws, so going between them changes the window in place: the lobby's
-// main screen and the screens of its buttons.
-var Shared = map[string][]string{KeyHome: {KeyHome, KeyMenu, KeyListSplit}}
+// main screen and the screens of its buttons, a quest book and the details of
+// its quests.
+var Shared = map[string][]string{
+	KeyHome:        {KeyHome, KeyMenu, KeyCards, KeyListSplit},
+	KeyQuest + "0": {KeyQuest + "0", KeyMenu},
+	KeyQuest + "1": {KeyQuest + "1", KeyMenu},
+}
 
 // LayoutsFor returns the layouts a window opened for layout draws.
 func LayoutsFor(layout string) []string {
@@ -342,12 +347,20 @@ const FacePathBytes = 64
 // count text and the texture path padded to FacePathBytes, so the pack cuts
 // a fixed number of bytes off the front for the path and reads the rest as
 // the kind and the label. A longer path is cut.
-func Face(path string) string {
+func Face(path string) string { return CellFace("", path) }
+
+// CellFace is the start of the name of an item cell: its count text
+// (CountMark) and its texture path padded as in Face. Its kinds and its
+// tooltip follow.
+func CellFace(count, path string) string {
 	if len(path) > FacePathBytes {
 		path = path[:FacePathBytes]
 	}
-	return CountMark("") + path + strings.Repeat(" ", FacePathBytes-len(path))
+	return CountMark(count) + path + strings.Repeat(" ", FacePathBytes-len(path))
 }
+
+// FaceBytes is the length of Face and CellFace.
+const FaceBytes = 3*CountChars + FacePathBytes
 
 // Faces are the icon slots and the button slots of the elements: the pack
 // draws an element from its icon slot, named its face (Face, then the button

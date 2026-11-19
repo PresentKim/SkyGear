@@ -367,7 +367,7 @@ func radialPage(v radialData) *menuPage {
 	}
 	back, icon := v.Back, "textures/ui/sg/chevron_left"
 	if back == "close" {
-		back, icon = "", "textures/ui/cancel"
+		back, icon = closeID, "textures/ui/cancel"
 	}
 	pg.icon(invui.RowIcon0+invui.RadialItems, oreIcon(icon), invui.KindRow)
 	pg.button(invui.RowBtn0+invui.RadialItems, v.BackTip, invui.KindRow, back)
@@ -597,8 +597,8 @@ func questCanvas(v questData, c dChrome) *menuPage {
 		}
 		slot := invui.Cell0 + i
 		if !pg.items[slot].Empty() {
-			cm := invui.CountMark("")
-			pg.items[slot] = pg.items[slot].WithCustomName(cm + extra + strings.TrimPrefix(pg.items[slot].CustomName(), cm))
+			name := pg.items[slot].CustomName()
+			pg.items[slot] = pg.items[slot].WithCustomName(name[:invui.FaceBytes] + extra + name[invui.FaceBytes:])
 		}
 	}
 	return pg

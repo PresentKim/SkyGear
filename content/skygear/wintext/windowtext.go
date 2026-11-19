@@ -138,7 +138,61 @@ func With(st item.Stack, name Text, lore ...Text) item.Stack {
 	for i, l := range lore {
 		lines[i] = l.in(i18n.Default)
 	}
-	return st.WithLore(lines...)
+	return st.WithLore(wrap(lines)...)
+}
+
+// loreWidth is how wide a lore line may be, a Latin letter 2 and a wide one
+// (Hangul, CJK) 3: the client draws a tooltip line unbroken, and a longer one
+// runs off the screen.
+const loreWidth = 80
+
+// wrap breaks the lines wider than loreWidth at spaces, each piece after the
+// first starting with the format codes the line started with.
+func wrap(lines []string) []string {
+	var out []string
+	for _, line := range lines {
+		lead := leadingCodes(line)
+		var cur strings.Builder
+		width := 0
+		for _, word := range strings.SplitAfter(line, " ") {
+			w := textWidth(word)
+			if width > 0 && width+w > loreWidth {
+				out = append(out, strings.TrimRight(cur.String(), " "))
+				cur.Reset()
+				cur.WriteString(lead)
+				width = 0
+			}
+			cur.WriteString(word)
+			width += w
+		}
+		out = append(out, strings.TrimRight(cur.String(), " "))
+	}
+	return out
+}
+
+func leadingCodes(s string) string {
+	r := []rune(s)
+	n := 0
+	for n+1 < len(r) && r[n] == '§' {
+		n += 2
+	}
+	return string(r[:n])
+}
+
+func textWidth(s string) int {
+	w := 0
+	r := []rune(s)
+	for i := 0; i < len(r); i++ {
+		switch {
+		case r[i] == '§':
+			i++
+		case r[i] >= 0x1100:
+			w += 3
+		default:
+			w += 2
+		}
+	}
+	return w
 }
 
 // Localize is chestui.Localize: the texts of a window item in lang.
@@ -159,7 +213,7 @@ func Localize(lang string, st item.Stack) (string, []string, bool) {
 	for i, l := range t.Lore {
 		lore[i] = l.in(lang)
 	}
-	return t.Name.in(lang), lore, true
+	return t.Name.in(lang), wrap(lore), true
 }
 
 func init() { chestui.Localize = Localize }

@@ -84,12 +84,6 @@ func press(b obj, cond string) obj {
 	return outer
 }
 
-// texturePath is the path in a texture's name, after its count text
-// (invui.CountMark).
-func texturePath() string {
-	return "((" + clean() + " - '§r' - '§f') - " + countBytes() + ")"
-}
-
 // countBytes is the count text at the front of a cell's name, after the
 // client's own format codes.
 func countBytes() string {
@@ -288,9 +282,21 @@ func icon(size int) obj {
 	return slots("vertical", s, []any{ref("i", "icon_slot", obj{"size": s, "collection_index": "$icon_index"})})
 }
 
-// itemIcon draws the slot it reads: a texture path named on a paper, or the
-// item itself.
-func itemIcon(size []any) obj { return iconOf(size, texturePath(), "((#hover_text - 'textures/') = #hover_text)") }
+// cellTip is the tooltip of a hovered cell, right of it: the text after the
+// cell's face, wrapped to cellTipWidth. The client's own tooltip draws the
+// whole name unbroken, the padded path with it, and runs off the screen.
+func cellTip() obj {
+	return image("textures/ui/purpleBorder", []any{cellTipWidth + 8, "100%c + 8px"}, 30, obj{
+		"allow_clipping": false, "anchor_from": "top_right", "anchor_to": "top_left", "offset": []any{4, 0},
+		"bindings": []any{slotText(), view("(not ("+faceText()+" = '§r'))", "#visible")},
+		"controls": []any{obj{"l": label(white, 1.0, []any{cellTipWidth, "default"}, obj{
+			"layer": 1, "shadow": true, "anchor_from": "top_left", "anchor_to": "top_left", "offset": []any{4, 4},
+			"bindings": []any{slotText(), view(faceText(), "#text")},
+		})}},
+	})
+}
+
+const cellTipWidth = 150
 
 // faceIcon draws the icon of a face (invui.Face): its texture, its item, or
 // nothing for a blank one.
@@ -408,18 +414,19 @@ func defs() obj {
 	// chosen frame and tooltip; frames, arrows and lines of text.
 	d["slot_face"] = panel([]any{18, 18},
 		obj{"frame": image("textures/ui/cell_image", []any{18, 18}, 1, nil)},
-		obj{"icon": with(itemIcon([]any{16, 16}), obj{"layer": 2})},
+		obj{"icon": with(faceIcon([]any{16, 16}), obj{"layer": 2})},
 		obj{"count": countLabel(false)},
 		obj{"count_long": countLabel(true)},
 		obj{"chosen": image("textures/ui/sg/slot_chosen", []any{18, 18}, 1, obj{"bindings": shown(has(invui.KindChosen))})},
 		obj{"done": image("textures/ui/sg/frame1", []any{18, 18}, 3, obj{"color": chosenGreen, "bindings": shown(has(invui.KindDone))})},
 		obj{"locked": image("textures/ui/White", []any{16, 16}, 4, obj{"color": []any{0.1, 0.1, 0.12}, "alpha": 0.55, "bindings": shown(has(invui.KindLocked))})},
 	)
-	d["mini_face"] = panel([]any{18, 18}, obj{"icon": with(itemIcon([]any{12, 12}), obj{"layer": 2})})
-	cellButton := button([]any{18, 18}, "", "", "", true)
+	d["mini_face"] = panel([]any{18, 18}, obj{"icon": with(faceIcon([]any{12, 12}), obj{"layer": 2})})
+	cellButton := button([]any{18, 18}, "", "", "", false)
 	cellButton["controls"].([]any)[1].(obj)["hover"].(obj)["controls"] = append(
 		cellButton["controls"].([]any)[1].(obj)["hover"].(obj)["controls"].([]any),
 		obj{"lit": image("textures/ui/White", []any{16, 16}, 4, obj{"alpha": 0.3})},
+		obj{"tip": cellTip()},
 	)
 	d["cell_button"] = cellButton
 	cellText := func(width int, color []any, scale float64) obj {
@@ -899,7 +906,7 @@ func questDefs(d obj, gap func(int) obj) {
 	node = append(node, shape("diamond", has(invui.KindDiamond))...)
 	node = append(node, shape("circle", has(invui.KindCircle))...)
 	node = append(node,
-		obj{"icon": with(itemIcon([]any{12, 12}), obj{"layer": 4, "offset": []any{3, 3}, "anchor_from": "top_left", "anchor_to": "top_left"})},
+		obj{"icon": with(faceIcon([]any{12, 12}), obj{"layer": 4, "offset": []any{3, 3}, "anchor_from": "top_left", "anchor_to": "top_left"})},
 		obj{"locked": image("textures/ui/sg/quest_locked", []any{14, 14}, 6, with(obj{"offset": []any{2, 2}, "bindings": shown(has(invui.KindLocked))}, top))},
 		obj{"chosen": image("textures/ui/sg/slot_chosen", []any{18, 18}, 5, with(obj{"bindings": shown(has(invui.KindChosen))}, top))},
 		obj{"new": rect(rgb(0xff, 0xd7, 0x5e), []any{4, 4}, []any{14, 0}, 7)},
