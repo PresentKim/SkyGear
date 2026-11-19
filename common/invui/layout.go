@@ -182,7 +182,7 @@ func LayoutOf(key string) string {
 // Shared are the layouts a window opened for a screen of the key's layout
 // also draws, so going between them changes the window in place: the lobby's
 // main screen and the screens of its buttons.
-var Shared = map[string][]string{KeyHome: {KeyHome, KeyMenu, KeyCards, KeyListSplit}}
+var Shared = map[string][]string{KeyHome: {KeyHome, KeyMenu, KeyListSplit}}
 
 // LayoutsFor returns the layouts a window opened for layout draws.
 func LayoutsFor(layout string) []string {

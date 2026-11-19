@@ -8108,7 +8108,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "((not ((#hover_text - 'hm') = #hover_text)))",
+        "source_property_name": "(not (((#hover_text - 'hm') = #hover_text)))",
         "target_property_name": "#visible"
       }
     ],
@@ -10745,7 +10745,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "((not ((#hover_text - 'mn') = #hover_text)) or (not ((#hover_text - 'cd') = #hover_text)) or (not ((#hover_text - 'gd') = #hover_text)) or (not ((#hover_text - 'bd') = #hover_text)) or (not ((#hover_text - 'pk') = #hover_text)) or (not ((#hover_text - 'rs') = #hover_text)))",
+        "source_property_name": "(not (((#hover_text - 'mn') = #hover_text) and ((#hover_text - 'cd') = #hover_text) and ((#hover_text - 'gd') = #hover_text) and ((#hover_text - 'bd') = #hover_text) and ((#hover_text - 'pk') = #hover_text) and ((#hover_text - 'rs') = #hover_text)))",
         "target_property_name": "#visible"
       }
     ],
@@ -11043,7 +11043,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "((not ((#hover_text - 'ls') = #hover_text)))",
+        "source_property_name": "(not (((#hover_text - 'ls') = #hover_text)))",
         "target_property_name": "#visible"
       }
     ],
@@ -11286,7 +11286,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "((not ((#hover_text - 'ld') = #hover_text)))",
+        "source_property_name": "(not (((#hover_text - 'ld') = #hover_text)))",
         "target_property_name": "#visible"
       }
     ],
@@ -12256,7 +12256,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "((not ((#hover_text - 'bd') = #hover_text)))",
+        "source_property_name": "(not (((#hover_text - 'bd') = #hover_text)))",
         "target_property_name": "#visible"
       }
     ],
@@ -12797,7 +12797,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "((not ((#hover_text - 'cd') = #hover_text)))",
+        "source_property_name": "(not (((#hover_text - 'cd') = #hover_text)))",
         "target_property_name": "#visible"
       }
     ],
@@ -12885,7 +12885,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "((not ((#hover_text - 'gd') = #hover_text)))",
+        "source_property_name": "(not (((#hover_text - 'gd') = #hover_text)))",
         "target_property_name": "#visible"
       }
     ],
@@ -12980,7 +12980,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "((not ((#hover_text - 'pk') = #hover_text)))",
+        "source_property_name": "(not (((#hover_text - 'pk') = #hover_text)))",
         "target_property_name": "#visible"
       }
     ],
@@ -13251,7 +13251,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "((not ((#hover_text - 'rs') = #hover_text)))",
+        "source_property_name": "(not (((#hover_text - 'rs') = #hover_text)))",
         "target_property_name": "#visible"
       }
     ],
@@ -19273,7 +19273,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "((not ((#hover_text - 'qk') = #hover_text)))",
+        "source_property_name": "(not (((#hover_text - 'qk') = #hover_text)))",
         "target_property_name": "#visible"
       }
     ],
@@ -20028,7 +20028,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "((not ((#hover_text - 'rd') = #hover_text)))",
+        "source_property_name": "(not (((#hover_text - 'rd') = #hover_text)))",
         "target_property_name": "#visible"
       }
     ],
@@ -21746,7 +21746,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "((not ((#hover_text - 'rg') = #hover_text)))",
+        "source_property_name": "(not (((#hover_text - 'rg') = #hover_text)))",
         "target_property_name": "#visible"
       }
     ],
@@ -24028,7 +24028,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "((not ((#hover_text - 'sp') = #hover_text)))",
+        "source_property_name": "(not (((#hover_text - 'sp') = #hover_text)))",
         "target_property_name": "#visible"
       }
     ],
@@ -25330,7 +25330,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "((not ((#hover_text - 'sp') = #hover_text)) or (not ((#hover_text - 'ls') = #hover_text)) or (not ((#hover_text - 'rg') = #hover_text)) or (not ((#hover_text - 'mn') = #hover_text)) or (not ((#hover_text - 'cd') = #hover_text)) or (not ((#hover_text - 'gd') = #hover_text)) or (not ((#hover_text - 'bd') = #hover_text)) or (not ((#hover_text - 'pk') = #hover_text)) or (not ((#hover_text - 'rs') = #hover_text)))",
+        "source_property_name": "(not (((#hover_text - 'sp') = #hover_text) and ((#hover_text - 'ls') = #hover_text) and ((#hover_text - 'rg') = #hover_text) and ((#hover_text - 'mn') = #hover_text) and ((#hover_text - 'cd') = #hover_text) and ((#hover_text - 'gd') = #hover_text) and ((#hover_text - 'bd') = #hover_text) and ((#hover_text - 'pk') = #hover_text) and ((#hover_text - 'rs') = #hover_text)))",
         "target_property_name": "#visible"
       }
     ],

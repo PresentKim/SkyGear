@@ -126,12 +126,14 @@ func unless(layouts ...string) obj {
 	return obj{"ignored": "((" + s + ") = $sg_title)"}
 }
 
+// hasAny holds while the slot's name has one of keys. A chain of "or" over
+// has never held on Windows 1.26.65.1; "not" over a chain of "and" does.
 func hasAny(keys []string) string {
 	conds := make([]string, len(keys))
 	for i, k := range keys {
-		conds[i] = has(k)
+		conds[i] = "((#hover_text - '" + k + "') = #hover_text)"
 	}
-	return "(" + strings.Join(conds, " or ") + ")"
+	return "(not (" + strings.Join(conds, " and ") + "))"
 }
 
 // layoutGate draws def only in a window opened for one of layouts, and in
