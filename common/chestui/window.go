@@ -387,6 +387,10 @@ func clientPacket(c *sghook.Conn, pk packet.Packet) bool {
 		if pk.WindowID != 0 {
 			cl.lastClose.Store(time.Now().UnixNano())
 		}
+	case *packet.ModalFormResponse:
+		// The form closes as it answers, and the client drops a window
+		// opened while it is still closing, as after a window.
+		cl.lastClose.Store(time.Now().UnixNano())
 	case *packet.PacketViolationWarning:
 		debug("violation warning", "type", pk.Type, "severity", pk.Severity, "packet", pk.PacketID, "context", pk.ViolationContext)
 		if pk.Type == -1 && pk.Severity == packet.ViolationSeverityWarning {
