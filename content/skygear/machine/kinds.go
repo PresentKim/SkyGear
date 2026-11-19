@@ -43,6 +43,10 @@ type Behaviour struct {
 	// Info are the lines the kind adds to the info icon of its window, after
 	// the lines that explain it (State.InfoItem).
 	Info func(st *State) []wintext.Text
+	// ButtonItem is the button the kind's window shows left of the info
+	// icon, in place of the range button, and Button what pressing it does.
+	ButtonItem func(st *State) item.Stack
+	Button     func(s *core.Session, p *player.Player, st *State)
 	// Broken is told when a machine of the kind was broken and is gone, by a
 	// player or by an explosion, after the machine took itself down (Break).
 	Broken func(s *core.Session, tx *world.Tx, pos cube.Pos)

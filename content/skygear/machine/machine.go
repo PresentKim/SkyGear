@@ -719,7 +719,7 @@ func New(kind string) Machine {
 	}
 	inv := st.storage.Inventory()
 	for slot := range 27 {
-		if st.Role(slot) == RoleNone && slot != rangeSlot {
+		if st.Role(slot) == RoleNone && slot != buttonSlot {
 			_ = inv.SetItem(slot, Filler())
 		}
 	}
@@ -811,6 +811,7 @@ func (st *State) InfoItem() item.Stack {
 func (st *State) SetMob(mob string) {
 	st.Mob = mob
 	_ = st.Inv().SetItem(infoSlot, st.InfoItem())
+	st.showButton()
 }
 
 // Info is the info icon item of machine windows. It only ever sits
@@ -938,8 +939,8 @@ func (h machineHandler) HandleTake(ctx *inventory.Context, slot int, _ item.Stac
 	}
 	if h.State.Role(slot) == RoleNone {
 		ctx.Cancel()
-		if slot == rangeSlot {
-			h.later(ctx, func(_ *core.Session, p *player.Player) { h.State.openRange(p) })
+		if slot == buttonSlot {
+			h.later(ctx, h.State.pressButton)
 		}
 	}
 }
@@ -1715,7 +1716,7 @@ func (st *State) prepareDisplay() {
 	st.ShowProgress()
 	st.ShowEnergy()
 	st.showStuck()
-	st.showRangeButton()
+	st.showButton()
 }
 
 // runMachine runs the work of a machine once.

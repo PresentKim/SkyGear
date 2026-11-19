@@ -2709,8 +2709,6 @@
  "dimension.collector.none": "§7아직 클리어한 몬스터가 없습니다. 이차원에서 몬스터를 클리어하면 고를 수 있습니다.",
  "dimension.collector.row": "%s · 분당 %.1f개",
  "dimension.collector.mobs": "몬스터",
- "dimension.collector.output": "에센스",
- "dimension.collector.inventory": "인벤토리",
  "dimension.elite": "§c%s 엘리트",
  "dimension.result.best": "§e새 최단 기록!",
  "dimension.result.dust": "§b요정의 날개가루 §f×%d",

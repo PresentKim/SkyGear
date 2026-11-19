@@ -13,10 +13,10 @@ import (
 // skygear pack's sg_machine.json draws by the title marker: the client moves
 // the items itself and machineHandler keeps each slot to its role.
 
-// rangeSlot is the window slot of the range button of a machine with a
-// range, left of the info icon in the window's control bar. Taking it opens
-// the range screen.
-const rangeSlot = 25
+// buttonSlot is the window slot of the button left of the info icon in the
+// window's control bar: the kind's own button (Behaviour.Button), or the
+// range button of a machine with a range. Taking it presses it.
+const buttonSlot = 25
 
 // ShowMachine shows p the window of the machine at pos.
 func ShowMachine(_ *core.Session, p *player.Player, _ *world.Tx, pos cube.Pos, st *State) {
@@ -34,9 +34,13 @@ func ShowPreview(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, 
 	ShowMachine(s, p, tx, pos, st)
 }
 
-// showRangeButton puts the range button in the window of a machine with a
-// range: its name and the size of the area.
-func (st *State) showRangeButton() {
+// showButton puts the kind's button, or the range button of a machine with
+// a range (its name and the size of the area), in the window.
+func (st *State) showButton() {
+	if f := st.Def.hooks.ButtonItem; f != nil {
+		_ = st.Inv().SetItem(buttonSlot, f(st))
+		return
+	}
 	kind, ok := st.rangeKind()
 	if !ok {
 		return
@@ -44,22 +48,26 @@ func (st *State) showRangeButton() {
 	a := st.Area(kind)
 	name := wintext.Text{wintext.Raw("§r"), wintext.Key("machine.range.title")}
 	size := wintext.Text{wintext.Raw("§7"), wintext.Key("machine.range.size", 2*a.X+1, a.Down+a.Up+1, 2*a.Z+1)}
-	_ = st.Inv().SetItem(rangeSlot, wintext.With(item.NewStack(item.Spyglass{}, 1), name, size))
+	_ = st.Inv().SetItem(buttonSlot, wintext.With(item.NewStack(item.Spyglass{}, 1), name, size))
 }
 
-// openRange shows p the range screen of the machine, whose back button opens
-// the machine's window again.
-func (st *State) openRange(p *player.Player) {
+// pressButton runs the kind's button, or shows p the range screen, whose
+// back button opens the machine's window again.
+func (st *State) pressButton(s *core.Session, p *player.Player) {
+	if f := st.Def.hooks.Button; f != nil {
+		f(s, p, st)
+		return
+	}
 	kind, ok := st.rangeKind()
 	if !ok {
 		return
 	}
-	st.showRangeScreen(p, kind, func(p *player.Player, _ *world.Tx) { st.openFromMenu(p) })
+	st.showRangeScreen(p, kind, func(p *player.Player, _ *world.Tx) { st.OpenFromMenu(p) })
 }
 
-// openFromMenu opens the machine's window from a button of the menu window,
+// OpenFromMenu opens the machine's window from a button of the menu window,
 // once the menu window has handled the press and closed: the window closing
 // cancels a window still waiting to open.
-func (st *State) openFromMenu(p *player.Player) {
+func (st *State) OpenFromMenu(p *player.Player) {
 	p.H().Do(func(_ *world.Tx, e world.Entity) { st.OpenWindow(e.(*player.Player)) })
 }

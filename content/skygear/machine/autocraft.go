@@ -204,12 +204,12 @@ func showCrafter(s *core.Session, p *player.Player, pos cube.Pos, st *State, pag
 		sl.Run = func(p *player.Player, tx *world.Tx) {
 			if m, ok := tx.Block(pos).(Machine); ok && m.State == st {
 				st.SetRecipe(cr)
-				st.openFromMenu(p)
+				st.OpenFromMenu(p)
 			}
 		}
 		recipes[i] = sl
 	}
 	opts := ui.BarPager(p, page, pages, func(p *player.Player, _ *world.Tx, page int) { showCrafter(s, p, pos, st, page) })
-	opts = append(opts, ui.Back(i18n.T(lang, "ui.input.back"), func(p *player.Player, _ *world.Tx) { st.openFromMenu(p) }))
+	opts = append(opts, ui.Back(i18n.T(lang, "ui.input.back"), func(p *player.Player, _ *world.Tx) { st.OpenFromMenu(p) }))
 	ui.ItemGrid(p, i18n.T(lang, "machine.crafter.name"), crafterStatus(lang, st), recipes, opts...)
 }

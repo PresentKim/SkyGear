@@ -463,8 +463,6 @@
  "dimension.collector.none": "§7You have cleared no monster yet. Clear one in the second dimension to pick it.",
  "dimension.collector.row": "%s · %.1f a minute",
  "dimension.collector.mobs": "Monster",
- "dimension.collector.output": "Essences",
- "dimension.collector.inventory": "Inventory",
  "dimension.elite": "§c%s Elite",
  "dimension.result.best": "§eNew best time!",
  "dimension.result.dust": "§bFairy Dust §f×%d",

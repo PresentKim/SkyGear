@@ -10,18 +10,14 @@ import (
 )
 
 // registerKinds hands the machine frame the behaviour of the dimension's
-// machine kinds: a click opens the essence collector's window, whose info
-// icon names the monster it receives; a click opens the relic table, whose
-// panel has no lines.
+// machine kinds: the essence collector's window has a button to pick the
+// monster it receives, which its info icon names; a click opens the relic
+// table, whose panel has no lines.
 func registerKinds() {
 	machine.Register(machine.KindCollector, machine.Behaviour{
-		Click: func(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
-			if !s.Debounced(p) {
-				ShowCollector(s, p, pos)
-			}
-			return true
-		},
-		Info: collectorInfo,
+		Info:       collectorInfo,
+		ButtonItem: collectorButton,
+		Button:     showCollectorMobs,
 	})
 	machine.Register(machine.KindRelicTable, machine.Behaviour{
 		Click: func(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
