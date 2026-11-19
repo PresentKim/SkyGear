@@ -843,12 +843,13 @@ func homeDefs(d obj) {
 	sides := []any{}
 	for i := 0; i < invui.HomeSides; i++ {
 		si, sb := row(invui.HomeSideRow0 + i)
-		sides = append(sides, at(fmt.Sprintf("s%d", i), "home_tile", sb, obj{"$icon_index": si}))
+		sides = append(sides, at(fmt.Sprintf("s%d", i), "home_tile", sb, obj{"$icon_index": si, "$badge_index": cellSlot(invui.HomeSideBadge0 + i)}))
 	}
 	d["home_tile"] = with(panel([]any{38, 32},
 		obj{"b": with(flatButton([]any{38, 28}, lobbyFill, lobbyHover, lobbyBand, false), top)},
 		obj{"i": with(icon(14), obj{"layer": 3, "offset": []any{0, 4}, "anchor_from": "top_middle", "anchor_to": "top_middle"})},
 		obj{"l": label(white, 0.79, []any{36, "default"}, obj{"layer": 4, "offset": []any{0, 19}, "anchor_from": "top_middle", "anchor_to": "top_middle", "text_alignment": "center"})},
+		obj{"badge": with(slots("vertical", []any{11, 9}, []any{ref("b", "home_badge", obj{"collection_index": "$badge_index"})}), obj{"layer": 5, "offset": []any{4, -3}, "anchor_from": "top_right", "anchor_to": "top_right"})},
 	), obj{"bindings": shown(filled)})
 	side := with(slots("vertical", []any{38, "100%c"}, sides), pos("top_left", 8, 53))
 

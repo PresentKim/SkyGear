@@ -91,6 +91,7 @@ const (
 	HomeSubCell    = HomeLineCell0 + HomeLines
 	HomeOverTitle  = HomeSubCell + 1
 	HomeOverBody   = HomeOverTitle + 1
+	HomeSideBadge0 = HomeOverBody + 1
 
 	// HomeFillSteps is how many widths the profile's bar is drawn in.
 	HomeFillSteps = 20

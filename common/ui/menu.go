@@ -369,6 +369,9 @@ func homePage(v homeData) *menuPage {
 			break
 		}
 		row(invui.HomeSideRow0+i, b.Icon, b.Label, invui.KindRow, b.ID)
+		if b.Badge > 0 {
+			cell(invui.HomeSideBadge0+i, strconv.Itoa(b.Badge))
+		}
 	}
 	for i, line := range v.Feed {
 		if i >= invui.HomeFeeds {

@@ -7543,48 +7543,56 @@
           "controls": [
             {
               "s0@sg_menu.home_tile": {
+                "$badge_index": 155,
                 "$icon_index": 41,
                 "collection_index": 89
               }
             },
             {
               "s1@sg_menu.home_tile": {
+                "$badge_index": 156,
                 "$icon_index": 42,
                 "collection_index": 90
               }
             },
             {
               "s2@sg_menu.home_tile": {
+                "$badge_index": 157,
                 "$icon_index": 43,
                 "collection_index": 91
               }
             },
             {
               "s3@sg_menu.home_tile": {
+                "$badge_index": 158,
                 "$icon_index": 44,
                 "collection_index": 92
               }
             },
             {
               "s4@sg_menu.home_tile": {
+                "$badge_index": 159,
                 "$icon_index": 45,
                 "collection_index": 93
               }
             },
             {
               "s5@sg_menu.home_tile": {
+                "$badge_index": 160,
                 "$icon_index": 46,
                 "collection_index": 94
               }
             },
             {
               "s6@sg_menu.home_tile": {
+                "$badge_index": 161,
                 "$icon_index": 47,
                 "collection_index": 95
               }
             },
             {
               "s7@sg_menu.home_tile": {
+                "$badge_index": 162,
                 "$icon_index": 48,
                 "collection_index": 96
               }
@@ -10980,6 +10988,31 @@
           "text": "#text",
           "text_alignment": "center",
           "type": "label"
+        }
+      },
+      {
+        "badge": {
+          "anchor_from": "top_right",
+          "anchor_to": "top_right",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "b@sg_menu.home_badge": {
+                "collection_index": "$badge_index"
+              }
+            }
+          ],
+          "layer": 5,
+          "offset": [
+            4,
+            -3
+          ],
+          "orientation": "vertical",
+          "size": [
+            11,
+            9
+          ],
+          "type": "stack_panel"
         }
       }
     ],
