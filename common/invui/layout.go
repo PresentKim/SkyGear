@@ -403,32 +403,34 @@ const (
 	QuestCircle
 )
 
-// QuestCodeChars is how many digits QuestCode writes.
-const QuestCodeChars = 3 + 8
-
-// QuestDigits are the letters QuestCode writes for 0, 1 and 2: colour codes
-// that show nothing. A digit is not used: the pack's text that starts with
-// one is read as a number (bedrock-research EXP-30).
+// QuestDigits are the letters of 0, 1 and 2 in the names of a quest canvas
+// cell's pictures (tools/uitextures).
 const QuestDigits = "ghi"
 
-// QuestCode follows the face (CellFace) of a quest canvas cell: the state
-// of its lines, a flag a piece of QuestPieces it draws, its quest's shape
-// and its quest's state, each a letter of QuestDigits after a format sign.
-// The pack builds the pictures' names from the letters at their fixed
-// places.
+// QuestPictures is how many pictures a quest canvas cell names (QuestCode):
+// a line piece each of QuestPieces, its quest's fill and its quest's edge.
+// QuestPictureBytes is the length of each name.
+const (
+	QuestPictures     = 8 + 2
+	QuestPictureBytes = len("textures/ui/sg/qlgg")
+)
+
+// QuestCode follows the face (CellFace) of a quest canvas cell: the texture
+// path of each of its pictures (QuestPictures), the line pieces in the
+// state of its lines or a clear one, then its quest's fill and edge. The
+// pack cuts each path at its fixed place.
 func QuestCode(lines int, pieces string, shape, state int) string {
+	digit := func(n int) string { return QuestDigits[n : n+1] }
 	var b strings.Builder
-	digit := func(n int) { b.WriteString("§" + QuestDigits[n:n+1]) }
-	digit(lines)
 	for _, p := range QuestPieces {
+		flag := 0
 		if strings.Contains(pieces, p) {
-			digit(1)
-		} else {
-			digit(0)
+			flag = 1
 		}
+		b.WriteString("textures/ui/sg/ql" + digit(flag) + digit(lines))
 	}
-	digit(shape)
-	digit(state)
+	b.WriteString("textures/ui/sg/qf" + digit(shape) + "g")
+	b.WriteString("textures/ui/sg/qe" + digit(shape) + digit(state))
 	return b.String()
 }
 

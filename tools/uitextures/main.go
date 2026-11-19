@@ -392,7 +392,7 @@ func main() {
 		write("ql"+letter(0)+letter(st), solid(color.NRGBA{}))
 	}
 	for sh, name := range []string{"square", "diamond", "circle"} {
-		write("qf"+letter(sh), questShape(name, false))
+		write("qf"+letter(sh)+"g", questShape(name, false))
 		for st, c := range edges {
 			write("qe"+letter(sh)+letter(st), tint(questShape(name, true), c))
 		}

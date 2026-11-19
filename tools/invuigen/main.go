@@ -308,12 +308,15 @@ func icon(size int) obj {
 // whole name unbroken, the padded path with it, and runs off the screen. It
 // sets no visibility of its own, so its text is read only while the cell is
 // hovered (onlyWhenVisible).
-func cellTip() obj {
+func cellTip() obj { return tipOf(faceText()) }
+
+// tipOf is a cell tooltip of the text expression text.
+func tipOf(text string) obj {
 	return image("textures/ui/purpleBorder", []any{cellTipWidth + 8, "100%c + 8px"}, 30, obj{
 		"allow_clipping": false, "anchor_from": "top_right", "anchor_to": "top_left", "offset": []any{4, 0},
 		"controls": []any{obj{"l": label(white, 1.0, []any{cellTipWidth, "default"}, obj{
 			"layer": 1, "shadow": true, "anchor_from": "top_left", "anchor_to": "top_left", "offset": []any{4, 4},
-			"bindings": []any{slotText(), view(faceText(), "#text")},
+			"bindings": []any{slotText(), view(text, "#text")},
 		})}},
 	})
 }
@@ -996,16 +999,16 @@ const (
 )
 
 func questDefs(d obj, gap func(int) obj) {
-	// The pictures of a cell are named from the digits of its code
-	// (invui.QuestCode) after its face: no picture is drawn hidden.
+	// A picture of a cell is the texture path at its place after the cell's
+	// face (invui.QuestCode): no picture is drawn hidden.
 	text := "(#hover_text - '§o' - '§f')"
-	digit := func(k int) string {
-		at := invui.FaceBytes + 3*k
-		return fmt.Sprintf("(('%%.%ds' * %s) - ('%%.%ds' * %s))", at+3, text, at+2, text)
+	path := func(k int) string {
+		at := invui.FaceBytes + invui.QuestPictureBytes*k
+		return fmt.Sprintf("(('%%.%ds' * %s) - ('%%.%ds' * %s))", at+invui.QuestPictureBytes, text, at, text)
 	}
-	pictured := func(name, texture string, size, offset []any, layer int) obj {
+	pictured := func(name string, k int, size, offset []any, layer int) obj {
 		return obj{name: image("#texture", size, layer, with(obj{"offset": offset,
-			"bindings": []any{slotText(), view("('textures/ui/sg/"+texture, "#texture"), view(filled, "#visible")}}, top))}
+			"bindings": []any{slotText(), view(path(k), "#texture"), view(filled, "#visible")}}, top))}
 	}
 	parts := []any{obj{"canvas": rect(rgb(0x1c, 0x1c, 0x22), []any{questCellW, questCellH}, nil, 0)}}
 	for p, ln := range []struct {
@@ -1021,23 +1024,29 @@ func questDefs(d obj, gap func(int) obj) {
 		{"gn", []any{2, 10}, []any{laneX, 0}},
 		{"gs", []any{2, questCellH - 8}, []any{laneX, 8}},
 	} {
-		parts = append(parts, pictured(ln.name, "ql' + "+digit(1+p)+" + "+digit(0)+")", ln.size, ln.offset, 1))
+		parts = append(parts, pictured(ln.name, p, ln.size, ln.offset, 1))
 	}
-	shapeDigit, stateDigit := digit(1+len(invui.QuestPieces)), digit(2+len(invui.QuestPieces))
-	fill := pictured("fill", "qf' + "+shapeDigit+")", []any{18, 18}, []any{0, 0}, 2)
+	fill := pictured("fill", len(invui.QuestPieces), []any{18, 18}, []any{0, 0}, 2)
 	fill["fill"].(obj)["color"] = rgb(0x2c, 0x2c, 0x34)
 	node := []any{
 		fill,
-		pictured("edge", "qe' + "+shapeDigit+" + "+stateDigit+")", []any{18, 18}, []any{0, 0}, 3),
+		pictured("edge", len(invui.QuestPieces)+1, []any{18, 18}, []any{0, 0}, 3),
 	}
 	node = append(node,
 		obj{"icon": with(faceIcon([]any{12, 12}), obj{"layer": 4, "offset": []any{3, 3}, "anchor_from": "top_left", "anchor_to": "top_left"})},
 		obj{"locked": image("textures/ui/sg/quest_locked", []any{14, 14}, 6, with(obj{"offset": []any{2, 2}, "bindings": shown(has(invui.KindLocked))}, top))},
 		obj{"chosen": image("textures/ui/sg/slot_chosen", []any{18, 18}, 5, with(obj{"bindings": shown(has(invui.KindChosen))}, top))},
 		obj{"new": rect(rgb(0xff, 0xd7, 0x5e), []any{4, 4}, []any{14, 0}, 7)},
-		ref("b", "cell_button", obj{"anchor_from": "top_left", "anchor_to": "top_left"}),
+		ref("b", "quest_button", obj{"anchor_from": "top_left", "anchor_to": "top_left"}),
 	)
 	node[len(node)-2].(obj)["new"].(obj)["bindings"] = shown(has(invui.KindNew))
+	questButton := button([]any{18, 18}, "", "", "", false)
+	questButton["controls"].([]any)[1].(obj)["hover"].(obj)["controls"] = append(
+		questButton["controls"].([]any)[1].(obj)["hover"].(obj)["controls"].([]any),
+		obj{"lit": image("textures/ui/White", []any{16, 16}, 4, obj{"alpha": 0.3})},
+		obj{"tip": tipOf(cleanOf("(" + text + " - " + fmt.Sprintf("('%%.%ds' * %s)", invui.FaceBytes+invui.QuestPictures*invui.QuestPictureBytes, text) + ")"))},
+	)
+	d["quest_button"] = questButton
 	d["quest_cell"] = panel([]any{questCellW, questCellH},
 		obj{"map": with(panel([]any{questCellW, questCellH}, parts...), top)},
 		obj{"node": with(panel([]any{18, 18}, node...), with(obj{"bindings": shown(has(invui.FamSlot))}, top))},

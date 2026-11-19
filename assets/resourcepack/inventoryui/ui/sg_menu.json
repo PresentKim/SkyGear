@@ -14567,6 +14567,150 @@
     ],
     "type": "panel"
   },
+  "quest_button": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_type": "collection_details"
+      }
+    ],
+    "button_mappings": [
+      {
+        "consume_event": false,
+        "from_button_id": "button.menu_select",
+        "mapping_type": "pressed",
+        "to_button_id": "button.container_auto_place"
+      },
+      {
+        "consume_event": false,
+        "from_button_id": "button.menu_ok",
+        "mapping_type": "pressed",
+        "to_button_id": "button.container_auto_place"
+      },
+      {
+        "mapping_type": "pressed",
+        "to_button_id": "button.container_slot_hovered"
+      }
+    ],
+    "controls": [
+      {
+        "default": {
+          "controls": [],
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "type": "panel"
+        }
+      },
+      {
+        "hover": {
+          "controls": [
+            {
+              "lit": {
+                "alpha": 0.3,
+                "layer": 4,
+                "size": [
+                  16,
+                  16
+                ],
+                "texture": "textures/ui/White",
+                "type": "image"
+              }
+            },
+            {
+              "tip": {
+                "allow_clipping": false,
+                "anchor_from": "top_right",
+                "anchor_to": "top_left",
+                "controls": [
+                  {
+                    "l": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "bindings": [
+                        {
+                          "binding_collection_name": "container_items",
+                          "binding_condition": "visible",
+                          "binding_name": "#hover_text",
+                          "binding_type": "collection"
+                        },
+                        {
+                          "binding_condition": "visible",
+                          "binding_type": "view",
+                          "source_property_name": "(((#hover_text - '§o' - '§f') - ('%.275s' * (#hover_text - '§o' - '§f'))) - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+                          "target_property_name": "#text"
+                        }
+                      ],
+                      "color": [
+                        1,
+                        1,
+                        1
+                      ],
+                      "font_scale_factor": 1,
+                      "layer": 1,
+                      "localize": false,
+                      "offset": [
+                        4,
+                        4
+                      ],
+                      "shadow": true,
+                      "size": [
+                        150,
+                        "default"
+                      ],
+                      "text": "#text",
+                      "type": "label"
+                    }
+                  }
+                ],
+                "layer": 30,
+                "offset": [
+                  4,
+                  0
+                ],
+                "size": [
+                  158,
+                  "100%c + 8px"
+                ],
+                "texture": "textures/ui/purpleBorder",
+                "type": "image"
+              }
+            }
+          ],
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "type": "panel"
+        }
+      },
+      {
+        "pressed": {
+          "controls": [],
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "type": "panel"
+        }
+      }
+    ],
+    "default_control": "default",
+    "focus_enabled": false,
+    "focus_magnet_enabled": false,
+    "hover_control": "hover",
+    "layer": 1,
+    "pressed_control": "pressed",
+    "size": [
+      18,
+      18
+    ],
+    "sound_name": "random.click",
+    "sound_pitch": 1,
+    "sound_volume": 1,
+    "type": "button"
+  },
   "quest_canvas_0": {
     "anchor_from": "top_left",
     "anchor_to": "top_left",
@@ -14739,7 +14883,7 @@
                   {
                     "binding_condition": "always",
                     "binding_type": "view",
-                    "source_property_name": "('textures/ui/sg/ql' + (('%.91s' * (#hover_text - '§o' - '§f')) - ('%.90s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
+                    "source_property_name": "(('%.104s' * (#hover_text - '§o' - '§f')) - ('%.85s' * (#hover_text - '§o' - '§f')))",
                     "target_property_name": "#texture"
                   },
                   {
@@ -14776,7 +14920,7 @@
                   {
                     "binding_condition": "always",
                     "binding_type": "view",
-                    "source_property_name": "('textures/ui/sg/ql' + (('%.94s' * (#hover_text - '§o' - '§f')) - ('%.93s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
+                    "source_property_name": "(('%.123s' * (#hover_text - '§o' - '§f')) - ('%.104s' * (#hover_text - '§o' - '§f')))",
                     "target_property_name": "#texture"
                   },
                   {
@@ -14813,7 +14957,7 @@
                   {
                     "binding_condition": "always",
                     "binding_type": "view",
-                    "source_property_name": "('textures/ui/sg/ql' + (('%.97s' * (#hover_text - '§o' - '§f')) - ('%.96s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
+                    "source_property_name": "(('%.142s' * (#hover_text - '§o' - '§f')) - ('%.123s' * (#hover_text - '§o' - '§f')))",
                     "target_property_name": "#texture"
                   },
                   {
@@ -14850,7 +14994,7 @@
                   {
                     "binding_condition": "always",
                     "binding_type": "view",
-                    "source_property_name": "('textures/ui/sg/ql' + (('%.100s' * (#hover_text - '§o' - '§f')) - ('%.99s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
+                    "source_property_name": "(('%.161s' * (#hover_text - '§o' - '§f')) - ('%.142s' * (#hover_text - '§o' - '§f')))",
                     "target_property_name": "#texture"
                   },
                   {
@@ -14887,7 +15031,7 @@
                   {
                     "binding_condition": "always",
                     "binding_type": "view",
-                    "source_property_name": "('textures/ui/sg/ql' + (('%.103s' * (#hover_text - '§o' - '§f')) - ('%.102s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
+                    "source_property_name": "(('%.180s' * (#hover_text - '§o' - '§f')) - ('%.161s' * (#hover_text - '§o' - '§f')))",
                     "target_property_name": "#texture"
                   },
                   {
@@ -14924,7 +15068,7 @@
                   {
                     "binding_condition": "always",
                     "binding_type": "view",
-                    "source_property_name": "('textures/ui/sg/ql' + (('%.106s' * (#hover_text - '§o' - '§f')) - ('%.105s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
+                    "source_property_name": "(('%.199s' * (#hover_text - '§o' - '§f')) - ('%.180s' * (#hover_text - '§o' - '§f')))",
                     "target_property_name": "#texture"
                   },
                   {
@@ -14961,7 +15105,7 @@
                   {
                     "binding_condition": "always",
                     "binding_type": "view",
-                    "source_property_name": "('textures/ui/sg/ql' + (('%.109s' * (#hover_text - '§o' - '§f')) - ('%.108s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
+                    "source_property_name": "(('%.218s' * (#hover_text - '§o' - '§f')) - ('%.199s' * (#hover_text - '§o' - '§f')))",
                     "target_property_name": "#texture"
                   },
                   {
@@ -14998,7 +15142,7 @@
                   {
                     "binding_condition": "always",
                     "binding_type": "view",
-                    "source_property_name": "('textures/ui/sg/ql' + (('%.112s' * (#hover_text - '§o' - '§f')) - ('%.111s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
+                    "source_property_name": "(('%.237s' * (#hover_text - '§o' - '§f')) - ('%.218s' * (#hover_text - '§o' - '§f')))",
                     "target_property_name": "#texture"
                   },
                   {
@@ -15062,7 +15206,7 @@
                   {
                     "binding_condition": "always",
                     "binding_type": "view",
-                    "source_property_name": "('textures/ui/sg/qf' + (('%.115s' * (#hover_text - '§o' - '§f')) - ('%.114s' * (#hover_text - '§o' - '§f'))))",
+                    "source_property_name": "(('%.256s' * (#hover_text - '§o' - '§f')) - ('%.237s' * (#hover_text - '§o' - '§f')))",
                     "target_property_name": "#texture"
                   },
                   {
@@ -15104,7 +15248,7 @@
                   {
                     "binding_condition": "always",
                     "binding_type": "view",
-                    "source_property_name": "('textures/ui/sg/qe' + (('%.115s' * (#hover_text - '§o' - '§f')) - ('%.114s' * (#hover_text - '§o' - '§f'))) + (('%.118s' * (#hover_text - '§o' - '§f')) - ('%.117s' * (#hover_text - '§o' - '§f'))))",
+                    "source_property_name": "(('%.275s' * (#hover_text - '§o' - '§f')) - ('%.256s' * (#hover_text - '§o' - '§f')))",
                     "target_property_name": "#texture"
                   },
                   {
@@ -15305,7 +15449,7 @@
               }
             },
             {
-              "b@sg_menu.cell_button": {
+              "b@sg_menu.quest_button": {
                 "anchor_from": "top_left",
                 "anchor_to": "top_left"
               }
