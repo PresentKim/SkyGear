@@ -65,15 +65,15 @@ func TestArraysNotNull(t *testing.T) {
 	}
 }
 
-// TestChromeOf: tabs, bar order, back as the close and the rest.
+// TestChromeOf: tabs, bar order and the rest.
 func TestChromeOf(t *testing.T) {
 	l := newOreLayout()
 	c, rest := l.chromeOf("§0§2§r", []Option{Tab("A", "textures/x", true, nil), Back("뒤로", nopRun), {Label: "x"}})
 	want := dChrome{
 		Tabs: []dTab{{Tip: "A", Icon: "tex:textures/x", On: true}},
-		Bar:  []dBarButton{},
+		Bar:  []dBarButton{{ID: "o0", Tip: "뒤로", Icon: "tex:textures/ui/sg/chevron_left", Quick: true}},
 	}
-	if !reflect.DeepEqual(c, want) || l.close == nil {
+	if !reflect.DeepEqual(c, want) {
 		t.Errorf("chrome %+v", c)
 	}
 	if len(rest) != 1 || rest[0].Label != "x" {
@@ -83,7 +83,7 @@ func TestChromeOf(t *testing.T) {
 	if len(c.Tabs) != 1 || c.Tabs[0].ID == "" {
 		t.Errorf("tab %+v", c.Tabs)
 	}
-	if len(c.Bar) != 2 || c.Bar[0].Tip != "p" || c.Bar[1].Glyph != "?" || c.Bar[1].Quick {
+	if len(c.Bar) != 3 || c.Bar[0].Tip != "p" || c.Bar[1].Glyph != "?" || c.Bar[1].Quick || c.Bar[2].Tip != "b" {
 		t.Errorf("bar %+v", c.Bar)
 	}
 }

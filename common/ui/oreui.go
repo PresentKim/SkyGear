@@ -61,6 +61,9 @@ type oreLayout struct {
 	// close, if set, runs when the player closes the screen (Esc, the close
 	// button) instead of Idle.
 	close func(p *player.Player, tx *world.Tx)
+	// back is the id of the screen's first back button. In the lobby the
+	// close button does what it does and the bar does not show it.
+	back string
 	// keys are the ids the screen's keys press, by Key (oreLayout.key).
 	keys map[string]string
 	// loading marks a loading screen (LoadingScreen), which CloseLoading

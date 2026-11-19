@@ -1,6 +1,19 @@
 package invui
 
-import "testing"
+import (
+	"strings"
+	"testing"
+	"unicode/utf8"
+)
+
+func TestFaceNameHasFixedLength(t *testing.T) {
+	for _, label := range []string{"", "§r짧은 글", "§r" + strings.Repeat("긴 글", 100)} {
+		got := FaceName(Face("textures/x")+KindRow, label)
+		if len(got) != FaceBytes+FaceTextBytes || !utf8.ValidString(got) {
+			t.Errorf("FaceName(%q) is %d bytes", label, len(got))
+		}
+	}
+}
 
 func TestCountMark(t *testing.T) {
 	for count, want := range map[string]string{

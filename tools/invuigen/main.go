@@ -57,10 +57,17 @@ func facePath() string { return "((" + faceHead() + " - " + countBytes() + ") - 
 // kinds.
 func faceText() string { return cleanOf("((#hover_text - '§o' - '§f') - " + faceHead() + ")") }
 
+// faceLabelText is the label of an element's face, read only up to the
+// face's fixed length (invui.FaceName): an item's own lines come after it.
+func faceLabelText() string {
+	whole := fmt.Sprintf("('%%.%ds' * (#hover_text - '§o' - '§f'))", invui.FaceBytes+invui.FaceTextBytes)
+	return cleanOf("(" + whole + " - " + faceHead() + ")")
+}
+
 // faceLabel is a label of the element's face.
 func faceLabel(color []any, scale float64, size []any, props obj) obj {
 	l := label(color, scale, size, props)
-	l["bindings"] = []any{slotText(), view(faceText(), "#text")}
+	l["bindings"] = []any{slotText(), view(faceLabelText(), "#text")}
 	return l
 }
 
@@ -279,7 +286,7 @@ const (
 // or the item in the slot.
 func icon(size int) obj {
 	s := []any{size, size}
-	return slots("vertical", s, []any{ref("i", "press_icon_slot", obj{"size": s, "collection_index": "$icon_index"})})
+	return slots("vertical", s, []any{ref("i", "icon_slot", obj{"size": s, "collection_index": "$icon_index"})})
 }
 
 // cellTip is the tooltip of a hovered cell, right of it: the text after the
@@ -302,21 +309,7 @@ const cellTipWidth = 150
 // faceIcon draws the icon of a face (invui.Face): its texture, its item, or
 // nothing for a blank one.
 func faceIcon(size []any) obj {
-	return iconOf(size, facePath(), "((#hover_text - 'textures/' - '"+invui.KindBlank+"' - '"+invui.KindPressIcon+"') = #hover_text)")
-}
-
-// pressFaceIcon is faceIcon that also draws the item of an element's button
-// slot ($press_index) for a face of kind invui.KindPressIcon.
-func pressFaceIcon(size []any) obj {
-	p := faceIcon(size)
-	p["controls"] = append(p["controls"].([]any), obj{"press": with(panel([]any{"100%", "100%"},
-		obj{"s": slots("vertical", []any{"100%", "100%"}, []any{obj{"item": obj{
-			"type": "custom", "renderer": "inventory_item_renderer", "size": []any{"100%", "100%"}, "layer": 2,
-			"collection_index": "$press_index", "property_bag": obj{"#item_id_aux": 0},
-			"bindings": []any{slotValue("#item_id_aux")},
-		}}})},
-	), obj{"bindings": shown(has(invui.KindPressIcon))})})
-	return p
+	return iconOf(size, facePath(), "((#hover_text - 'textures/' - '"+invui.KindBlank+"') = #hover_text)")
 }
 
 func iconOf(size []any, path, isItem string) obj {
@@ -362,7 +355,6 @@ func countLabel(long bool) obj {
 func defs() obj {
 	d := obj{"namespace": "sg_menu"}
 	d["icon_slot"] = faceIcon([]any{"100%", "100%"})
-	d["press_icon_slot"] = pressFaceIcon([]any{"100%", "100%"})
 	d["empty"] = panel([]any{0, 0})
 
 	textLabel := label(ink, 1.0, []any{"100% - 2px", "default"}, with(obj{"offset": []any{2, 0}, "font_scale_factor": "$text_scale"}, top))
@@ -842,7 +834,34 @@ func defs() obj {
 			at(fmt.Sprintf("r%d", i), "tab_key_right", invui.TabIcon0+i, obj{"$press_index": invui.TabBtn0 + i + 1}),
 		)
 	}
-	d["tab_keys"] = slots("vertical", []any{1, 1}, tabKeys)
+	// From the last tab the right key presses the first, and from the first
+	// the left key presses the last: a chain of slots that must hold.
+	type need struct {
+		slot int
+		cond string
+	}
+	chain := func(key string, press int, needs ...need) obj {
+		var c any = obj{"b": with(keyButton("button.menu_tab_"+key), obj{"$press_index": press})}
+		for k := len(needs) - 1; k >= 0; k-- {
+			c = obj{"s": slots("vertical", []any{1, 1}, []any{obj{"g": with(panel([]any{1, 1}, c), obj{
+				"collection_index": needs[k].slot, "bindings": shown(needs[k].cond),
+			})}})}
+		}
+		return panel([]any{1, 1}, c)
+	}
+	empty := "(#hover_text = '')"
+	wraps := []any{}
+	for j := 1; j < invui.Tabs; j++ {
+		last := []need{{invui.TabIcon0 + j, filled}}
+		if j+1 < invui.Tabs {
+			last = append(last, need{invui.TabIcon0 + j + 1, empty})
+		}
+		wraps = append(wraps,
+			obj{fmt.Sprintf("wr%d", j): chain("right", invui.TabBtn0, append([]need{{invui.TabIcon0 + j, has(invui.KindTabOn)}}, last[1:]...)...)},
+			obj{fmt.Sprintf("wl%d", j): chain("left", invui.TabBtn0+j, append([]need{{invui.TabIcon0, has(invui.KindTabOn)}}, last...)...)},
+		)
+	}
+	d["tab_keys"] = panel([]any{1, 1}, append([]any{obj{"steps": slots("vertical", []any{1, 1}, tabKeys)}}, wraps...)...)
 	d["esc_button"] = obj{
 		"type": "button", "size": []any{1, 1}, "layer": 0,
 		"default_control": "", "hover_control": "", "pressed_control": "",

@@ -31,7 +31,7 @@ func TestInputScreen(t *testing.T) {
 	if submit["label"] == "" || submit["label"] != oreInputLabel(t, true) {
 		t.Errorf("submit %v", submit)
 	}
-	if bar := data["chrome"].(map[string]any)["bar"].([]any); len(bar) != 0 || l.close == nil {
+	if bar := data["chrome"].(map[string]any)["bar"].([]any); len(bar) != 1 {
 		t.Errorf("bar %v", bar)
 	}
 	l.values["text"] = "abc"
@@ -78,7 +78,7 @@ func TestListSplitScreen(t *testing.T) {
 	if r1["name"] != "plain" || r1["info"] != "" || r1["id"] != "" {
 		t.Errorf("row1 %v", r1)
 	}
-	if len(data["actions"].([]any)) != 1 || len(data["chrome"].(map[string]any)["bar"].([]any)) != 0 {
+	if len(data["actions"].([]any)) != 1 || len(data["chrome"].(map[string]any)["bar"].([]any)) != 1 {
 		t.Errorf("actions %v", data)
 	}
 }

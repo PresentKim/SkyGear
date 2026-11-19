@@ -121,12 +121,11 @@ func (l *oreLayout) id(run func(p *player.Player, tx *world.Tx)) string {
 }
 
 // chromeOf sorts the options of a screen as chrome does: tab tokens to the
-// tabs, the bar buttons (pagers, help) to the bar and the rest returned. The
-// first back button becomes the screen's close (the close button and Esc),
-// unless the screen has one.
+// tabs, the bar buttons (pagers, help, back, in that order) to the bar and
+// the rest returned.
 func (l *oreLayout) chromeOf(title string, opts []Option) (dChrome, []Option) {
 	c := dChrome{Title: untoken(title), Tabs: []dTab{}, Bar: []dBarButton{}}
-	var pagers, help []dBarButton
+	var pagers, help, back []dBarButton
 	var rest []Option
 	for _, o := range opts {
 		switch {
@@ -142,14 +141,16 @@ func (l *oreLayout) chromeOf(title string, opts []Option) (dChrome, []Option) {
 		case strings.HasPrefix(o.Label, HelpToken):
 			help = append(help, dBarButton{ID: l.id(o.Run), Tip: untoken(o.Label), Glyph: "?"})
 		case strings.HasPrefix(o.Label, BackToken):
-			if l.close == nil {
-				l.close = o.Run
+			id := l.id(o.Run)
+			if l.back == "" {
+				l.back = id
 			}
+			back = append(back, dBarButton{ID: id, Tip: untoken(o.Label), Icon: oreIcon("textures/ui/sg/chevron_left"), Quick: true})
 		default:
 			rest = append(rest, o)
 		}
 	}
-	c.Bar = append(append(c.Bar, pagers...), help...)
+	c.Bar = append(append(append(c.Bar, pagers...), help...), back...)
 	return c, rest
 }
 
@@ -277,6 +278,10 @@ func showScreen(p *player.Player, l *oreLayout, name string, data any) {
 	pg := menuPageOf(name, data)
 	if lobby != nil {
 		pg.lobby(lobby)
+		if l.back != "" && l.close == nil {
+			l.close = l.runs[l.back]
+			pg.dropBar(l.back)
+		}
 	}
 	openMenu(p, l, pg)
 }

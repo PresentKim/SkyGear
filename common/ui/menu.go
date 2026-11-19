@@ -88,12 +88,7 @@ func (pg *menuPage) faces() {
 				pg.icon(f[0]+i, "", "")
 			}
 			icon := pg.items[f[0]+i]
-			face := icon.CustomName()
-			if _, paper := icon.Item().(item.Paper); !paper {
-				pg.items[f[1]+i] = icon.WithCustomName(b.CustomName())
-				icon, face = item.NewStack(item.Paper{}, 1), face+invui.KindPressIcon
-			}
-			pg.items[f[0]+i] = icon.WithCustomName(face + b.CustomName())
+			pg.items[f[0]+i] = icon.WithCustomName(invui.FaceName(icon.CustomName(), b.CustomName()))
 		}
 	}
 }
@@ -121,6 +116,16 @@ func (pg *menuPage) chrome(c dChrome) {
 		}
 		pg.icon(invui.BarIcon0+i, b.Icon, kind)
 		pg.button(invui.BarBtn0+i, b.Tip, kind, b.ID)
+	}
+}
+
+// dropBar takes the control bar button that presses id off the bar.
+func (pg *menuPage) dropBar(id string) {
+	for i := 0; i < invui.Bars; i++ {
+		if pg.ids[invui.BarBtn0+i] == id {
+			pg.items[invui.BarIcon0+i], pg.items[invui.BarBtn0+i] = item.Stack{}, item.Stack{}
+			delete(pg.ids, invui.BarBtn0+i)
+		}
 	}
 }
 

@@ -5,7 +5,10 @@
 // which the server cancels and answers.
 package invui
 
-import "strings"
+import (
+	"strings"
+	"unicode/utf8"
+)
 
 // Marker in the window title makes the pack draw the menu window.
 const Marker = "§s§g§m§u"
@@ -366,13 +369,29 @@ const FaceBytes = 3*CountChars + FacePathBytes
 // draws an element from its icon slot, named its face (Face, then the button
 // slot's name), and a press goes to its button slot. A quick move empties
 // the pressed slot on the client until the server answers, and the element
-// stays drawn meanwhile. An item icon goes in the button slot, its face of
-// kind KindPressIcon: the client adds an item's own lines (a tool's damage)
-// after its name, which would follow the label.
+// stays drawn meanwhile.
 var Faces = [][3]int{{TabIcon0, TabBtn0, Tabs}, {BarIcon0, BarBtn0, Bars}, {RowIcon0, RowBtn0, Rows}}
 
-// KindPressIcon marks a face whose icon is the item in its button slot.
-const KindPressIcon = "§z§7§7"
+// FaceTextBytes is how many bytes follow the start of a face (Face): its
+// kinds and label, cut or padded with reset codes to that length. The client
+// adds an item's own lines (a tool's damage) after its name, and the pack
+// reads the face only up to this length.
+const FaceTextBytes = 192
+
+// FaceName is the name of a face: face (Face and kinds) and the button's
+// name, cut or padded to FaceBytes+FaceTextBytes.
+func FaceName(face, name string) string {
+	s := face + name
+	limit := FaceBytes + FaceTextBytes
+	if len(s) > limit {
+		s = s[:limit]
+		for !utf8.ValidString(s) || strings.HasSuffix(s, "§") {
+			s = s[:len(s)-1]
+		}
+	}
+	pad := limit - len(s)
+	return s + strings.Repeat("§r", pad/3) + strings.Repeat(" ", pad%3)
+}
 
 // Kinds are the kind markers in the order the pack strips them.
-var Kinds = []string{KindPressIcon, KindGapW, KindGapE, KindGapN, KindGapS, KindDiamond, KindCircle, KindGate, KindSquare, KindNew, KindRow, KindStatic, KindChosen, KindHeading, KindDivider, KindToggleOff, KindToggleOn, KindTab, KindTabOn, KindBar, KindHelp, KindIcon, KindFrame, KindArrow, KindText, KindMini, KindMiniView, KindBlank, KindRare, KindEpic, KindCanvas, KindLineN, KindLineS, KindLineW, KindLineE, KindDone, KindLocked, KindField, FamRow, FamSlot, FamMini}
+var Kinds = []string{KindGapW, KindGapE, KindGapN, KindGapS, KindDiamond, KindCircle, KindGate, KindSquare, KindNew, KindRow, KindStatic, KindChosen, KindHeading, KindDivider, KindToggleOff, KindToggleOn, KindTab, KindTabOn, KindBar, KindHelp, KindIcon, KindFrame, KindArrow, KindText, KindMini, KindMiniView, KindBlank, KindRare, KindEpic, KindCanvas, KindLineN, KindLineS, KindLineW, KindLineE, KindDone, KindLocked, KindField, FamRow, FamSlot, FamMini}

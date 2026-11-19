@@ -84,7 +84,7 @@ func TestMenuScreens(t *testing.T) {
 	if name != "menu" || d["body"] != "본문" || len(items) != 2 || items[1].(map[string]any)["toggle"] != true {
 		t.Errorf("menu %s %v", name, d)
 	}
-	if bar := listOf(t, d["chrome"].(map[string]any), "bar"); len(bar) != 0 {
+	if bar := listOf(t, d["chrome"].(map[string]any), "bar"); len(bar) != 1 {
 		t.Errorf("bar %v", bar)
 	}
 	_, roots = shown(func() { oreCardMenu(nil, "제목", "", opts[1:2]) })
@@ -176,8 +176,8 @@ func TestSearchRedraw(t *testing.T) {
 		if name != "search" || d["query"] != q || d["info"] != "결과 "+q || picked[len(picked)-1] != q {
 			t.Errorf("redraw %d: %s %v picked %v", i, name, d, picked)
 		}
-		if ls[i+1].close == nil {
-			t.Errorf("redraw %d lost the back", i)
+		if len(listOf(t, d["chrome"].(map[string]any), "bar")) != 1 {
+			t.Errorf("redraw %d lost the bar", i)
 		}
 	}
 	if ls[1].input == nil {
