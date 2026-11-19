@@ -74,11 +74,6 @@ func LoadFS(fsys fs.FS, dir string, opt Options) (*resource.Pack, error) {
 		if key, err = encryptDir(tmp, packUUID(tmp), opt.Secret); err != nil {
 			return nil, fmt.Errorf("encrypt resource pack %s: %w", dir, err)
 		}
-	} else if err := os.WriteFile(filepath.Join(tmp, "content.zipe"), nil, 0o644); err != nil {
-		// The game takes its in-game Ore UI page from a pack that is
-		// encrypted or carries a content.zipe, so an unencrypted pack gets an
-		// empty one.
-		return nil, fmt.Errorf("resource pack %s: %w", dir, err)
 	}
 	// Zip in memory (stored png and ciphertext) and cache the result.
 	zipped, err := zipDir(tmp, opt.Encrypt, key)

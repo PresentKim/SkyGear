@@ -66,8 +66,7 @@ type Config struct {
 	ResourcePack struct {
 		// Minify strips comments and white space from the packs' JSON, and
 		// Encrypt encrypts the packs. Minify is on by default and Encrypt
-		// is off; an unencrypted pack carries an empty content.zipe, so the
-		// game still takes the Ore UI page the menus are drawn on.
+		// is off.
 		Minify, Encrypt bool
 		// SlotDeco adds the slotdeco pack: tier badges on the slots and the
 		// selected-item bubble framed by item rarity. It changes the vanilla
