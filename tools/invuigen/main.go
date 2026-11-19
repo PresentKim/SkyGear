@@ -150,7 +150,7 @@ func button(size any, def, hover, pressed string, tip bool) obj {
 		return panel([]any{"100%", "100%"}, c...)
 	}
 	return obj{
-		"type": "button", "size": size, "layer": 1, "focus_enabled": true, "focus_magnet_enabled": true,
+		"type": "button", "size": size, "layer": 1, "focus_enabled": false, "focus_magnet_enabled": false,
 		"default_control": "default", "hover_control": "hover", "pressed_control": "pressed",
 		"sound_name": "random.click", "sound_volume": 1.0, "sound_pitch": 1.0,
 		"button_mappings": mappings,
@@ -757,7 +757,6 @@ func defs() obj {
 	d["esc_button"] = obj{
 		"type": "button", "size": []any{1, 1}, "layer": 0,
 		"default_control": "", "hover_control": "", "pressed_control": "",
-		"focus_enabled": true,
 		"button_mappings": []any{
 			obj{"from_button_id": "button.menu_cancel", "to_button_id": "button.container_auto_place", "mapping_type": "global"},
 		},
