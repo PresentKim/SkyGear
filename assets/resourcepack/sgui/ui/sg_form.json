@@ -1,41 +1,6 @@
 {
   "namespace": "sg_form",
 
-  "root": {
-    "type": "panel",
-    "size": [ "100%", "100%" ],
-    "controls": [
-      {
-        "vanilla": {
-          "type": "panel",
-          "size": [ "100%", "100%" ],
-          "bindings": [
-            { "binding_name": "#title_text" },
-            { "binding_type": "view", "source_property_name": "(not (('%.3s' * #title_text) = 'sg:'))", "target_property_name": "#visible" }
-          ],
-          "controls": [ { "content@server_form.main_screen_content": {} } ]
-        }
-      },
-      { "router@sg_form.router": {} }
-    ]
-  },
-
-  "router": {
-    "type": "collection_panel",
-    "size": [ "100%", "100%" ],
-    "factory": {
-      "name": "sg_screen",
-      "control_ids": { "in": "@sg_form.input_screen" }
-    },
-    "property_bag": {
-      "#sg:in:": [ "in" ]
-    },
-    "bindings": [
-      { "binding_name": "#title_text" },
-      { "binding_type": "view", "source_property_name": "('#' + ('%.6s' * #title_text))", "target_property_name": "#collection_length" }
-    ]
-  },
-
   "input_screen": {
     "type": "panel",
     "size": [ 326, 166 ],
