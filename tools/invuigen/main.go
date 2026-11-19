@@ -150,7 +150,7 @@ func button(size any, def, hover, pressed string, tip bool) obj {
 		return panel([]any{"100%", "100%"}, c...)
 	}
 	return obj{
-		"type": "button", "size": size, "layer": 1, "focus_enabled": false, "focus_magnet_enabled": false,
+		"type": "button", "size": size, "layer": 1, "focus_enabled": true, "focus_magnet_enabled": true,
 		"default_control": "default", "hover_control": "hover", "pressed_control": "pressed",
 		"sound_name": "random.click", "sound_volume": 1.0, "sound_pitch": 1.0,
 		"button_mappings": mappings,
@@ -782,8 +782,8 @@ func defs() obj {
 					"controls": []any{
 						obj{"esc": slots("vertical", []any{1, 1}, []any{at("b", "esc_button", invui.SlotEsc, nil)})},
 						obj{"sync": obj{"type": "grid", "size": []any{0, 0}, "maximum_grid_items": 27, "collection_name": "container_items", "grid_item_template": "sg_menu.empty"}},
-						obj{"window": slots("vertical", []any{"100%", "100%"}, []any{at("g", "window_gate", invui.SlotKey, nil)})},
 						obj{"quest": slots("vertical", []any{"100%", "100%"}, []any{at("g", "quest_gate", invui.SlotKey, nil)})},
+						obj{"window": slots("vertical", []any{"100%", "100%"}, []any{at("g", "window_gate", invui.SlotKey, nil)})},
 						obj{"home": slots("vertical", []any{"100%", "100%"}, []any{at("g", "home_gate", invui.SlotKey, nil)})},
 						obj{"lobby": slots("vertical", []any{"100%", "100%"}, []any{at("g", "lobby_gate", invui.SlotKey, nil)})},
 						obj{"loading": slots("vertical", []any{"100%", "100%"}, []any{at("g", "loading_gate", invui.SlotKey, nil)})},
