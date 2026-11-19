@@ -304,7 +304,8 @@ func TestCollectors(t *testing.T) {
 		}
 		count := func(st *machine.State) int {
 			n := 0
-			for _, it := range st.Inv().Items() {
+			for _, slot := range st.Def.Output {
+				it, _ := st.Inv().Item(slot)
 				if e, ok := it.Item().(sgitem.Essence); ok && e.Mob == slime {
 					n += it.Count()
 				}
