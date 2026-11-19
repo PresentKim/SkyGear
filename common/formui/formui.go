@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/presentkim/skygear/common/sghook"
@@ -37,6 +38,8 @@ type Input struct {
 type Form struct {
 	conn *sghook.Conn
 	id   uint32
+	data []byte
+	busy int
 
 	mu     sync.Mutex
 	closed bool
@@ -59,15 +62,18 @@ func init() {
 		}
 		formsMu.Lock()
 		f := forms[c]
-		if f != nil && f.id == r.FormID {
-			delete(forms, c)
-		} else {
-			f = nil
-		}
-		formsMu.Unlock()
-		if f == nil {
+		if f == nil || f.id != r.FormID {
+			formsMu.Unlock()
 			return true
 		}
+		if reason, ok := r.CancelReason.Value(); ok && reason == packet.ModalFormCancelReasonUserBusy && f.busy < busyRetries {
+			f.busy++
+			formsMu.Unlock()
+			time.AfterFunc(busyWait, f.resend)
+			return true
+		}
+		delete(forms, c)
+		formsMu.Unlock()
 		f.mu.Lock()
 		was := f.closed
 		f.closed = true
@@ -149,7 +155,7 @@ func open(p *player.Player, data []byte, answer func([]byte), cancel func()) (*F
 	if c == nil {
 		return nil, fmt.Errorf("formui: %v has no hooked connection", p.Name())
 	}
-	f := &Form{conn: c, id: formIDs.Add(1), answer: answer, cancel: cancel}
+	f := &Form{conn: c, id: formIDs.Add(1), data: data, answer: answer, cancel: cancel}
 	formsMu.Lock()
 	old := forms[c]
 	forms[c] = f
@@ -164,6 +170,24 @@ func open(p *player.Player, data []byte, answer func([]byte), cancel func()) (*F
 		}
 	}
 	return f, c.WritePacket(&packet.ModalFormRequest{FormID: f.id, FormData: data})
+}
+
+// A client turns a form down as busy while it is still closing another
+// screen, such as the chest window a press in the menu window came from. The
+// form is sent again after busyWait, up to busyRetries times.
+const (
+	busyWait    = 100 * time.Millisecond
+	busyRetries = 20
+)
+
+// resend sends f again if it is still the open form of its connection.
+func (f *Form) resend() {
+	formsMu.Lock()
+	open := forms[f.conn] == f
+	formsMu.Unlock()
+	if open && !f.Closed() {
+		_ = f.conn.WritePacket(&packet.ModalFormRequest{FormID: f.id, FormData: f.data})
+	}
 }
 
 // Close closes the form on the client. Neither of its callbacks runs.
