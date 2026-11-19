@@ -8,14 +8,12 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 )
 
-// shownScreen runs show with oreShown set and gives the layout and the
-// screen it showed.
+// shownScreen runs show and gives the layout and the screen it showed.
 func shownScreen(show func()) (l *oreLayout, name string, data map[string]any) {
-	oreShown = func(got *oreLayout, root any) {
+	defer capture(func(got *oreLayout, root any) {
 		l = got
 		name, data = screenRoot(root)
-	}
-	defer func() { oreShown = nil }()
+	})()
 	show()
 	return
 }

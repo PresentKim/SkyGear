@@ -15,9 +15,8 @@ import (
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
-// The lobby has no chat window: the main screen is always open, and no
-// engine command of the Ore UI page opens the game's chat
-// (docs/tech/oreui-probes.md). Operators type commands in a console screen
+// The lobby has no chat window: the main screen is always open. Operators
+// type commands in a console screen
 // instead (the main screen's command button, the system menu): what a
 // command sends back (command output and chat lines) is shown in its log
 // while the console is open.

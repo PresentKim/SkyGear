@@ -14,8 +14,7 @@ import (
 func TestRadialMenu(t *testing.T) {
 	var got *oreLayout
 	var layout any
-	oreShown = func(l *oreLayout, lay any) { got, layout = l, lay }
-	defer func() { oreShown = nil }()
+	defer capture(func(l *oreLayout, lay any) { got, layout = l, lay })()
 
 	run := func(*player.Player, *world.Tx) {}
 	m := RadialMenu{Title: "wand", Line: "9", Info: "pick", Items: []RadialItem{

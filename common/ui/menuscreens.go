@@ -64,7 +64,7 @@ func (b *board) line() {
 // at moves to the cell of column c in row r.
 func (b *board) at(r, c int) { b.i = r*b.cols + c }
 
-// cells writes a board row of the Ore UI layout; an empty row still takes
+// cells writes a board row (cellsOf); an empty row still takes
 // its room.
 func (b *board) cells(row []dCell) {
 	b.touch()

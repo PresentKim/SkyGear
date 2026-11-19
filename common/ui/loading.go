@@ -43,17 +43,11 @@ func LoadingScreen(p *player.Player, ld Loading) {
 // CloseLoading closes p's loading screen, if it still shows one, once it has
 // been up for minLoading.
 func CloseLoading(p *player.Player) {
-	if oreShown != nil {
+	if screenShown != nil {
 		return
 	}
 	id := p.UUID()
-	oreScreens.Lock()
-	st := oreScreens.m[id]
 	var wait time.Duration
-	if st != nil && st.form != nil && !st.loading.IsZero() {
-		wait = minLoading - time.Since(st.loading)
-	}
-	oreScreens.Unlock()
 	formScreens.Lock()
 	if fs := formScreens.m[id]; fs.showing() && !fs.loading.IsZero() {
 		wait = minLoading - time.Since(fs.loading)
@@ -84,13 +78,4 @@ func closeLoading(id uuid.UUID) {
 	if menu {
 		closeMenuOf(id)
 	}
-	oreScreens.Lock()
-	defer oreScreens.Unlock()
-	st := oreScreens.m[id]
-	if st == nil || st.form == nil || st.loading.IsZero() {
-		return
-	}
-	_ = st.form.Close()
-	st.form = nil
-	st.loading = time.Time{}
 }

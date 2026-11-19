@@ -53,7 +53,7 @@ func (pg *menuPage) button(slot int, text, kind, id string) {
 	}
 }
 
-// icon puts an Ore UI icon in slot: the item itself for an item icon, a
+// icon puts an icon (oreIcon) in slot: the item itself for an item icon, a
 // paper named the texture path for a texture. The kind is the kind of the
 // element the icon belongs to.
 func (pg *menuPage) icon(slot int, icon, kind string) {
@@ -529,7 +529,6 @@ func openMenu(p *player.Player, l *oreLayout, pg *menuPage) {
 	if !l.inventory {
 		ReturnCarried(p)
 	}
-	closeOreScreen(p)
 	closeForm(p)
 	formScreens.Lock()
 	st := formScreens.m[p.UUID()]

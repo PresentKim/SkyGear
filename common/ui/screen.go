@@ -10,11 +10,9 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 )
 
-// The DDUI screens are drawn by the React page (web/oreui), which owns their
-// layout: the server sends a screen name and its data
-// (docs/plans/2026-10-30-react-screens.contract.md). The d* types below are
-// that data, with the JSON names of web/oreui/src/protocol.ts; a slice in
-// them is never nil, so it is sent as [] and not null.
+// A screen is a screen name and its data, which the menu window lays out
+// (menuPageOf). The d* types below are that data; a slice in them is never
+// nil, so it marshals as [] and not null.
 
 // dChrome is the title, the tabs over the window and the control bar.
 type dChrome struct {
@@ -104,14 +102,14 @@ type dCell struct {
 	Span int    `json:"span,omitempty"`
 }
 
-// dLobby is what the page draws over a screen in the lobby.
+// dLobby is what the menu window draws over a screen in the lobby.
 type dLobby struct {
 	Title string `json:"title"`
 	Logo  string `json:"logo"`
 	Touch bool   `json:"touch"`
 }
 
-// id gives run an id that the page sends when the element is pressed (nil:
+// id gives run an id that the element's slot presses (nil:
 // "", not pressable). Ids of one layout never repeat.
 func (l *oreLayout) id(run func(p *player.Player, tx *world.Tx)) string {
 	if run == nil {
@@ -247,24 +245,12 @@ func (l *oreLayout) cellsOf(row []BoardCell) []dCell {
 	return out
 }
 
-// rootOf builds the root the page gets: the screen, its data and what
-// goes around it.
-func rootOf(name string, data any, keys map[string]string, lobby *dLobby, debug bool) map[string]any {
-	root := map[string]any{"screen": name, "data": data}
-	if len(keys) > 0 {
-		root["keys"] = keys
-	}
-	if lobby != nil {
-		root["lobby"] = lobby
-	}
-	if debug {
-		root["debug"] = true
-	}
-	return root
-}
+// screenShown, when set (tests), takes the screens showScreen is given
+// instead of the players' windows.
+var screenShown func(l *oreLayout, name string, data any, lobby *dLobby)
 
-// showScreen shows the screen name with data to p: like showOre, it reuses
-// the open screen when the window has the same size.
+// showScreen shows the screen name with data to p: an input as a custom form,
+// any other screen in the menu window.
 func showScreen(p *player.Player, l *oreLayout, name string, data any) {
 	if l.size == "" {
 		l.size = fmt.Sprintf("%dx%d", windowW, windowH)
@@ -277,17 +263,17 @@ func showScreen(p *player.Player, l *oreLayout, name string, data any) {
 			lobby.Title, lobby.Logo = title, oreIcon(logo)
 		}
 	}
-	if oreShown == nil && p != nil {
-		if in, ok := data.(inputData); ok {
-			openInput(p, l, in)
-			return
-		}
-		pg := menuPageOf(name, data)
-		if lobby != nil {
-			pg.lobby(lobby)
-		}
-		openMenu(p, l, pg)
+	if screenShown != nil {
+		screenShown(l, name, data, lobby)
 		return
 	}
-	openOre(p, l, rootOf(name, data, l.keys, lobby, p != nil && OreDebug(p)))
+	if in, ok := data.(inputData); ok {
+		openInput(p, l, in)
+		return
+	}
+	pg := menuPageOf(name, data)
+	if lobby != nil {
+		pg.lobby(lobby)
+	}
+	openMenu(p, l, pg)
 }

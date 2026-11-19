@@ -13,17 +13,17 @@ func TestForget(t *testing.T) {
 	gone, kept := uuid.New(), uuid.New()
 	for _, id := range []uuid.UUID{gone, kept} {
 		toasts.m[id] = &toastState{}
-		oreScreens.m[id] = &oreScreen{}
+		formScreens.m[id] = &formScreen{}
 	}
 	t.Cleanup(func() { forget(kept) })
 	forget(gone)
 	if _, ok := toasts.m[gone]; ok {
 		t.Error("toast state kept")
 	}
-	if _, ok := oreScreens.m[gone]; ok {
-		t.Error("ore screen kept")
+	if _, ok := formScreens.m[gone]; ok {
+		t.Error("form screen kept")
 	}
-	if toasts.m[kept] == nil || oreScreens.m[kept] == nil {
+	if toasts.m[kept] == nil || formScreens.m[kept] == nil {
 		t.Error("another player's state dropped")
 	}
 }
@@ -82,8 +82,7 @@ func TestConfirmItems(t *testing.T) {
 	ran := false
 	var ls []*oreLayout
 	var roots []any
-	oreShown = func(l *oreLayout, root any) { ls, roots = append(ls, l), append(roots, root) }
-	defer func() { oreShown = nil }()
+	defer capture(func(l *oreLayout, root any) { ls, roots = append(ls, l), append(roots, root) })()
 	Confirm(nil, "t", "b", "예", func(*player.Player, *world.Tx) { ran = true })
 	name, d := screenRoot(roots[0])
 	items, _ := d["items"].([]any)

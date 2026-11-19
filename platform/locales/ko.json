@@ -277,8 +277,5 @@
  "setting.group.achievement": "업적",
  "setting.achievement.toast": "업적 달성 화면 알림",
  "setting.achievement.chat": "업적 달성 채팅 메시지",
- "setting.achievement.sound": "업적 달성 소리",
- "platform.uidebug.command": "메뉴 화면(Ore UI)의 디버그 정보를 켜고 끕니다",
- "platform.uidebug.on": "§e메뉴 화면 디버그 정보를 켰습니다. 메뉴를 열면 화면 위에 보입니다.",
- "platform.uidebug.off": "§7메뉴 화면 디버그 정보를 껐습니다."
+ "setting.achievement.sound": "업적 달성 소리"
 }

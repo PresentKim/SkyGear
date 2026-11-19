@@ -277,8 +277,5 @@
  "setting.group.achievement": "Achievements",
  "setting.achievement.toast": "Achievement on-screen notice",
  "setting.achievement.chat": "Achievement chat message",
- "setting.achievement.sound": "Achievement sound",
- "platform.uidebug.command": "Turns the debug info of the menu screens (Ore UI) on or off",
- "platform.uidebug.on": "§eMenu screen debug info on. It shows over the top of a menu.",
- "platform.uidebug.off": "§7Menu screen debug info off."
+ "setting.achievement.sound": "Achievement sound"
 }

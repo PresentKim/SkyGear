@@ -8,9 +8,7 @@ import (
 	"github.com/presentkim/skygear/common/i18n"
 )
 
-// DDUI screens for ListSplitMenu, Input, ItemGrid(Sections) and SlotMenu.
-// They share the common window size, so moving between them updates the open
-// screen in place.
+// Screens for ListSplitMenu, Input, ItemGrid(Sections) and SlotMenu.
 
 // dListRow is a row of the list of a list-split screen.
 type dListRow struct {

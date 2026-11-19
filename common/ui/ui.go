@@ -1,5 +1,5 @@
-// Package ui builds the menus as server-driven DDUI screens drawn on the
-// game's Ore UI (oreui.go): their buttons run closures.
+// Package ui builds the menus as screens drawn in the menu window of invui
+// (menu.go) and inputs as custom forms (form.go): their buttons run closures.
 package ui
 
 import (
@@ -29,8 +29,7 @@ func init() {
 }
 
 // plainText puts the fallback texts in place of the client spans
-// (i18n.ClientKey) of what only the Ore UI page translates, should a span end
-// up in chat or a title.
+// (i18n.ClientKey), should a span end up in chat or a title.
 func plainText(_ *sghook.Conn, pk packet.Packet) bool {
 	switch pk := pk.(type) {
 	case *packet.Text:
@@ -49,9 +48,6 @@ func forget(id uuid.UUID) {
 	toasts.Lock()
 	delete(toasts.m, id)
 	toasts.Unlock()
-	oreScreens.Lock()
-	delete(oreScreens.m, id)
-	oreScreens.Unlock()
 	forgetForm(id)
 }
 
@@ -74,17 +70,17 @@ func Heading(label string) Option { return Option{Label: label, row: "heading"} 
 // Divider is a line across a list between two groups of rows.
 func Divider() Option { return Option{row: "divider"} }
 
-// Toggle is a menu option drawn as a row with an Ore UI switch on its right,
+// Toggle is a menu option drawn as a row with a switch on its right,
 // on when on. Pressing the row runs run, which should change the setting and
 // show the menu again.
 func Toggle(label string, on bool, run func(p *player.Player, tx *world.Tx)) Option {
 	return Option{Label: label, Run: run, toggle: true, on: on}
 }
 
-// FormOpen reports whether p has a DDUI screen open.
-func FormOpen(p *player.Player) bool { return oreOpen(p) || formOpen(p) }
+// FormOpen reports whether p has a screen open: a form or the menu window.
+func FormOpen(p *player.Player) bool { return formOpen(p) }
 
-// Idle, if set, runs when p closed a DDUI screen (closed: Esc or the close
+// Idle, if set, runs when p closed a screen (closed: Esc or the close
 // button, title "") or pressed something on it that showed no other screen.
 // It runs with the screen still open: a screen it shows replaces that one in
 // place, and the screen closes if it shows none. When the client closed the

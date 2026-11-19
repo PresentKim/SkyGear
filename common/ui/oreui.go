@@ -3,30 +3,21 @@ package ui
 import (
 	"strconv"
 	"strings"
-	"sync"
-	"time"
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/google/uuid"
-	"github.com/presentkim/skygear/common/oreui"
 	"github.com/presentkim/skygear/common/sghook"
 	"github.com/presentkim/skygear/common/slotdeco"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 )
 
-// The menus are DDUI screens drawn by the oreui pack. The server must send
-// the oreui pack encrypted (the game takes the Ore UI page from an encrypted
-// pack only) and wrap its listeners with sghook.
-
 // LobbyHeader, when set, is the game's name and logo (a form icon) that the
-// DDUI screens of the lobby draw at the top middle. The platform sets it.
+// screens of the lobby draw at the top middle. The platform sets it.
 var LobbyHeader func(p *player.Player) (title, logo string)
 
 // touchDevice reports whether p plays on a phone or tablet (Android, iOS,
 // Fire OS), whose screen edges may hold a camera cutout or a system handle
-// that takes touches: the lobby keeps its buttons larger and away from the
-// edges there (.mc-touch).
+// that takes touches.
 func touchDevice(p *player.Player) bool {
 	if p == nil {
 		return false
@@ -42,374 +33,12 @@ func touchDevice(p *player.Player) bool {
 	return false
 }
 
-// oreOpen reports whether p has a DDUI screen open.
 // ShowingKey is the key of the screen p has open (InventoryScreen.Key), ""
 // when none is open or it has no key. A screen that redraws itself while open
 // (a machine's) checks it so it never replaces another.
 func ShowingKey(p *player.Player) string {
-	if key, ok := formKey(p); ok {
-		return key
-	}
-	oreScreens.Lock()
-	defer oreScreens.Unlock()
-	st := oreScreens.m[p.UUID()]
-	if st == nil || st.form == nil || st.form.Closed() {
-		return ""
-	}
-	return st.key
-}
-
-func oreOpen(p *player.Player) bool {
-	oreScreens.Lock()
-	defer oreScreens.Unlock()
-	st := oreScreens.m[p.UUID()]
-	return st != nil && st.form != nil && !st.form.Closed()
-}
-
-// oreClosed runs what the closing of st does for the player of h: its close
-// run, or Idle.
-func oreClosed(h *world.EntityHandle, st *oreScreen) {
-	oreScreens.Lock()
-	run := st.close
-	oreScreens.Unlock()
-	if run == nil {
-		oreIdle(h, true)
-		return
-	}
-	h.Do(func(tx *world.Tx, e world.Entity) {
-		p := e.(*player.Player)
-		defer recoverForm(p)
-		run(p, tx)
-	})
-}
-
-// oreIdle runs Idle for the player of h, whose DDUI screen closed (closed:
-// without a press), when no form or screen followed.
-func oreIdle(h *world.EntityHandle, closed bool) {
-	if Idle == nil {
-		return
-	}
-	h.Do(func(tx *world.Tx, e world.Entity) {
-		if p := e.(*player.Player); !FormOpen(p) {
-			Idle(p, tx, "", closed)
-		}
-	})
-}
-
-// oreScreen is the DDUI screen of a player: what its elements run, and gen,
-// which counts the screens shown, so a press that shows none closes it (as a
-// press answers a form).
-type oreScreen struct {
-	form *oreui.Form
-	runs map[string]func(p *player.Player, tx *world.Tx)
-	// input runs when the text of the screen's input box changes (SearchGrid).
-	input func(p *player.Player, tx *world.Tx, value string)
-	// inputs run instead of input for the input boxes they are kept by.
-	inputs map[string]func(p *player.Player, tx *world.Tx, value string)
-	// values are the layout's input boxes' texts by their ids (oreLayout).
-	values map[string]string
-	gen    int
-	// size is the window size of the layout shown.
-	size string
-	// key names what the screen shows (ShowingKey), "" for most screens.
-	key string
-	// close is the layout's run on closing (oreLayout.close).
-	close func(p *player.Player, tx *world.Tx)
-	// probe is the layout's run for the lines its test nodes report
-	// (oreLayout.probe).
-	probe func(p *player.Player, tx *world.Tx, id, line string)
-	// slot and drag are the layout's runs for the clicks and drags on the
-	// slots of an inventory screen (ShowInventory).
-	slot func(p *player.Player, tx *world.Tx, a SlotAct)
-	drag func(p *player.Player, tx *world.Tx, d DragAct)
-	drop func(p *player.Player, tx *world.Tx, one bool)
-	hold func(p *player.Player, tx *world.Tx, on bool)
-	// loading is when the loading screen shown came up (zero: the screen is
-	// not a loading screen, LoadingScreen).
-	loading time.Time
-	// root is the root last sent, which SetOreDebug sends again.
-	root any
-}
-
-var oreScreens = struct {
-	sync.Mutex
-	m map[uuid.UUID]*oreScreen
-}{m: map[uuid.UUID]*oreScreen{}}
-
-// openOre sends root (a screen's root) to p, reusing p's open screen when its
-// window is the same size: it opens the screen or replaces the one open, and
-// takes the layout's runs. Gameface hit-tests presses at the old places after
-// a window resizes, so a window of another size is opened anew.
-func openOre(p *player.Player, l *oreLayout, root any) {
-	if oreShown != nil {
-		oreShown(l, root)
-		return
-	}
-	oreScreens.Lock()
-	defer oreScreens.Unlock()
-	st := oreScreens.m[p.UUID()]
-	if st == nil {
-		st = &oreScreen{}
-		oreScreens.m[p.UUID()] = st
-	}
-	if !l.inventory && p != nil {
-		ReturnCarried(p)
-	}
-	st.gen++
-	st.key = l.screenKey
-	st.runs, st.input, st.inputs, st.values, st.close, st.probe = l.runs, l.input, l.inputs, l.values, l.close, l.probe
-	st.slot, st.drag, st.drop, st.hold = l.slot, l.drag, l.drop, l.hold
-	st.root = root
-	switch {
-	case !l.loading:
-		st.loading = time.Time{}
-	case st.loading.IsZero() || st.form == nil || st.form.Closed():
-		st.loading = time.Now()
-	}
-	if st.form != nil && !st.form.Closed() {
-		if st.size == l.size {
-			_ = st.form.SetLayout(root)
-			return
-		}
-		_ = st.form.Close()
-	}
-	st.size = l.size
-	h := p.H()
-	f, err := oreui.Open(p, root, func(ev oreui.Event) { oreEvent(h, st, ev) }, func() {
-		oreScreens.Lock()
-		if oreScreens.m[p.UUID()] == st {
-			st.form = nil
-		}
-		oreScreens.Unlock()
-		oreClosed(h, st)
-	})
-	if err != nil {
-		st.form = nil
-		return
-	}
-	st.form = f
-}
-
-// oreDebug holds the players whose DDUI screens show the renderer's debug
-// line, by UUID.
-var oreDebug sync.Map
-
-// SetOreDebug shows or hides the debug line of p's DDUI screens: what the
-// page knows of the screen and the fonts, over the top of the screen, for a
-// screenshot from a device. It applies to the screen open at once and to the
-// screens shown after.
-func SetOreDebug(p *player.Player, on bool) {
-	if on {
-		oreDebug.Store(p.UUID(), true)
-	} else {
-		oreDebug.Delete(p.UUID())
-	}
-	if oreShown != nil {
-		return
-	}
-	oreScreens.Lock()
-	defer oreScreens.Unlock()
-	if st := oreScreens.m[p.UUID()]; st != nil && st.form != nil && !st.form.Closed() && st.root != nil {
-		st.root = rootDebug(st.root, on)
-		_ = st.form.SetLayout(st.root)
-	}
-}
-
-// rootDebug is root with its debug line on or off.
-func rootDebug(root any, on bool) any {
-	m, ok := root.(map[string]any)
-	if !ok {
-		return root
-	}
-	out := make(map[string]any, len(m)+1)
-	for k, v := range m {
-		out[k] = v
-	}
-	if on {
-		out["debug"] = true
-	} else {
-		delete(out, "debug")
-	}
-	return out
-}
-
-// OreDebug reports whether p's DDUI screens show the debug line.
-func OreDebug(p *player.Player) bool {
-	_, ok := oreDebug.Load(p.UUID())
-	return ok
-}
-
-// oreShown, when set (tests), takes the roots showScreen is given instead of
-// the players' screens.
-var oreShown func(l *oreLayout, root any)
-
-// oreEvent runs what the pressed element does in the player's world. Esc
-// and the close button run the layout's close run, or Idle, and close the
-// screen when that showed no other screen.
-func oreEvent(h *world.EntityHandle, st *oreScreen, ev oreui.Event) {
-	if ev.ID == "close" {
-		oreScreens.Lock()
-		open, run, gen := st.form != nil, st.close, st.gen
-		oreScreens.Unlock()
-		if !open {
-			return
-		}
-		h.Do(func(tx *world.Tx, e world.Entity) {
-			p := e.(*player.Player)
-			if run == nil {
-				oreEnd(p, tx, st, gen, true)
-				return
-			}
-			func() {
-				defer recoverForm(p)
-				run(p, tx)
-			}()
-			oreScreens.Lock()
-			if st.gen == gen && st.form != nil {
-				_ = st.form.Close()
-				st.form = nil
-			}
-			oreScreens.Unlock()
-		})
-		return
-	}
-	oreScreens.Lock()
-	for id, v := range ev.Inputs {
-		if _, ok := st.values[id]; ok {
-			st.values[id] = v
-		}
-	}
-	oreScreens.Unlock()
-	if ev.Kind == "change" {
-		oreScreens.Lock()
-		in, gen := st.input, st.gen
-		if f, ok := st.inputs[ev.ID]; ok {
-			in = f
-		}
-		if v, ok := ev.Value.(string); ok {
-			if _, kept := st.values[ev.ID]; kept {
-				st.values[ev.ID] = v
-			}
-		}
-		oreScreens.Unlock()
-		value, _ := ev.Value.(string)
-		if in == nil {
-			return
-		}
-		h.Do(func(tx *world.Tx, e world.Entity) {
-			oreScreens.Lock()
-			same := st.gen == gen
-			oreScreens.Unlock()
-			if same {
-				p := e.(*player.Player)
-				defer recoverForm(p)
-				in(p, tx, value)
-			}
-		})
-		return
-	}
-	if ev.Kind == "slot" || ev.Kind == "drag" || ev.Kind == "drop" || ev.Kind == "hold" {
-		oreScreens.Lock()
-		slot, drag, drop, hold, gen := st.slot, st.drag, st.drop, st.hold, st.gen
-		oreScreens.Unlock()
-		a, aok := slotEvent(ev.ID, ev.Value)
-		d, dok := dragEvent(ev.Value)
-		h.Do(func(tx *world.Tx, e world.Entity) {
-			oreScreens.Lock()
-			same := st.gen == gen
-			oreScreens.Unlock()
-			if !same {
-				return
-			}
-			p := e.(*player.Player)
-			defer recoverForm(p)
-			switch {
-			case ev.Kind == "slot" && aok && slot != nil:
-				slot(p, tx, a)
-			case ev.Kind == "drag" && dok && drag != nil:
-				drag(p, tx, d)
-			case ev.Kind == "drop" && drop != nil:
-				drop(p, tx, dropEvent(ev.Value))
-			case ev.Kind == "hold" && hold != nil:
-				on, _ := ev.Value.(bool)
-				hold(p, tx, on)
-			}
-		})
-		return
-	}
-	if ev.Kind == "probe" {
-		oreScreens.Lock()
-		run := st.probe
-		oreScreens.Unlock()
-		line, _ := ev.Value.(string)
-		if run != nil {
-			h.Do(func(tx *world.Tx, e world.Entity) { run(e.(*player.Player), tx, ev.ID, line) })
-		}
-		return
-	}
-	if ev.Kind == "seen" {
-		// A look at an element (QuestNode.Seen): its run records it and
-		// shows no screen.
-		oreScreens.Lock()
-		run, gen := st.runs[ev.ID], st.gen
-		oreScreens.Unlock()
-		if run == nil {
-			return
-		}
-		h.Do(func(tx *world.Tx, e world.Entity) {
-			oreScreens.Lock()
-			same := st.gen == gen
-			oreScreens.Unlock()
-			if same {
-				p := e.(*player.Player)
-				defer recoverForm(p)
-				run(p, tx)
-			}
-		})
-		return
-	}
-	if ev.Kind != "click" {
-		return
-	}
-	oreScreens.Lock()
-	run, gen := st.runs[ev.ID], st.gen
-	oreScreens.Unlock()
-	if run == nil {
-		return
-	}
-	h.Do(func(tx *world.Tx, e world.Entity) {
-		p := e.(*player.Player)
-		func() {
-			defer recoverForm(p)
-			run(p, tx)
-		}()
-		oreEnd(p, tx, st, gen, false)
-	})
-}
-
-// oreEnd ends a press (closed: Esc) on the screen st of p that showed no other
-// screen or form (st.gen is still gen): Idle runs while the screen is still
-// open, so a screen it shows (the lobby's main screen) takes its place
-// without closing it, and the screen closes when Idle showed none either.
-func oreEnd(p *player.Player, tx *world.Tx, st *oreScreen, gen int, closed bool) {
-	oreScreens.Lock()
-	ended := st.gen == gen && st.form != nil
-	oreScreens.Unlock()
-	if !ended {
-		return
-	}
-	if Idle != nil {
-		func() {
-			defer recoverForm(p)
-			Idle(p, tx, "", closed)
-		}()
-	}
-	oreScreens.Lock()
-	if st.gen == gen && st.form != nil {
-		_ = st.form.Close()
-		st.form = nil
-	}
-	oreScreens.Unlock()
+	key, _ := formKey(p)
+	return key
 }
 
 // oreLayout builds a screen: the runs of the elements that can be pressed
@@ -420,7 +49,7 @@ type oreLayout struct {
 	// inputs run instead of input for the input boxes they are kept by.
 	inputs map[string]func(p *player.Player, tx *world.Tx, value string)
 	// values keep the texts of the screen's input boxes, guarded by
-	// oreScreens.
+	// formScreens.
 	values map[string]string
 	// size is the window's size (showScreen sets it).
 	size string
@@ -434,9 +63,6 @@ type oreLayout struct {
 	close func(p *player.Player, tx *world.Tx)
 	// keys are the ids the screen's keys press, by Key (oreLayout.key).
 	keys map[string]string
-	// probe, if set, takes the lines the renderer's test nodes report
-	// (ProbeScreen).
-	probe func(p *player.Player, tx *world.Tx, id, line string)
 	// loading marks a loading screen (LoadingScreen), which CloseLoading
 	// closes.
 	loading bool
@@ -449,10 +75,8 @@ type oreLayout struct {
 	hold      func(p *player.Player, tx *world.Tx, on bool)
 }
 
-// Key is a key of the keyboard a DDUI screen can answer: the arrow keys and
-// WASD for the directions, Enter and the space bar for KeyOK. A key the
-// screen does not answer moves and presses the keyboard selection
-// (the page's keyboard handling).
+// Key is a key of the keyboard a screen can answer: the arrow keys and WASD
+// for the directions, Enter and the space bar for KeyOK.
 type Key string
 
 const (
@@ -485,23 +109,13 @@ func newOreLayout() *oreLayout {
 
 // value is the text of the input box id as the player left it.
 func (l *oreLayout) value(id string) string {
-	oreScreens.Lock()
-	defer oreScreens.Unlock()
+	formScreens.Lock()
+	defer formScreens.Unlock()
 	return l.values[id]
 }
 
-// node is a raw probe node of type t with the fields kv (ProbeNode).
-func node(t string, kv ...any) map[string]any {
-	n := map[string]any{"t": t}
-	for i := 0; i+1 < len(kv); i += 2 {
-		n[kv[i].(string)] = kv[i+1]
-	}
-	return n
-}
-
-// oreIcon is the renderer's icon of an Option or slot icon: an ItemIcon (runtime id
-// times 65536) is drawn by the game's item renderer, a texture path from the
-// packs.
+// oreIcon is the icon of an Option or slot icon: an ItemIcon (runtime id
+// times 65536) is drawn as the item itself, a texture path from the packs.
 func oreIcon(icon string) string {
 	switch {
 	case icon == "":
@@ -532,8 +146,7 @@ func untoken(s string) string {
 }
 
 // slotDeco reads the rarity mark of a slot's tooltip ("§k§r§a" and the like,
-// slotdeco): it returns the tooltip without the hidden part and the rarity,
-// which the page draws as the tooltip's border.
+// slotdeco): it returns the tooltip without the hidden part and the rarity.
 func slotDeco(tip string) (string, slotdeco.Rarity) {
 	for r := slotdeco.Uncommon; r <= slotdeco.Legendary; r++ {
 		if m := r.Mark(); strings.HasPrefix(tip, m) {
@@ -543,9 +156,8 @@ func slotDeco(tip string) (string, slotdeco.Rarity) {
 	return tip, slotdeco.Common
 }
 
-// windowW by windowH is the size of every DDUI window but the quest book's,
-// in GUI pixels: the vanilla inventory's, the largest that fits a phone. One
-// size lets showOre switch screens in place.
+// windowW by windowH is the size of every window but the quest book's, in
+// GUI pixels: the vanilla inventory's, the largest that fits a phone.
 const windowW, windowH = 326, 166
 
 // menuData is the data of the menu screen: the body text and a row per option.

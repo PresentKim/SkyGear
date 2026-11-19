@@ -1,26 +1,17 @@
 package ui
 
 import (
-	"encoding/json"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 )
 
-// shownLayouts runs show and returns the layouts it
-// showed with their window sizes.
-func shownLayouts(t *testing.T, show func()) (sizes []string, layouts []any) {
-	t.Helper()
-	oreShown = func(l *oreLayout, layout any) {
-		sizes = append(sizes, l.size)
-		layouts = append(layouts, layout)
-	}
-	defer func() { oreShown = nil }()
+// shownSizes runs show and returns the window sizes of the screens it showed.
+func shownSizes(show func()) (sizes []string) {
+	defer capture(func(l *oreLayout, _ any) { sizes = append(sizes, l.size) })()
 	show()
-	return sizes, layouts
+	return sizes
 }
 
 // windowScreens are a screen of every kind drawn in the window.
@@ -77,18 +68,9 @@ func windowScreens() map[string]func() {
 // TestWindowSize checks that every screen drawn in the window has the same
 // size, so going from one to another keeps the screen open.
 func TestWindowSize(t *testing.T) {
-	dir := os.Getenv("OREUI_LAYOUTS") // writes the layouts there, to look at
 	for name, show := range windowScreens() {
-		sizes, layouts := shownLayouts(t, show)
-		if len(sizes) != 1 || sizes[0] != "326x166" {
+		if sizes := shownSizes(show); len(sizes) != 1 || sizes[0] != "326x166" {
 			t.Errorf("%s: window sizes %v, want one 326x166", name, sizes)
-			continue
-		}
-		if dir != "" {
-			b, _ := json.Marshal(layouts[0])
-			if err := os.WriteFile(filepath.Join(dir, name+".json"), b, 0o644); err != nil {
-				t.Fatal(err)
-			}
 		}
 	}
 }

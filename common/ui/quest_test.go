@@ -6,8 +6,7 @@ import "testing"
 // nodes, the focus is in rem and the open chapter has no id.
 func TestQuestDataRem(t *testing.T) {
 	var root any
-	oreShown = func(_ *oreLayout, r any) { root = r }
-	defer func() { oreShown = nil }()
+	defer capture(func(_ *oreLayout, r any) { root = r })()
 
 	QuestBookMenu(nil, "q", QuestBook{
 		Chapters: []QuestChapter{{Name: "a", On: true, Run: nopRun}, {Name: "b", Run: nopRun}},
@@ -40,8 +39,7 @@ func TestQuestDataRem(t *testing.T) {
 // old one neither; Recenter and a chapter's New go through.
 func TestQuestNew(t *testing.T) {
 	var root any
-	oreShown = func(_ *oreLayout, r any) { root = r }
-	defer func() { oreShown = nil }()
+	defer capture(func(_ *oreLayout, r any) { root = r })()
 
 	QuestBookMenu(nil, "q", QuestBook{
 		Chapters: []QuestChapter{{Name: "a", On: true, New: true}},

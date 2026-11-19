@@ -34,12 +34,11 @@ func TestDragEventDropsRepeats(t *testing.T) {
 func TestInventoryGaugeProgressAndKey(t *testing.T) {
 	var got map[string]any
 	var layout *oreLayout
-	oreShown = func(l *oreLayout, root any) {
+	defer capture(func(l *oreLayout, root any) {
 		layout = l
 		b, _ := json.Marshal(root)
 		_ = json.Unmarshal(b, &got)
-	}
-	defer func() { oreShown = nil }()
+	})()
 	ShowInventory(nil, InventoryScreen{
 		Rows: []InvRow{{Parts: []InvPart{
 			{Gauge: &InvGauge{Kind: "energy", Value: 30, Max: 120, Tip: "30 RE"}},
@@ -67,14 +66,13 @@ func TestInventoryGaugeProgressAndKey(t *testing.T) {
 func TestShowInventoryData(t *testing.T) {
 	var got map[string]any
 	var layout *oreLayout
-	oreShown = func(l *oreLayout, root any) {
+	defer capture(func(l *oreLayout, root any) {
 		layout = l
 		b, _ := json.Marshal(root)
 		_ = json.Unmarshal(b, &got)
-	}
-	defer func() { oreShown = nil }()
+	})()
 	ShowInventory(nil, InventoryScreen{
-		Title:  "Terminal",
+		Title: "Terminal",
 		Search: &InvSearch{Query: "a", Placeholder: "Name", Change: func(*player.Player, *world.Tx, string) {}},
 		Rows: []InvRow{
 			{Grow: true, Parts: []InvPart{{Area: "net", Cols: 9, Slots: []InvSlot{{Icon: "textures/x", Count: "3k", Tip: "Dirt"}}}}},

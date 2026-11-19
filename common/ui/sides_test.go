@@ -28,8 +28,7 @@ func sidesBoard(chosen *int, chosenAt int) SideBoard {
 func TestSidesCardOrder(t *testing.T) {
 	var ls []*oreLayout
 	var lays []any
-	oreShown = func(l *oreLayout, lay any) { ls = append(ls, l); lays = append(lays, lay) }
-	defer func() { oreShown = nil }()
+	defer capture(func(l *oreLayout, lay any) { ls = append(ls, l); lays = append(lays, lay) })()
 	var chosen int
 	b := sidesBoard(&chosen, 0)
 	b.Guide = "guide"
@@ -61,8 +60,7 @@ func TestSidesCycle(t *testing.T) {
 	var chosen, refreshed int
 	var ls []*oreLayout
 	var lays []any
-	oreShown = func(l *oreLayout, lay any) { ls = append(ls, l); lays = append(lays, lay) }
-	defer func() { oreShown = nil }()
+	defer capture(func(l *oreLayout, lay any) { ls = append(ls, l); lays = append(lays, lay) })()
 	b := sidesBoard(&chosen, 0)
 	b.Refresh = func(*player.Player, *world.Tx) SideBoard { refreshed++; return b }
 	SidesMenu(nil, "sides", b)
@@ -92,8 +90,7 @@ func TestSidesPicker(t *testing.T) {
 	var chosen int
 	var ls []*oreLayout
 	var lays []any
-	oreShown = func(l *oreLayout, lay any) { ls = append(ls, l); lays = append(lays, lay) }
-	defer func() { oreShown = nil }()
+	defer capture(func(l *oreLayout, lay any) { ls = append(ls, l); lays = append(lays, lay) })()
 	SidesMenu(nil, "sides", sidesBoard(&chosen, 1))
 	d := lastSides(t, ls[0], lays[0])
 	if d.Picker != nil {

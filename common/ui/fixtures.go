@@ -10,7 +10,7 @@ import (
 var FixtureNames = []string{
 	"menu", "confirm", "cards", "pick", "result", "equip", "grid", "sections", "board", "sieve", "split", "search", "listsplit", "input",
 	"slotmenu", "slotmenu-small", "choice", "sides", "sides-open", "plane", "quest", "quest-panel", "home", "home-overlay",
-	"lobby-menu", "loading", "console", "probe", "radial", "radial-group",
+	"lobby-menu", "loading", "console", "radial", "radial-group",
 }
 
 // Fixtures are sample screens by name: each shows p exactly one screen with
@@ -302,9 +302,6 @@ func Fixtures(p *player.Player) map[string]func() {
 				{Icon: "textures/items/compass_item", Label: "남북", Run: nop},
 				{Icon: "textures/items/compass_item", Label: "동서", Run: nop},
 			}})
-		},
-		"probe": func() {
-			ProbeScreen(p, "시험", []any{ProbeNode("probe", "id", "p1"), ProbeNode("box", "class", "mc-gap-3")}, nil, nil)
 		},
 	}
 }

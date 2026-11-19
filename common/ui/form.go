@@ -18,8 +18,8 @@ import (
 // sgui pack draws (assets/resourcepack/sgui/ui/sg_form.json), routed by the
 // title prefix "sg:in:".
 
-// inkSwap is what the Ore UI page did to the colour codes of text on the grey
-// window: light colours become dark ones.
+// inkSwap is what the colour codes of text become on the grey window: light
+// colours become dark ones.
 var inkSwap = strings.NewReplacer("§f", "§0", "§7", "§8", "§8", "§7", "§e", "§1", "§6", "§4", "§a", "§2", "§b", "§3", "§c", "§4", "§d", "§5")
 
 func ink(s string) string { return inkSwap.Replace(i18n.Plain(s)) }
@@ -77,7 +77,6 @@ func forgetForm(id uuid.UUID) {
 // closing it runs its back button's run, or the layout's close run, or Idle.
 func openInput(p *player.Player, l *oreLayout, in inputData) {
 	ReturnCarried(p)
-	closeOreScreen(p)
 	invui.Close(p)
 	formScreens.Lock()
 	st := formScreens.m[p.UUID()]
@@ -123,9 +122,9 @@ func openInput(p *player.Player, l *oreLayout, in inputData) {
 	title := "sg:in:" + i18n.Plain(in.Chrome.Title)
 	submit := l.runs[in.Submit.ID]
 	f, err := formui.OpenInput(p, formui.Input{Title: title, Label: ink(in.Label), Default: in.Value, Submit: in.Submit.Label}, func(value string) {
-		oreScreens.Lock()
+		formScreens.Lock()
 		l.values[in.Field] = value
-		oreScreens.Unlock()
+		formScreens.Unlock()
 		run(submit, false, true)
 	}, cancelled)
 	formScreens.Lock()
@@ -133,16 +132,6 @@ func openInput(p *player.Player, l *oreLayout, in inputData) {
 		st.form = f
 	}
 	formScreens.Unlock()
-}
-
-// closeOreScreen closes the DDUI screen of p without running its close run.
-func closeOreScreen(p *player.Player) {
-	oreScreens.Lock()
-	defer oreScreens.Unlock()
-	if st := oreScreens.m[p.UUID()]; st != nil && st.form != nil {
-		_ = st.form.Close()
-		st.form = nil
-	}
 }
 
 // closeForm closes the form p has open without running its close run.

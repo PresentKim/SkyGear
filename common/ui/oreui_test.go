@@ -56,11 +56,10 @@ func TestUntoken(t *testing.T) {
 	}
 }
 
-// shown runs show with oreShown set and returns the layout and root of each
+// shown runs show and returns the layout and root of each
 // screen it showed.
 func shown(show func()) (ls []*oreLayout, roots []any) {
-	oreShown = func(l *oreLayout, root any) { ls, roots = append(ls, l), append(roots, root) }
-	defer func() { oreShown = nil }()
+	defer capture(func(l *oreLayout, root any) { ls, roots = append(ls, l), append(roots, root) })()
 	show()
 	return ls, roots
 }
@@ -158,8 +157,7 @@ func TestSearchRedraw(t *testing.T) {
 	}
 	var ls []*oreLayout
 	var roots []any
-	oreShown = func(l *oreLayout, root any) { ls, roots = append(ls, l), append(roots, root) }
-	defer func() { oreShown = nil }()
+	defer capture(func(l *oreLayout, root any) { ls, roots = append(ls, l), append(roots, root) })()
 	SearchGrid(nil, "검색", "찾기", "a", find, Back("뒤로", nopRun))
 	name, d := screenRoot(roots[0])
 	if name != "search" || d["field"] != "search" || d["query"] != "a" || d["placeholder"] != "찾기" || d["info"] != "결과 a" {
@@ -184,19 +182,5 @@ func TestSearchRedraw(t *testing.T) {
 	}
 	if ls[1].input == nil {
 		t.Error("the redrawn screen cannot be typed into")
-	}
-}
-
-func TestRootDebugToggle(t *testing.T) {
-	root := rootOf("menu", menuData{}, nil, nil, false)
-	on := rootDebug(root, true).(map[string]any)
-	if on["debug"] != true || on["screen"] != "menu" {
-		t.Errorf("on = %v", on)
-	}
-	if _, ok := root["debug"]; ok {
-		t.Error("rootDebug changed its argument")
-	}
-	if _, ok := rootDebug(on, false).(map[string]any)["debug"]; ok {
-		t.Error("debug kept after off")
 	}
 }

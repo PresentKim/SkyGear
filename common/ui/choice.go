@@ -78,7 +78,7 @@ type dChoice struct {
 	Dim   bool   `json:"dim"`
 }
 
-// oreChoices is the DDUI ChoiceBoard: the figures, a row per group of
+// oreChoices is the ChoiceBoard: the figures, a row per group of
 // choices, then the other buttons, sent as the choice screen.
 func oreChoices(p *player.Player, title string, b ChoiceBoard) {
 	l := newOreLayout()

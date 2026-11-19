@@ -169,7 +169,7 @@ func ChannelItem(state int) world.Item {
 	return block.Concrete{Colour: ChannelColours[state-1]}
 }
 
-// ChannelColour is the colour square of a channel in DDUI ("#rrggbb").
+// ChannelColour is the colour square of a channel on a screen ("#rrggbb").
 func ChannelColour(c int) string {
 	rgb := ChannelColours[c].RGBA()
 	return fmt.Sprintf("#%02x%02x%02x", rgb.R, rgb.G, rgb.B)

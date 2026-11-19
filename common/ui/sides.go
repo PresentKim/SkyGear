@@ -121,11 +121,11 @@ type dPickChoice struct {
 // open (nil: none) beside its card, keeping the screen open after the press
 // that changed it.
 func updateSides(p *player.Player, title string, b SideBoard, open *sidePicker, actions []Option) {
-	oreScreens.Lock()
+	formScreens.Lock()
 	sidesTurn++
 	l := newOreLayout()
 	l.prefix = "s" + strconv.Itoa(sidesTurn) + "_"
-	oreScreens.Unlock()
+	formScreens.Unlock()
 	chrome, _ := l.chromeOf(title, actions)
 	d := sidesData{Chrome: chrome, Guide: b.Guide, Cards: make([]dSideCard, 0, len(b.Sides))}
 	again := func(b SideBoard, open *sidePicker) func(p *player.Player, _ *world.Tx) {

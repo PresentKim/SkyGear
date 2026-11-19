@@ -50,7 +50,7 @@ type Platform struct {
 // New creates the platform. The lobby world must already be built.
 func New(log *slog.Logger, d *db.DB, m *instance.Manager, online Online, isOperator func(*player.Player) bool) *Platform {
 	pf := &Platform{log: log, db: d, m: m, online: online, isOperator: isOperator}
-	// The DDUI screens shown in the lobby take its look (the lobby skin of the React page).
+	// The screens shown in the lobby take its look (the lobby's logo and name).
 	ui.InLobby = func(p *player.Player) bool { return m.Location(instance.AccountID(p)) == nil }
 	ui.Idle = pf.lobbyIdle
 	// The game's name and logo at the top of every lobby screen.
@@ -321,7 +321,6 @@ func registerCommands(pf *Platform) {
 	cmd.Register(cmd.New("members", i18n.T(i18n.Default, "platform.cmd.members"), nil, membersCmd{pf: pf}))
 	cmd.Register(cmd.New("join", i18n.T(i18n.Default, "platform.cmd.join"), nil, joinCmd{pf: pf}))
 	cmd.Register(cmd.New("title", i18n.T(i18n.Default, "platform.cmd.title"), []string{"titles"}, titleCmd{pf: pf}))
-	cmd.Register(cmd.New("uidebug", i18n.T(i18n.Default, "platform.uidebug.command"), nil, uiDebugCmd{}))
 	cmd.Register(cmd.New("settings", i18n.T(i18n.Default, "setting.command"), []string{"setting", "options"}, settingsCmd{pf: pf}))
 	cmd.Register(cmd.New("copysave", i18n.T(i18n.Default, "platform.cmd.copysave"), nil, copySaveCmd{pf: pf}))
 }

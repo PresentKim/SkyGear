@@ -10,8 +10,25 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 )
 
+// capture makes showScreen give f the layout and the screen it shows, as a
+// root {"screen", "data", "lobby", "keys"}, until the returned func runs.
+func capture(f func(l *oreLayout, root any)) (restore func()) {
+	screenShown = func(l *oreLayout, name string, data any, lobby *dLobby) {
+		root := map[string]any{"screen": name, "data": data}
+		if lobby != nil {
+			root["lobby"] = lobby
+		}
+		if len(l.keys) > 0 {
+			root["keys"] = l.keys
+		}
+		menuPageOf(name, data)
+		f(l, root)
+	}
+	return func() { screenShown = nil }
+}
+
 // screenRoot is the screen name and the data (as JSON objects) of a root
-// that showScreen gave oreShown.
+// that capture gave.
 func screenRoot(root any) (name string, data map[string]any) {
 	b, err := json.Marshal(root)
 	if err != nil {
@@ -150,15 +167,14 @@ func TestIDsUnique(t *testing.T) {
 	}
 }
 
-// shownRoot runs show and returns the root it gave oreShown.
+// shownRoot runs show and returns the root it showed.
 func shownRoot(show func()) (root map[string]any) {
-	oreShown = func(_ *oreLayout, layout any) { root = layout.(map[string]any) }
-	defer func() { oreShown = nil }()
+	defer capture(func(_ *oreLayout, layout any) { root = layout.(map[string]any) })()
 	show()
 	return root
 }
 
-// TestShowScreenRoot: keys, lobby and the size go into the root.
+// TestShowScreenRoot: keys, lobby and the size go with the screen.
 func TestShowScreenRoot(t *testing.T) {
 	l := newOreLayout()
 	l.key(KeyOK, nopRun)
@@ -168,9 +184,6 @@ func TestShowScreenRoot(t *testing.T) {
 	}
 	if _, ok := root["lobby"]; ok {
 		t.Error("lobby outside the lobby")
-	}
-	if _, ok := root["debug"]; ok {
-		t.Error("debug set")
 	}
 	if l.size != "326x166" {
 		t.Errorf("size %q", l.size)
@@ -194,12 +207,5 @@ func TestShowScreenRoot(t *testing.T) {
 	b, _ := json.Marshal(root)
 	if strings.Contains(string(b), "mc-lobby") {
 		t.Errorf("legacy lobby node in %s", b)
-	}
-}
-
-// TestRootDebug: the debug flag goes into the root.
-func TestRootDebug(t *testing.T) {
-	if r := rootOf("menu", nil, nil, nil, true); r["debug"] != true {
-		t.Errorf("root %v", r)
 	}
 }

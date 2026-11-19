@@ -13,8 +13,7 @@ import (
 func TestPlaneKeys(t *testing.T) {
 	var got *oreLayout
 	var layout any
-	oreShown = func(l *oreLayout, lay any) { got, layout = l, lay }
-	defer func() { oreShown = nil }()
+	defer capture(func(l *oreLayout, lay any) { got, layout = l, lay })()
 
 	var pressed Key
 	key := func(k Key) func(*player.Player, *world.Tx) {

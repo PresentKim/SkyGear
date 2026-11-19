@@ -49,8 +49,7 @@ func ItemNameKey(s item.Stack) string {
 }
 
 // UIItemName is ItemName as a client span (i18n.ClientKey) for the forms and
-// DDUI screens: the Ore UI page shows the client's own name of the item, in
-// any language the game has.
+// screens, with the item's translation key beside the text.
 func UIItemName(lang string, s item.Stack) string {
 	return i18n.ClientKey(ItemNameKey(s), ItemName(lang, s))
 }

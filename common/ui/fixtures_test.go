@@ -1,9 +1,6 @@
 package ui
 
 import (
-	"encoding/json"
-	"os"
-	"path/filepath"
 	"slices"
 	"sort"
 	"testing"
@@ -20,8 +17,7 @@ func runFixture(t *testing.T, name string) (roots []any) {
 	if !ok {
 		t.Fatalf("no fixture %q", name)
 	}
-	oreShown = func(_ *oreLayout, root any) { roots = append(roots, root) }
-	defer func() { oreShown = nil }()
+	defer capture(func(_ *oreLayout, root any) { roots = append(roots, root) })()
 	show()
 	return roots
 }
@@ -59,30 +55,5 @@ func TestFixturesKeepLobby(t *testing.T) {
 	}
 	if InLobby != nil || LobbyHeader != nil {
 		t.Error("a lobby fixture left InLobby or LobbyHeader set")
-	}
-}
-
-// TestDumpFixtures writes every fixture as <name>.json in $OREUI_FIXTURES:
-// {"root": the root showScreen was given}.
-func TestDumpFixtures(t *testing.T) {
-	dir := os.Getenv("OREUI_FIXTURES")
-	if dir == "" {
-		t.Skip("OREUI_FIXTURES not set")
-	}
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	for _, name := range fixtureNames {
-		roots := runFixture(t, name)
-		if len(roots) != 1 {
-			t.Fatalf("%s showed %d roots, want 1", name, len(roots))
-		}
-		data, err := json.MarshalIndent(map[string]any{"root": roots[0]}, "", " ")
-		if err != nil {
-			t.Fatalf("%s: %v", name, err)
-		}
-		if err := os.WriteFile(filepath.Join(dir, name+".json"), data, 0o644); err != nil {
-			t.Fatal(err)
-		}
 	}
 }

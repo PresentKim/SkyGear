@@ -13,8 +13,7 @@ import (
 // without a run does not, and Esc runs its close.
 func TestHomeScreen(t *testing.T) {
 	var got *oreLayout
-	oreShown = func(l *oreLayout, _ any) { got = l }
-	defer func() { oreShown = nil }()
+	defer capture(func(l *oreLayout, _ any) { got = l })()
 
 	run := func(*player.Player, *world.Tx) {}
 	HomeScreen(nil, Home{
@@ -44,8 +43,7 @@ func TestHomeScreen(t *testing.T) {
 func TestHomeData(t *testing.T) {
 	var got *oreLayout
 	var root any
-	oreShown = func(l *oreLayout, r any) { got, root = l, r }
-	defer func() { oreShown = nil }()
+	defer capture(func(l *oreLayout, r any) { got, root = l, r })()
 
 	face := make([]string, 64)
 	for i := range face {
@@ -78,8 +76,7 @@ func TestLoadingClose(t *testing.T) {
 	var got *oreLayout
 	var root any
 	n := 0
-	oreShown = func(l *oreLayout, r any) { got, root = l, r; n++ }
-	defer func() { oreShown = nil }()
+	defer capture(func(l *oreLayout, r any) { got, root = l, r; n++ })()
 
 	LoadingScreen(nil, Loading{Title: "t", Icon: "textures/x"})
 	name, data := screenRoot(root)
@@ -96,8 +93,7 @@ func TestLoadingClose(t *testing.T) {
 func TestConsoleField(t *testing.T) {
 	var got *oreLayout
 	var root any
-	oreShown = func(l *oreLayout, r any) { got, root = l, r }
-	defer func() { oreShown = nil }()
+	defer capture(func(l *oreLayout, r any) { got, root = l, r })()
 
 	var ran string
 	ConsoleScreen(nil, "c", Console{Lines: []string{"a", "b"}, Submit: "run", Back: nopRun, BackLabel: "back",
