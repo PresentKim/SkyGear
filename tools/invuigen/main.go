@@ -4,9 +4,10 @@
 // repository root: go run ./tools/invuigen
 //
 // The window follows the bedrock-research entity inventory examples
-// (docs/design/entity-inventory-ui.mdx, inventory-ui-ddui): pages are panels
-// shown by slot 0's key, and the bindings of a control that does not decide
-// its own visibility only run while it is visible.
+// (docs/design/entity-inventory-ui.mdx, inventory-ui-ddui): a layout's
+// controls are built only in a window titled for it (invui.Title), parts of a
+// layout are shown by slot 0's key, and the bindings of a control that does
+// not decide its own visibility only run while it is visible.
 package main
 
 import (
@@ -72,6 +73,17 @@ func view2(from, property string) obj {
 }
 
 func has(marker string) string { return "(not ((#hover_text - '" + marker + "') = #hover_text))" }
+
+// unless is the "ignored" of a control built only in a window opened for one
+// of layouts (invui.Title): an ignored control is never created, where a
+// hidden one is.
+func unless(layouts ...string) obj {
+	s := "$sg_title"
+	for _, l := range layouts {
+		s += " - '" + invui.TitleMark(l) + "'"
+	}
+	return obj{"ignored": "((" + s + ") = $sg_title)"}
+}
 
 const filled = "(not (#hover_text = ''))"
 
@@ -370,35 +382,7 @@ func defs() obj {
 	cellKind := func(name, marker string, controls ...any) obj {
 		return obj{name: with(panel([]any{18, 18}, controls...), obj{"bindings": shown(has(marker))})}
 	}
-	// The quest map's canvas and lines: a half line from the middle to each
-	// edge the cell joins, coloured by the state of the quests it joins.
-	lacks := func(marker string) string { return "((#hover_text - '" + marker + "') = #hover_text)" }
-	mapParts := []any{obj{"canvas": rect(rgb(0x1c, 0x1c, 0x22), []any{18, 18}, nil, 0)}}
-	for _, dir := range []struct {
-		name, marker string
-		size, offset []any
-	}{
-		{"n", invui.KindLineN, []any{2, 10}, []any{8, 0}},
-		{"s", invui.KindLineS, []any{2, 10}, []any{8, 8}},
-		{"w", invui.KindLineW, []any{10, 2}, []any{0, 8}},
-		{"e", invui.KindLineE, []any{10, 2}, []any{8, 8}},
-	} {
-		for _, st := range []struct {
-			name string
-			c    []any
-			cond string
-		}{
-			{"open", rgb(0x9a, 0x9a, 0xa6), lacks(invui.KindDone) + " and " + lacks(invui.KindLocked)},
-			{"done", chosenGreen, has(invui.KindDone)},
-			{"locked", rgb(0x4a, 0x4a, 0x55), has(invui.KindLocked)},
-		} {
-			r := rect(st.c, dir.size, dir.offset, 1)
-			r["bindings"] = shown("(" + has(dir.marker) + " and " + st.cond + ")")
-			mapParts = append(mapParts, obj{dir.name + "_" + st.name: r})
-		}
-	}
 	d["cell"] = panel([]any{18, 18},
-		cellKind("map", invui.KindCanvas, mapParts...),
 		cellKind("slot", invui.FamSlot, ref("face", "slot_face", nil), ref("b", "cell_button", nil)),
 		cellKind("mini", invui.FamMini, ref("face", "mini_face", nil), ref("b", "cell_button", nil)),
 		cellKind("frame", invui.KindFrame, obj{"f": image("textures/ui/cell_image", []any{18, 18}, 1, nil)}),
@@ -553,17 +537,24 @@ func defs() obj {
 			"$scroll_bar_right_padding_size": []any{0, 0}, "$scrolling_content": "sg_menu." + content,
 		}
 	}
-	// gate shows controls while slot 0's key contains key.
-	gate := func(name, key string, controls ...any) obj {
-		named := make([]any, len(controls))
+	named := func(controls []any) []any {
+		out := make([]any, len(controls))
 		for i, c := range controls {
 			if o, ok := c.(obj); ok && o["type"] != nil {
 				c = obj{fmt.Sprintf("c%d", i): o}
 			}
-			named[i] = c
+			out[i] = c
 		}
-		d["gate_"+name] = with(panel([]any{"100%", "100%c"}, named...), obj{"bindings": shown(has(key))})
+		return out
+	}
+	// gate shows controls while slot 0's key contains key.
+	gate := func(name, key string, controls ...any) obj {
+		d["gate_"+name] = with(panel([]any{"100%", "100%c"}, named(controls)...), obj{"bindings": shown(has(key))})
 		return obj{name: slots("vertical", []any{"100%", "100%c"}, []any{at("g", "gate_"+name, invui.SlotKey, nil)})}
+	}
+	// part builds controls only in a window opened for layout.
+	part := func(name, layout string, controls ...any) obj {
+		return obj{name: with(panel([]any{"100%", "100%c"}, named(controls)...), unless(layout))}
 	}
 
 	// The list content: the body, the content of the layout and the rows.
@@ -579,11 +570,11 @@ func defs() obj {
 	d["list_page_body"] = column("100% - 8px",
 		obj{"field": slots("vertical", []any{"100%", "100%c"}, []any{at("f", "field_row", invui.RowBtn0+invui.RowField, obj{"$icon_index": invui.RowIcon0 + invui.RowField})})},
 		body(1.0), gap(6),
-		gate("cards", invui.KeyCards, column("100%", cardRows...)),
-		gate("pick", invui.KeyPick, column("100%", pickRows...), gap(3)),
-		gate("result", invui.KeyResult, column("100%", resultBody...)),
-		gate("grid", invui.KeyGrid, cellGrid(0, invui.Cells/invui.GridColumns, invui.GridColumns), gap(3)),
-		gate("board", invui.KeyBoard, panel([]any{"100%", "100%c"}, obj{"g": board}), gap(3)),
+		part("cards", invui.KeyCards, column("100%", cardRows...)),
+		part("pick", invui.KeyPick, column("100%", pickRows...), gap(3)),
+		part("result", invui.KeyResult, column("100%", resultBody...)),
+		part("grid", invui.KeyGrid, cellGrid(0, invui.Cells/invui.GridColumns, invui.GridColumns), gap(3)),
+		part("board", invui.KeyBoard, panel([]any{"100%", "100%c"}, obj{"g": board}), gap(3)),
 		gate("rows", invui.KeyRows, rowList()),
 	)
 	scroll("list_page", "list_page_body")
@@ -726,12 +717,14 @@ func defs() obj {
 	homeDefs(d)
 
 	pages := []any{}
-	for _, p := range []struct{ key, def string }{
-		{invui.KeyList, "list_page"}, {invui.KeySplit, "split_page"}, {invui.KeyListSplit, "listsplit_page"}, {invui.KeyRange, "range_page"},
+	for _, p := range []struct {
+		layouts []string
+		def     string
+	}{
+		{invui.ListLayouts, "list_page"}, {[]string{invui.KeySplit}, "split_page"}, {[]string{invui.KeyListSplit}, "listsplit_page"}, {[]string{invui.KeyRange}, "range_page"},
 	} {
 		name := strings.ReplaceAll(p.def, "_page", "")
-		d["page_"+name] = with(panel([]any{"100%", "100%"}, ref("page", p.def, nil)), obj{"bindings": shown(has(p.key))})
-		pages = append(pages, obj{name: slots("vertical", []any{"100%", "100%"}, []any{at("g", "page_"+name, invui.SlotKey, nil)})})
+		pages = append(pages, obj{name: with(panel([]any{"100%", "100%"}, ref("page", p.def, nil)), unless(p.layouts...))})
 	}
 
 	window := func(w, h int, pages []any) obj {
@@ -763,7 +756,7 @@ func defs() obj {
 		"bindings": []any{obj{"binding_type": "collection_details", "binding_collection_name": "container_items"}},
 	}
 	questDefs(d, gap)
-	d["quest_window"] = window(questW, questH, []any{obj{"quest": slots("vertical", []any{"100%", "100%"}, []any{at("g", "quest_page", invui.SlotKey, nil)})}})
+	d["quest_window"] = window(questW, questH, []any{ref("quest", "quest_page", nil)})
 
 	d["overlay"] = obj{
 		"type": "panel", "size": []any{"100%", "100%"}, "layer": 1,
@@ -782,12 +775,12 @@ func defs() obj {
 					"controls": []any{
 						obj{"esc": slots("vertical", []any{1, 1}, []any{at("b", "esc_button", invui.SlotEsc, nil)})},
 						obj{"sync": obj{"type": "grid", "size": []any{0, 0}, "maximum_grid_items": 27, "collection_name": "container_items", "grid_item_template": "sg_menu.empty"}},
-						obj{"quest": slots("vertical", []any{"100%", "100%"}, []any{at("g", "quest_gate", invui.SlotKey, nil)})},
-						obj{"window": slots("vertical", []any{"100%", "100%"}, []any{at("g", "window_gate", invui.SlotKey, nil)})},
-						obj{"home": slots("vertical", []any{"100%", "100%"}, []any{at("g", "home_gate", invui.SlotKey, nil)})},
+						ref("quest", "quest_window", unless(invui.KeyQuest)),
+						ref("window", "window", unless(invui.WindowLayouts...)),
+						ref("home", "home_page", unless(invui.KeyHome)),
 						obj{"lobby": slots("vertical", []any{"100%", "100%"}, []any{at("g", "lobby_gate", invui.SlotKey, nil)})},
-						obj{"loading": slots("vertical", []any{"100%", "100%"}, []any{at("g", "loading_gate", invui.SlotKey, nil)})},
-						obj{"radial": slots("vertical", []any{"100%", "100%"}, []any{at("g", "radial_gate", invui.SlotKey, nil)})},
+						ref("loading", "loading_page", unless(invui.KeyLoading)),
+						ref("radial", "radial_page", unless(invui.KeyRadial)),
 					},
 				}},
 			},
@@ -1114,12 +1107,10 @@ func homeDefs(d obj) {
 	)
 	d["home_overlay_gate"] = with(panel([]any{"100%", "100%"}, obj{"o": overlay}), obj{"bindings": shown(has(invui.KeyOverlay))})
 
-	d["home_gate"] = with(panel([]any{"100%", "100%"},
+	d["home_page"] = panel([]any{"100%", "100%"},
 		obj{"profile": profile}, obj{"corner": corner}, obj{"side": side}, obj{"feed": feed}, obj{"start": start},
 		obj{"overlay": with(slots("vertical", []any{"100%", "100%"}, []any{at("g", "home_overlay_gate", invui.SlotKey, nil)}), obj{"layer": 20})},
-	), obj{"bindings": shown(has(invui.KeyHome))})
-	d["window_gate"] = with(panel([]any{"100%", "100%"}, ref("w", "window", nil)), obj{"bindings": shown("(((#hover_text - '" + invui.KeyHome + "') = #hover_text) and ((#hover_text - '" + invui.KeyLoading + "') = #hover_text) and ((#hover_text - '" + invui.KeyRadial + "') = #hover_text) and ((#hover_text - '" + invui.KeyQuest + "') = #hover_text))")})
-	d["quest_gate"] = with(panel([]any{"100%", "100%"}, ref("w", "quest_window", nil)), obj{"bindings": shown(has(invui.KeyQuest))})
+	)
 
 	// The loading screen over the whole screen.
 	line := func(name string, slot int, color []any, scale float64, h int) obj {
@@ -1127,7 +1118,7 @@ func homeDefs(d obj) {
 		d[def] = panel([]any{"100%", h}, obj{"l": label(color, scale, []any{"100%", "default"}, obj{"text_alignment": "center", "shadow": true})})
 		return obj{name: slots("vertical", []any{"100%", h}, []any{at("t", def, slot, nil)})}
 	}
-	d["loading_gate"] = with(panel([]any{"100%", "100%"},
+	d["loading_page"] = panel([]any{"100%", "100%"},
 		obj{"bg": rect(rgb(0x2b, 0x4a, 0x7a), []any{"100%", "100%"}, nil, 1)},
 		obj{"middle": with(obj{"type": "stack_panel", "orientation": "vertical", "size": []any{300, "100%c"}, "layer": 2, "controls": []any{
 			obj{"pic": panel([]any{"100%", 32}, iconAt("i", invui.RowIcon0, 32, nil))},
@@ -1138,7 +1129,7 @@ func homeDefs(d obj) {
 			line("line", invui.SlotBody, white, 1.0, 10),
 		}}, obj{"anchor_from": "center", "anchor_to": "center"})},
 		obj{"tip": with(slots("vertical", []any{300, 10}, []any{at("t", "loading_tip", invui.Cell0, nil)}), obj{"layer": 2, "anchor_from": "bottom_middle", "anchor_to": "bottom_middle", "offset": []any{0, -12}})},
-	), obj{"bindings": shown(has(invui.KeyLoading))})
+	)
 	d["loading_tip"] = panel([]any{300, 10}, obj{"l": label(lobbyHead, 0.8, []any{"100%", "default"}, obj{"text_alignment": "center", "shadow": true})})
 
 	// The radial menu over the whole screen: the title and line over a ring
@@ -1171,7 +1162,7 @@ func homeDefs(d obj) {
 		obj{"disc": image("textures/ui/sg/radial_disc", []any{discSize, discSize}, 1, obj{"anchor_from": "center", "anchor_to": "center"})},
 		obj{"center": with(slots("vertical", []any{30, 30}, []any{at("c", "radial_center", invui.RowBtn0+invui.RadialItems, obj{"$icon_index": invui.RowIcon0 + invui.RadialItems})}), obj{"layer": 3, "anchor_from": "center", "anchor_to": "center"})},
 	)
-	d["radial_gate"] = with(panel([]any{"100%", "100%"},
+	d["radial_page"] = panel([]any{"100%", "100%"},
 		obj{"bg": with(rect([]any{0, 0, 0}, []any{"100%", "100%"}, nil, 1), obj{"alpha": 0.35})},
 		obj{"middle": with(obj{"type": "stack_panel", "orientation": "vertical", "size": []any{300, "100%c"}, "layer": 2, "controls": []any{
 			line("rtitle", invui.SlotTitle, rgb(0xff, 0xd7, 0x5e), 1.3, 14),
@@ -1179,7 +1170,7 @@ func homeDefs(d obj) {
 			obj{"ring": panel([]any{"100%", discSize + 4}, rings...)},
 			line("rinfo", invui.SlotInfo, white, 0.8, 10),
 		}}, obj{"anchor_from": "center", "anchor_to": "center"})},
-	), obj{"bindings": shown(has(invui.KeyRadial))})
+	)
 
 	d["lobby_name"] = panel([]any{"100%c", 18}, obj{"l": label(white, 1.86, []any{"default", "default"}, obj{"shadow": true})})
 	d["lobby_gate"] = with(panel([]any{"100%", "100%"},

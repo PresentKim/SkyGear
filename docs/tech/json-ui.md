@@ -17,7 +17,7 @@ HUD·입력 폼처럼 게임과 상관없는 것은 `assets/resourcepack/sgui` �
 
 ## 메뉴 창
 
-섬과 로비의 메뉴는 모두 메뉴 창에 그린다(`common/invui`, `common/ui`). 메뉴 창은 `invui.Size` 칸짜리 `chestui.Storage` 이고 제목에 `invui.Marker` 가 있다. 화면을 바꾸거나 다시 그리면 바뀐 칸만 다시 쓰고 창은 다시 열지 않으므로, 한 화면에서 다른 화면으로 가는 누름은 열린 창을 그 자리에서 바꾼다.
+섬과 로비의 메뉴는 모두 메뉴 창에 그린다(`common/invui`, `common/ui`). 메뉴 창은 `invui.Size` 칸짜리 `chestui.Storage` 이고 제목에 `invui.Marker` 와 레이아웃 이름(`invui.Title`, 화면 키의 앞 두 글자)이 있다. 같은 레이아웃의 화면으로 바꾸거나 다시 그리면 바뀐 칸만 다시 쓰고 창은 그 자리에서 바뀐다. 레이아웃이 다른 화면은 창을 닫고 그 레이아웃 제목으로 다시 연다.
 
 - `common/ui` 의 화면 함수(`Menu`, `CardMenu`, `ItemBoard`, `SplitMenu`, `SieveBoard`, `ListSplitMenu`, `ItemGrid`, `SearchGrid`, `SlotMenu`, `ChoiceMenu`, `SidesMenu`, `PlaneMenu`, `QuestBookMenu`, `HomeScreen`, `LoadingScreen`, `ConsoleScreen` 등)가 화면 이름과 데이터를 만들어 `showScreen` 으로 넘기고, `menuPageOf` 가 그 데이터를 메뉴 창의 칸으로 바꾼다. 버튼의 `Run` 은 그 플레이어 월드에서 돈다.
 - 칸: 0번은 화면 키(어느 레이아웃을 그릴지), 1번은 제목, 2번은 본문이다. 탭·컨트롤 막대 버튼·목록 줄은 아이콘 칸과 버튼 칸을 하나씩 쓰고, 칸 격자(`invui.Cell0` 부터)는 칸마다 아이템 하나다.
@@ -31,7 +31,7 @@ HUD·입력 폼처럼 게임과 상관없는 것은 `assets/resourcepack/sgui` �
 ### 팩
 
 - `chest_screen.json` 이 제목에 표식이 있는 창을 바닐라 작은 상자 판으로 보내고, 그 판에 `sg_menu.overlay` 를 넣어 그 아래 바닐라 창을 가린다(`sg_menu_hide_vanilla`). `$screen_content` 를 다른 판으로 바꾸면 클라이언트가 창을 바로 닫으므로 바꾸지 않는다.
-- `sg_menu.overlay` 는 불러올 때 제목으로 걸러지고(`ignored`), 모달 입력 판 안에 창을 그린다. 화면마다 판이 있고 0번 칸의 화면 키로 하나만 보인다. 스스로 보이기를 정하지 않는 컨트롤의 바인딩은 보이는 동안에만 돈다.
+- `sg_menu.overlay` 는 불러올 때 제목으로 걸러지고(`ignored`), 모달 입력 판 안에 창을 그린다. 레이아웃마다 판이 있고, 제목의 레이아웃이 아닌 판은 `ignored` 로 만들지도 않는다. 숨긴 컨트롤도 만들어지므로 모든 레이아웃을 한 창에 두면 로비 메인 화면도 컨트롤이 5,757개였고, 나눈 뒤 1,121개다(Windows 1.26.65.1 실측). 레이아웃 안의 부분(목록 줄, 로비 머리, 겹 패널)은 0번 칸의 화면 키로 보인다. 스스로 보이기를 정하지 않는 컨트롤의 바인딩은 보이는 동안에만 돈다.
 - 터치 배치(`pocket_screen`)도 같은 메뉴 창을 그린다.
 
 ### 누름과 닫기

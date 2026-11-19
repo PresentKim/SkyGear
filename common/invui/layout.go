@@ -165,6 +165,28 @@ const (
 	KeyOverlay = "V"
 )
 
+// ListLayouts are the layouts drawn on the list page.
+var ListLayouts = []string{KeyMenu, KeyCards, KeyGrid, KeyBoard, KeyPick, KeyResult}
+
+// WindowLayouts are the layouts drawn in the window with tabs and a bar.
+var WindowLayouts = append([]string{KeySplit, KeyListSplit, KeyRange}, ListLayouts...)
+
+// LayoutOf returns the layout of a screen's key: its first two letters.
+func LayoutOf(key string) string {
+	if len(key) < 2 {
+		return key
+	}
+	return key[:2]
+}
+
+// Title is the title of a window opened for the screens of layout. The pack
+// builds only the controls of that layout, so a screen of another layout
+// opens a new window.
+func Title(layout string) string { return Marker + TitleMark(layout) }
+
+// TitleMark is the part of a window title that names its layout.
+func TitleMark(layout string) string { return "|" + layout + "|" }
+
 // Family markers say which group of kinds a slot belongs to: the pack draws
 // one shape per family and tells its kinds apart with small parts only.
 const (

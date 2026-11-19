@@ -841,481 +841,6 @@
   "cell": {
     "controls": [
       {
-        "map": {
-          "bindings": [
-            {
-              "binding_collection_name": "container_items",
-              "binding_condition": "always",
-              "binding_name": "#hover_text",
-              "binding_type": "collection"
-            },
-            {
-              "binding_condition": "always",
-              "binding_type": "view",
-              "source_property_name": "(not ((#hover_text - '§z§8') = #hover_text))",
-              "target_property_name": "#visible"
-            }
-          ],
-          "controls": [
-            {
-              "canvas": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "color": [
-                  0.10980392156862745,
-                  0.10980392156862745,
-                  0.13333333333333333
-                ],
-                "layer": 0,
-                "size": [
-                  18,
-                  18
-                ],
-                "texture": "textures/ui/White",
-                "type": "image"
-              }
-            },
-            {
-              "n_open": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "bindings": [
-                  {
-                    "binding_collection_name": "container_items",
-                    "binding_condition": "always",
-                    "binding_name": "#hover_text",
-                    "binding_type": "collection"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "((not ((#hover_text - '§z§1') = #hover_text)) and ((#hover_text - '§z§5') = #hover_text) and ((#hover_text - '§z§6') = #hover_text))",
-                    "target_property_name": "#visible"
-                  }
-                ],
-                "color": [
-                  0.6039215686274509,
-                  0.6039215686274509,
-                  0.6509803921568628
-                ],
-                "layer": 1,
-                "offset": [
-                  8,
-                  0
-                ],
-                "size": [
-                  2,
-                  10
-                ],
-                "texture": "textures/ui/White",
-                "type": "image"
-              }
-            },
-            {
-              "n_done": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "bindings": [
-                  {
-                    "binding_collection_name": "container_items",
-                    "binding_condition": "always",
-                    "binding_name": "#hover_text",
-                    "binding_type": "collection"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "((not ((#hover_text - '§z§1') = #hover_text)) and (not ((#hover_text - '§z§5') = #hover_text)))",
-                    "target_property_name": "#visible"
-                  }
-                ],
-                "color": [
-                  0.2980392156862745,
-                  0.788235294117647,
-                  0.23529411764705882
-                ],
-                "layer": 1,
-                "offset": [
-                  8,
-                  0
-                ],
-                "size": [
-                  2,
-                  10
-                ],
-                "texture": "textures/ui/White",
-                "type": "image"
-              }
-            },
-            {
-              "n_locked": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "bindings": [
-                  {
-                    "binding_collection_name": "container_items",
-                    "binding_condition": "always",
-                    "binding_name": "#hover_text",
-                    "binding_type": "collection"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "((not ((#hover_text - '§z§1') = #hover_text)) and (not ((#hover_text - '§z§6') = #hover_text)))",
-                    "target_property_name": "#visible"
-                  }
-                ],
-                "color": [
-                  0.2901960784313726,
-                  0.2901960784313726,
-                  0.3333333333333333
-                ],
-                "layer": 1,
-                "offset": [
-                  8,
-                  0
-                ],
-                "size": [
-                  2,
-                  10
-                ],
-                "texture": "textures/ui/White",
-                "type": "image"
-              }
-            },
-            {
-              "s_open": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "bindings": [
-                  {
-                    "binding_collection_name": "container_items",
-                    "binding_condition": "always",
-                    "binding_name": "#hover_text",
-                    "binding_type": "collection"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "((not ((#hover_text - '§z§2') = #hover_text)) and ((#hover_text - '§z§5') = #hover_text) and ((#hover_text - '§z§6') = #hover_text))",
-                    "target_property_name": "#visible"
-                  }
-                ],
-                "color": [
-                  0.6039215686274509,
-                  0.6039215686274509,
-                  0.6509803921568628
-                ],
-                "layer": 1,
-                "offset": [
-                  8,
-                  8
-                ],
-                "size": [
-                  2,
-                  10
-                ],
-                "texture": "textures/ui/White",
-                "type": "image"
-              }
-            },
-            {
-              "s_done": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "bindings": [
-                  {
-                    "binding_collection_name": "container_items",
-                    "binding_condition": "always",
-                    "binding_name": "#hover_text",
-                    "binding_type": "collection"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "((not ((#hover_text - '§z§2') = #hover_text)) and (not ((#hover_text - '§z§5') = #hover_text)))",
-                    "target_property_name": "#visible"
-                  }
-                ],
-                "color": [
-                  0.2980392156862745,
-                  0.788235294117647,
-                  0.23529411764705882
-                ],
-                "layer": 1,
-                "offset": [
-                  8,
-                  8
-                ],
-                "size": [
-                  2,
-                  10
-                ],
-                "texture": "textures/ui/White",
-                "type": "image"
-              }
-            },
-            {
-              "s_locked": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "bindings": [
-                  {
-                    "binding_collection_name": "container_items",
-                    "binding_condition": "always",
-                    "binding_name": "#hover_text",
-                    "binding_type": "collection"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "((not ((#hover_text - '§z§2') = #hover_text)) and (not ((#hover_text - '§z§6') = #hover_text)))",
-                    "target_property_name": "#visible"
-                  }
-                ],
-                "color": [
-                  0.2901960784313726,
-                  0.2901960784313726,
-                  0.3333333333333333
-                ],
-                "layer": 1,
-                "offset": [
-                  8,
-                  8
-                ],
-                "size": [
-                  2,
-                  10
-                ],
-                "texture": "textures/ui/White",
-                "type": "image"
-              }
-            },
-            {
-              "w_open": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "bindings": [
-                  {
-                    "binding_collection_name": "container_items",
-                    "binding_condition": "always",
-                    "binding_name": "#hover_text",
-                    "binding_type": "collection"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "((not ((#hover_text - '§z§3') = #hover_text)) and ((#hover_text - '§z§5') = #hover_text) and ((#hover_text - '§z§6') = #hover_text))",
-                    "target_property_name": "#visible"
-                  }
-                ],
-                "color": [
-                  0.6039215686274509,
-                  0.6039215686274509,
-                  0.6509803921568628
-                ],
-                "layer": 1,
-                "offset": [
-                  0,
-                  8
-                ],
-                "size": [
-                  10,
-                  2
-                ],
-                "texture": "textures/ui/White",
-                "type": "image"
-              }
-            },
-            {
-              "w_done": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "bindings": [
-                  {
-                    "binding_collection_name": "container_items",
-                    "binding_condition": "always",
-                    "binding_name": "#hover_text",
-                    "binding_type": "collection"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "((not ((#hover_text - '§z§3') = #hover_text)) and (not ((#hover_text - '§z§5') = #hover_text)))",
-                    "target_property_name": "#visible"
-                  }
-                ],
-                "color": [
-                  0.2980392156862745,
-                  0.788235294117647,
-                  0.23529411764705882
-                ],
-                "layer": 1,
-                "offset": [
-                  0,
-                  8
-                ],
-                "size": [
-                  10,
-                  2
-                ],
-                "texture": "textures/ui/White",
-                "type": "image"
-              }
-            },
-            {
-              "w_locked": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "bindings": [
-                  {
-                    "binding_collection_name": "container_items",
-                    "binding_condition": "always",
-                    "binding_name": "#hover_text",
-                    "binding_type": "collection"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "((not ((#hover_text - '§z§3') = #hover_text)) and (not ((#hover_text - '§z§6') = #hover_text)))",
-                    "target_property_name": "#visible"
-                  }
-                ],
-                "color": [
-                  0.2901960784313726,
-                  0.2901960784313726,
-                  0.3333333333333333
-                ],
-                "layer": 1,
-                "offset": [
-                  0,
-                  8
-                ],
-                "size": [
-                  10,
-                  2
-                ],
-                "texture": "textures/ui/White",
-                "type": "image"
-              }
-            },
-            {
-              "e_open": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "bindings": [
-                  {
-                    "binding_collection_name": "container_items",
-                    "binding_condition": "always",
-                    "binding_name": "#hover_text",
-                    "binding_type": "collection"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "((not ((#hover_text - '§z§4') = #hover_text)) and ((#hover_text - '§z§5') = #hover_text) and ((#hover_text - '§z§6') = #hover_text))",
-                    "target_property_name": "#visible"
-                  }
-                ],
-                "color": [
-                  0.6039215686274509,
-                  0.6039215686274509,
-                  0.6509803921568628
-                ],
-                "layer": 1,
-                "offset": [
-                  8,
-                  8
-                ],
-                "size": [
-                  10,
-                  2
-                ],
-                "texture": "textures/ui/White",
-                "type": "image"
-              }
-            },
-            {
-              "e_done": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "bindings": [
-                  {
-                    "binding_collection_name": "container_items",
-                    "binding_condition": "always",
-                    "binding_name": "#hover_text",
-                    "binding_type": "collection"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "((not ((#hover_text - '§z§4') = #hover_text)) and (not ((#hover_text - '§z§5') = #hover_text)))",
-                    "target_property_name": "#visible"
-                  }
-                ],
-                "color": [
-                  0.2980392156862745,
-                  0.788235294117647,
-                  0.23529411764705882
-                ],
-                "layer": 1,
-                "offset": [
-                  8,
-                  8
-                ],
-                "size": [
-                  10,
-                  2
-                ],
-                "texture": "textures/ui/White",
-                "type": "image"
-              }
-            },
-            {
-              "e_locked": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "bindings": [
-                  {
-                    "binding_collection_name": "container_items",
-                    "binding_condition": "always",
-                    "binding_name": "#hover_text",
-                    "binding_type": "collection"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "((not ((#hover_text - '§z§4') = #hover_text)) and (not ((#hover_text - '§z§6') = #hover_text)))",
-                    "target_property_name": "#visible"
-                  }
-                ],
-                "color": [
-                  0.2901960784313726,
-                  0.2901960784313726,
-                  0.3333333333333333
-                ],
-                "layer": 1,
-                "offset": [
-                  8,
-                  8
-                ],
-                "size": [
-                  10,
-                  2
-                ],
-                "texture": "textures/ui/White",
-                "type": "image"
-              }
-            }
-          ],
-          "size": [
-            18,
-            18
-          ],
-          "type": "panel"
-        }
-      },
-      {
         "slot": {
           "bindings": [
             {
@@ -4729,1014 +4254,6 @@
     ],
     "type": "panel"
   },
-  "gate_board": {
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_condition": "always",
-        "binding_name": "#hover_text",
-        "binding_type": "collection"
-      },
-      {
-        "binding_condition": "always",
-        "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'bd') = #hover_text))",
-        "target_property_name": "#visible"
-      }
-    ],
-    "controls": [
-      {
-        "c0": {
-          "controls": [
-            {
-              "g": {
-                "anchor_from": "top_middle",
-                "anchor_to": "top_middle",
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "r0@sg_menu.cell_row_130_11": {
-                      "collection_index": 130
-                    }
-                  },
-                  {
-                    "r1@sg_menu.cell_row_141_11": {
-                      "collection_index": 141
-                    }
-                  },
-                  {
-                    "r2@sg_menu.cell_row_152_11": {
-                      "collection_index": 152
-                    }
-                  },
-                  {
-                    "r3@sg_menu.cell_row_163_11": {
-                      "collection_index": 163
-                    }
-                  },
-                  {
-                    "r4@sg_menu.cell_row_174_11": {
-                      "collection_index": 174
-                    }
-                  },
-                  {
-                    "r5@sg_menu.cell_row_185_11": {
-                      "collection_index": 185
-                    }
-                  },
-                  {
-                    "r6@sg_menu.cell_row_196_11": {
-                      "collection_index": 196
-                    }
-                  },
-                  {
-                    "r7@sg_menu.cell_row_207_11": {
-                      "collection_index": 207
-                    }
-                  },
-                  {
-                    "r8@sg_menu.cell_row_218_11": {
-                      "collection_index": 218
-                    }
-                  },
-                  {
-                    "r9@sg_menu.cell_row_229_11": {
-                      "collection_index": 229
-                    }
-                  }
-                ],
-                "orientation": "vertical",
-                "size": [
-                  198,
-                  "100%c"
-                ],
-                "type": "stack_panel"
-              }
-            }
-          ],
-          "size": [
-            "100%",
-            "100%c"
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "gap": {
-          "controls": [],
-          "size": [
-            "100%",
-            3
-          ],
-          "type": "panel"
-        }
-      }
-    ],
-    "size": [
-      "100%",
-      "100%c"
-    ],
-    "type": "panel"
-  },
-  "gate_cards": {
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_condition": "always",
-        "binding_name": "#hover_text",
-        "binding_type": "collection"
-      },
-      {
-        "binding_condition": "always",
-        "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'cd') = #hover_text))",
-        "target_property_name": "#visible"
-      }
-    ],
-    "controls": [
-      {
-        "c0": {
-          "anchor_from": "top_left",
-          "anchor_to": "top_left",
-          "controls": [
-            {
-              "r0": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 34,
-                      "collection_index": 82
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 35,
-                      "collection_index": 83
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 36,
-                      "collection_index": 84
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 37,
-                      "collection_index": 85
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r1": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 38,
-                      "collection_index": 86
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 39,
-                      "collection_index": 87
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 40,
-                      "collection_index": 88
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 41,
-                      "collection_index": 89
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r2": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 42,
-                      "collection_index": 90
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 43,
-                      "collection_index": 91
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 44,
-                      "collection_index": 92
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 45,
-                      "collection_index": 93
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r3": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 46,
-                      "collection_index": 94
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 47,
-                      "collection_index": 95
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 48,
-                      "collection_index": 96
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 49,
-                      "collection_index": 97
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r4": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 50,
-                      "collection_index": 98
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 51,
-                      "collection_index": 99
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 52,
-                      "collection_index": 100
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 53,
-                      "collection_index": 101
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r5": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 54,
-                      "collection_index": 102
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 55,
-                      "collection_index": 103
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 56,
-                      "collection_index": 104
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 57,
-                      "collection_index": 105
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r6": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 58,
-                      "collection_index": 106
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 59,
-                      "collection_index": 107
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 60,
-                      "collection_index": 108
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 61,
-                      "collection_index": 109
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r7": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 62,
-                      "collection_index": 110
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 63,
-                      "collection_index": 111
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 64,
-                      "collection_index": 112
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 65,
-                      "collection_index": 113
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r8": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 66,
-                      "collection_index": 114
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 67,
-                      "collection_index": 115
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 68,
-                      "collection_index": 116
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 69,
-                      "collection_index": 117
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r9": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 70,
-                      "collection_index": 118
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 71,
-                      "collection_index": 119
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 72,
-                      "collection_index": 120
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 73,
-                      "collection_index": 121
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r10": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 74,
-                      "collection_index": 122
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 75,
-                      "collection_index": 123
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 76,
-                      "collection_index": 124
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 77,
-                      "collection_index": 125
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r11": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c0@sg_menu.card_cell": {
-                      "$icon_index": 78,
-                      "collection_index": 126
-                    }
-                  },
-                  {
-                    "c1@sg_menu.card_cell": {
-                      "$icon_index": 79,
-                      "collection_index": 127
-                    }
-                  },
-                  {
-                    "c2@sg_menu.card_cell": {
-                      "$icon_index": 80,
-                      "collection_index": 128
-                    }
-                  },
-                  {
-                    "c3@sg_menu.card_cell": {
-                      "$icon_index": 81,
-                      "collection_index": 129
-                    }
-                  }
-                ],
-                "orientation": "horizontal",
-                "size": [
-                  304,
-                  "100%cm"
-                ],
-                "type": "stack_panel"
-              }
-            }
-          ],
-          "orientation": "vertical",
-          "size": [
-            "100%",
-            "100%c"
-          ],
-          "type": "stack_panel"
-        }
-      }
-    ],
-    "size": [
-      "100%",
-      "100%c"
-    ],
-    "type": "panel"
-  },
-  "gate_grid": {
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_condition": "always",
-        "binding_name": "#hover_text",
-        "binding_type": "collection"
-      },
-      {
-        "binding_condition": "always",
-        "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'gd') = #hover_text))",
-        "target_property_name": "#visible"
-      }
-    ],
-    "controls": [
-      {
-        "c0": {
-          "collection_name": "container_items",
-          "controls": [
-            {
-              "r0@sg_menu.cell_row_130_17": {
-                "collection_index": 130
-              }
-            },
-            {
-              "r1@sg_menu.cell_row_147_17": {
-                "collection_index": 147
-              }
-            },
-            {
-              "r2@sg_menu.cell_row_164_17": {
-                "collection_index": 164
-              }
-            },
-            {
-              "r3@sg_menu.cell_row_181_17": {
-                "collection_index": 181
-              }
-            },
-            {
-              "r4@sg_menu.cell_row_198_17": {
-                "collection_index": 198
-              }
-            },
-            {
-              "r5@sg_menu.cell_row_215_17": {
-                "collection_index": 215
-              }
-            }
-          ],
-          "orientation": "vertical",
-          "size": [
-            306,
-            "100%c"
-          ],
-          "type": "stack_panel"
-        }
-      },
-      {
-        "gap": {
-          "controls": [],
-          "size": [
-            "100%",
-            3
-          ],
-          "type": "panel"
-        }
-      }
-    ],
-    "size": [
-      "100%",
-      "100%c"
-    ],
-    "type": "panel"
-  },
-  "gate_pick": {
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_condition": "always",
-        "binding_name": "#hover_text",
-        "binding_type": "collection"
-      },
-      {
-        "binding_condition": "always",
-        "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'pk') = #hover_text))",
-        "target_property_name": "#visible"
-      }
-    ],
-    "controls": [
-      {
-        "c0": {
-          "anchor_from": "top_left",
-          "anchor_to": "top_left",
-          "controls": [
-            {
-              "r0": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "g@sg_menu.pick_row_0": {
-                      "collection_index": 82
-                    }
-                  }
-                ],
-                "orientation": "vertical",
-                "size": [
-                  "100%",
-                  "100%c"
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "r1": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "g@sg_menu.pick_row_1": {
-                      "collection_index": 85
-                    }
-                  }
-                ],
-                "orientation": "vertical",
-                "size": [
-                  "100%",
-                  "100%c"
-                ],
-                "type": "stack_panel"
-              }
-            }
-          ],
-          "orientation": "vertical",
-          "size": [
-            "100%",
-            "100%c"
-          ],
-          "type": "stack_panel"
-        }
-      },
-      {
-        "gap": {
-          "controls": [],
-          "size": [
-            "100%",
-            3
-          ],
-          "type": "panel"
-        }
-      }
-    ],
-    "size": [
-      "100%",
-      "100%c"
-    ],
-    "type": "panel"
-  },
-  "gate_result": {
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_condition": "always",
-        "binding_name": "#hover_text",
-        "binding_type": "collection"
-      },
-      {
-        "binding_condition": "always",
-        "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'rs') = #hover_text))",
-        "target_property_name": "#visible"
-      }
-    ],
-    "controls": [
-      {
-        "c0": {
-          "anchor_from": "top_left",
-          "anchor_to": "top_left",
-          "controls": [
-            {
-              "head": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "h@sg_menu.result_head": {
-                      "collection_index": 3
-                    }
-                  }
-                ],
-                "orientation": "vertical",
-                "size": [
-                  "100%",
-                  22
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "stars": {
-                "controls": [
-                  {
-                    "s": {
-                      "anchor_from": "center",
-                      "anchor_to": "center",
-                      "collection_name": "container_items",
-                      "controls": [
-                        {
-                          "c0@sg_menu.filled_cell": {
-                            "collection_index": 130
-                          }
-                        },
-                        {
-                          "c1@sg_menu.filled_cell": {
-                            "collection_index": 131
-                          }
-                        },
-                        {
-                          "c2@sg_menu.filled_cell": {
-                            "collection_index": 132
-                          }
-                        }
-                      ],
-                      "orientation": "horizontal",
-                      "size": [
-                        "100%c",
-                        18
-                      ],
-                      "type": "stack_panel"
-                    }
-                  }
-                ],
-                "size": [
-                  "100%",
-                  20
-                ],
-                "type": "panel"
-              }
-            },
-            {
-              "gap": {
-                "controls": [],
-                "size": [
-                  "100%",
-                  2
-                ],
-                "type": "panel"
-              }
-            },
-            {
-              "table": {
-                "controls": [
-                  {
-                    "t": {
-                      "anchor_from": "top_middle",
-                      "anchor_to": "top_middle",
-                      "collection_name": "container_items",
-                      "controls": [
-                        {
-                          "l0@sg_menu.result_line": {
-                            "$value_index": 134,
-                            "collection_index": 133
-                          }
-                        },
-                        {
-                          "l1@sg_menu.result_line": {
-                            "$value_index": 136,
-                            "collection_index": 135
-                          }
-                        },
-                        {
-                          "l2@sg_menu.result_line": {
-                            "$value_index": 138,
-                            "collection_index": 137
-                          }
-                        },
-                        {
-                          "l3@sg_menu.result_line": {
-                            "$value_index": 140,
-                            "collection_index": 139
-                          }
-                        },
-                        {
-                          "l4@sg_menu.result_line": {
-                            "$value_index": 142,
-                            "collection_index": 141
-                          }
-                        },
-                        {
-                          "l5@sg_menu.result_line": {
-                            "$value_index": 144,
-                            "collection_index": 143
-                          }
-                        }
-                      ],
-                      "orientation": "vertical",
-                      "size": [
-                        200,
-                        "100%c"
-                      ],
-                      "type": "stack_panel"
-                    }
-                  }
-                ],
-                "size": [
-                  "100%",
-                  "100%c"
-                ],
-                "type": "panel"
-              }
-            },
-            {
-              "gap": {
-                "controls": [],
-                "size": [
-                  "100%",
-                  3
-                ],
-                "type": "panel"
-              }
-            },
-            {
-              "rewards": {
-                "controls": [
-                  {
-                    "s": {
-                      "anchor_from": "center",
-                      "anchor_to": "center",
-                      "collection_name": "container_items",
-                      "controls": [
-                        {
-                          "c0@sg_menu.filled_cell": {
-                            "collection_index": 145
-                          }
-                        },
-                        {
-                          "c1@sg_menu.filled_cell": {
-                            "collection_index": 146
-                          }
-                        },
-                        {
-                          "c2@sg_menu.filled_cell": {
-                            "collection_index": 147
-                          }
-                        },
-                        {
-                          "c3@sg_menu.filled_cell": {
-                            "collection_index": 148
-                          }
-                        },
-                        {
-                          "c4@sg_menu.filled_cell": {
-                            "collection_index": 149
-                          }
-                        },
-                        {
-                          "c5@sg_menu.filled_cell": {
-                            "collection_index": 150
-                          }
-                        },
-                        {
-                          "c6@sg_menu.filled_cell": {
-                            "collection_index": 151
-                          }
-                        },
-                        {
-                          "c7@sg_menu.filled_cell": {
-                            "collection_index": 152
-                          }
-                        },
-                        {
-                          "c8@sg_menu.filled_cell": {
-                            "collection_index": 153
-                          }
-                        }
-                      ],
-                      "orientation": "horizontal",
-                      "size": [
-                        "100%c",
-                        18
-                      ],
-                      "type": "stack_panel"
-                    }
-                  }
-                ],
-                "size": [
-                  "100%",
-                  20
-                ],
-                "type": "panel"
-              }
-            },
-            {
-              "gap": {
-                "controls": [],
-                "size": [
-                  "100%",
-                  3
-                ],
-                "type": "panel"
-              }
-            }
-          ],
-          "orientation": "vertical",
-          "size": [
-            "100%",
-            "100%c"
-          ],
-          "type": "stack_panel"
-        }
-      }
-    ],
-    "size": [
-      "100%",
-      "100%c"
-    ],
-    "type": "panel"
-  },
   "gate_rows": {
     "bindings": [
       {
@@ -7262,700 +5779,6 @@
     ],
     "type": "panel"
   },
-  "home_gate": {
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_condition": "always",
-        "binding_name": "#hover_text",
-        "binding_type": "collection"
-      },
-      {
-        "binding_condition": "always",
-        "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'hm') = #hover_text))",
-        "target_property_name": "#visible"
-      }
-    ],
-    "controls": [
-      {
-        "profile": {
-          "anchor_from": "top_left",
-          "anchor_to": "top_left",
-          "controls": [
-            {
-              "card": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "c@sg_menu.home_profile": {
-                      "$icon_index": 34,
-                      "collection_index": 82
-                    }
-                  }
-                ],
-                "orientation": "vertical",
-                "size": [
-                  135,
-                  37
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "title": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "t@sg_menu.home_text_title": {
-                      "collection_index": 130
-                    }
-                  }
-                ],
-                "layer": 4,
-                "offset": [
-                  33,
-                  13
-                ],
-                "orientation": "vertical",
-                "size": [
-                  96,
-                  7
-                ],
-                "type": "stack_panel"
-              }
-            },
-            {
-              "bar": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "controls": [
-                  {
-                    "bg": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.11764705882352941,
-                        0.11764705882352941,
-                        0.12156862745098039
-                      ],
-                      "layer": 1,
-                      "size": [
-                        96,
-                        4
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "fill": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "collection_name": "container_items",
-                      "controls": [
-                        {
-                          "f@sg_menu.home_fill": {
-                            "collection_index": 132
-                          }
-                        }
-                      ],
-                      "layer": 2,
-                      "offset": [
-                        1,
-                        1
-                      ],
-                      "orientation": "vertical",
-                      "size": [
-                        94,
-                        2
-                      ],
-                      "type": "stack_panel"
-                    }
-                  }
-                ],
-                "layer": 4,
-                "offset": [
-                  33,
-                  21
-                ],
-                "size": [
-                  96,
-                  4
-                ],
-                "type": "panel"
-              }
-            },
-            {
-              "line": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "t@sg_menu.home_text_line": {
-                      "collection_index": 131
-                    }
-                  }
-                ],
-                "layer": 4,
-                "offset": [
-                  33,
-                  27
-                ],
-                "orientation": "vertical",
-                "size": [
-                  96,
-                  6
-                ],
-                "type": "stack_panel"
-              }
-            }
-          ],
-          "offset": [
-            8,
-            7
-          ],
-          "size": [
-            135,
-            37
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "corner": {
-          "anchor_from": "top_right",
-          "anchor_to": "top_right",
-          "collection_name": "container_items",
-          "controls": [
-            {
-              "c0@sg_menu.home_corner": {
-                "$badge_index": 133,
-                "$icon_index": 35,
-                "collection_index": 83
-              }
-            },
-            {
-              "c1@sg_menu.home_corner": {
-                "$badge_index": 134,
-                "$icon_index": 36,
-                "collection_index": 84
-              }
-            },
-            {
-              "c2@sg_menu.home_corner": {
-                "$badge_index": 135,
-                "$icon_index": 37,
-                "collection_index": 85
-              }
-            },
-            {
-              "c3@sg_menu.home_corner": {
-                "$badge_index": 136,
-                "$icon_index": 38,
-                "collection_index": 86
-              }
-            },
-            {
-              "c4@sg_menu.home_corner": {
-                "$badge_index": 137,
-                "$icon_index": 39,
-                "collection_index": 87
-              }
-            },
-            {
-              "c5@sg_menu.home_corner": {
-                "$badge_index": 138,
-                "$icon_index": 40,
-                "collection_index": 88
-              }
-            }
-          ],
-          "offset": [
-            -8,
-            9
-          ],
-          "orientation": "horizontal",
-          "size": [
-            "100%c",
-            22
-          ],
-          "type": "stack_panel"
-        }
-      },
-      {
-        "side": {
-          "anchor_from": "top_left",
-          "anchor_to": "top_left",
-          "collection_name": "container_items",
-          "controls": [
-            {
-              "s0@sg_menu.home_tile": {
-                "$badge_index": 155,
-                "$icon_index": 41,
-                "collection_index": 89
-              }
-            },
-            {
-              "s1@sg_menu.home_tile": {
-                "$badge_index": 156,
-                "$icon_index": 42,
-                "collection_index": 90
-              }
-            },
-            {
-              "s2@sg_menu.home_tile": {
-                "$badge_index": 157,
-                "$icon_index": 43,
-                "collection_index": 91
-              }
-            },
-            {
-              "s3@sg_menu.home_tile": {
-                "$badge_index": 158,
-                "$icon_index": 44,
-                "collection_index": 92
-              }
-            },
-            {
-              "s4@sg_menu.home_tile": {
-                "$badge_index": 159,
-                "$icon_index": 45,
-                "collection_index": 93
-              }
-            },
-            {
-              "s5@sg_menu.home_tile": {
-                "$badge_index": 160,
-                "$icon_index": 46,
-                "collection_index": 94
-              }
-            },
-            {
-              "s6@sg_menu.home_tile": {
-                "$badge_index": 161,
-                "$icon_index": 47,
-                "collection_index": 95
-              }
-            },
-            {
-              "s7@sg_menu.home_tile": {
-                "$badge_index": 162,
-                "$icon_index": 48,
-                "collection_index": 96
-              }
-            }
-          ],
-          "offset": [
-            8,
-            53
-          ],
-          "orientation": "vertical",
-          "size": [
-            38,
-            "100%c"
-          ],
-          "type": "stack_panel"
-        }
-      },
-      {
-        "feed": {
-          "anchor_from": "bottom_left",
-          "anchor_to": "bottom_left",
-          "collection_name": "container_items",
-          "controls": [
-            {
-              "f0@sg_menu.home_feed_line": {
-                "collection_index": 139
-              }
-            },
-            {
-              "f1@sg_menu.home_feed_line": {
-                "collection_index": 140
-              }
-            },
-            {
-              "f2@sg_menu.home_feed_line": {
-                "collection_index": 141
-              }
-            },
-            {
-              "f3@sg_menu.home_feed_line": {
-                "collection_index": 142
-              }
-            },
-            {
-              "f4@sg_menu.home_feed_line": {
-                "collection_index": 143
-              }
-            },
-            {
-              "f5@sg_menu.home_feed_line": {
-                "collection_index": 144
-              }
-            },
-            {
-              "f6@sg_menu.home_feed_line": {
-                "collection_index": 145
-              }
-            },
-            {
-              "f7@sg_menu.home_feed_line": {
-                "collection_index": 146
-              }
-            }
-          ],
-          "offset": [
-            8,
-            -9
-          ],
-          "orientation": "vertical",
-          "size": [
-            170,
-            "100%c"
-          ],
-          "type": "stack_panel"
-        }
-      },
-      {
-        "start": {
-          "anchor_from": "bottom_right",
-          "anchor_to": "bottom_right",
-          "controls": [
-            {
-              "save": {
-                "controls": [
-                  {
-                    "edge": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.11764705882352941,
-                        0.11764705882352941,
-                        0.12156862745098039
-                      ],
-                      "layer": 1,
-                      "size": [
-                        156,
-                        46
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "fill": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.19215686274509805,
-                        0.19607843137254902,
-                        0.2
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        1,
-                        1
-                      ],
-                      "size": [
-                        154,
-                        44
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "pic": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "collection_name": "container_items",
-                      "controls": [
-                        {
-                          "i@sg_menu.icon_slot": {
-                            "collection_index": 49,
-                            "size": [
-                              30,
-                              30
-                            ]
-                          }
-                        }
-                      ],
-                      "layer": 3,
-                      "offset": [
-                        5,
-                        8
-                      ],
-                      "orientation": "vertical",
-                      "size": [
-                        30,
-                        30
-                      ],
-                      "type": "stack_panel"
-                    }
-                  },
-                  {
-                    "text": {
-                      "anchor_from": "left_middle",
-                      "anchor_to": "left_middle",
-                      "controls": [
-                        {
-                          "head": {
-                            "collection_name": "container_items",
-                            "controls": [
-                              {
-                                "t@sg_menu.home_text_head": {
-                                  "collection_index": 147
-                                }
-                              }
-                            ],
-                            "orientation": "vertical",
-                            "size": [
-                              92,
-                              7
-                            ],
-                            "type": "stack_panel"
-                          }
-                        },
-                        {
-                          "name": {
-                            "collection_name": "container_items",
-                            "controls": [
-                              {
-                                "n@sg_menu.home_save_name": {
-                                  "collection_index": 97
-                                }
-                              }
-                            ],
-                            "orientation": "vertical",
-                            "size": [
-                              92,
-                              10
-                            ],
-                            "type": "stack_panel"
-                          }
-                        },
-                        {
-                          "lines": {
-                            "collection_name": "container_items",
-                            "controls": [
-                              {
-                                "l0@sg_menu.home_save_line": {
-                                  "collection_index": 148
-                                }
-                              },
-                              {
-                                "l1@sg_menu.home_save_line": {
-                                  "collection_index": 149
-                                }
-                              },
-                              {
-                                "l2@sg_menu.home_save_line": {
-                                  "collection_index": 150
-                                }
-                              },
-                              {
-                                "l3@sg_menu.home_save_line": {
-                                  "collection_index": 151
-                                }
-                              }
-                            ],
-                            "orientation": "vertical",
-                            "size": [
-                              92,
-                              "100%c"
-                            ],
-                            "type": "stack_panel"
-                          }
-                        }
-                      ],
-                      "layer": 3,
-                      "offset": [
-                        40,
-                        0
-                      ],
-                      "orientation": "vertical",
-                      "size": [
-                        92,
-                        "100%c"
-                      ],
-                      "type": "stack_panel"
-                    }
-                  },
-                  {
-                    "arrows": {
-                      "anchor_from": "right_middle",
-                      "anchor_to": "right_middle",
-                      "collection_name": "container_items",
-                      "controls": [
-                        {
-                          "prev@sg_menu.home_prev": {
-                            "collection_index": 4
-                          }
-                        },
-                        {
-                          "gap": {
-                            "controls": [],
-                            "size": [
-                              14,
-                              2
-                            ],
-                            "type": "panel"
-                          }
-                        },
-                        {
-                          "next@sg_menu.home_next": {
-                            "collection_index": 5
-                          }
-                        }
-                      ],
-                      "layer": 3,
-                      "offset": [
-                        -4,
-                        0
-                      ],
-                      "orientation": "vertical",
-                      "size": [
-                        14,
-                        30
-                      ],
-                      "type": "stack_panel"
-                    }
-                  }
-                ],
-                "size": [
-                  156,
-                  46
-                ],
-                "type": "panel"
-              }
-            },
-            {
-              "gap": {
-                "controls": [],
-                "size": [
-                  156,
-                  4
-                ],
-                "type": "panel"
-              }
-            },
-            {
-              "play": {
-                "controls": [
-                  {
-                    "b": {
-                      "collection_name": "container_items",
-                      "controls": [
-                        {
-                          "p@sg_menu.home_play": {
-                            "collection_index": 98
-                          }
-                        }
-                      ],
-                      "orientation": "vertical",
-                      "size": [
-                        156,
-                        30
-                      ],
-                      "type": "stack_panel"
-                    }
-                  },
-                  {
-                    "sub": {
-                      "anchor_from": "bottom_middle",
-                      "anchor_to": "bottom_middle",
-                      "collection_name": "container_items",
-                      "controls": [
-                        {
-                          "s@sg_menu.home_play_sub": {
-                            "collection_index": 152
-                          }
-                        }
-                      ],
-                      "layer": 5,
-                      "offset": [
-                        0,
-                        -5
-                      ],
-                      "orientation": "vertical",
-                      "size": [
-                        150,
-                        6
-                      ],
-                      "type": "stack_panel"
-                    }
-                  }
-                ],
-                "size": [
-                  156,
-                  30
-                ],
-                "type": "panel"
-              }
-            },
-            {
-              "manage": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "m@sg_menu.home_manage": {
-                      "collection_index": 99
-                    }
-                  }
-                ],
-                "orientation": "vertical",
-                "size": [
-                  156,
-                  "100%c"
-                ],
-                "type": "stack_panel"
-              }
-            }
-          ],
-          "offset": [
-            -8,
-            -8
-          ],
-          "orientation": "vertical",
-          "size": [
-            156,
-            "100%c"
-          ],
-          "type": "stack_panel"
-        }
-      },
-      {
-        "overlay": {
-          "collection_name": "container_items",
-          "controls": [
-            {
-              "g@sg_menu.home_overlay_gate": {
-                "collection_index": 0
-              }
-            }
-          ],
-          "layer": 20,
-          "orientation": "vertical",
-          "size": [
-            "100%",
-            "100%"
-          ],
-          "type": "stack_panel"
-        }
-      }
-    ],
-    "size": [
-      "100%",
-      "100%"
-    ],
-    "type": "panel"
-  },
   "home_manage": {
     "bindings": [
       {
@@ -9331,6 +7154,686 @@
             "100%"
           ],
           "type": "panel"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "home_page": {
+    "controls": [
+      {
+        "profile": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "controls": [
+            {
+              "card": {
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "c@sg_menu.home_profile": {
+                      "$icon_index": 34,
+                      "collection_index": 82
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  135,
+                  37
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "title": {
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "t@sg_menu.home_text_title": {
+                      "collection_index": 130
+                    }
+                  }
+                ],
+                "layer": 4,
+                "offset": [
+                  33,
+                  13
+                ],
+                "orientation": "vertical",
+                "size": [
+                  96,
+                  7
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "bar": {
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "controls": [
+                  {
+                    "bg": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.11764705882352941,
+                        0.11764705882352941,
+                        0.12156862745098039
+                      ],
+                      "layer": 1,
+                      "size": [
+                        96,
+                        4
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "f@sg_menu.home_fill": {
+                            "collection_index": 132
+                          }
+                        }
+                      ],
+                      "layer": 2,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        94,
+                        2
+                      ],
+                      "type": "stack_panel"
+                    }
+                  }
+                ],
+                "layer": 4,
+                "offset": [
+                  33,
+                  21
+                ],
+                "size": [
+                  96,
+                  4
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "line": {
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "t@sg_menu.home_text_line": {
+                      "collection_index": 131
+                    }
+                  }
+                ],
+                "layer": 4,
+                "offset": [
+                  33,
+                  27
+                ],
+                "orientation": "vertical",
+                "size": [
+                  96,
+                  6
+                ],
+                "type": "stack_panel"
+              }
+            }
+          ],
+          "offset": [
+            8,
+            7
+          ],
+          "size": [
+            135,
+            37
+          ],
+          "type": "panel"
+        }
+      },
+      {
+        "corner": {
+          "anchor_from": "top_right",
+          "anchor_to": "top_right",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "c0@sg_menu.home_corner": {
+                "$badge_index": 133,
+                "$icon_index": 35,
+                "collection_index": 83
+              }
+            },
+            {
+              "c1@sg_menu.home_corner": {
+                "$badge_index": 134,
+                "$icon_index": 36,
+                "collection_index": 84
+              }
+            },
+            {
+              "c2@sg_menu.home_corner": {
+                "$badge_index": 135,
+                "$icon_index": 37,
+                "collection_index": 85
+              }
+            },
+            {
+              "c3@sg_menu.home_corner": {
+                "$badge_index": 136,
+                "$icon_index": 38,
+                "collection_index": 86
+              }
+            },
+            {
+              "c4@sg_menu.home_corner": {
+                "$badge_index": 137,
+                "$icon_index": 39,
+                "collection_index": 87
+              }
+            },
+            {
+              "c5@sg_menu.home_corner": {
+                "$badge_index": 138,
+                "$icon_index": 40,
+                "collection_index": 88
+              }
+            }
+          ],
+          "offset": [
+            -8,
+            9
+          ],
+          "orientation": "horizontal",
+          "size": [
+            "100%c",
+            22
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "side": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "s0@sg_menu.home_tile": {
+                "$badge_index": 155,
+                "$icon_index": 41,
+                "collection_index": 89
+              }
+            },
+            {
+              "s1@sg_menu.home_tile": {
+                "$badge_index": 156,
+                "$icon_index": 42,
+                "collection_index": 90
+              }
+            },
+            {
+              "s2@sg_menu.home_tile": {
+                "$badge_index": 157,
+                "$icon_index": 43,
+                "collection_index": 91
+              }
+            },
+            {
+              "s3@sg_menu.home_tile": {
+                "$badge_index": 158,
+                "$icon_index": 44,
+                "collection_index": 92
+              }
+            },
+            {
+              "s4@sg_menu.home_tile": {
+                "$badge_index": 159,
+                "$icon_index": 45,
+                "collection_index": 93
+              }
+            },
+            {
+              "s5@sg_menu.home_tile": {
+                "$badge_index": 160,
+                "$icon_index": 46,
+                "collection_index": 94
+              }
+            },
+            {
+              "s6@sg_menu.home_tile": {
+                "$badge_index": 161,
+                "$icon_index": 47,
+                "collection_index": 95
+              }
+            },
+            {
+              "s7@sg_menu.home_tile": {
+                "$badge_index": 162,
+                "$icon_index": 48,
+                "collection_index": 96
+              }
+            }
+          ],
+          "offset": [
+            8,
+            53
+          ],
+          "orientation": "vertical",
+          "size": [
+            38,
+            "100%c"
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "feed": {
+          "anchor_from": "bottom_left",
+          "anchor_to": "bottom_left",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "f0@sg_menu.home_feed_line": {
+                "collection_index": 139
+              }
+            },
+            {
+              "f1@sg_menu.home_feed_line": {
+                "collection_index": 140
+              }
+            },
+            {
+              "f2@sg_menu.home_feed_line": {
+                "collection_index": 141
+              }
+            },
+            {
+              "f3@sg_menu.home_feed_line": {
+                "collection_index": 142
+              }
+            },
+            {
+              "f4@sg_menu.home_feed_line": {
+                "collection_index": 143
+              }
+            },
+            {
+              "f5@sg_menu.home_feed_line": {
+                "collection_index": 144
+              }
+            },
+            {
+              "f6@sg_menu.home_feed_line": {
+                "collection_index": 145
+              }
+            },
+            {
+              "f7@sg_menu.home_feed_line": {
+                "collection_index": 146
+              }
+            }
+          ],
+          "offset": [
+            8,
+            -9
+          ],
+          "orientation": "vertical",
+          "size": [
+            170,
+            "100%c"
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "start": {
+          "anchor_from": "bottom_right",
+          "anchor_to": "bottom_right",
+          "controls": [
+            {
+              "save": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.11764705882352941,
+                        0.11764705882352941,
+                        0.12156862745098039
+                      ],
+                      "layer": 1,
+                      "size": [
+                        156,
+                        46
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.19215686274509805,
+                        0.19607843137254902,
+                        0.2
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        154,
+                        44
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "pic": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "i@sg_menu.icon_slot": {
+                            "collection_index": 49,
+                            "size": [
+                              30,
+                              30
+                            ]
+                          }
+                        }
+                      ],
+                      "layer": 3,
+                      "offset": [
+                        5,
+                        8
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        30,
+                        30
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "text": {
+                      "anchor_from": "left_middle",
+                      "anchor_to": "left_middle",
+                      "controls": [
+                        {
+                          "head": {
+                            "collection_name": "container_items",
+                            "controls": [
+                              {
+                                "t@sg_menu.home_text_head": {
+                                  "collection_index": 147
+                                }
+                              }
+                            ],
+                            "orientation": "vertical",
+                            "size": [
+                              92,
+                              7
+                            ],
+                            "type": "stack_panel"
+                          }
+                        },
+                        {
+                          "name": {
+                            "collection_name": "container_items",
+                            "controls": [
+                              {
+                                "n@sg_menu.home_save_name": {
+                                  "collection_index": 97
+                                }
+                              }
+                            ],
+                            "orientation": "vertical",
+                            "size": [
+                              92,
+                              10
+                            ],
+                            "type": "stack_panel"
+                          }
+                        },
+                        {
+                          "lines": {
+                            "collection_name": "container_items",
+                            "controls": [
+                              {
+                                "l0@sg_menu.home_save_line": {
+                                  "collection_index": 148
+                                }
+                              },
+                              {
+                                "l1@sg_menu.home_save_line": {
+                                  "collection_index": 149
+                                }
+                              },
+                              {
+                                "l2@sg_menu.home_save_line": {
+                                  "collection_index": 150
+                                }
+                              },
+                              {
+                                "l3@sg_menu.home_save_line": {
+                                  "collection_index": 151
+                                }
+                              }
+                            ],
+                            "orientation": "vertical",
+                            "size": [
+                              92,
+                              "100%c"
+                            ],
+                            "type": "stack_panel"
+                          }
+                        }
+                      ],
+                      "layer": 3,
+                      "offset": [
+                        40,
+                        0
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        92,
+                        "100%c"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "arrows": {
+                      "anchor_from": "right_middle",
+                      "anchor_to": "right_middle",
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "prev@sg_menu.home_prev": {
+                            "collection_index": 4
+                          }
+                        },
+                        {
+                          "gap": {
+                            "controls": [],
+                            "size": [
+                              14,
+                              2
+                            ],
+                            "type": "panel"
+                          }
+                        },
+                        {
+                          "next@sg_menu.home_next": {
+                            "collection_index": 5
+                          }
+                        }
+                      ],
+                      "layer": 3,
+                      "offset": [
+                        -4,
+                        0
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        14,
+                        30
+                      ],
+                      "type": "stack_panel"
+                    }
+                  }
+                ],
+                "size": [
+                  156,
+                  46
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "gap": {
+                "controls": [],
+                "size": [
+                  156,
+                  4
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "play": {
+                "controls": [
+                  {
+                    "b": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "p@sg_menu.home_play": {
+                            "collection_index": 98
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        156,
+                        30
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "sub": {
+                      "anchor_from": "bottom_middle",
+                      "anchor_to": "bottom_middle",
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "s@sg_menu.home_play_sub": {
+                            "collection_index": 152
+                          }
+                        }
+                      ],
+                      "layer": 5,
+                      "offset": [
+                        0,
+                        -5
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        150,
+                        6
+                      ],
+                      "type": "stack_panel"
+                    }
+                  }
+                ],
+                "size": [
+                  156,
+                  30
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "manage": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "m@sg_menu.home_manage": {
+                      "collection_index": 99
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  156,
+                  "100%c"
+                ],
+                "type": "stack_panel"
+              }
+            }
+          ],
+          "offset": [
+            -8,
+            -8
+          ],
+          "orientation": "vertical",
+          "size": [
+            156,
+            "100%c"
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "overlay": {
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "g@sg_menu.home_overlay_gate": {
+                "collection_index": 0
+              }
+            }
+          ],
+          "layer": 20,
+          "orientation": "vertical",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "type": "stack_panel"
         }
       }
     ],
@@ -11697,92 +10200,955 @@
       },
       {
         "cards": {
-          "collection_name": "container_items",
           "controls": [
             {
-              "g@sg_menu.gate_cards": {
-                "collection_index": 0
+              "c0": {
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "controls": [
+                  {
+                    "r0": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "c0@sg_menu.card_cell": {
+                            "$icon_index": 34,
+                            "collection_index": 82
+                          }
+                        },
+                        {
+                          "c1@sg_menu.card_cell": {
+                            "$icon_index": 35,
+                            "collection_index": 83
+                          }
+                        },
+                        {
+                          "c2@sg_menu.card_cell": {
+                            "$icon_index": 36,
+                            "collection_index": 84
+                          }
+                        },
+                        {
+                          "c3@sg_menu.card_cell": {
+                            "$icon_index": 37,
+                            "collection_index": 85
+                          }
+                        }
+                      ],
+                      "orientation": "horizontal",
+                      "size": [
+                        304,
+                        "100%cm"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "r1": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "c0@sg_menu.card_cell": {
+                            "$icon_index": 38,
+                            "collection_index": 86
+                          }
+                        },
+                        {
+                          "c1@sg_menu.card_cell": {
+                            "$icon_index": 39,
+                            "collection_index": 87
+                          }
+                        },
+                        {
+                          "c2@sg_menu.card_cell": {
+                            "$icon_index": 40,
+                            "collection_index": 88
+                          }
+                        },
+                        {
+                          "c3@sg_menu.card_cell": {
+                            "$icon_index": 41,
+                            "collection_index": 89
+                          }
+                        }
+                      ],
+                      "orientation": "horizontal",
+                      "size": [
+                        304,
+                        "100%cm"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "r2": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "c0@sg_menu.card_cell": {
+                            "$icon_index": 42,
+                            "collection_index": 90
+                          }
+                        },
+                        {
+                          "c1@sg_menu.card_cell": {
+                            "$icon_index": 43,
+                            "collection_index": 91
+                          }
+                        },
+                        {
+                          "c2@sg_menu.card_cell": {
+                            "$icon_index": 44,
+                            "collection_index": 92
+                          }
+                        },
+                        {
+                          "c3@sg_menu.card_cell": {
+                            "$icon_index": 45,
+                            "collection_index": 93
+                          }
+                        }
+                      ],
+                      "orientation": "horizontal",
+                      "size": [
+                        304,
+                        "100%cm"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "r3": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "c0@sg_menu.card_cell": {
+                            "$icon_index": 46,
+                            "collection_index": 94
+                          }
+                        },
+                        {
+                          "c1@sg_menu.card_cell": {
+                            "$icon_index": 47,
+                            "collection_index": 95
+                          }
+                        },
+                        {
+                          "c2@sg_menu.card_cell": {
+                            "$icon_index": 48,
+                            "collection_index": 96
+                          }
+                        },
+                        {
+                          "c3@sg_menu.card_cell": {
+                            "$icon_index": 49,
+                            "collection_index": 97
+                          }
+                        }
+                      ],
+                      "orientation": "horizontal",
+                      "size": [
+                        304,
+                        "100%cm"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "r4": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "c0@sg_menu.card_cell": {
+                            "$icon_index": 50,
+                            "collection_index": 98
+                          }
+                        },
+                        {
+                          "c1@sg_menu.card_cell": {
+                            "$icon_index": 51,
+                            "collection_index": 99
+                          }
+                        },
+                        {
+                          "c2@sg_menu.card_cell": {
+                            "$icon_index": 52,
+                            "collection_index": 100
+                          }
+                        },
+                        {
+                          "c3@sg_menu.card_cell": {
+                            "$icon_index": 53,
+                            "collection_index": 101
+                          }
+                        }
+                      ],
+                      "orientation": "horizontal",
+                      "size": [
+                        304,
+                        "100%cm"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "r5": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "c0@sg_menu.card_cell": {
+                            "$icon_index": 54,
+                            "collection_index": 102
+                          }
+                        },
+                        {
+                          "c1@sg_menu.card_cell": {
+                            "$icon_index": 55,
+                            "collection_index": 103
+                          }
+                        },
+                        {
+                          "c2@sg_menu.card_cell": {
+                            "$icon_index": 56,
+                            "collection_index": 104
+                          }
+                        },
+                        {
+                          "c3@sg_menu.card_cell": {
+                            "$icon_index": 57,
+                            "collection_index": 105
+                          }
+                        }
+                      ],
+                      "orientation": "horizontal",
+                      "size": [
+                        304,
+                        "100%cm"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "r6": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "c0@sg_menu.card_cell": {
+                            "$icon_index": 58,
+                            "collection_index": 106
+                          }
+                        },
+                        {
+                          "c1@sg_menu.card_cell": {
+                            "$icon_index": 59,
+                            "collection_index": 107
+                          }
+                        },
+                        {
+                          "c2@sg_menu.card_cell": {
+                            "$icon_index": 60,
+                            "collection_index": 108
+                          }
+                        },
+                        {
+                          "c3@sg_menu.card_cell": {
+                            "$icon_index": 61,
+                            "collection_index": 109
+                          }
+                        }
+                      ],
+                      "orientation": "horizontal",
+                      "size": [
+                        304,
+                        "100%cm"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "r7": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "c0@sg_menu.card_cell": {
+                            "$icon_index": 62,
+                            "collection_index": 110
+                          }
+                        },
+                        {
+                          "c1@sg_menu.card_cell": {
+                            "$icon_index": 63,
+                            "collection_index": 111
+                          }
+                        },
+                        {
+                          "c2@sg_menu.card_cell": {
+                            "$icon_index": 64,
+                            "collection_index": 112
+                          }
+                        },
+                        {
+                          "c3@sg_menu.card_cell": {
+                            "$icon_index": 65,
+                            "collection_index": 113
+                          }
+                        }
+                      ],
+                      "orientation": "horizontal",
+                      "size": [
+                        304,
+                        "100%cm"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "r8": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "c0@sg_menu.card_cell": {
+                            "$icon_index": 66,
+                            "collection_index": 114
+                          }
+                        },
+                        {
+                          "c1@sg_menu.card_cell": {
+                            "$icon_index": 67,
+                            "collection_index": 115
+                          }
+                        },
+                        {
+                          "c2@sg_menu.card_cell": {
+                            "$icon_index": 68,
+                            "collection_index": 116
+                          }
+                        },
+                        {
+                          "c3@sg_menu.card_cell": {
+                            "$icon_index": 69,
+                            "collection_index": 117
+                          }
+                        }
+                      ],
+                      "orientation": "horizontal",
+                      "size": [
+                        304,
+                        "100%cm"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "r9": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "c0@sg_menu.card_cell": {
+                            "$icon_index": 70,
+                            "collection_index": 118
+                          }
+                        },
+                        {
+                          "c1@sg_menu.card_cell": {
+                            "$icon_index": 71,
+                            "collection_index": 119
+                          }
+                        },
+                        {
+                          "c2@sg_menu.card_cell": {
+                            "$icon_index": 72,
+                            "collection_index": 120
+                          }
+                        },
+                        {
+                          "c3@sg_menu.card_cell": {
+                            "$icon_index": 73,
+                            "collection_index": 121
+                          }
+                        }
+                      ],
+                      "orientation": "horizontal",
+                      "size": [
+                        304,
+                        "100%cm"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "r10": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "c0@sg_menu.card_cell": {
+                            "$icon_index": 74,
+                            "collection_index": 122
+                          }
+                        },
+                        {
+                          "c1@sg_menu.card_cell": {
+                            "$icon_index": 75,
+                            "collection_index": 123
+                          }
+                        },
+                        {
+                          "c2@sg_menu.card_cell": {
+                            "$icon_index": 76,
+                            "collection_index": 124
+                          }
+                        },
+                        {
+                          "c3@sg_menu.card_cell": {
+                            "$icon_index": 77,
+                            "collection_index": 125
+                          }
+                        }
+                      ],
+                      "orientation": "horizontal",
+                      "size": [
+                        304,
+                        "100%cm"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "r11": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "c0@sg_menu.card_cell": {
+                            "$icon_index": 78,
+                            "collection_index": 126
+                          }
+                        },
+                        {
+                          "c1@sg_menu.card_cell": {
+                            "$icon_index": 79,
+                            "collection_index": 127
+                          }
+                        },
+                        {
+                          "c2@sg_menu.card_cell": {
+                            "$icon_index": 80,
+                            "collection_index": 128
+                          }
+                        },
+                        {
+                          "c3@sg_menu.card_cell": {
+                            "$icon_index": 81,
+                            "collection_index": 129
+                          }
+                        }
+                      ],
+                      "orientation": "horizontal",
+                      "size": [
+                        304,
+                        "100%cm"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  "100%",
+                  "100%c"
+                ],
+                "type": "stack_panel"
               }
             }
           ],
-          "orientation": "vertical",
+          "ignored": "(($sg_title - '|cd|') = $sg_title)",
           "size": [
             "100%",
             "100%c"
           ],
-          "type": "stack_panel"
+          "type": "panel"
         }
       },
       {
         "pick": {
-          "collection_name": "container_items",
           "controls": [
             {
-              "g@sg_menu.gate_pick": {
-                "collection_index": 0
+              "c0": {
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "controls": [
+                  {
+                    "r0": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "g@sg_menu.pick_row_0": {
+                            "collection_index": 82
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        "100%",
+                        "100%c"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "r1": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "g@sg_menu.pick_row_1": {
+                            "collection_index": 85
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        "100%",
+                        "100%c"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  "100%",
+                  "100%c"
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "gap": {
+                "controls": [],
+                "size": [
+                  "100%",
+                  3
+                ],
+                "type": "panel"
               }
             }
           ],
-          "orientation": "vertical",
+          "ignored": "(($sg_title - '|pk|') = $sg_title)",
           "size": [
             "100%",
             "100%c"
           ],
-          "type": "stack_panel"
+          "type": "panel"
         }
       },
       {
         "result": {
-          "collection_name": "container_items",
           "controls": [
             {
-              "g@sg_menu.gate_result": {
-                "collection_index": 0
+              "c0": {
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "controls": [
+                  {
+                    "head": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "h@sg_menu.result_head": {
+                            "collection_index": 3
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        "100%",
+                        22
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "stars": {
+                      "controls": [
+                        {
+                          "s": {
+                            "anchor_from": "center",
+                            "anchor_to": "center",
+                            "collection_name": "container_items",
+                            "controls": [
+                              {
+                                "c0@sg_menu.filled_cell": {
+                                  "collection_index": 130
+                                }
+                              },
+                              {
+                                "c1@sg_menu.filled_cell": {
+                                  "collection_index": 131
+                                }
+                              },
+                              {
+                                "c2@sg_menu.filled_cell": {
+                                  "collection_index": 132
+                                }
+                              }
+                            ],
+                            "orientation": "horizontal",
+                            "size": [
+                              "100%c",
+                              18
+                            ],
+                            "type": "stack_panel"
+                          }
+                        }
+                      ],
+                      "size": [
+                        "100%",
+                        20
+                      ],
+                      "type": "panel"
+                    }
+                  },
+                  {
+                    "gap": {
+                      "controls": [],
+                      "size": [
+                        "100%",
+                        2
+                      ],
+                      "type": "panel"
+                    }
+                  },
+                  {
+                    "table": {
+                      "controls": [
+                        {
+                          "t": {
+                            "anchor_from": "top_middle",
+                            "anchor_to": "top_middle",
+                            "collection_name": "container_items",
+                            "controls": [
+                              {
+                                "l0@sg_menu.result_line": {
+                                  "$value_index": 134,
+                                  "collection_index": 133
+                                }
+                              },
+                              {
+                                "l1@sg_menu.result_line": {
+                                  "$value_index": 136,
+                                  "collection_index": 135
+                                }
+                              },
+                              {
+                                "l2@sg_menu.result_line": {
+                                  "$value_index": 138,
+                                  "collection_index": 137
+                                }
+                              },
+                              {
+                                "l3@sg_menu.result_line": {
+                                  "$value_index": 140,
+                                  "collection_index": 139
+                                }
+                              },
+                              {
+                                "l4@sg_menu.result_line": {
+                                  "$value_index": 142,
+                                  "collection_index": 141
+                                }
+                              },
+                              {
+                                "l5@sg_menu.result_line": {
+                                  "$value_index": 144,
+                                  "collection_index": 143
+                                }
+                              }
+                            ],
+                            "orientation": "vertical",
+                            "size": [
+                              200,
+                              "100%c"
+                            ],
+                            "type": "stack_panel"
+                          }
+                        }
+                      ],
+                      "size": [
+                        "100%",
+                        "100%c"
+                      ],
+                      "type": "panel"
+                    }
+                  },
+                  {
+                    "gap": {
+                      "controls": [],
+                      "size": [
+                        "100%",
+                        3
+                      ],
+                      "type": "panel"
+                    }
+                  },
+                  {
+                    "rewards": {
+                      "controls": [
+                        {
+                          "s": {
+                            "anchor_from": "center",
+                            "anchor_to": "center",
+                            "collection_name": "container_items",
+                            "controls": [
+                              {
+                                "c0@sg_menu.filled_cell": {
+                                  "collection_index": 145
+                                }
+                              },
+                              {
+                                "c1@sg_menu.filled_cell": {
+                                  "collection_index": 146
+                                }
+                              },
+                              {
+                                "c2@sg_menu.filled_cell": {
+                                  "collection_index": 147
+                                }
+                              },
+                              {
+                                "c3@sg_menu.filled_cell": {
+                                  "collection_index": 148
+                                }
+                              },
+                              {
+                                "c4@sg_menu.filled_cell": {
+                                  "collection_index": 149
+                                }
+                              },
+                              {
+                                "c5@sg_menu.filled_cell": {
+                                  "collection_index": 150
+                                }
+                              },
+                              {
+                                "c6@sg_menu.filled_cell": {
+                                  "collection_index": 151
+                                }
+                              },
+                              {
+                                "c7@sg_menu.filled_cell": {
+                                  "collection_index": 152
+                                }
+                              },
+                              {
+                                "c8@sg_menu.filled_cell": {
+                                  "collection_index": 153
+                                }
+                              }
+                            ],
+                            "orientation": "horizontal",
+                            "size": [
+                              "100%c",
+                              18
+                            ],
+                            "type": "stack_panel"
+                          }
+                        }
+                      ],
+                      "size": [
+                        "100%",
+                        20
+                      ],
+                      "type": "panel"
+                    }
+                  },
+                  {
+                    "gap": {
+                      "controls": [],
+                      "size": [
+                        "100%",
+                        3
+                      ],
+                      "type": "panel"
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  "100%",
+                  "100%c"
+                ],
+                "type": "stack_panel"
               }
             }
           ],
-          "orientation": "vertical",
+          "ignored": "(($sg_title - '|rs|') = $sg_title)",
           "size": [
             "100%",
             "100%c"
           ],
-          "type": "stack_panel"
+          "type": "panel"
         }
       },
       {
         "grid": {
-          "collection_name": "container_items",
           "controls": [
             {
-              "g@sg_menu.gate_grid": {
-                "collection_index": 0
+              "c0": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "r0@sg_menu.cell_row_130_17": {
+                      "collection_index": 130
+                    }
+                  },
+                  {
+                    "r1@sg_menu.cell_row_147_17": {
+                      "collection_index": 147
+                    }
+                  },
+                  {
+                    "r2@sg_menu.cell_row_164_17": {
+                      "collection_index": 164
+                    }
+                  },
+                  {
+                    "r3@sg_menu.cell_row_181_17": {
+                      "collection_index": 181
+                    }
+                  },
+                  {
+                    "r4@sg_menu.cell_row_198_17": {
+                      "collection_index": 198
+                    }
+                  },
+                  {
+                    "r5@sg_menu.cell_row_215_17": {
+                      "collection_index": 215
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  306,
+                  "100%c"
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "gap": {
+                "controls": [],
+                "size": [
+                  "100%",
+                  3
+                ],
+                "type": "panel"
               }
             }
           ],
-          "orientation": "vertical",
+          "ignored": "(($sg_title - '|gd|') = $sg_title)",
           "size": [
             "100%",
             "100%c"
           ],
-          "type": "stack_panel"
+          "type": "panel"
         }
       },
       {
         "board": {
-          "collection_name": "container_items",
           "controls": [
             {
-              "g@sg_menu.gate_board": {
-                "collection_index": 0
+              "c0": {
+                "controls": [
+                  {
+                    "g": {
+                      "anchor_from": "top_middle",
+                      "anchor_to": "top_middle",
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "r0@sg_menu.cell_row_130_11": {
+                            "collection_index": 130
+                          }
+                        },
+                        {
+                          "r1@sg_menu.cell_row_141_11": {
+                            "collection_index": 141
+                          }
+                        },
+                        {
+                          "r2@sg_menu.cell_row_152_11": {
+                            "collection_index": 152
+                          }
+                        },
+                        {
+                          "r3@sg_menu.cell_row_163_11": {
+                            "collection_index": 163
+                          }
+                        },
+                        {
+                          "r4@sg_menu.cell_row_174_11": {
+                            "collection_index": 174
+                          }
+                        },
+                        {
+                          "r5@sg_menu.cell_row_185_11": {
+                            "collection_index": 185
+                          }
+                        },
+                        {
+                          "r6@sg_menu.cell_row_196_11": {
+                            "collection_index": 196
+                          }
+                        },
+                        {
+                          "r7@sg_menu.cell_row_207_11": {
+                            "collection_index": 207
+                          }
+                        },
+                        {
+                          "r8@sg_menu.cell_row_218_11": {
+                            "collection_index": 218
+                          }
+                        },
+                        {
+                          "r9@sg_menu.cell_row_229_11": {
+                            "collection_index": 229
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        198,
+                        "100%c"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%c"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "gap": {
+                "controls": [],
+                "size": [
+                  "100%",
+                  3
+                ],
+                "type": "panel"
               }
             }
           ],
-          "orientation": "vertical",
+          "ignored": "(($sg_title - '|bd|') = $sg_title)",
           "size": [
             "100%",
             "100%c"
           ],
-          "type": "stack_panel"
+          "type": "panel"
         }
       },
       {
@@ -12067,21 +11433,50 @@
     ],
     "type": "panel"
   },
-  "loading_gate": {
-    "bindings": [
+  "loading_line": {
+    "controls": [
       {
-        "binding_collection_name": "container_items",
-        "binding_condition": "always",
-        "binding_name": "#hover_text",
-        "binding_type": "collection"
-      },
-      {
-        "binding_condition": "always",
-        "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'ld') = #hover_text))",
-        "target_property_name": "#visible"
+        "l": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            1,
+            1,
+            1
+          ],
+          "font_scale_factor": 1,
+          "layer": 3,
+          "localize": false,
+          "shadow": true,
+          "size": [
+            "100%",
+            "default"
+          ],
+          "text": "#text",
+          "text_alignment": "center",
+          "type": "label"
+        }
       }
     ],
+    "size": [
+      "100%",
+      10
+    ],
+    "type": "panel"
+  },
+  "loading_page": {
     "controls": [
       {
         "bg": {
@@ -12252,49 +11647,6 @@
     "size": [
       "100%",
       "100%"
-    ],
-    "type": "panel"
-  },
-  "loading_line": {
-    "controls": [
-      {
-        "l": {
-          "bindings": [
-            {
-              "binding_collection_name": "container_items",
-              "binding_condition": "visible",
-              "binding_name": "#hover_text",
-              "binding_type": "collection"
-            },
-            {
-              "binding_condition": "visible",
-              "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
-              "target_property_name": "#text"
-            }
-          ],
-          "color": [
-            1,
-            1,
-            1
-          ],
-          "font_scale_factor": 1,
-          "layer": 3,
-          "localize": false,
-          "shadow": true,
-          "size": [
-            "100%",
-            "default"
-          ],
-          "text": "#text",
-          "text_alignment": "center",
-          "type": "label"
-        }
-      }
-    ],
-    "size": [
-      "100%",
-      10
     ],
     "type": "panel"
   },
@@ -13008,57 +12360,18 @@
                     }
                   },
                   {
-                    "quest": {
-                      "collection_name": "container_items",
-                      "controls": [
-                        {
-                          "g@sg_menu.quest_gate": {
-                            "collection_index": 0
-                          }
-                        }
-                      ],
-                      "orientation": "vertical",
-                      "size": [
-                        "100%",
-                        "100%"
-                      ],
-                      "type": "stack_panel"
+                    "quest@sg_menu.quest_window": {
+                      "ignored": "(($sg_title - '|qk|') = $sg_title)"
                     }
                   },
                   {
-                    "window": {
-                      "collection_name": "container_items",
-                      "controls": [
-                        {
-                          "g@sg_menu.window_gate": {
-                            "collection_index": 0
-                          }
-                        }
-                      ],
-                      "orientation": "vertical",
-                      "size": [
-                        "100%",
-                        "100%"
-                      ],
-                      "type": "stack_panel"
+                    "window@sg_menu.window": {
+                      "ignored": "(($sg_title - '|sp|' - '|ls|' - '|rg|' - '|mn|' - '|cd|' - '|gd|' - '|bd|' - '|pk|' - '|rs|') = $sg_title)"
                     }
                   },
                   {
-                    "home": {
-                      "collection_name": "container_items",
-                      "controls": [
-                        {
-                          "g@sg_menu.home_gate": {
-                            "collection_index": 0
-                          }
-                        }
-                      ],
-                      "orientation": "vertical",
-                      "size": [
-                        "100%",
-                        "100%"
-                      ],
-                      "type": "stack_panel"
+                    "home@sg_menu.home_page": {
+                      "ignored": "(($sg_title - '|hm|') = $sg_title)"
                     }
                   },
                   {
@@ -13080,39 +12393,13 @@
                     }
                   },
                   {
-                    "loading": {
-                      "collection_name": "container_items",
-                      "controls": [
-                        {
-                          "g@sg_menu.loading_gate": {
-                            "collection_index": 0
-                          }
-                        }
-                      ],
-                      "orientation": "vertical",
-                      "size": [
-                        "100%",
-                        "100%"
-                      ],
-                      "type": "stack_panel"
+                    "loading@sg_menu.loading_page": {
+                      "ignored": "(($sg_title - '|ld|') = $sg_title)"
                     }
                   },
                   {
-                    "radial": {
-                      "collection_name": "container_items",
-                      "controls": [
-                        {
-                          "g@sg_menu.radial_gate": {
-                            "collection_index": 0
-                          }
-                        }
-                      ],
-                      "orientation": "vertical",
-                      "size": [
-                        "100%",
-                        "100%"
-                      ],
-                      "type": "stack_panel"
+                    "radial@sg_menu.radial_page": {
+                      "ignored": "(($sg_title - '|rd|') = $sg_title)"
                     }
                   }
                 ],
@@ -13136,110 +12423,6 @@
       }
     ],
     "layer": 1,
-    "size": [
-      "100%",
-      "100%"
-    ],
-    "type": "panel"
-  },
-  "page_list": {
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_condition": "always",
-        "binding_name": "#hover_text",
-        "binding_type": "collection"
-      },
-      {
-        "binding_condition": "always",
-        "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'L') = #hover_text))",
-        "target_property_name": "#visible"
-      }
-    ],
-    "controls": [
-      {
-        "page@sg_menu.list_page": {}
-      }
-    ],
-    "size": [
-      "100%",
-      "100%"
-    ],
-    "type": "panel"
-  },
-  "page_listsplit": {
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_condition": "always",
-        "binding_name": "#hover_text",
-        "binding_type": "collection"
-      },
-      {
-        "binding_condition": "always",
-        "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'ls') = #hover_text))",
-        "target_property_name": "#visible"
-      }
-    ],
-    "controls": [
-      {
-        "page@sg_menu.listsplit_page": {}
-      }
-    ],
-    "size": [
-      "100%",
-      "100%"
-    ],
-    "type": "panel"
-  },
-  "page_range": {
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_condition": "always",
-        "binding_name": "#hover_text",
-        "binding_type": "collection"
-      },
-      {
-        "binding_condition": "always",
-        "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'rg') = #hover_text))",
-        "target_property_name": "#visible"
-      }
-    ],
-    "controls": [
-      {
-        "page@sg_menu.range_page": {}
-      }
-    ],
-    "size": [
-      "100%",
-      "100%"
-    ],
-    "type": "panel"
-  },
-  "page_split": {
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_condition": "always",
-        "binding_name": "#hover_text",
-        "binding_type": "collection"
-      },
-      {
-        "binding_condition": "always",
-        "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'sp') = #hover_text))",
-        "target_property_name": "#visible"
-      }
-    ],
-    "controls": [
-      {
-        "page@sg_menu.split_page": {}
-      }
-    ],
     "size": [
       "100%",
       "100%"
@@ -16370,32 +15553,6 @@
     ],
     "type": "panel"
   },
-  "quest_gate": {
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_condition": "always",
-        "binding_name": "#hover_text",
-        "binding_type": "collection"
-      },
-      {
-        "binding_condition": "always",
-        "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'qk') = #hover_text))",
-        "target_property_name": "#visible"
-      }
-    ],
-    "controls": [
-      {
-        "w@sg_menu.quest_window": {}
-      }
-    ],
-    "size": [
-      "100%",
-      "100%"
-    ],
-    "type": "panel"
-  },
   "quest_grid_0": {
     "bindings": [
       {
@@ -19142,22 +18299,7 @@
               "pages": {
                 "controls": [
                   {
-                    "quest": {
-                      "collection_name": "container_items",
-                      "controls": [
-                        {
-                          "g@sg_menu.quest_page": {
-                            "collection_index": 0
-                          }
-                        }
-                      ],
-                      "orientation": "vertical",
-                      "size": [
-                        "100%",
-                        "100%"
-                      ],
-                      "type": "stack_panel"
-                    }
+                    "quest@sg_menu.quest_page": {}
                   }
                 ],
                 "size": [
@@ -19352,7 +18494,7 @@
     ],
     "type": "panel"
   },
-  "radial_gate": {
+  "radial_item": {
     "bindings": [
       {
         "binding_collection_name": "container_items",
@@ -19363,10 +18505,222 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'rd') = #hover_text))",
+        "source_property_name": "(not (#hover_text = ''))",
         "target_property_name": "#visible"
       }
     ],
+    "controls": [
+      {
+        "b": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_type": "collection_details"
+            }
+          ],
+          "button_mappings": [
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_select",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_ok",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_slot_hovered"
+            }
+          ],
+          "controls": [
+            {
+              "default": {
+                "controls": [],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "hover": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/hover_flat",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "pressed": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/press_flat",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            }
+          ],
+          "default_control": "default",
+          "focus_enabled": false,
+          "focus_magnet_enabled": false,
+          "hover_control": "hover",
+          "layer": 1,
+          "pressed_control": "pressed",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "sound_name": "random.click",
+          "sound_pitch": 1,
+          "sound_volume": 1,
+          "type": "button"
+        }
+      },
+      {
+        "i": {
+          "anchor_from": "top_middle",
+          "anchor_to": "top_middle",
+          "controls": [
+            {
+              "i": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "i@sg_menu.icon_slot": {
+                      "collection_index": "$icon_index",
+                      "size": [
+                        16,
+                        16
+                      ]
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  16,
+                  16
+                ],
+                "type": "stack_panel"
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            0,
+            2
+          ],
+          "size": [
+            16,
+            16
+          ],
+          "type": "panel"
+        }
+      },
+      {
+        "l": {
+          "anchor_from": "top_middle",
+          "anchor_to": "top_middle",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            1,
+            1,
+            1
+          ],
+          "font_scale_factor": 0.75,
+          "layer": 4,
+          "localize": false,
+          "offset": [
+            0,
+            20
+          ],
+          "shadow": true,
+          "size": [
+            58,
+            "default"
+          ],
+          "text": "#text",
+          "text_alignment": "center",
+          "type": "label"
+        }
+      },
+      {
+        "v": {
+          "anchor_from": "top_middle",
+          "anchor_to": "top_middle",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "v@sg_menu.radial_value": {
+                "collection_index": "$value_index"
+              }
+            }
+          ],
+          "layer": 4,
+          "offset": [
+            0,
+            29
+          ],
+          "orientation": "vertical",
+          "size": [
+            58,
+            8
+          ],
+          "type": "stack_panel"
+        }
+      }
+    ],
+    "size": [
+      60,
+      38
+    ],
+    "type": "panel"
+  },
+  "radial_page": {
     "controls": [
       {
         "bg": {
@@ -19650,232 +19004,6 @@
     "size": [
       "100%",
       "100%"
-    ],
-    "type": "panel"
-  },
-  "radial_item": {
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_condition": "always",
-        "binding_name": "#hover_text",
-        "binding_type": "collection"
-      },
-      {
-        "binding_condition": "always",
-        "binding_type": "view",
-        "source_property_name": "(not (#hover_text = ''))",
-        "target_property_name": "#visible"
-      }
-    ],
-    "controls": [
-      {
-        "b": {
-          "bindings": [
-            {
-              "binding_collection_name": "container_items",
-              "binding_type": "collection_details"
-            }
-          ],
-          "button_mappings": [
-            {
-              "consume_event": false,
-              "from_button_id": "button.menu_select",
-              "mapping_type": "pressed",
-              "to_button_id": "button.container_auto_place"
-            },
-            {
-              "consume_event": false,
-              "from_button_id": "button.menu_ok",
-              "mapping_type": "pressed",
-              "to_button_id": "button.container_auto_place"
-            },
-            {
-              "mapping_type": "pressed",
-              "to_button_id": "button.container_slot_hovered"
-            }
-          ],
-          "controls": [
-            {
-              "default": {
-                "controls": [],
-                "size": [
-                  "100%",
-                  "100%"
-                ],
-                "type": "panel"
-              }
-            },
-            {
-              "hover": {
-                "controls": [
-                  {
-                    "bg": {
-                      "layer": 1,
-                      "size": [
-                        "100%",
-                        "100%"
-                      ],
-                      "texture": "textures/ui/sg/hover_flat",
-                      "type": "image"
-                    }
-                  }
-                ],
-                "size": [
-                  "100%",
-                  "100%"
-                ],
-                "type": "panel"
-              }
-            },
-            {
-              "pressed": {
-                "controls": [
-                  {
-                    "bg": {
-                      "layer": 1,
-                      "size": [
-                        "100%",
-                        "100%"
-                      ],
-                      "texture": "textures/ui/sg/press_flat",
-                      "type": "image"
-                    }
-                  }
-                ],
-                "size": [
-                  "100%",
-                  "100%"
-                ],
-                "type": "panel"
-              }
-            }
-          ],
-          "default_control": "default",
-          "focus_enabled": false,
-          "focus_magnet_enabled": false,
-          "hover_control": "hover",
-          "layer": 1,
-          "pressed_control": "pressed",
-          "size": [
-            "100%",
-            "100%"
-          ],
-          "sound_name": "random.click",
-          "sound_pitch": 1,
-          "sound_volume": 1,
-          "type": "button"
-        }
-      },
-      {
-        "i": {
-          "anchor_from": "top_middle",
-          "anchor_to": "top_middle",
-          "controls": [
-            {
-              "i": {
-                "collection_name": "container_items",
-                "controls": [
-                  {
-                    "i@sg_menu.icon_slot": {
-                      "collection_index": "$icon_index",
-                      "size": [
-                        16,
-                        16
-                      ]
-                    }
-                  }
-                ],
-                "orientation": "vertical",
-                "size": [
-                  16,
-                  16
-                ],
-                "type": "stack_panel"
-              }
-            }
-          ],
-          "layer": 3,
-          "offset": [
-            0,
-            2
-          ],
-          "size": [
-            16,
-            16
-          ],
-          "type": "panel"
-        }
-      },
-      {
-        "l": {
-          "anchor_from": "top_middle",
-          "anchor_to": "top_middle",
-          "bindings": [
-            {
-              "binding_collection_name": "container_items",
-              "binding_condition": "visible",
-              "binding_name": "#hover_text",
-              "binding_type": "collection"
-            },
-            {
-              "binding_condition": "visible",
-              "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§7§1' - '§z§7§2' - '§z§7§3' - '§z§7§4' - '§z§7§5' - '§z§7§6' - '§z§7§8' - '§z§7§9' - '§z§9' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§8' - '§z§1' - '§z§2' - '§z§3' - '§z§4' - '§z§5' - '§z§6' - '§z§0' - '§z§g' - '§z§l' - '§z§k')",
-              "target_property_name": "#text"
-            }
-          ],
-          "color": [
-            1,
-            1,
-            1
-          ],
-          "font_scale_factor": 0.75,
-          "layer": 4,
-          "localize": false,
-          "offset": [
-            0,
-            20
-          ],
-          "shadow": true,
-          "size": [
-            58,
-            "default"
-          ],
-          "text": "#text",
-          "text_alignment": "center",
-          "type": "label"
-        }
-      },
-      {
-        "v": {
-          "anchor_from": "top_middle",
-          "anchor_to": "top_middle",
-          "collection_name": "container_items",
-          "controls": [
-            {
-              "v@sg_menu.radial_value": {
-                "collection_index": "$value_index"
-              }
-            }
-          ],
-          "layer": 4,
-          "offset": [
-            0,
-            29
-          ],
-          "orientation": "vertical",
-          "size": [
-            58,
-            8
-          ],
-          "type": "stack_panel"
-        }
-      }
-    ],
-    "size": [
-      60,
-      38
     ],
     "type": "panel"
   },
@@ -24772,74 +23900,62 @@
                 "controls": [
                   {
                     "list": {
-                      "collection_name": "container_items",
                       "controls": [
                         {
-                          "g@sg_menu.page_list": {
-                            "collection_index": 0
-                          }
+                          "page@sg_menu.list_page": {}
                         }
                       ],
-                      "orientation": "vertical",
+                      "ignored": "(($sg_title - '|mn|' - '|cd|' - '|gd|' - '|bd|' - '|pk|' - '|rs|') = $sg_title)",
                       "size": [
                         "100%",
                         "100%"
                       ],
-                      "type": "stack_panel"
+                      "type": "panel"
                     }
                   },
                   {
                     "split": {
-                      "collection_name": "container_items",
                       "controls": [
                         {
-                          "g@sg_menu.page_split": {
-                            "collection_index": 0
-                          }
+                          "page@sg_menu.split_page": {}
                         }
                       ],
-                      "orientation": "vertical",
+                      "ignored": "(($sg_title - '|sp|') = $sg_title)",
                       "size": [
                         "100%",
                         "100%"
                       ],
-                      "type": "stack_panel"
+                      "type": "panel"
                     }
                   },
                   {
                     "listsplit": {
-                      "collection_name": "container_items",
                       "controls": [
                         {
-                          "g@sg_menu.page_listsplit": {
-                            "collection_index": 0
-                          }
+                          "page@sg_menu.listsplit_page": {}
                         }
                       ],
-                      "orientation": "vertical",
+                      "ignored": "(($sg_title - '|ls|') = $sg_title)",
                       "size": [
                         "100%",
                         "100%"
                       ],
-                      "type": "stack_panel"
+                      "type": "panel"
                     }
                   },
                   {
                     "range": {
-                      "collection_name": "container_items",
                       "controls": [
                         {
-                          "g@sg_menu.page_range": {
-                            "collection_index": 0
-                          }
+                          "page@sg_menu.range_page": {}
                         }
                       ],
-                      "orientation": "vertical",
+                      "ignored": "(($sg_title - '|rg|') = $sg_title)",
                       "size": [
                         "100%",
                         "100%"
                       ],
-                      "type": "stack_panel"
+                      "type": "panel"
                     }
                   }
                 ],
@@ -24867,32 +23983,6 @@
     "size": [
       326,
       166
-    ],
-    "type": "panel"
-  },
-  "window_gate": {
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_condition": "always",
-        "binding_name": "#hover_text",
-        "binding_type": "collection"
-      },
-      {
-        "binding_condition": "always",
-        "binding_type": "view",
-        "source_property_name": "(((#hover_text - 'hm') = #hover_text) and ((#hover_text - 'ld') = #hover_text) and ((#hover_text - 'rd') = #hover_text) and ((#hover_text - 'qk') = #hover_text))",
-        "target_property_name": "#visible"
-      }
-    ],
-    "controls": [
-      {
-        "w@sg_menu.window": {}
-      }
-    ],
-    "size": [
-      "100%",
-      "100%"
     ],
     "type": "panel"
   }
