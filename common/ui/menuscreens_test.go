@@ -14,6 +14,21 @@ func TestPlacesUseSmallestGap(t *testing.T) {
 	}
 }
 
+func TestQuestMapDrawsLineBetweenQuests(t *testing.T) {
+	pg := questPage(questData{
+		Nodes: []questNodeD{{ID: "a", X: 0, Y: 0, State: QuestDone}, {ID: "b", X: 10, Y: 0, State: QuestDone}},
+		Lines: []questLine{{X1: 0, Y1: 0, X2: 10, Y2: 0.5, Cls: "oui-line-seg done"}},
+	})
+	if key := pg.items[invui.SlotKey].CustomName(); !strings.HasPrefix(key, invui.KeyBoard) {
+		t.Fatalf("key = %q", key)
+	}
+	for i, want := range []string{invui.FamSlot, invui.KindLineW + invui.KindLineE + invui.KindDone, invui.FamSlot} {
+		if name := pg.items[invui.Cell0+i].CustomName(); !strings.Contains(name, want) {
+			t.Errorf("cell %d = %q, want %q", i, name, want)
+		}
+	}
+}
+
 func TestTallQuestChapterTurnsOnGrid(t *testing.T) {
 	var nodes []questNodeD
 	for x := range 6 {

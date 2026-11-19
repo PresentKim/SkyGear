@@ -212,7 +212,23 @@ const (
 	KindBlank     = "§z§e"
 	KindRare      = "§z§j"
 	KindEpic      = "§z§p"
+	// A cell of a quest map: the dark canvas, the half lines from its middle
+	// to its top, bottom, left and right edge, and the state of a quest or a
+	// line through it (open without one).
+	KindCanvas = "§z§8"
+	KindLineN  = "§z§1"
+	KindLineS  = "§z§2"
+	KindLineW  = "§z§3"
+	KindLineE  = "§z§4"
+	KindDone   = "§z§5"
+	KindLocked = "§z§6"
+	// KindField is the row RowField drawn as a text field over the page's
+	// content: a search box.
+	KindField = "§z§0"
 )
+
+// RowField is the row a KindField draws.
+const RowField = Rows - 1
 
 // CountChars is how many characters CountMark writes, and CountKept how
 // many of them can be the count's: the pack draws the rest as blanks.
@@ -245,4 +261,4 @@ func CountMark(count string) string {
 }
 
 // Kinds are the kind markers in the order the pack strips them.
-var Kinds = []string{KindRow, KindStatic, KindChosen, KindHeading, KindDivider, KindToggleOff, KindToggleOn, KindTab, KindTabOn, KindBar, KindHelp, KindIcon, KindFrame, KindArrow, KindText, KindMini, KindMiniView, KindBlank, KindRare, KindEpic, FamRow, FamSlot, FamMini}
+var Kinds = []string{KindRow, KindStatic, KindChosen, KindHeading, KindDivider, KindToggleOff, KindToggleOn, KindTab, KindTabOn, KindBar, KindHelp, KindIcon, KindFrame, KindArrow, KindText, KindMini, KindMiniView, KindBlank, KindRare, KindEpic, KindCanvas, KindLineN, KindLineS, KindLineW, KindLineE, KindDone, KindLocked, KindField, FamRow, FamSlot, FamMini}

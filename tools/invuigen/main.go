@@ -347,6 +347,13 @@ func defs() obj {
 		obj{"count": countLabel(false)},
 		obj{"count_long": countLabel(true)},
 		obj{"chosen": image("textures/ui/sg/slot_chosen", []any{18, 18}, 1, obj{"bindings": shown(has(invui.KindChosen))})},
+		obj{"done": with(panel([]any{18, 18},
+			obj{"t": rect(chosenGreen, []any{18, 1}, []any{0, 0}, 3)},
+			obj{"b": rect(chosenGreen, []any{18, 1}, []any{0, 17}, 3)},
+			obj{"l": rect(chosenGreen, []any{1, 18}, []any{0, 0}, 3)},
+			obj{"r": rect(chosenGreen, []any{1, 18}, []any{17, 0}, 3)},
+		), obj{"bindings": shown(has(invui.KindDone))})},
+		obj{"locked": image("textures/ui/White", []any{16, 16}, 4, obj{"color": []any{0.1, 0.1, 0.12}, "alpha": 0.55, "bindings": shown(has(invui.KindLocked))})},
 	)
 	d["mini_face"] = panel([]any{18, 18}, obj{"icon": with(itemIcon([]any{12, 12}), obj{"layer": 2})})
 	cellButton := button([]any{18, 18}, "", "", "", true)
@@ -361,7 +368,35 @@ func defs() obj {
 	cellKind := func(name, marker string, controls ...any) obj {
 		return obj{name: with(panel([]any{18, 18}, controls...), obj{"bindings": shown(has(marker))})}
 	}
+	// The quest map's canvas and lines: a half line from the middle to each
+	// edge the cell joins, coloured by the state of the quests it joins.
+	lacks := func(marker string) string { return "((#hover_text - '" + marker + "') = #hover_text)" }
+	mapParts := []any{obj{"canvas": rect(rgb(0x1c, 0x1c, 0x22), []any{18, 18}, nil, 0)}}
+	for _, dir := range []struct {
+		name, marker   string
+		size, offset   []any
+	}{
+		{"n", invui.KindLineN, []any{2, 10}, []any{8, 0}},
+		{"s", invui.KindLineS, []any{2, 10}, []any{8, 8}},
+		{"w", invui.KindLineW, []any{10, 2}, []any{0, 8}},
+		{"e", invui.KindLineE, []any{10, 2}, []any{8, 8}},
+	} {
+		for _, st := range []struct {
+			name string
+			c    []any
+			cond string
+		}{
+			{"open", rgb(0x9a, 0x9a, 0xa6), lacks(invui.KindDone) + " and " + lacks(invui.KindLocked)},
+			{"done", chosenGreen, has(invui.KindDone)},
+			{"locked", rgb(0x4a, 0x4a, 0x55), has(invui.KindLocked)},
+		} {
+			r := rect(st.c, dir.size, dir.offset, 1)
+			r["bindings"] = shown("(" + has(dir.marker) + " and " + st.cond + ")")
+			mapParts = append(mapParts, obj{dir.name + "_" + st.name: r})
+		}
+	}
 	d["cell"] = panel([]any{18, 18},
+		cellKind("map", invui.KindCanvas, mapParts...),
 		cellKind("slot", invui.FamSlot, ref("face", "slot_face", nil), ref("b", "cell_button", nil)),
 		cellKind("mini", invui.FamMini, ref("face", "mini_face", nil), ref("b", "cell_button", nil)),
 		cellKind("frame", invui.KindFrame, obj{"f": image("textures/ui/cell_image", []any{18, 18}, 1, nil)}),
@@ -532,7 +567,15 @@ func defs() obj {
 	// The list content: the body, the content of the layout and the rows.
 	board := cellGrid(0, invui.Cells/invui.BoardColumns, invui.BoardColumns)
 	board["anchor_from"], board["anchor_to"] = "top_middle", "top_middle"
+	d["field_row"] = with(panel([]any{"100%", 24},
+		obj{"edge": rect(rgb(0xa0, 0xa0, 0xa6), []any{"100%", 20}, []any{0, 0}, 1)},
+		obj{"fill": rect(rgb(0x31, 0x32, 0x33), []any{"100% - 2px", 18}, []any{1, 1}, 1)},
+		obj{"b": with(button([]any{"100%", 20}, "", "textures/ui/sg/hover_flat", "textures/ui/sg/press_flat", false), obj{"alpha": 0.25, "anchor_from": "top_left", "anchor_to": "top_left"})},
+		obj{"i": with(panel([]any{12, 12}, obj{"i": icon(12)}), obj{"layer": 3, "offset": []any{4, 4}, "anchor_from": "top_left", "anchor_to": "top_left"})},
+		obj{"l": label(white, 0.9, []any{"100% - 24px", "default"}, obj{"layer": 4, "offset": []any{20, 6}, "anchor_from": "top_left", "anchor_to": "top_left"})},
+	), obj{"bindings": shown(has(invui.KindField))})
 	d["list_page_body"] = column("100% - 8px",
+		obj{"field": slots("vertical", []any{"100%", "100%c"}, []any{at("f", "field_row", invui.RowBtn0+invui.RowField, obj{"$icon_index": invui.RowIcon0 + invui.RowField})})},
 		body(1.0), gap(6),
 		gate("cards", invui.KeyCards, column("100%", cardRows...)),
 		gate("pick", invui.KeyPick, column("100%", pickRows...), gap(3)),

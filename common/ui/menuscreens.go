@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"cmp"
 	"math"
 	"slices"
 	"strconv"
@@ -326,7 +327,13 @@ func consolePage(v consoleData) *menuPage {
 func searchPage(v searchData) *menuPage {
 	pg := listPage(invui.KeyGrid+invui.KeyRows, v.Chrome, v.Info)
 	newBoard(pg, invui.GridColumns).sections(v.Sections)
-	pg.rows(0, append([]dItem{{dButton: v.Prompt}}, v.Items...))
+	text := v.Query
+	if text == "" {
+		text = "§7" + v.Placeholder
+	}
+	pg.icon(invui.RowIcon0+invui.RowField, v.Prompt.Icon, invui.KindField)
+	pg.button(invui.RowBtn0+invui.RowField, text, invui.KindField, v.Prompt.ID)
+	pg.rows(0, v.Items)
 	return pg
 }
 
@@ -418,6 +425,16 @@ func questPage(v questData) *menuPage {
 	for _, ch := range v.Chapters {
 		c.Tabs = append(c.Tabs, dTab{ID: ch.ID, Tip: ch.Name + "§r  " + ch.Count, Icon: ch.Icon, On: ch.On})
 	}
+	for _, f := range []struct {
+		key        string
+		cols, rows int
+	}{{invui.KeyBoard, invui.BoardColumns, invui.Cells / invui.BoardColumns}, {invui.KeyGrid, invui.GridColumns, invui.Cells / invui.GridColumns}} {
+		for _, turn := range []bool{false, true} {
+			if pg := questMap(f.key, f.cols, f.rows, turn, c, v); pg != nil {
+				return pg
+			}
+		}
+	}
 	xs, ys := make([]float64, len(v.Nodes)), make([]float64, len(v.Nodes))
 	for i, n := range v.Nodes {
 		xs[i], ys[i] = n.X, n.Y
@@ -458,6 +475,125 @@ func questPage(v questData) *menuPage {
 		items = append(items, dItem{dButton: dButton{ID: n.ID, Label: strings.ReplaceAll(n.Tip, "\n", "  "), Icon: n.Icon}})
 	}
 	pg.rows(0, items)
+	return pg
+}
+
+// questMap draws the quests on a dark canvas of cells, cols wide and rows
+// high (turned: the plane's rows are its columns): a quest every other cell,
+// framed by its state, and the lines between them in the cells around, or nil
+// when they do not fit.
+func questMap(key string, cols, rows int, turn bool, c dChrome, v questData) *menuPage {
+	if len(v.Nodes) == 0 {
+		return nil
+	}
+	var xs, ys []float64
+	for _, n := range v.Nodes {
+		xs, ys = append(xs, n.X), append(ys, n.Y)
+	}
+	slices.Sort(xs)
+	slices.Sort(ys)
+	xs, ys = slices.Compact(xs), slices.Compact(ys)
+	w, h := 2*len(xs)-1, 2*len(ys)-1
+	at := func(x, y int) (int, int) {
+		if turn {
+			return y, x
+		}
+		return x, y
+	}
+	if mw, mh := at(w, h); mw > cols || mh > rows {
+		return nil
+	}
+	// grid is the cell a position of the plane falls in: a quest's column
+	// or row, or the gap after it. A line comes into a quest a little off
+	// its middle, so a third of a place around a quest is the quest's.
+	place := math.Inf(1)
+	for _, vs := range [][]float64{xs, ys} {
+		for i := 1; i < len(vs); i++ {
+			place = min(place, vs[i]-vs[i-1])
+		}
+	}
+	grid := func(vs []float64, v float64) int {
+		near := place / 3
+		i, _ := slices.BinarySearchFunc(vs, v, func(a, b float64) int {
+			if math.Abs(a-b) < near {
+				return 0
+			}
+			return cmp.Compare(a, b)
+		})
+		if i < len(vs) && math.Abs(vs[i]-v) < near {
+			return 2 * i
+		}
+		return min(max(2*i-1, 0), 2*len(vs)-2)
+	}
+	lines := map[[2]int]string{}
+	rank := map[[2]int]int{}
+	mark := func(x, y int, dir string, r int) {
+		k := [2]int{x, y}
+		if !strings.Contains(lines[k], dir) {
+			lines[k] += dir
+		}
+		if _, ok := rank[k]; !ok || r > rank[k] {
+			rank[k] = r
+		}
+	}
+	for _, ln := range v.Lines {
+		r := 1
+		switch {
+		case strings.HasSuffix(ln.Cls, " done"):
+			r = 2
+		case strings.HasSuffix(ln.Cls, " locked"):
+			r = 0
+		}
+		x1, y1, x2, y2 := grid(xs, ln.X1), grid(ys, ln.Y1), grid(xs, ln.X2), grid(ys, ln.Y2)
+		x1, x2 = min(x1, x2), max(x1, x2)
+		y1, y2 = min(y1, y2), max(y1, y2)
+		for x := x1; x < x2; x++ {
+			mark(x, y1, invui.KindLineE, r)
+			mark(x+1, y1, invui.KindLineW, r)
+		}
+		for y := y1; y < y2; y++ {
+			mark(x1, y, invui.KindLineS, r)
+			mark(x1, y+1, invui.KindLineN, r)
+		}
+	}
+	turned := map[string]string{invui.KindLineN: invui.KindLineW, invui.KindLineS: invui.KindLineE, invui.KindLineW: invui.KindLineN, invui.KindLineE: invui.KindLineS}
+	state := map[int]string{0: invui.KindLocked, 2: invui.KindDone}
+	pg := listPage(key, c, v.Progress)
+	b := newBoard(pg, cols)
+	for y := range h {
+		for x := range w {
+			cx, cy := at(x, y)
+			b.at(cy, cx)
+			kinds := ""
+			for _, d := range []string{invui.KindLineN, invui.KindLineS, invui.KindLineW, invui.KindLineE} {
+				if strings.Contains(lines[[2]int{x, y}], d) {
+					if turn {
+						d = turned[d]
+					}
+					kinds += d
+				}
+			}
+			if kinds != "" {
+				kinds += state[rank[[2]int{x, y}]]
+			}
+			b.mark("", kinds+invui.KindCanvas, 1)
+		}
+	}
+	for _, n := range v.Nodes {
+		cx, cy := at(grid(xs, n.X), grid(ys, n.Y))
+		b.at(cy, cx)
+		i := b.i
+		b.slot(dSlot{ID: n.ID, Icon: n.Icon, Tip: n.Tip, Selected: n.Tracked})
+		extra := invui.KindCanvas
+		switch n.State {
+		case QuestDone:
+			extra += invui.KindDone
+		case QuestLocked:
+			extra += invui.KindLocked
+		}
+		slot := invui.Cell0 + i
+		pg.items[slot] = pg.items[slot].WithCustomName(pg.items[slot].CustomName() + extra)
+	}
 	return pg
 }
 
