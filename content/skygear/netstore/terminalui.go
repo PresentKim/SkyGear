@@ -244,6 +244,23 @@ func (w *termWindow) fill(p *player.Player, tx *world.Tx) {
 	set(termlayout.PutAll, termButton(block.Hopper{}, i18n.T(lang, "netstore.terminal.putAll")))
 }
 
+// moved is what left a slot and what came into it when its stack went from
+// before to after.
+func moved(before, after item.Stack) (taken, put item.Stack) {
+	switch {
+	case before.Empty():
+		return item.Stack{}, after
+	case after.Empty():
+		return before, item.Stack{}
+	case !after.Comparable(before):
+		return before, after
+	case after.Count() < before.Count():
+		return before.Grow(-after.Count()), item.Stack{}
+	default:
+		return item.Stack{}, after.Grow(-before.Count())
+	}
+}
+
 func sameStack(a, b item.Stack) bool {
 	if a.Empty() || b.Empty() {
 		return a.Empty() == b.Empty()
@@ -312,18 +329,9 @@ func (w *termWindow) changed(slot int, before, after item.Stack) {
 	if w.filling || slot >= termlayout.Show0 {
 		return
 	}
-	var taken, put item.Stack
-	switch {
-	case after.Empty() && before.Empty():
+	taken, put := moved(before, after)
+	if taken.Empty() && put.Empty() {
 		return
-	case before.Empty():
-		put = after
-	case after.Empty() || after.Comparable(before) && after.Count() < before.Count():
-		taken = before.Grow(after.Count() - before.Count())
-	case after.Comparable(before):
-		put = after.Grow(before.Count() - after.Count())
-	default:
-		taken, put = before, after
 	}
 	if _, craft := taken.Value(termCraft); craft {
 		taken = item.Stack{}
