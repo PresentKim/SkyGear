@@ -1036,8 +1036,8 @@
     "$sg_machine_outputs": "(#collection_index = 13)"
   },
   // The storage network terminal (content/skygear/netstore/terminalui.go):
-  // six rows of slots, the network's items in the first five and the
-  // buttons in the last. An item's name starts with its count text
+  // the network's items in five rows of slots and the buttons (slots 45 to
+  // 53) in a column left of the window. An item's name starts with its count text
   // (common/invui CountMark): a run of format codes the tooltip hides, cut
   // off here by its length in bytes and drawn at the slot's bottom right, as
   // a count over 64 does not fit the stack. Taking out the format signs from
@@ -1046,18 +1046,62 @@
   "terminal_panel@sg_machine.machine_panel": {
     "$sg_machine_slots": "sg_machine.terminal_slots",
     "$sg_machine_outputs": "(#collection_index = -1)",
-    "$sg_machine_root_size": [ 176, 205 ],
-    "$sg_machine_top_size": [ "100%", 117 ],
+    "$sg_machine_root_size": [ 176, 187 ],
+    "$sg_machine_top_size": [ "100%", 99 ],
     "$sg_machine_bar": "sg_machine.close_bar"
   },
   "terminal_slots": {
-    "type": "grid",
-    "size": [ 162, 108 ],
-    "grid_dimensions": [ 9, 6 ],
-    "grid_item_template": "sg_machine.net_slot",
-    "collection_name": "container_items",
+    "type": "panel",
+    "size": [ 162, 90 ],
     "anchor_from": "top_left",
-    "anchor_to": "top_left"
+    "anchor_to": "top_left",
+    "controls": [
+      {
+        "list": {
+          "type": "grid",
+          "size": [ 162, 90 ],
+          "grid_dimensions": [ 9, 5 ],
+          "grid_item_template": "sg_machine.net_slot",
+          "collection_name": "container_items",
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "buttons": {
+          "type": "image",
+          "texture": "textures/ui/dialog_background_opaque",
+          "size": [ 26, 170 ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_right",
+          "offset": [ -10, -21 ],
+          "controls": [
+            {
+              "column": {
+                "type": "stack_panel",
+                "orientation": "vertical",
+                "collection_name": "container_items",
+                "size": [ 18, 162 ],
+                "offset": [ 4, 4 ],
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "controls": [
+                  { "b45@sg_machine.net_slot": { "collection_index": 45 } },
+                  { "b46@sg_machine.net_slot": { "collection_index": 46 } },
+                  { "b47@sg_machine.net_slot": { "collection_index": 47 } },
+                  { "b48@sg_machine.net_slot": { "collection_index": 48 } },
+                  { "b49@sg_machine.net_slot": { "collection_index": 49 } },
+                  { "b50@sg_machine.net_slot": { "collection_index": 50 } },
+                  { "b51@sg_machine.net_slot": { "collection_index": 51 } },
+                  { "b52@sg_machine.net_slot": { "collection_index": 52 } },
+                  { "b53@sg_machine.net_slot": { "collection_index": 53 } }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
   },
   "net_slot": {
     "type": "panel",

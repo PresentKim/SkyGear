@@ -23,9 +23,9 @@ import (
 	"github.com/presentkim/skygear/content/skygear/storage"
 )
 
-// The terminal window (after Refined Storage's grid): a chest of six rows,
-// the network's items a page of five rows and the buttons in the last, over
-// the vanilla inventory. An item of the list never leaves the window: taking
+// The terminal window (after Refined Storage's grid): the network's items a
+// page of five rows and the buttons in a column left of it, over the vanilla
+// inventory. An item of the list never leaves the window: taking
 // it puts a stack of its kind into the inventory. An item put on an empty
 // slot of the list, or moved there with a shift click, goes into the
 // network. The terminal's 3×3 crafting grid has a window of its own; its
@@ -203,9 +203,8 @@ func (w *termWindow) fill(p *player.Player, tx *world.Tx) {
 		}
 		_ = inv.SetItem(slot, st)
 	}
-	filler := termButton(block.StainedGlassPane{Colour: item.ColourGrey()}, " ")
 	for slot := termListSlots; slot < termSize; slot++ {
-		_ = inv.SetItem(slot, filler)
+		_ = inv.SetItem(slot, item.Stack{})
 	}
 	page := fmt.Sprintf(i18n.T(lang, "netstore.terminal.page"), w.page+1, pages)
 	if w.page > 0 {
