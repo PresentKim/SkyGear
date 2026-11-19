@@ -248,6 +248,7 @@ const (
 	KindDiamond = "§z§7§5"
 	KindCircle  = "§z§7§6"
 	KindGate    = "§z§7§8"
+	KindSquare  = "§z§7§9"
 	KindNew     = "§z§9"
 	// KindField is the row RowField drawn as a text field over the page's
 	// content: a search box.
@@ -288,4 +289,4 @@ func CountMark(count string) string {
 }
 
 // Kinds are the kind markers in the order the pack strips them.
-var Kinds = []string{KindGapW, KindGapE, KindGapN, KindGapS, KindDiamond, KindCircle, KindGate, KindNew, KindRow, KindStatic, KindChosen, KindHeading, KindDivider, KindToggleOff, KindToggleOn, KindTab, KindTabOn, KindBar, KindHelp, KindIcon, KindFrame, KindArrow, KindText, KindMini, KindMiniView, KindBlank, KindRare, KindEpic, KindCanvas, KindLineN, KindLineS, KindLineW, KindLineE, KindDone, KindLocked, KindField, FamRow, FamSlot, FamMini}
+var Kinds = []string{KindGapW, KindGapE, KindGapN, KindGapS, KindDiamond, KindCircle, KindGate, KindSquare, KindNew, KindRow, KindStatic, KindChosen, KindHeading, KindDivider, KindToggleOff, KindToggleOn, KindTab, KindTabOn, KindBar, KindHelp, KindIcon, KindFrame, KindArrow, KindText, KindMini, KindMiniView, KindBlank, KindRare, KindEpic, KindCanvas, KindLineN, KindLineS, KindLineW, KindLineE, KindDone, KindLocked, KindField, FamRow, FamSlot, FamMini}

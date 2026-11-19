@@ -582,7 +582,9 @@ func questCanvas(v questData, c dChrome) *menuPage {
 		case ShapeCircle:
 			extra += invui.KindCircle
 		case ShapeGate:
-			extra += invui.KindGate
+			extra += invui.KindGate + invui.KindSquare
+		default:
+			extra += invui.KindSquare
 		}
 		switch n.State {
 		case QuestDone:
