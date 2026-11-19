@@ -535,11 +535,6 @@ type State struct {
 	ShownPct int
 	// shownEnergy is the buffer the energy gauge shows now (-1: nothing yet).
 	shownEnergy int
-	// shownLook is what the machine's open Ore UI windows show (screen.go).
-	shownLook screenLook
-	// target is the block the auto miner's open window shows it mining
-	// (screen.go noteTarget).
-	target string
 	// RangeX, RangeY and RangeZ are the reach set on the screen of a machine
 	// with a range; 0 is all its tier gives (Area).
 	RangeX, RangeY, RangeZ int
@@ -724,7 +719,7 @@ func New(kind string) Machine {
 	}
 	inv := st.storage.Inventory()
 	for slot := range 27 {
-		if st.Role(slot) == RoleNone {
+		if st.Role(slot) == RoleNone && slot != rangeSlot {
 			_ = inv.SetItem(slot, Filler())
 		}
 	}
@@ -931,14 +926,36 @@ type machineHandler struct{ State *State }
 
 func (h machineHandler) HandleTake(ctx *inventory.Context, slot int, _ item.Stack) {
 	if h.State.Role(slot) == roleRecipe {
-		// Taking the recipe off the slot clears it.
+		// Taking the recipe off the slot clears it; taking the empty slot
+		// lists the recipes to pick from.
 		ctx.Cancel()
-		h.State.dropRecipe = true
+		if h.State.Recipe != nil {
+			h.State.dropRecipe = true
+			return
+		}
+		h.later(ctx, func(s *core.Session, p *player.Player) { showCrafter(s, p, h.State.pos, h.State, 0) })
 		return
 	}
 	if h.State.Role(slot) == RoleNone {
 		ctx.Cancel()
+		if slot == rangeSlot {
+			h.later(ctx, func(_ *core.Session, p *player.Player) { h.State.openRange(p) })
+		}
 	}
+}
+
+// later runs f for the player who made the move of ctx, in its world, after
+// the move is answered.
+func (h machineHandler) later(ctx *inventory.Context, f func(s *core.Session, p *player.Player)) {
+	p, ok := ctx.Val().(*player.Player)
+	if !ok {
+		return
+	}
+	p.H().Do(func(tx *world.Tx, e world.Entity) {
+		if s, ok := core.Of(tx); ok {
+			f(s, e.(*player.Player))
+		}
+	})
 }
 
 func (h machineHandler) HandlePlace(ctx *inventory.Context, slot int, it item.Stack) {
@@ -1524,12 +1541,6 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 		}
 		return true
 	}
-	if m.State.Def.Crafter {
-		if !s.Debounced(p) {
-			showCrafter(s, p, pos, m.State)
-		}
-		return true
-	}
 	if m.State.Def.FluidCap > 0 {
 		held, _ := p.HeldItems()
 		if UseFluid(s, p, tx, pos, m, held, ctx) || m.State.Def.Marker == "" {
@@ -1657,9 +1668,6 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		showActiveOf(tx, pos, m, st, currentTick)
 	}
 	st.persistState(currentTick, pos, tx)
-	if (currentTick+int64(posHash(pos)))%5 == 0 && len(watchers.Of(s)) > 0 {
-		watchMachine(s, tx, pos, st)
-	}
 	st.showRange(tx, pos)
 	if st.Def.NoDisplay {
 		if st.Def.Cell && st.Energy > 0 {
@@ -1707,6 +1715,7 @@ func (st *State) prepareDisplay() {
 	st.ShowProgress()
 	st.ShowEnergy()
 	st.showStuck()
+	st.showRangeButton()
 }
 
 // runMachine runs the work of a machine once.

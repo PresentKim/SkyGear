@@ -703,6 +703,7 @@
                 "anchor_from": "center",
                 "anchor_to": "center",
                 "controls": [
+                  { "s25@sg_machine.bar_button": { "collection_index": 25 } },
                   { "s26@sg_machine.bar_button": { "collection_index": 26 } }
                 ]
               }

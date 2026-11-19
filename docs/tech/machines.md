@@ -2,12 +2,11 @@
 
 기획: [02-skygear.md §11](../design/02-skygear.md). 코드: `content/skygear/machine/machine.go`.
 
-## 창 (Ore UI)
+## 창
 
-- 기계를 우클릭하면 Ore UI 인벤토리 화면(`machine/screen.go` `ShowMachine`)이 열린다. 레이아웃은 기계 정의(`Def`)만으로 정해진다: 왼쪽에 에너지 게이지(`EnergyCap` 이 있고 쓰거나 만드는 기계, 빨강)와 액체 게이지(`FluidCap`, 파랑), 그 오른쪽에 넣는 칸(`Input`, 9칸이면 3×3)·충전 칸(`Charge`), 진행 화살표나 링(`progressLook`, 표식이 있는 기계), 결과 칸(`Output`, 4칸이면 2×2), 아래에 인벤토리와 핫바다. 결과 줄 오른쪽 아래에 결과 모두 꺼내기, 인벤토리 오른쪽 위에 모두 넣기·있는 것만 넣기(`ui.TransferBar`)가 있다. 기계마다 따로 만든 화면이 없어 레이아웃을 고치면 모든 기계에 한 번에 들어간다.
-- 화면 부품은 공용이다: 게이지 `ui.InvGauge`, 진행 `ui.InvProgress`(그림은 `progress_*`·`cycle_*` 아이템 텍스처), 버튼 줄 `InvRow.Bar`·`InventoryScreen.Tools`. 페이지는 `web/oreui/src/inventory/Gauge.tsx`, `ButtonColumn.tsx` 다.
-- 열린 동안 기계 틱이 5틱마다 화면에 보이는 것(진행 10% 단위, 에너지·액체 5% 단위, 칸 변경, 막힘)이 바뀌었는지 보고 다시 그린다(`watchMachine`). 다른 화면으로 바뀌었으면 그리지 않는다(`ui.ShowingKey`).
-- 아래의 상자 UI 레이아웃(`§d§m§<n>`, 진행·게이지 아이템)은 `/sgdebug ui` 의 창 미리보기(`previewWindow`)에만 남아 있다.
+- 기계를 우클릭하면 기계의 27칸 상자(`State.storage`)가 열린다(`machine/screen.go` `ShowMachine`). 제목 표식 `§d§m§<n>` 으로 `skygear` 팩의 `ui/sg_machine.json` 이 그 기계의 칸만 정해진 자리에 그린다. 아이템은 클라이언트가 바로 옮기고, `machineHandler` 가 칸마다 역할(넣는 칸·결과 칸·충전 칸·조합법 칸)에 맞지 않는 이동을 막는다.
+- 진행 화살표·링, 에너지 게이지는 표시 칸의 아이템이다(`ShowProgress`, `ShowEnergy`). 창 오른쪽 위 어두운 막대에 범위 버튼(25번, 범위가 있는 기계만, 망원경)과 정보 아이콘(26번)이 있다. 범위 버튼을 누르면 범위 화면(메뉴 창의 스테퍼)이 열리고, 뒤로 가기는 기계 창을 다시 연다.
+- 자동 제작기의 조합법 칸(4번)은 비어 있을 때 누르면 연구한 조합법 목록(메뉴 창, 96개씩 쪽 넘기기)이 열리고, 고르면 기계 창으로 돌아온다. 만들 아이템을 그 칸에 올려 두어도 고른다. 조합법이 있을 때 누르면 지운다.
 
 ## 구조
 

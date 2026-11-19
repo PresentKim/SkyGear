@@ -224,21 +224,6 @@ func (st *State) rangeViewOption(lang string, again func(p *player.Player, tx *w
 	}}
 }
 
-// rangeTools are the machine screen's buttons of a machine with a range:
-// the range screen, and the box on or off.
-func (st *State) rangeTools(lang string, again func(p *player.Player, tx *world.Tx)) []ui.Option {
-	kind, ok := st.rangeKind()
-	if !ok {
-		return nil
-	}
-	return []ui.Option{
-		{Label: i18n.T(lang, "machine.range.title") + "\n§7" + st.sizeLine(lang, kind), Icon: "textures/ui/sg/menu_stats", Run: func(p *player.Player, _ *world.Tx) {
-			st.showRangeScreen(p, kind, again)
-		}},
-		st.rangeViewOption(lang, again),
-	}
-}
-
 // rangeAxis is one axis of the range screen: its name, the value set, the
 // least and most it may be, and how a value is kept.
 type rangeAxis struct {
