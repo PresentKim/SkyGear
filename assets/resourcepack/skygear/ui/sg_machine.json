@@ -1048,7 +1048,7 @@
     "$sg_machine_outputs": "(#collection_index = -1)",
     "$sg_machine_root_size": [ 184, 208 ],
     "$sg_machine_top_size": [ "100%", 120 ],
-    "$sg_machine_bar": "sg_machine.close_bar"
+    "$sg_machine_bar": "sg_terminal.bar"
   },
   // A button slot of the terminal, hidden while empty so it takes no room
   // in the button column (the page arrows on a single page). It reads the slot as

@@ -113,7 +113,29 @@ func main() {
 
 	buttons := []any{}
 	for i := 0; i < termlayout.Buttons; i++ {
+		if termlayout.Button0+i == termlayout.Info {
+			continue
+		}
 		buttons = append(buttons, obj{fmt.Sprintf("b%d@sg_machine.net_button", i): obj{"collection_index": termlayout.Button0 + i}})
+	}
+
+	// The bar above the window's top right: the info button left of the
+	// close button.
+	d["bar"] = obj{
+		"type": "image", "texture": "textures/ui/toolbar_background", "size": []any{"100%c + 14px", 25},
+		"offset": []any{0, -22}, "anchor_from": "top_right", "anchor_to": "top_right", "layer": 3,
+		"controls": []any{obj{"row": obj{
+			"type": "stack_panel", "orientation": "horizontal", "size": []any{"100%c", 22}, "offset": []any{7, 1},
+			"anchor_from": "top_left", "anchor_to": "top_left",
+			"controls": []any{
+				obj{"info": slots("stack_panel", "vertical", []any{18, 22}, []any{
+					obj{"b@sg_machine.net_button": obj{"collection_index": termlayout.Info}},
+				})},
+				obj{"close": obj{"type": "panel", "size": []any{22, 22}, "controls": []any{
+					obj{"x@common.light_close_button": obj{"$close_button_offset": []any{0, 0}, "size": []any{15, 15}, "anchor_from": "center", "anchor_to": "center"}},
+				}}},
+			},
+		}}},
 	}
 
 	d["slots"] = obj{"type": "panel", "size": []any{168, 90}, "anchor_from": "top_left", "anchor_to": "top_left", "controls": []any{

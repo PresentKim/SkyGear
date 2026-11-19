@@ -1,4 +1,82 @@
 {
+  "bar": {
+    "anchor_from": "top_right",
+    "anchor_to": "top_right",
+    "controls": [
+      {
+        "row": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "controls": [
+            {
+              "info": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "b@sg_machine.net_button": {
+                      "collection_index": 210
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  18,
+                  22
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "close": {
+                "controls": [
+                  {
+                    "x@common.light_close_button": {
+                      "$close_button_offset": [
+                        0,
+                        0
+                      ],
+                      "anchor_from": "center",
+                      "anchor_to": "center",
+                      "size": [
+                        15,
+                        15
+                      ]
+                    }
+                  }
+                ],
+                "size": [
+                  22,
+                  22
+                ],
+                "type": "panel"
+              }
+            }
+          ],
+          "offset": [
+            7,
+            1
+          ],
+          "orientation": "horizontal",
+          "size": [
+            "100%c",
+            22
+          ],
+          "type": "stack_panel"
+        }
+      }
+    ],
+    "layer": 3,
+    "offset": [
+      0,
+      -22
+    ],
+    "size": [
+      "100%c + 14px",
+      25
+    ],
+    "texture": "textures/ui/toolbar_background",
+    "type": "image"
+  },
   "insert@chest.chest_grid_item": {
     "$background_images": "sg_machine.no_bg",
     "$durability_bar_required": false,
@@ -4781,11 +4859,6 @@
                   {
                     "b2@sg_machine.net_button": {
                       "collection_index": 209
-                    }
-                  },
-                  {
-                    "b3@sg_machine.net_button": {
-                      "collection_index": 210
                     }
                   },
                   {
