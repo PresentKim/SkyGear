@@ -422,70 +422,29 @@ func questPage(v questData) *menuPage {
 		pg.rows(0, items)
 		return pg
 	}
+	if pg := questCanvas(v, c); pg != nil {
+		return pg
+	}
 	for _, ch := range v.Chapters {
 		c.Tabs = append(c.Tabs, dTab{ID: ch.ID, Tip: ch.Name + "§r  " + ch.Count, Icon: ch.Icon, On: ch.On})
-	}
-	for _, f := range []struct {
-		key        string
-		cols, rows int
-	}{{invui.KeyBoard, invui.BoardColumns, invui.Cells / invui.BoardColumns}, {invui.KeyGrid, invui.GridColumns, invui.Cells / invui.GridColumns}} {
-		for _, turn := range []bool{false, true} {
-			if pg := questMap(f.key, f.cols, f.rows, turn, c, v); pg != nil {
-				return pg
-			}
-		}
-	}
-	xs, ys := make([]float64, len(v.Nodes)), make([]float64, len(v.Nodes))
-	for i, n := range v.Nodes {
-		xs[i], ys[i] = n.X, n.Y
-	}
-	cols, rows := places(xs), places(ys)
-	w, h := 1, 1
-	if len(v.Nodes) > 0 {
-		w, h = slices.Max(cols)+1, slices.Max(rows)+1
-	}
-	for _, f := range []struct {
-		key        string
-		cols, rows int
-	}{{invui.KeyGrid, invui.GridColumns, invui.Cells / invui.GridColumns}, {invui.KeyBoard, invui.BoardColumns, invui.Cells / invui.BoardColumns}} {
-		for _, turn := range []bool{false, true} {
-			cw, ch := w, h
-			if turn {
-				cw, ch = h, w
-			}
-			if cw > f.cols || ch > f.rows {
-				continue
-			}
-			pg := listPage(f.key, c, v.Progress)
-			b := newBoard(pg, f.cols)
-			for i, n := range v.Nodes {
-				col, row := cols[i], rows[i]
-				if turn {
-					col, row = row, col
-				}
-				b.at(row, col)
-				b.slot(dSlot{ID: n.ID, Icon: n.Icon, Tip: n.Tip, Selected: n.Tracked})
-			}
-			return pg
-		}
 	}
 	pg := listPage(invui.KeyMenu+invui.KeyRows, c, v.Progress)
 	items := make([]dItem, 0, len(v.Nodes))
 	for _, n := range v.Nodes {
+		if n.Shape == ShapeVia {
+			continue
+		}
 		items = append(items, dItem{dButton: dButton{ID: n.ID, Label: strings.ReplaceAll(n.Tip, "\n", "  "), Icon: n.Icon}})
 	}
 	pg.rows(0, items)
 	return pg
 }
 
-// questMap draws the quests on a dark canvas of cells, cols wide and rows
-// high (turned: the plane's rows are its columns): a quest every other cell,
-// framed by its state, and the lines between them in the cells around, or nil
-// when they do not fit.
-func questMap(key string, cols, rows int, turn bool, c dChrome, v questData) *menuPage {
-	if len(v.Nodes) == 0 {
-		return nil
-	}
+// questCanvas draws the quest book on its own page: the chapters down the
+// left and the chapter's quests on a dark canvas, a quest a cell, with the
+// lines between them through the gaps right of the quests. It is nil when
+// the chapter does not fit any canvas (invui.QuestGrids).
+func questCanvas(v questData, c dChrome) *menuPage {
 	var xs, ys []float64
 	for _, n := range v.Nodes {
 		xs, ys = append(xs, n.X), append(ys, n.Y)
@@ -493,131 +452,152 @@ func questMap(key string, cols, rows int, turn bool, c dChrome, v questData) *me
 	slices.Sort(xs)
 	slices.Sort(ys)
 	xs, ys = slices.Compact(xs), slices.Compact(ys)
-	w, h := 2*len(xs)-1, 2*len(ys)-1
-	at := func(x, y int) (int, int) {
-		if turn {
-			return y, x
+	grid := -1
+	for i, g := range invui.QuestGrids {
+		if len(xs) <= g[0] && len(ys) <= g[1] {
+			grid = i
+			break
 		}
-		return x, y
 	}
-	if mw, mh := at(w, h); mw > cols || mh > rows {
+	if grid < 0 || len(v.Chapters) > invui.QuestChapters {
 		return nil
 	}
-	// grid is the cell a position of the plane falls in: a quest's column
-	// or row, or the gap after it. A line comes into a quest a little off
-	// its middle, so a third of a place around a quest is the quest's.
-	place := math.Inf(1)
-	for _, vs := range [][]float64{xs, ys} {
-		for i := 1; i < len(vs); i++ {
-			place = min(place, vs[i]-vs[i-1])
-		}
+	cols := invui.QuestGrids[grid][0]
+	left := (cols - len(xs)) / 2
+
+	pg := newMenuPage(invui.KeyQuest + strconv.Itoa(grid))
+	pg.chrome(dChrome{Title: v.Title, Bar: c.Bar})
+	heading := v.Heading
+	if v.Progress != "" {
+		heading += "  " + v.Progress
 	}
-	grid := func(vs []float64, v float64) int {
-		near := place / 3
-		i, _ := slices.BinarySearchFunc(vs, v, func(a, b float64) int {
-			if math.Abs(a-b) < near {
+	pg.text(invui.SlotInfo, "§r"+ink(heading))
+	for i, ch := range v.Chapters {
+		kind := invui.KindRow
+		if ch.On {
+			kind = invui.KindChosen
+		}
+		if ch.New {
+			kind += invui.KindNew
+		}
+		pg.icon(invui.RowIcon0+i, ch.Icon, kind)
+		pg.button(invui.RowBtn0+i, ch.Name, kind, ch.ID)
+		pg.button(invui.RowBtn0+invui.QuestChapters+i, ch.Count, invui.KindText, "")
+	}
+
+	// A place on the canvas a line passes: 2c is the middle of column c, 2c+1
+	// the lane in the gap right of it.
+	place := func(vs []float64, v float64) int {
+		i, found := slices.BinarySearchFunc(vs, v, func(a, b float64) int {
+			if math.Abs(a-b) < 0.01 {
 				return 0
 			}
 			return cmp.Compare(a, b)
 		})
-		if i < len(vs) && math.Abs(vs[i]-v) < near {
+		if found {
 			return 2 * i
 		}
-		return min(max(2*i-1, 0), 2*len(vs)-2)
+		return 2*i - 1
 	}
-	lines := map[[2]int]string{}
-	rank := map[[2]int]int{}
-	mark := func(x, y int, dir string, r int) {
-		k := [2]int{x, y}
-		if !strings.Contains(lines[k], dir) {
-			lines[k] += dir
+	row := func(y float64) int {
+		best := 0
+		for i, r := range ys {
+			if math.Abs(r-y) < math.Abs(ys[best]-y) {
+				best = i
+			}
 		}
-		if _, ok := rank[k]; !ok || r > rank[k] {
-			rank[k] = r
+		return best
+	}
+	type at struct{ c, r int }
+	kinds := map[at]string{}
+	rank := map[at]int{}
+	mark := func(c, r int, kind string, k int) {
+		if c < 0 || c >= len(xs) {
+			return
+		}
+		p := at{c, r}
+		if !strings.Contains(kinds[p], kind) {
+			kinds[p] += kind
+		}
+		if old, ok := rank[p]; !ok || k > old {
+			rank[p] = k
 		}
 	}
 	for _, ln := range v.Lines {
-		r := 1
+		k := 1
 		switch {
 		case strings.HasSuffix(ln.Cls, " done"):
-			r = 2
+			k = 2
 		case strings.HasSuffix(ln.Cls, " locked"):
-			r = 0
+			k = 0
 		}
-		x1, y1, x2, y2 := grid(xs, ln.X1), grid(ys, ln.Y1), grid(xs, ln.X2), grid(ys, ln.Y2)
-		x1, x2 = min(x1, x2), max(x1, x2)
-		y1, y2 = min(y1, y2), max(y1, y2)
-		for x := x1; x < x2; x++ {
-			mark(x, y1, invui.KindLineE, r)
-			mark(x+1, y1, invui.KindLineW, r)
+		x1, x2 := place(xs, ln.X1), place(xs, ln.X2)
+		if x1 < 0 || x2 < 0 {
+			continue
 		}
-		for y := y1; y < y2; y++ {
-			mark(x1, y, invui.KindLineS, r)
-			mark(x1, y+1, invui.KindLineN, r)
-		}
-	}
-	turned := map[string]string{invui.KindLineN: invui.KindLineW, invui.KindLineS: invui.KindLineE, invui.KindLineW: invui.KindLineN, invui.KindLineE: invui.KindLineS}
-	state := map[int]string{0: invui.KindLocked, 2: invui.KindDone}
-	pg := listPage(key, c, v.Progress)
-	b := newBoard(pg, cols)
-	for y := range h {
-		for x := range w {
-			cx, cy := at(x, y)
-			b.at(cy, cx)
-			kinds := ""
-			for _, d := range []string{invui.KindLineN, invui.KindLineS, invui.KindLineW, invui.KindLineE} {
-				if strings.Contains(lines[[2]int{x, y}], d) {
-					if turn {
-						d = turned[d]
-					}
-					kinds += d
+		if x1 != x2 {
+			r := row(ln.Y1)
+			for x := min(x1, x2); x < max(x1, x2); x++ {
+				if x%2 == 0 {
+					mark(x/2, r, invui.KindLineE+invui.KindGapW, k)
+				} else {
+					mark(x/2, r, invui.KindGapE, k)
+					mark(x/2+1, r, invui.KindLineW, k)
 				}
 			}
-			if kinds != "" {
-				kinds += state[rank[[2]int{x, y}]]
+			continue
+		}
+		up, down := invui.KindLineN, invui.KindLineS
+		if x1%2 == 1 {
+			up, down = invui.KindGapN, invui.KindGapS
+		}
+		r1, r2 := row(ln.Y1), row(ln.Y2)
+		for r := min(r1, r2); r < max(r1, r2); r++ {
+			mark(x1/2, r, down, k)
+			mark(x1/2, r+1, up, k)
+		}
+	}
+	state := map[int]string{0: invui.KindLocked, 2: invui.KindDone}
+	for p, k := range kinds {
+		pg.mark(p.r*cols+left+p.c, "", k+state[rank[p]]+invui.KindCanvas)
+	}
+	for r := range ys {
+		for c := -left; c < cols-left; c++ {
+			if _, ok := kinds[at{c, r}]; !ok {
+				pg.mark(r*cols+left+c, "", invui.KindCanvas)
 			}
-			b.mark("", kinds+invui.KindCanvas, 1)
 		}
 	}
 	for _, n := range v.Nodes {
-		cx, cy := at(grid(xs, n.X), grid(ys, n.Y))
-		b.at(cy, cx)
-		i := b.i
-		b.slot(dSlot{ID: n.ID, Icon: n.Icon, Tip: n.Tip, Selected: n.Tracked})
-		extra := invui.KindCanvas
+		if n.Shape == ShapeVia {
+			continue
+		}
+		p := at{place(xs, n.X) / 2, row(n.Y)}
+		i := p.r*cols + left + p.c
+		pg.cell(i, dSlot{ID: n.ID, Icon: n.Icon, Tip: n.Tip, Selected: n.Tracked}, invui.KindRow, invui.KindStatic)
+		extra := kinds[p] + invui.KindCanvas
+		switch n.Shape {
+		case ShapeDiamond:
+			extra += invui.KindDiamond
+		case ShapeCircle:
+			extra += invui.KindCircle
+		case ShapeGate:
+			extra += invui.KindGate
+		}
 		switch n.State {
 		case QuestDone:
 			extra += invui.KindDone
 		case QuestLocked:
 			extra += invui.KindLocked
 		}
+		if n.New {
+			extra += invui.KindNew
+		}
 		slot := invui.Cell0 + i
-		pg.items[slot] = pg.items[slot].WithCustomName(pg.items[slot].CustomName() + extra)
-	}
-	return pg
-}
-
-// places numbers the positions vs on a line of places: the smallest gap
-// between two of them is one place.
-func places(vs []float64) []int {
-	out := make([]int, len(vs))
-	if len(vs) == 0 {
-		return out
-	}
-	lo, gap := math.Inf(1), math.Inf(1)
-	for i, a := range vs {
-		lo = min(lo, a)
-		for _, b := range vs[i+1:] {
-			if d := math.Abs(a - b); d > 1e-6 {
-				gap = min(gap, d)
-			}
+		if !pg.items[slot].Empty() {
+			cm := invui.CountMark("")
+			pg.items[slot] = pg.items[slot].WithCustomName(cm + extra + strings.TrimPrefix(pg.items[slot].CustomName(), cm))
 		}
 	}
-	if math.IsInf(gap, 1) {
-		gap = 1
-	}
-	for i, a := range vs {
-		out[i] = int(math.Round((a - lo) / gap))
-	}
-	return out
+	return pg
 }

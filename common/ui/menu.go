@@ -174,11 +174,11 @@ func (pg *menuPage) cell(i int, s dSlot, press, view string) {
 		if !ok {
 			return
 		}
-		pg.items[slot] = item.NewStack(it, 1).WithCustomName(invui.CountMark(s.Count) + "§r" + i18n.Plain(s.Tip) + kind)
+		pg.items[slot] = item.NewStack(it, 1).WithCustomName(invui.CountMark(s.Count) + kind + "§r" + i18n.Plain(s.Tip))
 	case strings.HasPrefix(s.Icon, "tex:"):
-		pg.items[slot] = item.NewStack(item.Paper{}, 1).WithCustomName(invui.CountMark(s.Count) + strings.TrimPrefix(s.Icon, "tex:") + kind)
+		pg.items[slot] = item.NewStack(item.Paper{}, 1).WithCustomName(invui.CountMark(s.Count) + kind + strings.TrimPrefix(s.Icon, "tex:"))
 	default:
-		pg.items[slot] = item.NewStack(item.Paper{}, 1).WithCustomName(invui.CountMark(s.Count) + "§r" + i18n.Plain(s.Tip) + kind)
+		pg.items[slot] = item.NewStack(item.Paper{}, 1).WithCustomName(invui.CountMark(s.Count) + kind + "§r" + i18n.Plain(s.Tip))
 	}
 	if pressable && s.ID != "" {
 		pg.ids[slot] = s.ID
@@ -550,7 +550,28 @@ func openMenu(p *player.Player, l *oreLayout, pg *menuPage) {
 		return st.gen == gen
 	}
 	closeRun := l.close
+	pg.text(invui.SlotEsc, "§r")
 	invui.Show(p, pg.items, func(p *player.Player, tx *world.Tx, slot int) {
+		if slot == invui.SlotEsc {
+			if !current() {
+				return
+			}
+			func() {
+				defer recoverForm(p)
+				if closeRun != nil {
+					closeRun(p, tx)
+				} else if Idle != nil {
+					Idle(p, tx, "", true)
+				}
+			}()
+			if current() {
+				formScreens.Lock()
+				st.menu = false
+				formScreens.Unlock()
+				invui.Close(p)
+			}
+			return
+		}
 		run := l.runs[pg.ids[slot]]
 		if !current() || run == nil {
 			return

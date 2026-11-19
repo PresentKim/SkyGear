@@ -92,6 +92,7 @@ const questUnit = 36
 // questData is the data of the quest screen: positions are in rem.
 type questData struct {
 	Bar      []dBarButton   `json:"bar"`
+	Title    string         `json:"title"`
 	Chapters []questChapter `json:"chapters"`
 	Heading  string         `json:"heading"`
 	Progress string         `json:"progress"`
@@ -154,7 +155,7 @@ type questPanelD struct {
 func QuestBookMenu(p *player.Player, title string, b QuestBook, actions ...Option) {
 	l := newOreLayout()
 	chrome, _ := l.chromeOf(title, actions)
-	d := questData{Bar: chrome.Bar, Chapters: []questChapter{}, Heading: b.Heading, Progress: b.Progress, Key: b.Key,
+	d := questData{Bar: chrome.Bar, Title: untoken(title), Chapters: []questChapter{}, Heading: b.Heading, Progress: b.Progress, Key: b.Key,
 		Lines: []questLine{}, Nodes: []questNodeD{}, Recenter: b.Recenter}
 	if d.Heading == "" {
 		d.Heading = untoken(title)
@@ -176,6 +177,7 @@ func QuestBookMenu(p *player.Player, title string, b QuestBook, actions ...Optio
 			d.FocusX, d.FocusY = pos(q.X), pos(q.Y)
 		}
 		if q.Shape == ShapeVia {
+			d.Nodes = append(d.Nodes, questNodeD{X: pos(q.X), Y: pos(q.Y), Shape: ShapeVia})
 			continue
 		}
 		shape := q.Shape

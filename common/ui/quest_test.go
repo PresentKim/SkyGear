@@ -2,8 +2,8 @@ package ui
 
 import "testing"
 
-// TestQuestDataRem: lines and nodes arrive in rem (place * 7.2), vias are not
-// nodes, the focus is in rem and the open chapter has no id.
+// TestQuestDataRem: lines and nodes arrive in rem (place * 7.2), vias are
+// nodes without an id, the focus is in rem and the open chapter has no id.
 func TestQuestDataRem(t *testing.T) {
 	var root any
 	defer capture(func(_ *oreLayout, r any) { root = r })()
@@ -22,7 +22,7 @@ func TestQuestDataRem(t *testing.T) {
 		t.Fatalf("%s %v", name, data)
 	}
 	nodes := data["nodes"].([]any)
-	if len(nodes) != 2 || nodes[1].(map[string]any)["x"] != 7.2 || nodes[0].(map[string]any)["shape"] != "square" {
+	if len(nodes) != 3 || nodes[1].(map[string]any)["x"] != 7.2 || nodes[0].(map[string]any)["shape"] != "square" || nodes[2].(map[string]any)["id"] != "" {
 		t.Errorf("nodes %v", nodes)
 	}
 	line := data["lines"].([]any)[0].(map[string]any)

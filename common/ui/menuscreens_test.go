@@ -1,35 +1,44 @@
 package ui
 
 import (
-	"slices"
 	"strings"
 	"testing"
 
 	"github.com/presentkim/skygear/common/invui"
 )
 
-func TestPlacesUseSmallestGap(t *testing.T) {
-	if got := places([]float64{3, 0, 1.5, 7.5}); !slices.Equal(got, []int{2, 0, 1, 5}) {
-		t.Fatalf("places = %v", got)
-	}
-}
-
-func TestQuestMapDrawsLineBetweenQuests(t *testing.T) {
+func TestQuestCanvasDrawsLineThroughLane(t *testing.T) {
 	pg := questPage(questData{
-		Nodes: []questNodeD{{ID: "a", X: 0, Y: 0, State: QuestDone}, {ID: "b", X: 10, Y: 0, State: QuestDone}},
-		Lines: []questLine{{X1: 0, Y1: 0, X2: 10, Y2: 0.5, Cls: "oui-line-seg done"}},
+		Nodes: []questNodeD{{ID: "a", X: 0, Y: 0, State: QuestDone}, {ID: "b", X: 10.8, Y: 7.2, State: QuestDone}},
+		Lines: []questLine{
+			{X1: 0, Y1: 0, X2: 5.4, Y2: 0, Cls: "oui-line-seg done"},
+			{X1: 5.4, Y1: 0, X2: 5.4, Y2: 7.2, Cls: "oui-line-seg done"},
+			{X1: 5.4, Y1: 7.2, X2: 10.8, Y2: 7.2, Cls: "oui-line-seg done"},
+		},
 	})
-	if key := pg.items[invui.SlotKey].CustomName(); !strings.HasPrefix(key, invui.KeyBoard) {
+	if key := pg.items[invui.SlotKey].CustomName(); key != invui.KeyQuest+"0" {
 		t.Fatalf("key = %q", key)
 	}
-	for i, want := range []string{invui.FamSlot, invui.KindLineW + invui.KindLineE + invui.KindDone, invui.FamSlot} {
-		if name := pg.items[invui.Cell0+i].CustomName(); !strings.Contains(name, want) {
-			t.Errorf("cell %d = %q, want %q", i, name, want)
+	cols := invui.QuestGrids[0][0]
+	left := (cols - 2) / 2
+	for _, c := range []struct {
+		cell int
+		want []string
+	}{
+		{left, []string{invui.FamSlot, invui.KindLineE, invui.KindGapW, invui.KindGapS}},
+		{cols + left, []string{invui.KindGapN, invui.KindGapE, invui.KindDone}},
+		{cols + left + 1, []string{invui.FamSlot, invui.KindLineW}},
+	} {
+		name := pg.items[invui.Cell0+c.cell].CustomName()
+		for _, w := range c.want {
+			if !strings.Contains(name, w) {
+				t.Errorf("cell %d = %q, want %q", c.cell, name, w)
+			}
 		}
 	}
 }
 
-func TestTallQuestChapterTurnsOnGrid(t *testing.T) {
+func TestTallQuestChapterUsesNarrowCanvas(t *testing.T) {
 	var nodes []questNodeD
 	for x := range 6 {
 		for y := range 15 {
@@ -39,7 +48,7 @@ func TestTallQuestChapterTurnsOnGrid(t *testing.T) {
 		}
 	}
 	pg := questPage(questData{Nodes: nodes})
-	if key := pg.items[invui.SlotKey].CustomName(); !strings.HasPrefix(key, invui.KeyGrid) {
+	if key := pg.items[invui.SlotKey].CustomName(); key != invui.KeyQuest+"1" {
 		t.Fatalf("key = %q", key)
 	}
 	placed := 0

@@ -280,7 +280,7 @@ func defs() obj {
 
 	textLabel := label(ink, 1.0, []any{"100% - 2px", "default"}, with(obj{"offset": []any{2, 0}, "font_scale_factor": "$text_scale"}, top))
 	d["text_slot"] = with(panel([]any{"100%", "100%c"}, obj{"l": textLabel}), obj{"$text_scale|default": 1.0, "bindings": shown(filled)})
-	d["title_slot"] = panel([]any{310, 10}, obj{"l": label(title, 1.0, []any{"100%", 10}, obj{"text_alignment": "center"})})
+	d["title_slot"] = panel([]any{"100%", 10}, obj{"l": label(title, 1.0, []any{"100%", 10}, obj{"text_alignment": "center"})})
 
 	// Tabs over the window.
 	tabCells := []any{}
@@ -373,8 +373,8 @@ func defs() obj {
 	lacks := func(marker string) string { return "((#hover_text - '" + marker + "') = #hover_text)" }
 	mapParts := []any{obj{"canvas": rect(rgb(0x1c, 0x1c, 0x22), []any{18, 18}, nil, 0)}}
 	for _, dir := range []struct {
-		name, marker   string
-		size, offset   []any
+		name, marker string
+		size, offset []any
 	}{
 		{"n", invui.KindLineN, []any{2, 10}, []any{8, 0}},
 		{"s", invui.KindLineS, []any{2, 10}, []any{8, 8}},
@@ -732,23 +732,36 @@ func defs() obj {
 		pages = append(pages, obj{name: slots("vertical", []any{"100%", "100%"}, []any{at("g", "page_"+name, invui.SlotKey, nil)})})
 	}
 
-	tabs := with(slots("horizontal", []any{"100%c", 24}, tabCells), obj{"offset": []any{8, -22}, "layer": 0})
-	d["window"] = panel([]any{326, 166},
-		obj{"frame": image("textures/ui/dialog_background_opaque", []any{"100%", "100%"}, 1, nil)},
-		obj{"title": with(panel([]any{310, 10}, obj{"s": slots("vertical", []any{310, 10}, []any{at("t", "title_slot", invui.SlotTitle, nil)})}), with(obj{"offset": []any{8, 6}, "layer": 3}, top))},
-		obj{"tabs": with(tabs, top)},
-		obj{"toolbar": image("textures/ui/toolbar_background", []any{"100%c + 14px", 25}, 4, obj{
-			"offset": []any{0, -22}, "anchor_from": "top_right", "anchor_to": "top_right",
-			"controls": []any{obj{"row": with(obj{
-				"type": "stack_panel", "orientation": "horizontal", "size": []any{"100%c", 22}, "offset": []any{7, 1},
-				"controls": []any{
-					obj{"bar": slots("horizontal", []any{"100%c", 22}, barCells)},
-					obj{"close": panel([]any{17, 22}, obj{"x@common.light_close_button": obj{"$close_button_offset": []any{0, 0}, "size": []any{15, 15}, "anchor_from": "center", "anchor_to": "center"}})},
-				},
-			}, top)}},
-		})},
-		obj{"content": with(panel([]any{314, 142}, obj{"pages": panel([]any{"100%", "100%"}, pages...)}), with(obj{"layer": 2, "offset": []any{6, 18}}, top))},
-	)
+	window := func(w, h int, pages []any) obj {
+		tabs := with(slots("horizontal", []any{"100%c", 24}, tabCells), obj{"offset": []any{8, -22}, "layer": 0})
+		return panel([]any{w, h},
+			obj{"frame": image("textures/ui/dialog_background_opaque", []any{"100%", "100%"}, 1, nil)},
+			obj{"title": with(panel([]any{w - 16, 10}, obj{"s": slots("vertical", []any{w - 16, 10}, []any{at("t", "title_slot", invui.SlotTitle, nil)})}), with(obj{"offset": []any{8, 6}, "layer": 3}, top))},
+			obj{"tabs": with(tabs, top)},
+			obj{"toolbar": image("textures/ui/toolbar_background", []any{"100%c + 14px", 25}, 4, obj{
+				"offset": []any{0, -22}, "anchor_from": "top_right", "anchor_to": "top_right",
+				"controls": []any{obj{"row": with(obj{
+					"type": "stack_panel", "orientation": "horizontal", "size": []any{"100%c", 22}, "offset": []any{7, 1},
+					"controls": []any{
+						obj{"bar": slots("horizontal", []any{"100%c", 22}, barCells)},
+						obj{"close": panel([]any{17, 22}, obj{"x@common.light_close_button": obj{"$close_button_offset": []any{0, 0}, "size": []any{15, 15}, "anchor_from": "center", "anchor_to": "center"}})},
+					},
+				}, top)}},
+			})},
+			obj{"content": with(panel([]any{w - 12, h - 24}, obj{"pages": panel([]any{"100%", "100%"}, pages...)}), with(obj{"layer": 2, "offset": []any{6, 18}}, top))},
+		)
+	}
+	d["window"] = window(326, 166, pages)
+	d["esc_button"] = obj{
+		"type": "button", "size": []any{1, 1}, "layer": 0,
+		"default_control": "", "hover_control": "", "pressed_control": "",
+		"button_mappings": []any{
+			obj{"from_button_id": "button.menu_cancel", "to_button_id": "button.container_auto_place", "mapping_type": "global"},
+		},
+		"bindings": []any{obj{"binding_type": "collection_details", "binding_collection_name": "container_items"}},
+	}
+	questDefs(d, gap)
+	d["quest_window"] = window(questW, questH, []any{obj{"quest": slots("vertical", []any{"100%", "100%"}, []any{at("g", "quest_page", invui.SlotKey, nil)})}})
 
 	d["overlay"] = obj{
 		"type": "panel", "size": []any{"100%", "100%"}, "layer": 1,
@@ -765,8 +778,10 @@ func defs() obj {
 						obj{"from_button_id": "button.menu_inventory_cancel", "to_button_id": "button.menu_exit", "mapping_type": "global"},
 					},
 					"controls": []any{
+						obj{"esc": slots("vertical", []any{1, 1}, []any{at("b", "esc_button", invui.SlotEsc, nil)})},
 						obj{"sync": obj{"type": "grid", "size": []any{0, 0}, "maximum_grid_items": 27, "collection_name": "container_items", "grid_item_template": "sg_menu.empty"}},
 						obj{"window": slots("vertical", []any{"100%", "100%"}, []any{at("g", "window_gate", invui.SlotKey, nil)})},
+						obj{"quest": slots("vertical", []any{"100%", "100%"}, []any{at("g", "quest_gate", invui.SlotKey, nil)})},
 						obj{"home": slots("vertical", []any{"100%", "100%"}, []any{at("g", "home_gate", invui.SlotKey, nil)})},
 						obj{"lobby": slots("vertical", []any{"100%", "100%"}, []any{at("g", "lobby_gate", invui.SlotKey, nil)})},
 						obj{"loading": slots("vertical", []any{"100%", "100%"}, []any{at("g", "loading_gate", invui.SlotKey, nil)})},
@@ -777,6 +792,145 @@ func defs() obj {
 		}}},
 	}
 	return d
+}
+
+// The quest book's window, its chapter list and the cells of its canvas: a
+// quest is an 18 pixel shape at a cell's top left, the rest of the cell the
+// gaps a line runs through, its lane at laneX.
+const (
+	questW, questH         = 410, 196
+	questSideW             = 116
+	questCellW, questCellH = 24, 24
+	laneX                  = 21
+)
+
+func questDefs(d obj, gap func(int) obj) {
+	lacks := func(marker string) string { return "((#hover_text - '" + marker + "') = #hover_text)" }
+	states := []struct {
+		name string
+		c    []any
+		cond string
+	}{
+		{"open", rgb(0x9a, 0x9a, 0xa6), lacks(invui.KindDone) + " and " + lacks(invui.KindLocked)},
+		{"done", chosenGreen, has(invui.KindDone)},
+		{"locked", rgb(0x4a, 0x4a, 0x55), has(invui.KindLocked)},
+	}
+	parts := []any{obj{"canvas": rect(rgb(0x1c, 0x1c, 0x22), []any{questCellW, questCellH}, nil, 0)}}
+	for _, ln := range []struct {
+		name, marker string
+		size, offset []any
+	}{
+		{"n", invui.KindLineN, []any{2, 10}, []any{8, 0}},
+		{"s", invui.KindLineS, []any{2, questCellH - 8}, []any{8, 8}},
+		{"w", invui.KindLineW, []any{10, 2}, []any{0, 8}},
+		{"e", invui.KindLineE, []any{10, 2}, []any{8, 8}},
+		{"gw", invui.KindGapW, []any{laneX + 2 - 18, 2}, []any{18, 8}},
+		{"ge", invui.KindGapE, []any{questCellW - laneX, 2}, []any{laneX, 8}},
+		{"gn", invui.KindGapN, []any{2, 10}, []any{laneX, 0}},
+		{"gs", invui.KindGapS, []any{2, questCellH - 8}, []any{laneX, 8}},
+	} {
+		for _, st := range states {
+			r := rect(st.c, ln.size, ln.offset, 1)
+			r["bindings"] = shown("(" + has(ln.marker) + " and " + st.cond + ")")
+			parts = append(parts, obj{ln.name + "_" + st.name: r})
+		}
+	}
+	shape := func(name, cond string) []any {
+		out := []any{obj{name + "_fill": image("textures/ui/sg/quest_"+name, []any{18, 18}, 2, with(obj{"color": rgb(0x2c, 0x2c, 0x34)}, top))}}
+		edge := map[string][]any{"open": rgb(0xdc, 0xdc, 0xe2), "done": chosenGreen, "locked": rgb(0x6a, 0x6a, 0x74)}
+		for _, st := range states {
+			out = append(out, obj{name + "_" + st.name: image("textures/ui/sg/quest_"+name+"_edge", []any{18, 18}, 3, with(obj{"color": edge[st.name]}, top))})
+			last := out[len(out)-1].(obj)[name+"_"+st.name].(obj)
+			last["bindings"] = shown("(" + st.cond + ")")
+		}
+		return []any{obj{name: with(panel([]any{18, 18}, out...), with(obj{"bindings": shown(cond)}, top))}}
+	}
+	round := "(" + has(invui.KindDiamond) + " or " + has(invui.KindCircle) + ")"
+	node := []any{}
+	node = append(node, shape("square", "(not "+round+")")...)
+	node = append(node, shape("diamond", has(invui.KindDiamond))...)
+	node = append(node, shape("circle", has(invui.KindCircle))...)
+	node = append(node,
+		obj{"icon": with(itemIcon([]any{12, 12}), obj{"layer": 4, "offset": []any{3, 3}, "anchor_from": "top_left", "anchor_to": "top_left"})},
+		obj{"locked": image("textures/ui/sg/quest_locked", []any{14, 14}, 6, with(obj{"offset": []any{2, 2}, "bindings": shown(has(invui.KindLocked))}, top))},
+		obj{"chosen": image("textures/ui/sg/slot_chosen", []any{18, 18}, 5, with(obj{"bindings": shown(has(invui.KindChosen))}, top))},
+		obj{"new": rect(rgb(0xff, 0xd7, 0x5e), []any{4, 4}, []any{14, 0}, 7)},
+		ref("b", "cell_button", obj{"anchor_from": "top_left", "anchor_to": "top_left"}),
+	)
+	node[len(node)-2].(obj)["new"].(obj)["bindings"] = shown(has(invui.KindNew))
+	d["quest_cell"] = panel([]any{questCellW, questCellH},
+		obj{"map": with(panel([]any{questCellW, questCellH}, parts...), with(obj{"bindings": shown(has(invui.KindCanvas))}, top))},
+		obj{"node": with(panel([]any{18, 18}, node...), with(obj{"bindings": shown(has(invui.FamSlot))}, top))},
+	)
+
+	canvasW := questW - 12 - questSideW - 4
+	for g, size := range invui.QuestGrids {
+		cols, rows := size[0], size[1]
+		lines := []any{}
+		for r := 0; r < rows; r++ {
+			start := invui.Cell0 + r*cols
+			cells := []any{}
+			for c := 0; c < cols; c++ {
+				cells = append(cells, at(fmt.Sprintf("c%d", c), "quest_cell", start+c, nil))
+			}
+			name := fmt.Sprintf("quest_row_%d_%d", g, r)
+			d[name] = with(panel([]any{cols * questCellW, questCellH}, obj{"cells": slots("horizontal", []any{cols * questCellW, questCellH}, cells)}), obj{"bindings": shown(filled)})
+			lines = append(lines, at(fmt.Sprintf("r%d", r), name, start, nil))
+		}
+		body := fmt.Sprintf("quest_canvas_%d", g)
+		d[body] = with(obj{"type": "stack_panel", "orientation": "vertical", "size": []any{canvasW - 6, "100%c"}, "controls": []any{
+			gap(4),
+			obj{"grid": panel([]any{"100%", "100%c"}, obj{"g": with(slots("vertical", []any{cols * questCellW, "100%c"}, lines), obj{"anchor_from": "top_middle", "anchor_to": "top_middle"})})},
+			gap(4),
+		}}, top)
+		d[fmt.Sprintf("quest_scroll_%d@common.scrolling_panel", g)] = obj{
+			"anchor_to": "top_left", "anchor_from": "top_left", "$show_background": false, "size": []any{"100%", "100%"},
+			"$scroll_size": []any{4, "100%"}, "$scrolling_pane_size": []any{"100%", "100%"}, "$scrolling_pane_offset": []any{0, 0},
+			"$scroll_bar_right_padding_size": []any{0, 0}, "$scrolling_content": "sg_menu." + body,
+		}
+		d[fmt.Sprintf("quest_grid_%d", g)] = with(panel([]any{"100%", "100%"}, ref("s", fmt.Sprintf("quest_scroll_%d", g), nil)), obj{"bindings": shown(has(invui.KeyQuest + fmt.Sprint(g)))})
+	}
+	grids := []any{}
+	for g := range invui.QuestGrids {
+		grids = append(grids, obj{fmt.Sprintf("g%d", g): slots("vertical", []any{"100%", "100%"}, []any{at("g", fmt.Sprintf("quest_grid_%d", g), invui.SlotKey, nil)})})
+	}
+
+	chapters := []any{}
+	for i := 0; i < invui.QuestChapters; i++ {
+		chapters = append(chapters, at(fmt.Sprintf("r%d", i), "quest_chapter", invui.RowBtn0+i, obj{"$icon_index": invui.RowIcon0 + i, "$count_index": invui.RowBtn0 + invui.QuestChapters + i}))
+	}
+	d["quest_count"] = panel([]any{30, 10}, obj{"l": label(dim, 0.7, []any{"100%", "default"}, obj{"text_alignment": "right", "anchor_from": "right_middle", "anchor_to": "right_middle"})})
+	d["quest_chapter"] = with(panel([]any{"100%", 22},
+		obj{"b": shownButton(with(button([]any{"100%", 20}, btnTex, btnHover, btnPress, false), top), has(invui.KindRow))},
+		obj{"on": image(btnHover, []any{"100%", 20}, 1, with(obj{"bindings": shown(has(invui.KindChosen))}, top))},
+		obj{"i": with(panel([]any{14, 14}, obj{"i": icon(14)}), obj{"layer": 3, "offset": []any{3, 3}, "anchor_from": "top_left", "anchor_to": "top_left"})},
+		obj{"l": label(light, 0.75, []any{"100% - 46px", "default"}, obj{"layer": 4, "shadow": true, "offset": []any{20, 6}, "anchor_from": "top_left", "anchor_to": "top_left"})},
+		obj{"lon": label(rgb(0xff, 0xd7, 0x5e), 0.75, []any{"100% - 46px", "default"}, obj{"layer": 5, "shadow": true, "offset": []any{20, 6}, "anchor_from": "top_left", "anchor_to": "top_left"})},
+		obj{"n": with(slots("vertical", []any{30, 10}, []any{ref("c", "quest_count", obj{"collection_index": "$count_index"})}), obj{"layer": 4, "offset": []any{-4, 5}, "anchor_from": "top_right", "anchor_to": "top_right"})},
+		obj{"new": rect(rgb(0xff, 0xd7, 0x5e), []any{4, 4}, []any{2, 2}, 6)},
+	), obj{"bindings": shown(filled)})
+	ch := d["quest_chapter"].(obj)["controls"].([]any)
+	ch[3].(obj)["l"].(obj)["bindings"] = append(ch[3].(obj)["l"].(obj)["bindings"].([]any), view(lacks(invui.KindChosen), "#visible"))
+	ch[4].(obj)["lon"].(obj)["bindings"] = append(ch[4].(obj)["lon"].(obj)["bindings"].([]any), view(has(invui.KindChosen), "#visible"))
+	ch[6].(obj)["new"].(obj)["bindings"] = shown(has(invui.KindNew))
+	d["quest_side_body"] = with(obj{"type": "stack_panel", "orientation": "vertical", "size": []any{"100% - 6px", "100%c"}, "controls": []any{
+		obj{"rows": slots("vertical", []any{"100%", "100%c"}, chapters)},
+	}}, top)
+	d["quest_side_scroll@common.scrolling_panel"] = obj{
+		"anchor_to": "top_left", "anchor_from": "top_left", "$show_background": false, "size": []any{"100%", "100%"},
+		"$scroll_size": []any{4, "100%"}, "$scrolling_pane_size": []any{"100%", "100%"}, "$scrolling_pane_offset": []any{0, 0},
+		"$scroll_bar_right_padding_size": []any{0, 0}, "$scrolling_content": "sg_menu.quest_side_body",
+	}
+	d["quest_heading"] = panel([]any{canvasW, 12}, obj{"l": label(ink, 0.9, []any{"100%", "default"}, obj{"anchor_from": "left_middle", "anchor_to": "left_middle"})})
+	d["quest_page"] = with(panel([]any{"100%", "100%"},
+		obj{"side": with(panel([]any{questSideW, "100%"}, ref("s", "quest_side_scroll", nil)), top)},
+		obj{"heading": with(slots("vertical", []any{canvasW, 12}, []any{at("h", "quest_heading", invui.SlotInfo, nil)}), with(obj{"offset": []any{questSideW + 4, 0}}, top))},
+		obj{"canvas": with(panel([]any{canvasW, questH - 24 - 14},
+			obj{"bg": rect(rgb(0x1c, 0x1c, 0x22), []any{"100%", "100%"}, nil, 0)},
+			obj{"edge": with(rect(rgb(0x55, 0x55, 0x5c), []any{"100% + 2px", "100% + 2px"}, []any{-1, -1}, -1), top)},
+			obj{"grids": with(panel([]any{"100%", "100%"}, grids...), obj{"layer": 1})},
+		), with(obj{"offset": []any{questSideW + 4, 14}}, top))},
+	), obj{"bindings": shown(has(invui.KeyQuest))})
 }
 
 // homeDefs adds the lobby's main screen (oui-mc.css .mc-home, in GUI pixels:
@@ -959,7 +1113,8 @@ func homeDefs(d obj) {
 		obj{"profile": profile}, obj{"corner": corner}, obj{"side": side}, obj{"feed": feed}, obj{"start": start},
 		obj{"overlay": with(slots("vertical", []any{"100%", "100%"}, []any{at("g", "home_overlay_gate", invui.SlotKey, nil)}), obj{"layer": 20})},
 	), obj{"bindings": shown(has(invui.KeyHome))})
-	d["window_gate"] = with(panel([]any{"100%", "100%"}, ref("w", "window", nil)), obj{"bindings": shown("(((#hover_text - '" + invui.KeyHome + "') = #hover_text) and ((#hover_text - '" + invui.KeyLoading + "') = #hover_text) and ((#hover_text - '" + invui.KeyRadial + "') = #hover_text))")})
+	d["window_gate"] = with(panel([]any{"100%", "100%"}, ref("w", "window", nil)), obj{"bindings": shown("(((#hover_text - '" + invui.KeyHome + "') = #hover_text) and ((#hover_text - '" + invui.KeyLoading + "') = #hover_text) and ((#hover_text - '" + invui.KeyRadial + "') = #hover_text) and ((#hover_text - '" + invui.KeyQuest + "') = #hover_text))")})
+	d["quest_gate"] = with(panel([]any{"100%", "100%"}, ref("w", "quest_window", nil)), obj{"bindings": shown(has(invui.KeyQuest))})
 
 	// The loading screen over the whole screen.
 	line := func(name string, slot int, color []any, scale float64, h int) obj {
@@ -1021,7 +1176,7 @@ func homeDefs(d obj) {
 		}}, obj{"anchor_from": "center", "anchor_to": "center"})},
 	), obj{"bindings": shown(has(invui.KeyRadial))})
 
-	d["lobby_name"] =panel([]any{"100%c", 18}, obj{"l": label(white, 1.86, []any{"default", "default"}, obj{"shadow": true})})
+	d["lobby_name"] = panel([]any{"100%c", 18}, obj{"l": label(white, 1.86, []any{"default", "default"}, obj{"shadow": true})})
 	d["lobby_gate"] = with(panel([]any{"100%", "100%"},
 		obj{"head": with(obj{"type": "stack_panel", "orientation": "horizontal", "size": []any{"100%c", 18}, "controls": []any{
 			iconAt("logo", invui.SlotLogo, 16, nil),

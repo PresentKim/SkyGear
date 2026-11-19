@@ -47,20 +47,22 @@ const (
 // Cells are the item slots of a screen's grid: one slot each, holding the
 // item itself named with its tooltip.
 const (
-	Cells = 111
+	Cells = 110
 	Cell0 = RowBtn0 + Rows
 )
 
 // SlotLogo and SlotGame are the logo and the game's name the lobby draws over
-// its screens (KeyLobby).
+// its screens (KeyLobby). SlotEsc is pressed by Esc: the screen's close runs
+// with the window kept open, so the next screen does not reopen it.
 const (
 	SlotLogo = Cell0 + Cells
 	SlotGame = SlotLogo + 1
+	SlotEsc  = SlotGame + 1
 )
 
 // Size is the number of slots of the menu window: the most a window was seen
 // to read (bedrock-research HOST-16 and the entity examples use 243).
-const Size = SlotGame + 1
+const Size = SlotEsc + 1
 
 // The slots of the home screen (KeyHome): the profile card, the square
 // buttons at the top right with their badges, the tiles down the left, the
@@ -151,6 +153,11 @@ const (
 	// over the ring and the info under it are SlotTitle, SlotBody and
 	// SlotInfo.
 	KeyRadial = "rd"
+	// KeyQuest and a QuestGrids index draw a quest book in a wide window:
+	// the chapters as rows down the left (row i its icon and name, the
+	// count in row QuestChapters+i), the chapter's heading in SlotInfo and
+	// its quests and lines on a dark canvas of cells, QuestGrids[n] wide.
+	KeyQuest     = "qk"
 	KeyRows      = "Q"
 	// KeyLobby after a key draws the lobby's logo and name over the screen.
 	KeyLobby = "Y"
@@ -188,7 +195,14 @@ const (
 	ResultRewards = 9
 
 	RadialItems = 8
+
+	// QuestChapters is the most chapters a quest book lists.
+	QuestChapters = Rows / 2
 )
+
+// QuestGrids are the canvases of a quest book, columns by rows, each within
+// Cells.
+var QuestGrids = [...][2]int{{11, 10}, {7, 15}}
 
 // Kind markers end a slot's name and say what the slot draws. They are
 // invisible format codes the pack takes off the text.
@@ -223,6 +237,18 @@ const (
 	KindLineE  = "§z§4"
 	KindDone   = "§z§5"
 	KindLocked = "§z§6"
+	// A quest canvas cell also draws the lane in the gap right of its quest:
+	// the piece from the quest's edge to the lane, from the lane to the next
+	// cell, and the lane from the middle height up and down. A quest's shape
+	// other than a square, and a NEW tag on a quest or a chapter.
+	KindGapW    = "§z§7§1"
+	KindGapE    = "§z§7§2"
+	KindGapN    = "§z§7§3"
+	KindGapS    = "§z§7§4"
+	KindDiamond = "§z§7§5"
+	KindCircle  = "§z§7§6"
+	KindGate    = "§z§7§8"
+	KindNew     = "§z§9"
 	// KindField is the row RowField drawn as a text field over the page's
 	// content: a search box.
 	KindField = "§z§0"
@@ -262,4 +288,4 @@ func CountMark(count string) string {
 }
 
 // Kinds are the kind markers in the order the pack strips them.
-var Kinds = []string{KindRow, KindStatic, KindChosen, KindHeading, KindDivider, KindToggleOff, KindToggleOn, KindTab, KindTabOn, KindBar, KindHelp, KindIcon, KindFrame, KindArrow, KindText, KindMini, KindMiniView, KindBlank, KindRare, KindEpic, KindCanvas, KindLineN, KindLineS, KindLineW, KindLineE, KindDone, KindLocked, KindField, FamRow, FamSlot, FamMini}
+var Kinds = []string{KindGapW, KindGapE, KindGapN, KindGapS, KindDiamond, KindCircle, KindGate, KindNew, KindRow, KindStatic, KindChosen, KindHeading, KindDivider, KindToggleOff, KindToggleOn, KindTab, KindTabOn, KindBar, KindHelp, KindIcon, KindFrame, KindArrow, KindText, KindMini, KindMiniView, KindBlank, KindRare, KindEpic, KindCanvas, KindLineN, KindLineS, KindLineW, KindLineE, KindDone, KindLocked, KindField, FamRow, FamSlot, FamMini}

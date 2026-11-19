@@ -187,6 +187,60 @@ func disc(size, hub int) image.Image {
 	return img
 }
 
+// questShape is a quest's shape on the quest canvas, white so the pack tints
+// it: the whole shape (edge false) or its edge two pixels thick, drawn at
+// 4x and averaged so the slopes are smooth.
+func questShape(shape string, edge bool) image.Image {
+	const size, ss = 18, 4
+	inside := func(x, y, shrink float64) bool {
+		r := float64(size)/2 - shrink
+		switch shape {
+		case "diamond":
+			return math.Abs(x)+math.Abs(y) <= r
+		case "circle":
+			return math.Hypot(x, y) <= r-0.3
+		}
+		return math.Abs(x) <= r && math.Abs(y) <= r
+	}
+	img := image.NewNRGBA(image.Rect(0, 0, size, size))
+	for px := range size {
+		for py := range size {
+			hits := 0
+			for sx := range ss {
+				for sy := range ss {
+					x := float64(px) + (float64(sx)+0.5)/ss - float64(size)/2
+					y := float64(py) + (float64(sy)+0.5)/ss - float64(size)/2
+					if inside(x, y, 0) && (!edge || !inside(x, y, 2)) {
+						hits++
+					}
+				}
+			}
+			if hits > 0 {
+				img.SetNRGBA(px, py, color.NRGBA{255, 255, 255, uint8(255 * hits / (ss * ss))})
+			}
+		}
+	}
+	return img
+}
+
+// noEntry is the red ring with a slash a locked quest wears over its icon.
+func noEntry() image.Image {
+	const size = 16
+	img := image.NewNRGBA(image.Rect(0, 0, size, size))
+	c := float64(size-1) / 2
+	for x := range size {
+		for y := range size {
+			dx, dy := float64(x)-c, float64(y)-c
+			d := math.Hypot(dx, dy)
+			slash := math.Abs(dx+dy)/math.Sqrt2 <= 1.1 && d <= 6.5
+			if (d <= 7.5 && d >= 5.6) || slash {
+				img.SetNRGBA(x, y, color.NRGBA{214, 40, 40, 255})
+			}
+		}
+	}
+	return img
+}
+
 // glyph draws a 16×16 white icon from rows of '#'.
 func glyph(rows ...string) image.Image {
 	img := image.NewNRGBA(image.Rect(0, 0, 16, 16))
@@ -250,6 +304,11 @@ func main() {
 	write("arrow_up", arrow(3))
 	write("chevron_right", mirror(chevron()))
 	write("radial_disc", disc(320, 72))
+	for _, s := range []string{"square", "diamond", "circle"} {
+		write("quest_"+s, questShape(s, false))
+		write("quest_"+s+"_edge", questShape(s, true))
+	}
+	write("quest_locked", noEntry())
 
 	// the lobby screens' buttons and windows
 	write("launcher_button", launcherBox(color.NRGBA{18, 28, 48, 200}, color.NRGBA{110, 135, 170, 230}, 1))
