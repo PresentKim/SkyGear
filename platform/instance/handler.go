@@ -21,7 +21,6 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/common/invui"
 	"github.com/presentkim/skygear/common/timed"
 )
 
@@ -250,13 +249,7 @@ func (h *Handler) HandleItemPickup(ctx *player.Context, i *item.Stack) {
 func (h *Handler) HandleHeldSlotChange(ctx *player.Context, from, to int) {
 	h.in().HandleHeldSlotChange(ctx, from, to)
 }
-func (h *Handler) HandleItemDrop(ctx *player.Context, s item.Stack) {
-	if invui.SwallowDrop(ctx.Player()) {
-		ctx.Cancel()
-		return
-	}
-	h.in().HandleItemDrop(ctx, s)
-}
+func (h *Handler) HandleItemDrop(ctx *player.Context, s item.Stack) { h.in().HandleItemDrop(ctx, s) }
 func (h *Handler) HandleTransfer(ctx *player.Context, addr *net.UDPAddr) {
 	h.in().HandleTransfer(ctx, addr)
 }

@@ -127,15 +127,16 @@ func image(texture string, size []any, layer int, props obj) obj {
 	return with(obj{"type": "image", "texture": texture, "size": size, "layer": layer}, props)
 }
 
-// button is a slot pressed by dropping one of its items (bedrock-json-ui-research
-// INP-17), which the server turns into a press and keeps in place
-// (common/invui handler). The slot holds two, so the slot the client drops
-// one from before the answer stays filled. Its states draw only backgrounds
-// and the tooltip; what it shows sits over it.
+// button is a slot pressed by moving its item to the player's inventory (a
+// quick move), which the server cancels and answers: the press that reaches
+// the server on touch screens too (entity-inventory-ui 2.5). After a drop
+// (button.drop_one) the client drew no change of the window until its next
+// input, so drops are not used (measured on Windows 1.26.65.1). Its states
+// draw only backgrounds and the tooltip; what it shows sits over it.
 func button(size any, def, hover, pressed string, tip bool) obj {
 	mappings := []any{}
 	for _, from := range []string{"button.menu_select", "button.menu_ok"} {
-		mappings = append(mappings, obj{"from_button_id": from, "to_button_id": "button.drop_one", "mapping_type": "pressed", "consume_event": false})
+		mappings = append(mappings, obj{"from_button_id": from, "to_button_id": "button.container_auto_place", "mapping_type": "pressed", "consume_event": false})
 	}
 	mappings = append(mappings, obj{"to_button_id": "button.container_slot_hovered", "mapping_type": "pressed"})
 	state := func(texture string, withTip bool) obj {
@@ -756,9 +757,9 @@ func defs() obj {
 	d["esc_button"] = obj{
 		"type": "button", "size": []any{1, 1}, "layer": 0,
 		"default_control": "", "hover_control": "", "pressed_control": "",
-		"focus_enabled": true, "default_focus_precedence": 1000,
+		"focus_enabled": true,
 		"button_mappings": []any{
-			obj{"from_button_id": "button.menu_cancel", "to_button_id": "button.drop_one", "mapping_type": "global"},
+			obj{"from_button_id": "button.menu_cancel", "to_button_id": "button.container_auto_place", "mapping_type": "global"},
 		},
 		"bindings": []any{obj{"binding_type": "collection_details", "binding_collection_name": "container_items"}},
 	}
@@ -817,25 +818,29 @@ func questDefs(d obj, gap func(int) obj) {
 		{"done", chosenGreen, has(invui.KindDone)},
 		{"locked", rgb(0x4a, 0x4a, 0x55), has(invui.KindLocked)},
 	}
+	// The lines of a cell share one state: a panel a state, and in it a
+	// piece a direction, so only the shown state's pieces read the slot.
 	parts := []any{obj{"canvas": rect(rgb(0x1c, 0x1c, 0x22), []any{questCellW, questCellH}, nil, 0)}}
-	for _, ln := range []struct {
-		name, marker string
-		size, offset []any
-	}{
-		{"n", invui.KindLineN, []any{2, 10}, []any{8, 0}},
-		{"s", invui.KindLineS, []any{2, questCellH - 8}, []any{8, 8}},
-		{"w", invui.KindLineW, []any{10, 2}, []any{0, 8}},
-		{"e", invui.KindLineE, []any{10, 2}, []any{8, 8}},
-		{"gw", invui.KindGapW, []any{laneX + 2 - 18, 2}, []any{18, 8}},
-		{"ge", invui.KindGapE, []any{questCellW - laneX, 2}, []any{laneX, 8}},
-		{"gn", invui.KindGapN, []any{2, 10}, []any{laneX, 0}},
-		{"gs", invui.KindGapS, []any{2, questCellH - 8}, []any{laneX, 8}},
-	} {
-		for _, st := range states {
+	for _, st := range states {
+		pieces := []any{}
+		for _, ln := range []struct {
+			name, marker string
+			size, offset []any
+		}{
+			{"n", invui.KindLineN, []any{2, 10}, []any{8, 0}},
+			{"s", invui.KindLineS, []any{2, questCellH - 8}, []any{8, 8}},
+			{"w", invui.KindLineW, []any{10, 2}, []any{0, 8}},
+			{"e", invui.KindLineE, []any{10, 2}, []any{8, 8}},
+			{"gw", invui.KindGapW, []any{laneX + 2 - 18, 2}, []any{18, 8}},
+			{"ge", invui.KindGapE, []any{questCellW - laneX, 2}, []any{laneX, 8}},
+			{"gn", invui.KindGapN, []any{2, 10}, []any{laneX, 0}},
+			{"gs", invui.KindGapS, []any{2, questCellH - 8}, []any{laneX, 8}},
+		} {
 			r := rect(st.c, ln.size, ln.offset, 1)
-			r["bindings"] = shown("(" + has(ln.marker) + " and " + st.cond + ")")
-			parts = append(parts, obj{ln.name + "_" + st.name: r})
+			r["bindings"] = shown(has(ln.marker))
+			pieces = append(pieces, obj{ln.name: r})
 		}
+		parts = append(parts, obj{st.name: with(panel([]any{questCellW, questCellH}, pieces...), with(obj{"bindings": shown(st.cond)}, top))})
 	}
 	shape := func(name, cond string) []any {
 		out := []any{obj{name + "_fill": image("textures/ui/sg/quest_"+name, []any{18, 18}, 2, with(obj{"color": rgb(0x2c, 0x2c, 0x34)}, top))}}
