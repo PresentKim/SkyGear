@@ -72,7 +72,7 @@ func TestShowInventoryData(t *testing.T) {
 		_ = json.Unmarshal(b, &got)
 	})()
 	ShowInventory(nil, InventoryScreen{
-		Title: "Terminal",
+		Title:  "Terminal",
 		Search: &InvSearch{Query: "a", Placeholder: "Name", Change: func(*player.Player, *world.Tx, string) {}},
 		Rows: []InvRow{
 			{Grow: true, Parts: []InvPart{{Area: "net", Cols: 9, Slots: []InvSlot{{Icon: "textures/x", Count: "3k", Tip: "Dirt"}}}}},
