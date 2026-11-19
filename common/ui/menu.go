@@ -44,10 +44,10 @@ func (pg *menuPage) text(slot int, s string) {
 	pg.items[slot] = item.NewStack(item.Paper{}, 1).WithCustomName(s)
 }
 
-// button puts the button of an element in slot: its text and kind, pressing
+// button puts the button of an element in slot: its kind and text, pressing
 // it presses id.
 func (pg *menuPage) button(slot int, text, kind, id string) {
-	pg.items[slot] = item.NewStack(item.Paper{}, 1).WithCustomName("§r" + i18n.Plain(text) + kind)
+	pg.items[slot] = item.NewStack(item.Paper{}, 1).WithCustomName(kind + "§r" + i18n.Plain(text))
 	if id != "" {
 		pg.ids[slot] = id
 	}
@@ -193,25 +193,44 @@ func (pg *menuPage) cell(i int, s dSlot, press, view string) {
 	} else {
 		kind += invui.FamSlot
 	}
+	var it world.Item = item.Paper{}
+	path := ""
 	switch {
 	case strings.HasPrefix(s.Icon, "aux:"):
 		aux, err := strconv.ParseInt(strings.TrimPrefix(s.Icon, "aux:"), 10, 64)
 		if err != nil {
 			return
 		}
-		it, ok := world.ItemByRuntimeID(int32(aux>>16), 0)
-		if !ok {
+		var ok bool
+		if it, ok = world.ItemByRuntimeID(int32(aux>>16), 0); !ok {
 			return
 		}
-		pg.items[slot] = item.NewStack(it, 1).WithCustomName(invui.CellFace(s.Count, "") + kind + "§r" + i18n.Plain(s.Tip))
 	case strings.HasPrefix(s.Icon, "tex:"):
-		pg.items[slot] = item.NewStack(item.Paper{}, 1).WithCustomName(invui.CellFace(s.Count, strings.TrimPrefix(s.Icon, "tex:")) + kind + "§r" + i18n.Plain(s.Tip))
-	default:
-		pg.items[slot] = item.NewStack(item.Paper{}, 1).WithCustomName(invui.CellFace(s.Count, "") + kind + "§r" + i18n.Plain(s.Tip))
+		path = strings.TrimPrefix(s.Icon, "tex:")
 	}
+	count, text := stackCount(it, s.Count)
+	pg.items[slot] = item.NewStack(it, count).WithCustomName(invui.CellFace(text, path) + kind + "§r" + i18n.Plain(s.Tip))
 	if pressable && s.ID != "" {
 		pg.ids[slot] = s.ID
 	}
+}
+
+// stackCount is the stack size and the count text (invui.CountMark) of a
+// cell of it with count: a whole number the item stacks to is the stack's
+// size, which the pack draws as the client does; any other count is text.
+func stackCount(it world.Item, count string) (int, string) {
+	n, err := strconv.Atoi(count)
+	if err != nil || n < 2 {
+		return 1, count
+	}
+	limit := 64
+	if m, ok := it.(item.MaxCounter); ok {
+		limit = m.MaxCount()
+	}
+	if n > limit {
+		return 1, count
+	}
+	return n, ""
 }
 
 // mark puts a cell that draws only its kind (a frame, an arrow) or a text.
@@ -290,7 +309,7 @@ func menuPageOf(name string, data any) *menuPage {
 		pager(invui.SlotNext, v.Next)
 		pg.icon(invui.RowIcon0, v.Detail.Icon, invui.KindStatic)
 		pg.button(invui.RowBtn0, ink(v.Detail.Name), invui.KindStatic, "")
-		pg.buttons(1, invui.KindRow, v.Actions)
+		pg.buttons(1, invui.KindRow, v.Actions[:min(len(v.Actions), invui.SplitActions)])
 		i := invui.SplitCells
 		for _, r := range v.Rows {
 			if r.Heading != "" {

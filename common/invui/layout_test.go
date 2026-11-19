@@ -7,10 +7,13 @@ import (
 )
 
 func TestFaceNameHasFixedLength(t *testing.T) {
-	for _, label := range []string{"", "§r짧은 글", "§r" + strings.Repeat("긴 글", 100)} {
-		got := FaceName(Face("textures/x")+KindRow, label)
-		if len(got) != FaceBytes+FaceTextBytes || !utf8.ValidString(got) {
+	for _, label := range []string{"", "§r짧은 §f글", "§r" + strings.Repeat("긴 글", 100)} {
+		got := FaceName(Face("textures/x")+KindRow, KindRow+FamRow+label)
+		if len(got) != FaceBytes+FaceKindBytes+FaceTextBytes || !utf8.ValidString(got) || strings.Contains(got, "§f") {
 			t.Errorf("FaceName(%q) is %d bytes", label, len(got))
+		}
+		if !strings.Contains(got[FaceBytes:FaceBytes+FaceKindBytes], KindRow+KindRow+FamRow) {
+			t.Errorf("FaceName(%q) kinds %q", label, got[FaceBytes:FaceBytes+FaceKindBytes])
 		}
 	}
 }

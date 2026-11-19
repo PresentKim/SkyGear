@@ -413,7 +413,13 @@ func questPage(v questData) *menuPage {
 	c := dChrome{Title: v.Heading, Bar: v.Bar}
 	if pn := v.Panel; pn != nil {
 		c.Title = pn.Title
-		c.Bar = append([]dBarButton{{ID: pn.Close, Icon: oreIcon("textures/ui/sg/chevron_left")}}, c.Bar...)
+		back := oreIcon("textures/ui/sg/chevron_left")
+		c.Bar = []dBarButton{{ID: pn.Close, Icon: back}}
+		for _, b := range v.Bar {
+			if b.Icon != back {
+				c.Bar = append(c.Bar, b)
+			}
+		}
 		pg := listPage(invui.KeyGrid+invui.KeyRows, c, pn.Status+"\n"+pn.Body)
 		newBoard(pg, invui.GridColumns).sections(pn.Rows)
 		items := make([]dItem, 0, len(pn.Actions))

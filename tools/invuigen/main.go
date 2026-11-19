@@ -60,8 +60,9 @@ func faceText() string { return cleanOf("((#hover_text - '§o' - '§f') - " + fa
 // faceLabelText is the label of an element's face, read only up to the
 // face's fixed length (invui.FaceName): an item's own lines come after it.
 func faceLabelText() string {
-	whole := fmt.Sprintf("('%%.%ds' * (#hover_text - '§o' - '§f'))", invui.FaceBytes+invui.FaceTextBytes)
-	return cleanOf("(" + whole + " - " + faceHead() + ")")
+	text := "(#hover_text - '§o' - '§f')"
+	start := invui.FaceBytes + invui.FaceKindBytes
+	return fmt.Sprintf("(('%%.%ds' * %s) - ('%%.%ds' * %s))", start+invui.FaceTextBytes, text, start, text)
 }
 
 // faceLabel is a label of the element's face.
@@ -332,23 +333,29 @@ func iconOf(size []any, path, isItem string) obj {
 // code goes in before and its letter stays. countLabel clips it off.
 func countText() string { return "(('§r' + " + countBytes() + ") - '§')" }
 
-// countLabel is the count text at the bottom right of a cell, in a box that
-// cuts off the blanks in front of it and the letter before them. A count of
-// four or more characters is drawn smaller to fit the cell.
-func countLabel(long bool) obj {
-	scale, width, cond := 0.86, 20, "(#count_head = '§ § § § ')"
-	if long {
-		scale, width, cond = 0.62, 19, "(not "+cond+")"
-	}
+// countLabel is the count text at the bottom right of a cell (a count that
+// is not the stack's size), in a box that cuts off the blanks in front of it
+// and the letter before them, drawn while there is one.
+func countLabel() obj {
 	return obj{
-		"type": "panel", "size": []any{width, 10}, "layer": 5, "clips_children": true,
+		"type": "panel", "size": []any{20, 10}, "layer": 5, "clips_children": true,
 		"anchor_from": "bottom_right", "anchor_to": "bottom_right", "offset": []any{0, 1},
-		"bindings": []any{slotText(), view("('%.12s' * (#hover_text - '§o' - '§f'))", "#count_head"), view(cond, "#visible")},
+		"bindings": []any{slotText(), view("(not ("+countBytes()+" = '"+invui.CountMark("")+"'))", "#visible")},
 		"controls": []any{obj{"l": obj{
-			"type": "label", "localize": false, "color": []any{1, 1, 1}, "shadow": true, "font_scale_factor": scale,
+			"type": "label", "localize": false, "color": []any{1, 1, 1}, "shadow": true, "font_scale_factor": 0.7,
 			"anchor_from": "bottom_right", "anchor_to": "bottom_right", "text": "#text",
 			"bindings": []any{slotText(), view(countText(), "#text")},
 		}}},
+	}
+}
+
+// stackLabel is the stack's size at the bottom right of a cell, as the
+// client draws it (nothing for one).
+func stackLabel() obj {
+	return obj{
+		"type": "label", "layer": 5, "localize": false, "color": []any{1, 1, 1}, "shadow": true, "text": "#text",
+		"anchor_from": "bottom_right", "anchor_to": "bottom_right", "offset": []any{0, 1},
+		"bindings": []any{obj{"binding_type": "collection", "binding_collection_name": "container_items", "binding_name": "#inventory_stack_count", "binding_name_override": "#text", "binding_condition": "always"}},
 	}
 }
 
@@ -423,8 +430,8 @@ func defs() obj {
 	d["slot_face"] = panel([]any{18, 18},
 		obj{"frame": image("textures/ui/cell_image", []any{18, 18}, 1, nil)},
 		obj{"icon": with(faceIcon([]any{16, 16}), obj{"layer": 2})},
-		obj{"count": countLabel(false)},
-		obj{"count_long": countLabel(true)},
+		obj{"count": countLabel()},
+		obj{"stack": stackLabel()},
 		obj{"chosen": image("textures/ui/sg/slot_chosen", []any{18, 18}, 1, obj{"bindings": shown(has(invui.KindChosen))})},
 		obj{"done": image("textures/ui/sg/frame1", []any{18, 18}, 3, obj{"color": chosenGreen, "bindings": shown(has(invui.KindDone))})},
 		obj{"locked": image("textures/ui/White", []any{16, 16}, 4, obj{"color": []any{0.1, 0.1, 0.12}, "alpha": 0.55, "bindings": shown(has(invui.KindLocked))})},
@@ -437,32 +444,63 @@ func defs() obj {
 		obj{"tip": cellTip()},
 	)
 	d["cell_button"] = cellButton
+	// The focus button of a grid moved through by the arrow keys: the client
+	// sends menu_up/down/left/right with them (bedrock-research INP-21), which
+	// move the focus, and Enter presses the focused cell.
+	focusButton := obj{}
+	for k, v := range cellButton {
+		focusButton[k] = v
+	}
+	focusButton["focus_enabled"] = true
+	focusButton["button_mappings"] = append(append([]any{}, cellButton["button_mappings"].([]any)...),
+		obj{"from_button_id": "button.menu_ok", "to_button_id": "button.container_auto_place", "mapping_type": "focused", "consume_event": false})
+	d["focus_cell_button"] = focusButton
 	cellText := func(width int, color []any, scale float64) obj {
 		return obj{"l": label(color, scale, []any{width, "default"}, obj{"offset": []any{2, 0}, "anchor_from": "left_middle", "anchor_to": "left_middle"})}
 	}
 	cellKind := func(name, marker string, controls ...any) obj {
 		return obj{name: with(panel([]any{18, 18}, controls...), obj{"bindings": shown(has(marker))})}
 	}
-	d["cell"] = panel([]any{18, 18},
-		cellKind("slot", invui.FamSlot, ref("face", "slot_face", nil)),
-		cellKind("mini", invui.FamMini, ref("face", "mini_face", nil)),
-		cellKind("frame", invui.KindFrame, obj{"f": image("textures/ui/cell_image", []any{18, 18}, 1, nil)}),
-		cellKind("arrow", invui.KindArrow, obj{"a": image("textures/ui/arrow_large", []any{15, 10}, 2, nil)}),
-		cellKind("text", invui.KindText, cellText(194, ink, 0.7)),
-		cellKind("heading", invui.KindHeading, cellText(300, head, 0.8)),
-		obj{"press": with(panel([]any{18, 18}, ref("b", "cell_button", nil)), obj{"bindings": shown(hasAny([]string{invui.FamSlot, invui.FamMini}))})},
-	)
+	// A cell draws the kinds its grid uses: a kind not drawn is not built.
+	kindParts := map[string]obj{
+		"slot":    cellKind("slot", invui.FamSlot, ref("face", "slot_face", nil)),
+		"mini":    cellKind("mini", invui.FamMini, ref("face", "mini_face", nil)),
+		"frame":   cellKind("frame", invui.KindFrame, obj{"f": image("textures/ui/cell_image", []any{18, 18}, 1, nil)}),
+		"arrow":   cellKind("arrow", invui.KindArrow, obj{"a": image("textures/ui/arrow_large", []any{15, 10}, 2, nil)}),
+		"text":    cellKind("text", invui.KindText, cellText(194, ink, 0.7)),
+		"heading": cellKind("heading", invui.KindHeading, cellText(300, head, 0.8)),
+	}
+	cellDef := func(name, buttonDef string, kinds ...string) {
+		parts := []any{}
+		for _, k := range kinds {
+			parts = append(parts, kindParts[k])
+		}
+		pressed := []string{}
+		for _, k := range kinds {
+			switch k {
+			case "slot":
+				pressed = append(pressed, invui.FamSlot)
+			case "mini":
+				pressed = append(pressed, invui.FamMini)
+			}
+		}
+		parts = append(parts, obj{"press": with(panel([]any{18, 18}, ref("b", buttonDef, nil)), obj{"bindings": shown(hasAny(pressed))})})
+		d[name] = panel([]any{18, 18}, parts...)
+	}
+	cellDef("cell", "cell_button", "slot", "mini", "frame", "arrow", "text", "heading")
+	cellDef("cell_list", "cell_button", "slot", "heading")
+	cellDef("cell_pick", "focus_cell_button", "slot", "frame")
 	// A row of a cell grid shows while its first cell holds something, so
 	// the rows after the last one used take no room.
-	cellGrid := func(first, rows, columns int) obj {
+	cellGrid := func(first, rows, columns int, def string) obj {
 		out := []any{}
 		for r := 0; r < rows; r++ {
 			start := invui.Cell0 + first + r*columns
 			cells := []any{}
 			for c := 0; c < columns; c++ {
-				cells = append(cells, at(fmt.Sprintf("c%d", c), "cell", start+c, nil))
+				cells = append(cells, at(fmt.Sprintf("c%d", c), def, start+c, nil))
 			}
-			name := fmt.Sprintf("cell_row_%d_%d", start, columns)
+			name := fmt.Sprintf("%s_row_%d_%d", def, start, columns)
 			d[name] = with(panel([]any{columns * 18, 18}, obj{"cells": slots("horizontal", []any{columns * 18, 18}, cells)}), obj{"bindings": shown(filled)})
 			out = append(out, at(fmt.Sprintf("r%d", r), name, start, nil))
 		}
@@ -616,7 +654,7 @@ func defs() obj {
 	}
 
 	// The list content: the body, the content of the layout and the rows.
-	board := cellGrid(0, invui.Cells/invui.BoardColumns, invui.BoardColumns)
+	board := cellGrid(0, invui.Cells/invui.BoardColumns, invui.BoardColumns, "cell")
 	board["anchor_from"], board["anchor_to"] = "top_middle", "top_middle"
 	d["field_row"] = with(panel([]any{"100%", 24},
 		obj{"edge": rect(rgb(0xa0, 0xa0, 0xa6), []any{"100%", 20}, []any{0, 0}, 1)},
@@ -631,7 +669,7 @@ func defs() obj {
 		part("cards", invui.KeyCards, column("100%", cardRows...)),
 		part("pick", invui.KeyPick, column("100%", pickRows...), gap(3)),
 		part("result", invui.KeyResult, column("100%", resultBody...)),
-		part("grid", invui.KeyGrid, cellGrid(0, invui.Cells/invui.GridColumns, invui.GridColumns), gap(3)),
+		part("grid", invui.KeyGrid, cellGrid(0, invui.Cells/invui.GridColumns, invui.GridColumns, "cell_list"), gap(3)),
 		part("board", invui.KeyBoard, panel([]any{"100%", "100%c"}, obj{"g": board}), gap(3)),
 		gate("rows", invui.KeyRows, rowList()),
 	)
@@ -660,13 +698,13 @@ func defs() obj {
 		})},
 		obj{"status": slots("vertical", []any{"100%", "100%c"}, []any{at("t", "text_slot", invui.SlotInfo, obj{"$text_scale": 0.8})})},
 		gap(3),
-		obj{"actions": slots("vertical", []any{"100%", "100%c"}, actionCells(1, invui.Rows))},
+		obj{"actions": slots("vertical", []any{"100%", "100%c"}, actionCells(1, 1+invui.SplitActions))},
 		body(0.8),
 		gap(3),
-		obj{"rows": cellGrid(invui.SplitCells, (invui.Cells-invui.SplitCells)/invui.RightColumns, invui.RightColumns)},
+		obj{"rows": cellGrid(invui.SplitCells, (invui.Cells-invui.SplitCells)/invui.RightColumns, invui.RightColumns, "cell_list")},
 	)
 	scroll("split_right_scroll", "split_right_body")
-	splitGrid := cellGrid(0, invui.SplitCells/invui.SplitColumns, invui.SplitColumns)
+	splitGrid := cellGrid(0, invui.SplitCells/invui.SplitColumns, invui.SplitColumns, "cell_pick")
 	splitGrid["offset"], splitGrid["layer"] = []any{4, 4}, 2
 	splitPager := slots("horizontal", []any{144, 18}, []any{
 		at("prev", "prev_cell", invui.SlotPrev, nil),
@@ -841,7 +879,7 @@ func defs() obj {
 		cond string
 	}
 	chain := func(key string, press int, needs ...need) obj {
-		var c any = obj{"b": with(keyButton("button.menu_tab_"+key), obj{"$press_index": press})}
+		var c any = obj{"k": slots("vertical", []any{1, 1}, []any{obj{"b": with(keyButton("button.menu_tab_"+key), obj{"$press_index": press})}})}
 		for k := len(needs) - 1; k >= 0; k-- {
 			c = obj{"s": slots("vertical", []any{1, 1}, []any{obj{"g": with(panel([]any{1, 1}, c), obj{
 				"collection_index": needs[k].slot, "bindings": shown(needs[k].cond),
@@ -925,7 +963,7 @@ func questDefs(d obj, gap func(int) obj) {
 	}
 	pictured := func(name, texture string, size, offset []any, layer int) obj {
 		return obj{name: image("#texture", size, layer, with(obj{"offset": offset,
-			"bindings": []any{slotText(), view("('textures/ui/sg/"+texture, "#texture")}}, top))}
+			"bindings": []any{slotText(), view("('textures/ui/sg/"+texture, "#texture"), view(filled, "#visible")}}, top))}
 	}
 	parts := []any{obj{"canvas": rect(rgb(0x1c, 0x1c, 0x22), []any{questCellW, questCellH}, nil, 0)}}
 	for p, ln := range []struct {

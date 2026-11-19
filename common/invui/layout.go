@@ -193,8 +193,8 @@ func LayoutOf(key string) string {
 // its quests.
 var Shared = map[string][]string{
 	KeyHome:        {KeyHome, KeyMenu, KeyCards, KeyListSplit},
-	KeyQuest + "0": {KeyQuest + "0", KeyMenu},
-	KeyQuest + "1": {KeyQuest + "1", KeyMenu},
+	KeyQuest + "0": {KeyQuest + "0", KeyQuest + "1", KeyMenu},
+	KeyQuest + "1": {KeyQuest + "0", KeyQuest + "1", KeyMenu},
 }
 
 // LayoutsFor returns the layouts a window opened for layout draws.
@@ -234,6 +234,9 @@ const (
 	SplitColumns = 8
 	SplitCells   = 48
 	RightColumns = 7
+	// SplitActions is how many action buttons a split screen draws, in the
+	// rows from 1.
+	SplitActions = 8
 	CardColumns  = 4
 	ListRows     = 32
 	// PickColumns and PickCards are the cards of a pick screen (KeyPick) a
@@ -412,24 +415,40 @@ func QuestCode(lines int, pieces string, shape, state int) string {
 	return b.String()
 }
 
-// FaceTextBytes is how many bytes follow the start of a face (Face): its
-// kinds and label, cut or padded with reset codes to that length. The client
-// adds an item's own lines (a tool's damage) after its name, and the pack
-// reads the face only up to this length.
-const FaceTextBytes = 192
+// FaceKindBytes and FaceTextBytes are the lengths of the kinds and of the
+// label after the start of a face (Face), each padded with reset codes. The
+// pack reads the label as the bytes between fixed places: no kinds to take
+// off, and not the lines the client adds after an item's name (a tool's
+// damage).
+const (
+	FaceKindBytes = 60
+	FaceTextBytes = 150
+)
 
-// FaceName is the name of a face: face (Face and kinds) and the button's
-// name, cut or padded to FaceBytes+FaceTextBytes.
+// FaceName is the name of a face: face (Face and its kinds), then the kinds
+// of the button's name (kinds, "§r", label) to FaceKindBytes and its label
+// to FaceTextBytes. "§f" and "§o" leave the label: the client's text the
+// pack reads has them taken off, which would move the fixed places.
 func FaceName(face, name string) string {
-	s := face + name
-	limit := FaceBytes + FaceTextBytes
-	if len(s) > limit {
-		s = s[:limit]
+	kinds, label := face[FaceBytes:], ""
+	if i := strings.Index(name, "§r"); i >= 0 {
+		kinds, label = kinds+name[:i], name[i:]
+	} else {
+		kinds += name
+	}
+	label = strings.NewReplacer("§f", "§r", "§o", "").Replace(label)
+	return face[:FaceBytes] + fit(kinds, FaceKindBytes) + fit(label, FaceTextBytes)
+}
+
+// fit cuts s to n bytes, or pads it with reset codes and spaces.
+func fit(s string, n int) string {
+	if len(s) > n {
+		s = s[:n]
 		for !utf8.ValidString(s) || strings.HasSuffix(s, "§") {
 			s = s[:len(s)-1]
 		}
 	}
-	pad := limit - len(s)
+	pad := n - len(s)
 	return s + strings.Repeat("§r", pad/3) + strings.Repeat(" ", pad%3)
 }
 
