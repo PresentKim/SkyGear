@@ -62,15 +62,17 @@ func Show(p *player.Player, items []item.Stack, press func(p *player.Player, tx 
 	open := w.open
 	w.mu.Unlock()
 	inv := w.st.Inventory()
-	for i := 0; i < Size; i++ {
-		var it item.Stack
-		if i < len(items) {
-			it = items[i]
+	w.st.Batch(func() {
+		for i := 0; i < Size; i++ {
+			var it item.Stack
+			if i < len(items) {
+				it = items[i]
+			}
+			if old, _ := inv.Item(i); !same(old, it) {
+				_ = inv.SetItem(i, it)
+			}
 		}
-		if old, _ := inv.Item(i); !same(old, it) {
-			_ = inv.SetItem(i, it)
-		}
-	}
+	})
 	if open {
 		return
 	}

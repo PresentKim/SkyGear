@@ -44,6 +44,8 @@ type Storage struct {
 	mu       sync.Mutex
 	viewers  map[viewer]*world.EntityHandle
 	onChange func(slot int, before, after item.Stack)
+	batching int
+	batched  bool
 }
 
 // NewStorage returns an empty storage with size slots. size must be at
@@ -131,11 +133,42 @@ func (s *Storage) CloseAll() {
 	}
 }
 
-func (s *Storage) slotChanged(slot int, before, after item.Stack) {
+// Batch runs f, which changes slots of s, and shows the viewers the result as
+// one content update instead of an update a slot: the client redraws its
+// window once for it, not once a slot.
+func (s *Storage) Batch(f func()) {
 	s.mu.Lock()
+	s.batching++
+	s.mu.Unlock()
+	f()
+	s.mu.Lock()
+	s.batching--
+	changed := s.batching == 0 && s.batched
+	if s.batching == 0 {
+		s.batched = false
+	}
+	viewers := s.viewerList()
+	s.mu.Unlock()
+	if changed {
+		for _, v := range viewers {
+			v.viewContent(s.inv)
+		}
+	}
+}
+
+func (s *Storage) viewerList() []viewer {
 	viewers := make([]viewer, 0, len(s.viewers))
 	for v := range s.viewers {
 		viewers = append(viewers, v)
+	}
+	return viewers
+}
+
+func (s *Storage) slotChanged(slot int, before, after item.Stack) {
+	s.mu.Lock()
+	viewers := s.viewerList()
+	if s.batching > 0 {
+		s.batched, viewers = true, nil
 	}
 	f := s.onChange
 	s.mu.Unlock()

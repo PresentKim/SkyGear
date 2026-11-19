@@ -484,6 +484,16 @@ func encodeWithIdentifier(data []byte) ([]byte, bool) {
 // is its open window. It may be used outside the player's transaction.
 type viewer struct{ cl *client }
 
+// viewContent sends the whole of inv if it is the viewer's window.
+func (v viewer) viewContent(inv *inventory.Inventory) {
+	if v.cl == nil {
+		return
+	}
+	if w := v.cl.win.Load(); w != nil && w.inv == inv && w.current() != waitingActor {
+		sghook.SendInventory(w.cl.s, w.inv, w.windowID)
+	}
+}
+
 func (v viewer) viewSlotChange(inv *inventory.Inventory, slot int, it item.Stack) {
 	if v.cl == nil {
 		return
