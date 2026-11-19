@@ -5,6 +5,8 @@
 // which the server cancels and answers.
 package invui
 
+import "strings"
+
 // Marker in the window title makes the pack draw the menu window.
 const Marker = "§s§g§m§u"
 
@@ -133,6 +135,21 @@ const (
 	// tip in the first cell.
 	KeyLoading = "ld"
 	KeyRange   = "rg"
+	// KeyPick draws big cards to pick one of: card i is row i (its icon, and
+	// its title with the rarity's kind on the button) with its tag in cell 2i
+	// and its text in cell 2i+1. Rows from PickCards are list rows.
+	KeyPick = "pk"
+	// KeyResult draws a result: the headline in SlotInfo, the stars in the
+	// cells from ResultStar0, the lines' labels and values in pairs of cells
+	// from ResultLine0 and the rewards from ResultReward0; list rows under
+	// them.
+	KeyResult = "rs"
+	// KeyRadial and the number of items (1 to RadialItems) draw a ring of
+	// choices over the whole screen: item i is row i with its value in cell
+	// i, the button in the middle is row RadialItems; the title, the line
+	// over the ring and the info under it are SlotTitle, SlotBody and
+	// SlotInfo.
+	KeyRadial = "rd"
 	KeyRows      = "Q"
 	// KeyLobby after a key draws the lobby's logo and name over the screen.
 	KeyLobby = "Y"
@@ -157,6 +174,19 @@ const (
 	RightColumns = 7
 	CardColumns  = 4
 	ListRows     = 32
+	// PickColumns and PickCards are the cards of a pick screen (KeyPick) a
+	// row and in all.
+	PickColumns = 3
+	PickCards   = 6
+
+	ResultStar0   = 0
+	ResultStars   = 3
+	ResultLine0   = ResultStar0 + ResultStars
+	ResultLines   = 6
+	ResultReward0 = ResultLine0 + 2*ResultLines
+	ResultRewards = 9
+
+	RadialItems = 8
 )
 
 // Kind markers end a slot's name and say what the slot draws. They are
@@ -180,7 +210,39 @@ const (
 	KindMini      = "§z§m"
 	KindMiniView  = "§z§n"
 	KindBlank     = "§z§e"
+	KindRare      = "§z§j"
+	KindEpic      = "§z§p"
 )
 
+// CountChars is how many characters CountMark writes, and CountKept how
+// many of them can be the count's: the pack draws the rest as blanks.
+const (
+	CountChars = 7
+	CountKept  = 5
+)
+
+// CountMark is the count text of an item cell as the start of its name: the
+// last CountKept characters of count, padded with spaces in front to
+// CountChars, each after a format sign so the tooltip hides them. The pack
+// cuts that fixed number of bytes off the front, as a count over 64 does not
+// fit the stack. A count of 1 or none is blank.
+func CountMark(count string) string {
+	if count == "1" {
+		count = ""
+	}
+	r := []rune(count)
+	if len(r) > CountKept {
+		r = r[len(r)-CountKept:]
+	}
+	var b strings.Builder
+	for range CountChars - len(r) {
+		b.WriteString("§ ")
+	}
+	for _, c := range r {
+		b.WriteString("§" + string(c))
+	}
+	return b.String()
+}
+
 // Kinds are the kind markers in the order the pack strips them.
-var Kinds = []string{KindRow, KindStatic, KindChosen, KindHeading, KindDivider, KindToggleOff, KindToggleOn, KindTab, KindTabOn, KindBar, KindHelp, KindIcon, KindFrame, KindArrow, KindText, KindMini, KindMiniView, KindBlank, FamRow, FamSlot, FamMini}
+var Kinds = []string{KindRow, KindStatic, KindChosen, KindHeading, KindDivider, KindToggleOff, KindToggleOn, KindTab, KindTabOn, KindBar, KindHelp, KindIcon, KindFrame, KindArrow, KindText, KindMini, KindMiniView, KindBlank, KindRare, KindEpic, FamRow, FamSlot, FamMini}

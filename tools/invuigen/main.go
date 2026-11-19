@@ -12,6 +12,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"os"
 	"strings"
 
@@ -41,7 +42,17 @@ func clean() string {
 	return s + ")"
 }
 
-func texturePath() string { return "(" + clean() + " - '§r' - '§f')" }
+// texturePath is the path in a texture's name, after its count text
+// (invui.CountMark).
+func texturePath() string {
+	return "((" + clean() + " - '§r' - '§f') - " + countBytes() + ")"
+}
+
+// countBytes is the count text at the front of a cell's name, after the
+// client's own format codes.
+func countBytes() string {
+	return fmt.Sprintf("('%%.%ds' * (#hover_text - '§o' - '§f'))", 3*invui.CountChars)
+}
 
 func slotText() obj {
 	return obj{"binding_type": "collection", "binding_collection_name": "container_items", "binding_name": "#hover_text", "binding_condition": "always"}
@@ -191,19 +202,20 @@ func rect(c []any, size []any, offset []any, layer int) obj {
 func rgb(r, g, b int) []any { return []any{float64(r) / 255, float64(g) / 255, float64(b) / 255} }
 
 var (
-	lobbyFill  = rgb(0x48, 0x49, 0x4a)
-	lobbyHover = rgb(0x5a, 0x5b, 0x5c)
-	lobbyBand  = rgb(0x24, 0x25, 0x26)
-	lobbyPanel = rgb(0x31, 0x32, 0x33)
-	lobbyHead  = rgb(0xb1, 0xb2, 0xb5)
-	lobbyDark  = rgb(0x1e, 0x1e, 0x1f)
-	lightFill  = rgb(0xd0, 0xd1, 0xd4)
-	lightHover = rgb(0xe6, 0xe8, 0xeb)
-	lightBand  = rgb(0x58, 0x58, 0x5a)
-	playFill   = rgb(0x3c, 0x85, 0x27)
-	playHover  = rgb(0x4a, 0x9b, 0x31)
-	playBand   = rgb(0x1d, 0x4d, 0x13)
-	white      = []any{1.0, 1.0, 1.0}
+	lobbyFill   = rgb(0x48, 0x49, 0x4a)
+	lobbyHover  = rgb(0x5a, 0x5b, 0x5c)
+	lobbyBand   = rgb(0x24, 0x25, 0x26)
+	lobbyPanel  = rgb(0x31, 0x32, 0x33)
+	lobbyHead   = rgb(0xb1, 0xb2, 0xb5)
+	lobbyDark   = rgb(0x1e, 0x1e, 0x1f)
+	lightFill   = rgb(0xd0, 0xd1, 0xd4)
+	lightHover  = rgb(0xe6, 0xe8, 0xeb)
+	lightBand   = rgb(0x58, 0x58, 0x5a)
+	playFill    = rgb(0x3c, 0x85, 0x27)
+	playHover   = rgb(0x4a, 0x9b, 0x31)
+	playBand    = rgb(0x1d, 0x4d, 0x13)
+	white       = []any{1.0, 1.0, 1.0}
+	chosenGreen = rgb(0x4c, 0xc9, 0x3c)
 )
 
 const (
@@ -235,13 +247,39 @@ func itemIcon(size []any) obj {
 	)
 }
 
+// countText is the count text of a cell (invui.CountMark) without the
+// format signs, after an "r": taking the signs off a text that reads as a
+// number gives an empty text (measured on Windows 1.26.65.1), so the reset
+// code goes in before and its letter stays. countLabel clips it off.
+func countText() string { return "(('§r' + " + countBytes() + ") - '§')" }
+
+// countLabel is the count text at the bottom right of a cell, in a box that
+// cuts off the blanks in front of it and the letter before them. A count of
+// four or more characters is drawn smaller to fit the cell.
+func countLabel(long bool) obj {
+	scale, width, cond := 0.86, 20, "(#count_head = '§ § § § ')"
+	if long {
+		scale, width, cond = 0.62, 19, "(not "+cond+")"
+	}
+	return obj{
+		"type": "panel", "size": []any{width, 10}, "layer": 5, "clips_children": true,
+		"anchor_from": "bottom_right", "anchor_to": "bottom_right", "offset": []any{0, 1},
+		"bindings": []any{slotText(), view("('%.12s' * (#hover_text - '§o' - '§f'))", "#count_head"), view(cond, "#visible")},
+		"controls": []any{obj{"l": obj{
+			"type": "label", "localize": false, "color": []any{1, 1, 1}, "shadow": true, "font_scale_factor": scale,
+			"anchor_from": "bottom_right", "anchor_to": "bottom_right", "text": "#text",
+			"bindings": []any{slotText(), view(countText(), "#text")},
+		}}},
+	}
+}
+
 func defs() obj {
 	d := obj{"namespace": "sg_menu"}
 	d["icon_slot"] = itemIcon([]any{"100%", "100%"})
 	d["empty"] = panel([]any{0, 0})
 
 	textLabel := label(ink, 1.0, []any{"100% - 2px", "default"}, with(obj{"offset": []any{2, 0}, "font_scale_factor": "$text_scale"}, top))
-	d["text_slot"] = with(panel([]any{"100%", "100%c"}, obj{"l": textLabel}), obj{"$text_scale|default": 1.0})
+	d["text_slot"] = with(panel([]any{"100%", "100%c"}, obj{"l": textLabel}), obj{"$text_scale|default": 1.0, "bindings": shown(filled)})
 	d["title_slot"] = panel([]any{310, 10}, obj{"l": label(title, 1.0, []any{"100%", 10}, obj{"text_alignment": "center"})})
 
 	// Tabs over the window.
@@ -288,7 +326,7 @@ func defs() obj {
 			obj{"b": with(button([]any{"100%", 30}, btnTex, btnHover, btnPress, false), top)},
 			obj{"dim": image(btnTex, []any{"100%", 30}, 2, with(obj{"alpha": 0.4, "color": []any{0.6, 0.6, 0.6}, "bindings": shown(has(invui.KindStatic))}, top))},
 			obj{"i": with(panel([]any{20, 20}, obj{"i": icon(20)}), obj{"layer": 3, "offset": []any{5, -1}, "anchor_from": "left_middle", "anchor_to": "left_middle"})},
-			obj{"l": label(light, 1.0, []any{"100% - 34px", "default"}, obj{"layer": 4, "offset": []any{29, -1}, "anchor_from": "left_middle", "anchor_to": "left_middle"})},
+			obj{"l": label(light, 1.0, []any{"100% - 34px", "default"}, obj{"layer": 4, "shadow": true, "offset": []any{29, -1}, "anchor_from": "left_middle", "anchor_to": "left_middle"})},
 			obj{"on": switchImage("textures/ui/toggle_on", invui.KindToggleOn)},
 			obj{"off": switchImage("textures/ui/toggle_off", invui.KindToggleOff)},
 		), obj{"bindings": shown(has(invui.FamRow))})},
@@ -306,11 +344,8 @@ func defs() obj {
 	d["slot_face"] = panel([]any{18, 18},
 		obj{"frame": image("textures/ui/cell_image", []any{18, 18}, 1, nil)},
 		obj{"icon": with(itemIcon([]any{16, 16}), obj{"layer": 2})},
-		obj{"count": obj{
-			"type": "label", "layer": 5, "localize": false, "color": []any{1, 1, 1}, "shadow": true, "font_scale_factor": 0.86,
-			"anchor_from": "bottom_right", "anchor_to": "bottom_right", "offset": []any{0, 1}, "text": "#text",
-			"bindings": []any{slotValue("#inventory_stack_count"), view("('§r' + #inventory_stack_count)", "#text")},
-		}},
+		obj{"count": countLabel(false)},
+		obj{"count_long": countLabel(true)},
 		obj{"chosen": image("textures/ui/sg/slot_chosen", []any{18, 18}, 1, obj{"bindings": shown(has(invui.KindChosen))})},
 	)
 	d["mini_face"] = panel([]any{18, 18}, obj{"icon": with(itemIcon([]any{12, 12}), obj{"layer": 2})})
@@ -361,11 +396,98 @@ func defs() obj {
 		}
 		cardRows = append(cardRows, obj{fmt.Sprintf("r%d", r): slots("horizontal", []any{304, "100%cm"}, cards)})
 	}
-	d["card_cell"] = with(panel([]any{76, 50},
-		obj{"b": button([]any{72, 46}, btnTex, btnHover, btnPress, false)},
-		obj{"i": with(panel([]any{22, 22}, obj{"i": icon(22)}), obj{"layer": 3, "offset": []any{2, 10}, "anchor_from": "top_middle", "anchor_to": "top_middle"})},
-		obj{"l": label(light, 0.8, []any{66, "default"}, obj{"layer": 4, "offset": []any{0, -6}, "anchor_from": "bottom_middle", "anchor_to": "bottom_middle", "text_alignment": "center"})},
+	// A card that is a heading starts a row of its own; list rows in the same
+	// slots are drawn by the row list instead.
+	isCard := "(((#hover_text - '" + invui.KindText + "') = #hover_text) and ((#hover_text - '" + invui.FamRow + "') = #hover_text))"
+	d["card_cell"] = with(obj{"type": "stack_panel", "orientation": "vertical", "size": []any{76, "100%c"}, "controls": []any{
+		obj{"card": with(panel([]any{76, 50},
+			obj{"chosen": with(panel([]any{76, 50},
+				obj{"t": rect(chosenGreen, []any{76, 2}, []any{0, 0}, 5)},
+				obj{"b": rect(chosenGreen, []any{76, 2}, []any{0, 48}, 5)},
+				obj{"l": rect(chosenGreen, []any{2, 50}, []any{0, 0}, 5)},
+				obj{"r": rect(chosenGreen, []any{2, 50}, []any{74, 0}, 5)},
+			), obj{"bindings": shown(has(invui.KindChosen))})},
+			obj{"b": button([]any{72, 46}, btnTex, btnHover, btnPress, false)},
+			obj{"dim": image(btnTex, []any{72, 46}, 2, obj{"alpha": 0.5, "color": []any{0.6, 0.6, 0.6}, "bindings": shown(has(invui.KindStatic))})},
+			obj{"i": with(panel([]any{22, 22}, obj{"i": icon(22)}), obj{"layer": 3, "offset": []any{2, 7}, "anchor_from": "top_middle", "anchor_to": "top_middle"})},
+			obj{"l": label(light, 0.8, []any{66, "default"}, obj{"layer": 4, "shadow": true, "offset": []any{0, 31}, "anchor_from": "top_middle", "anchor_to": "top_middle", "text_alignment": "center"})},
+		), obj{"bindings": shown(isCard)})},
+		obj{"heading": with(panel([]any{76, 13},
+			obj{"l": label(head, 0.8, []any{300, "default"}, obj{"offset": []any{2, 1}, "anchor_from": "left_middle", "anchor_to": "left_middle"})},
+		), obj{"bindings": shown(has(invui.KindText))})},
+	}}, obj{"bindings": shown(filled)})
+
+	// Pick cards, three to a row: a dark card edged in its rarity's colour
+	// with the tag, the icon, the title and the text down its middle.
+	pickRows := []any{}
+	for r := 0; r*invui.PickColumns < invui.PickCards; r++ {
+		cards := []any{}
+		for c := 0; c < invui.PickColumns; c++ {
+			i := r*invui.PickColumns + c
+			cards = append(cards, at(fmt.Sprintf("c%d", c), "pick_cell", invui.RowBtn0+i, obj{
+				"$icon_index": invui.RowIcon0 + i, "$tag_index": invui.Cell0 + 2*i, "$text_index": invui.Cell0 + 2*i + 1,
+			}))
+		}
+		name := fmt.Sprintf("pick_row_%d", r)
+		d[name] = with(panel([]any{"100%", 106}, obj{"s": with(slots("horizontal", []any{"100%c", 106}, cards), obj{"anchor_from": "top_middle", "anchor_to": "top_middle"})}), obj{"bindings": shown(filled)})
+		pickRows = append(pickRows, obj{fmt.Sprintf("r%d", r): slots("vertical", []any{"100%", "100%c"}, []any{at("g", name, invui.RowBtn0+r*invui.PickColumns, nil)})})
+	}
+	d["pick_line"] = with(panel([]any{88, "100%c"}, obj{"l": label(dim, 1.0, []any{"100%", "default"}, obj{"font_scale_factor": "$line_scale", "text_alignment": "center", "shadow": true})}), obj{"$line_scale|default": 1.0})
+	pickLine := func(index string, scale float64, y int) obj {
+		return with(slots("vertical", []any{88, "100%c"}, []any{ref("t", "pick_line", obj{"collection_index": index, "$line_scale": scale})}), obj{"layer": 4, "offset": []any{-1, y}, "anchor_from": "top_middle", "anchor_to": "top_middle"})
+	}
+	edge := func(c []any, marker string) obj {
+		r := rect(c, []any{100, 104}, nil, 1)
+		if marker != "" {
+			r["bindings"] = shown(has(marker))
+		}
+		return r
+	}
+	d["pick_cell"] = with(panel([]any{102, 106},
+		obj{"common": edge(rgb(0x8b, 0x8b, 0x8e), "")},
+		obj{"rare": edge(rgb(0x4a, 0xa3, 0xff), invui.KindRare)},
+		obj{"epic": edge(rgb(0xb0, 0x5c, 0xff), invui.KindEpic)},
+		obj{"b": with(flatButton([]any{94, 98}, rgb(0x28, 0x29, 0x30), rgb(0x34, 0x36, 0x40), rgb(0x18, 0x18, 0x1c), false), obj{"layer": 2, "offset": []any{3, 3}, "anchor_from": "top_left", "anchor_to": "top_left"})},
+		obj{"tag": pickLine("$tag_index", 0.8, 7)},
+		obj{"i": with(panel([]any{24, 24}, obj{"i": icon(24)}), obj{"layer": 4, "offset": []any{-1, 18}, "anchor_from": "top_middle", "anchor_to": "top_middle"})},
+		obj{"title": label(light, 1.0, []any{92, "default"}, obj{"layer": 4, "shadow": true, "text_alignment": "center", "offset": []any{-1, 47}, "anchor_from": "top_middle", "anchor_to": "top_middle"})},
+		obj{"text": pickLine("$text_index", 0.7, 60)},
 	), obj{"bindings": shown(filled)})
+
+	gap := func(h int) obj { return obj{"gap": panel([]any{"100%", h})} }
+
+	// The result: the headline, the stars and the rewards centred, and the
+	// lines as a table of labels and values.
+	centred := func(first, n int) obj {
+		cells := []any{}
+		for k := 0; k < n; k++ {
+			cells = append(cells, at(fmt.Sprintf("c%d", k), "filled_cell", invui.Cell0+first+k, nil))
+		}
+		return panel([]any{"100%", 20}, obj{"s": with(slots("horizontal", []any{"100%c", 18}, cells), obj{"anchor_from": "center", "anchor_to": "center"})})
+	}
+	d["filled_cell"] = with(panel([]any{18, 18}, ref("c", "cell", nil)), obj{"bindings": shown(filled)})
+	d["result_head"] = panel([]any{"100%", 22}, obj{"l": label(light, 1.6, []any{"100%", "default"}, obj{"shadow": true, "text_alignment": "center", "anchor_from": "center", "anchor_to": "center"})})
+	d["result_value"] = panel([]any{"100%", 11}, obj{"l": label(ink, 0.8, []any{"100%", "default"}, obj{"text_alignment": "right", "anchor_from": "left_middle", "anchor_to": "left_middle"})})
+	d["result_line"] = with(panel([]any{200, 12},
+		obj{"l": label(head, 0.8, []any{"100%", "default"}, obj{"anchor_from": "left_middle", "anchor_to": "left_middle"})},
+		obj{"v": slots("vertical", []any{"100%", 11}, []any{ref("v", "result_value", obj{"collection_index": "$value_index"})})},
+		obj{"line": rect([]any{0.55, 0.55, 0.56}, []any{"100%", 1}, []any{0, 11}, 1)},
+	), obj{"bindings": shown(filled)})
+	resultLines := []any{}
+	for k := 0; k < invui.ResultLines; k++ {
+		i := invui.Cell0 + invui.ResultLine0 + 2*k
+		resultLines = append(resultLines, at(fmt.Sprintf("l%d", k), "result_line", i, obj{"$value_index": i + 1}))
+	}
+	resultTable := with(slots("vertical", []any{200, "100%c"}, resultLines), obj{"anchor_from": "top_middle", "anchor_to": "top_middle"})
+	resultBody := []any{
+		obj{"head": slots("vertical", []any{"100%", 22}, []any{at("h", "result_head", invui.SlotInfo, nil)})},
+		obj{"stars": centred(invui.ResultStar0, invui.ResultStars)},
+		gap(2),
+		obj{"table": panel([]any{"100%", "100%c"}, obj{"t": resultTable})},
+		gap(3),
+		obj{"rewards": centred(invui.ResultReward0, invui.ResultRewards)},
+		gap(3),
+	}
 
 	// Action buttons (split and list-split screens).
 	actionCells := func(first, last int) []any {
@@ -378,13 +500,12 @@ func defs() obj {
 	d["action_cell"] = with(panel([]any{"100%", 19},
 		obj{"b": with(button([]any{"100%", 17}, btnTex, btnHover, btnPress, false), top)},
 		obj{"i": with(panel([]any{12, 12}, obj{"i": icon(12)}), obj{"layer": 3, "offset": []any{2, -1}, "anchor_from": "left_middle", "anchor_to": "left_middle"})},
-		obj{"l": label(light, 0.8, []any{"100% - 17px", "default"}, obj{"layer": 4, "offset": []any{15, -1}, "anchor_from": "left_middle", "anchor_to": "left_middle"})},
+		obj{"l": label(light, 0.8, []any{"100% - 17px", "default"}, obj{"layer": 4, "shadow": true, "offset": []any{15, -1}, "anchor_from": "left_middle", "anchor_to": "left_middle"})},
 	), obj{"bindings": shown(has(invui.KindRow))})
 
 	column := func(width string, controls ...any) obj {
 		return with(obj{"type": "stack_panel", "orientation": "vertical", "size": []any{width, "100%c"}, "controls": controls}, top)
 	}
-	gap := func(h int) obj { return obj{"gap": panel([]any{"100%", h})} }
 	body := func(scale float64) obj {
 		return obj{"body": slots("vertical", []any{"100%", "100%c"}, []any{at("t", "text_slot", invui.SlotBody, obj{"$text_scale": scale})})}
 	}
@@ -414,6 +535,8 @@ func defs() obj {
 	d["list_page_body"] = column("100% - 8px",
 		body(1.0), gap(6),
 		gate("cards", invui.KeyCards, column("100%", cardRows...)),
+		gate("pick", invui.KeyPick, column("100%", pickRows...), gap(3)),
+		gate("result", invui.KeyResult, column("100%", resultBody...)),
 		gate("grid", invui.KeyGrid, cellGrid(0, invui.Cells/invui.GridColumns, invui.GridColumns), gap(3)),
 		gate("board", invui.KeyBoard, panel([]any{"100%", "100%c"}, obj{"g": board}), gap(3)),
 		gate("rows", invui.KeyRows, rowList()),
@@ -476,7 +599,7 @@ func defs() obj {
 		obj{"b": shownButton(button([]any{"100%", 30}, btnTex, btnHover, btnPress, false), has(invui.KindRow))},
 		obj{"chosen": image(btnHover, []any{"100%", 30}, 1, with(obj{"bindings": shown(has(invui.KindChosen))}, top))},
 		obj{"i": with(panel([]any{20, 20}, obj{"i": icon(20)}), obj{"layer": 3, "offset": []any{5, -1}, "anchor_from": "left_middle", "anchor_to": "left_middle"})},
-		obj{"name": label(light, 1.0, []any{"100% - 30px", 9}, with(obj{"layer": 4, "offset": []any{27, 5}}, top))},
+		obj{"name": label(light, 1.0, []any{"100% - 30px", 9}, with(obj{"layer": 4, "shadow": true, "offset": []any{27, 5}}, top))},
 		obj{"info": with(infoLine, with(obj{"offset": []any{27, 16}, "layer": 4}, top))},
 	), obj{"bindings": shown(filled)})
 	d["list_body"] = column("100% - 8px", obj{"rows": slots("vertical", []any{"100%", "100%c"}, listCells)})
@@ -548,8 +671,8 @@ func defs() obj {
 			obj{"clip": with(panel([]any{130, 130}, obj{turn: obj{
 				"type": "input_panel", "size": []any{"100%", "100%"}, "focus_enabled": true,
 				"gesture_tracking_button": "button.turn_structure",
-				"button_mappings": []any{obj{"from_button_id": "button.menu_select", "to_button_id": "button.turn_structure", "mapping_type": "pressed", "button_up_right_of_first_refusal": true}},
-				"controls": views,
+				"button_mappings":         []any{obj{"from_button_id": "button.menu_select", "to_button_id": "button.turn_structure", "mapping_type": "pressed", "button_up_right_of_first_refusal": true}},
+				"controls":                views,
 			}}), obj{"clips_children": true, "anchor_from": "center", "anchor_to": "center"})},
 		}}, top))},
 		obj{"right": with(panel([]any{170, 142}, ref("s", "range_right_scroll", nil)), obj{"anchor_from": "top_right", "anchor_to": "top_right"})},
@@ -600,6 +723,7 @@ func defs() obj {
 						obj{"home": slots("vertical", []any{"100%", "100%"}, []any{at("g", "home_gate", invui.SlotKey, nil)})},
 						obj{"lobby": slots("vertical", []any{"100%", "100%"}, []any{at("g", "lobby_gate", invui.SlotKey, nil)})},
 						obj{"loading": slots("vertical", []any{"100%", "100%"}, []any{at("g", "loading_gate", invui.SlotKey, nil)})},
+						obj{"radial": slots("vertical", []any{"100%", "100%"}, []any{at("g", "radial_gate", invui.SlotKey, nil)})},
 					},
 				}},
 			},
@@ -787,7 +911,7 @@ func homeDefs(d obj) {
 		obj{"profile": profile}, obj{"corner": corner}, obj{"side": side}, obj{"feed": feed}, obj{"start": start},
 		obj{"overlay": with(slots("vertical", []any{"100%", "100%"}, []any{at("g", "home_overlay_gate", invui.SlotKey, nil)}), obj{"layer": 20})},
 	), obj{"bindings": shown(has(invui.KeyHome))})
-	d["window_gate"] = with(panel([]any{"100%", "100%"}, ref("w", "window", nil)), obj{"bindings": shown("(((#hover_text - '" + invui.KeyHome + "') = #hover_text) and ((#hover_text - '" + invui.KeyLoading + "') = #hover_text))")})
+	d["window_gate"] = with(panel([]any{"100%", "100%"}, ref("w", "window", nil)), obj{"bindings": shown("(((#hover_text - '" + invui.KeyHome + "') = #hover_text) and ((#hover_text - '" + invui.KeyLoading + "') = #hover_text) and ((#hover_text - '" + invui.KeyRadial + "') = #hover_text))")})
 
 	// The loading screen over the whole screen.
 	line := func(name string, slot int, color []any, scale float64, h int) obj {
@@ -809,7 +933,47 @@ func homeDefs(d obj) {
 	), obj{"bindings": shown(has(invui.KeyLoading))})
 	d["loading_tip"] = panel([]any{300, 10}, obj{"l": label(lobbyHead, 0.8, []any{"100%", "default"}, obj{"text_alignment": "center", "shadow": true})})
 
-	d["lobby_name"] = panel([]any{"100%c", 18}, obj{"l": label(white, 1.86, []any{"default", "default"}, obj{"shadow": true})})
+	// The radial menu over the whole screen: the title and line over a ring
+	// of the items, spread evenly from the top, the info under it.
+	const discSize, ringRadius = 164, 56
+	d["radial_item"] = with(panel([]any{60, 38},
+		obj{"b": button([]any{"100%", "100%"}, "", "textures/ui/sg/hover_flat", "textures/ui/sg/press_flat", false)},
+		obj{"i": with(panel([]any{16, 16}, obj{"i": icon(16)}), obj{"layer": 3, "offset": []any{0, 2}, "anchor_from": "top_middle", "anchor_to": "top_middle"})},
+		obj{"l": label(white, 0.75, []any{58, "default"}, obj{"layer": 4, "shadow": true, "text_alignment": "center", "offset": []any{0, 20}, "anchor_from": "top_middle", "anchor_to": "top_middle"})},
+		obj{"v": with(slots("vertical", []any{58, 8}, []any{ref("v", "radial_value", obj{"collection_index": "$value_index"})}), obj{"layer": 4, "offset": []any{0, 29}, "anchor_from": "top_middle", "anchor_to": "top_middle"})},
+	), obj{"bindings": shown(filled)})
+	d["radial_value"] = panel([]any{58, 8}, obj{"l": label(rgb(0xff, 0xd7, 0x5e), 0.65, []any{"100%", "default"}, obj{"text_alignment": "center", "shadow": true})})
+	d["radial_center"] = with(panel([]any{30, 30},
+		obj{"b": button([]any{"100%", "100%"}, "", "textures/ui/sg/hover_flat", "textures/ui/sg/press_flat", true)},
+		obj{"i": with(panel([]any{16, 16}, obj{"i": icon(16)}), obj{"layer": 3, "anchor_from": "center", "anchor_to": "center"})},
+	), obj{"bindings": shown(filled)})
+	rings := []any{}
+	for n := 1; n <= invui.RadialItems; n++ {
+		items := []any{}
+		for k := 0; k < n; k++ {
+			a := -math.Pi/2 + 2*math.Pi*float64(k)/float64(n)
+			x, y := math.Round(ringRadius*math.Cos(a)), math.Round(ringRadius*math.Sin(a))
+			items = append(items, obj{fmt.Sprintf("i%d", k): with(slots("vertical", []any{60, 38}, []any{at("i", "radial_item", invui.RowBtn0+k, obj{"$icon_index": invui.RowIcon0 + k, "$value_index": invui.Cell0 + k})}), obj{"layer": 3, "offset": []any{x, y}, "anchor_from": "center", "anchor_to": "center"})})
+		}
+		name := fmt.Sprintf("radial_ring_%d", n)
+		d[name] = with(panel([]any{"100%", "100%"}, items...), obj{"bindings": shown(has(invui.KeyRadial + fmt.Sprint(n)))})
+		rings = append(rings, obj{fmt.Sprintf("r%d", n): slots("vertical", []any{"100%", "100%"}, []any{at("g", name, invui.SlotKey, nil)})})
+	}
+	rings = append(rings,
+		obj{"disc": image("textures/ui/sg/radial_disc", []any{discSize, discSize}, 1, obj{"anchor_from": "center", "anchor_to": "center"})},
+		obj{"center": with(slots("vertical", []any{30, 30}, []any{at("c", "radial_center", invui.RowBtn0+invui.RadialItems, obj{"$icon_index": invui.RowIcon0 + invui.RadialItems})}), obj{"layer": 3, "anchor_from": "center", "anchor_to": "center"})},
+	)
+	d["radial_gate"] = with(panel([]any{"100%", "100%"},
+		obj{"bg": with(rect([]any{0, 0, 0}, []any{"100%", "100%"}, nil, 1), obj{"alpha": 0.35})},
+		obj{"middle": with(obj{"type": "stack_panel", "orientation": "vertical", "size": []any{300, "100%c"}, "layer": 2, "controls": []any{
+			line("rtitle", invui.SlotTitle, rgb(0xff, 0xd7, 0x5e), 1.3, 14),
+			line("rline", invui.SlotBody, lobbyHead, 0.75, 10),
+			obj{"ring": panel([]any{"100%", discSize + 4}, rings...)},
+			line("rinfo", invui.SlotInfo, white, 0.8, 10),
+		}}, obj{"anchor_from": "center", "anchor_to": "center"})},
+	), obj{"bindings": shown(has(invui.KeyRadial))})
+
+	d["lobby_name"] =panel([]any{"100%c", 18}, obj{"l": label(white, 1.86, []any{"default", "default"}, obj{"shadow": true})})
 	d["lobby_gate"] = with(panel([]any{"100%", "100%"},
 		obj{"head": with(obj{"type": "stack_panel", "orientation": "horizontal", "size": []any{"100%c", 18}, "controls": []any{
 			iconAt("logo", invui.SlotLogo, 16, nil),

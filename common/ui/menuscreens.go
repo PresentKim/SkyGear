@@ -3,6 +3,7 @@ package ui
 import (
 	"math"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -134,16 +135,37 @@ func choicePage(v choiceData) *menuPage {
 	if v.Note != "" {
 		body += "\n" + v.Note
 	}
-	pg := listPage(invui.KeyMenu+invui.KeyRows, v.Chrome, body)
-	var items []dItem
-	for _, g := range v.Groups {
-		items = append(items, dItem{dButton: dButton{Label: g.Title}, Kind: "heading"})
-		for _, c := range g.Choices {
-			label := strings.ReplaceAll(c.Tip, "\n", "  ")
-			items = append(items, dItem{dButton: dButton{ID: c.ID, Label: label, Icon: c.Icon}, Toggle: true, On: c.On})
+	pg := listPage(invui.KeyCards+invui.KeyRows, v.Chrome, body)
+	i := 0
+	put := func(icon, label, kind, id string) {
+		if i < invui.Rows {
+			pg.icon(invui.RowIcon0+i, icon, kind)
+			pg.button(invui.RowBtn0+i, label, kind, id)
+		}
+		i++
+	}
+	newRow := func() {
+		if i%invui.CardColumns != 0 {
+			i += invui.CardColumns - i%invui.CardColumns
 		}
 	}
-	pg.rows(0, append(items, v.Items...))
+	for _, g := range v.Groups {
+		newRow()
+		put("", ink(g.Title), invui.KindText, "")
+		newRow()
+		for _, c := range g.Choices {
+			kind := invui.KindRow
+			switch {
+			case c.On:
+				kind += invui.KindChosen
+			case c.Dim:
+				kind = invui.KindStatic
+			}
+			put(c.Icon, c.Tip, kind, c.ID)
+		}
+	}
+	newRow()
+	pg.rows(i, v.Items)
 	return pg
 }
 
@@ -215,16 +237,24 @@ func sidesPage(v sidesData) *menuPage {
 }
 
 func pickPage(v pickData) *menuPage {
-	pg := listPage(invui.KeyMenu+invui.KeyRows, v.Chrome, v.Body)
-	items := make([]dItem, 0, len(v.Cards)+len(v.Items))
-	for _, c := range v.Cards {
-		label := c.Title + "§r  §7" + strings.ReplaceAll(c.Text, "\n", "  ")
-		if c.Tag != "" {
-			label = c.Tag + "§r " + label
+	pg := listPage(invui.KeyPick+invui.KeyRows, v.Chrome, v.Body)
+	for i, c := range v.Cards {
+		if i >= invui.PickCards {
+			break
 		}
-		items = append(items, dItem{dButton: dButton{ID: c.ID, Label: label, Icon: c.Icon}})
+		kind := invui.KindRow
+		switch c.Rarity {
+		case "rare":
+			kind += invui.KindRare
+		case "epic":
+			kind += invui.KindEpic
+		}
+		pg.icon(invui.RowIcon0+i, c.Icon, kind)
+		pg.button(invui.RowBtn0+i, c.Title, kind, c.ID)
+		pg.text(invui.Cell0+2*i, "§r"+i18n.Plain(c.Tag))
+		pg.text(invui.Cell0+2*i+1, "§r"+i18n.Plain(c.Text))
 	}
-	pg.rows(0, append(items, v.Items...))
+	pg.rows(invui.PickCards, v.Items)
 	return pg
 }
 
@@ -233,22 +263,30 @@ func resultPage(v resultData) *menuPage {
 	if v.Win {
 		head = "§6" + v.Headline
 	}
-	lines := []string{"§l" + head}
-	for _, ln := range v.Lines {
-		lines = append(lines, "§r"+ln.Label+"§r  "+ln.Value)
-	}
-	pg := listPage(invui.KeyBoard+invui.KeyRows, v.Chrome, strings.Join(lines, "\n"))
-	b := newBoard(pg, invui.BoardColumns)
-	for _, st := range v.Stars {
+	pg := listPage(invui.KeyResult+invui.KeyRows, v.Chrome, "")
+	pg.text(invui.SlotInfo, "§r"+i18n.Plain(head))
+	for i, st := range v.Stars {
+		if i >= invui.ResultStars {
+			break
+		}
 		star := "tex:textures/ui/emptyStar"
 		if st.On {
 			star = "tex:textures/ui/filledStar"
 		}
-		b.slot(dSlot{Icon: star, Selected: st.New})
+		pg.cell(invui.ResultStar0+i, dSlot{Icon: star, Selected: st.New}, invui.KindRow, invui.KindStatic)
 	}
-	b.line()
-	for _, s := range v.Rewards {
-		b.slot(s)
+	for i, ln := range v.Lines {
+		if i >= invui.ResultLines {
+			break
+		}
+		pg.mark(invui.ResultLine0+2*i, ink(ln.Label), invui.KindText)
+		pg.mark(invui.ResultLine0+2*i+1, ink(ln.Value), invui.KindText)
+	}
+	for i, s := range v.Rewards {
+		if i >= invui.ResultRewards {
+			break
+		}
+		pg.cell(invui.ResultReward0+i, s, invui.KindRow, invui.KindStatic)
 	}
 	pg.rows(0, []dItem{{dButton: v.OK}})
 	return pg
@@ -303,27 +341,29 @@ func loadingPage(v loadingData) *menuPage {
 }
 
 func radialPage(v radialData) *menuPage {
-	c := dChrome{Title: v.Title}
-	if v.Back != "close" {
-		c.Bar = []dBarButton{{ID: v.Back, Tip: v.BackTip, Icon: oreIcon("textures/ui/sg/chevron_left")}}
-	}
-	body := v.Line
-	if v.Info != "" {
-		body += "\n" + v.Info
-	}
-	pg := listPage(invui.KeyMenu+invui.KeyRows, c, body)
-	items := make([]dItem, 0, len(v.Items))
-	for _, it := range v.Items {
-		label := it.Label
-		if it.On {
+	n := min(max(len(v.Items), 1), invui.RadialItems)
+	pg := newMenuPage(invui.KeyRadial + strconv.Itoa(n))
+	pg.text(invui.SlotTitle, "§r"+i18n.Plain(v.Title))
+	pg.text(invui.SlotBody, "§r"+i18n.Plain(v.Line))
+	pg.text(invui.SlotInfo, "§r"+i18n.Plain(v.Info))
+	for i, it := range v.Items[:min(len(v.Items), n)] {
+		kind, label := invui.KindRow, it.Label
+		switch {
+		case it.ID == "":
+			kind, label = invui.KindStatic, "§7"+label
+		case it.On:
 			label = "§a" + label
 		}
-		if it.Value != "" {
-			label += "§r  §7" + it.Value
-		}
-		items = append(items, dItem{dButton: dButton{ID: it.ID, Label: label, Icon: it.Icon}})
+		pg.icon(invui.RowIcon0+i, it.Icon, kind)
+		pg.button(invui.RowBtn0+i, label, kind, it.ID)
+		pg.text(invui.Cell0+i, "§r"+i18n.Plain(it.Value))
 	}
-	pg.rows(0, items)
+	back, icon := v.Back, "textures/ui/sg/chevron_left"
+	if back == "close" {
+		back, icon = "", "textures/ui/cancel"
+	}
+	pg.icon(invui.RowIcon0+invui.RadialItems, oreIcon(icon), invui.KindRow)
+	pg.button(invui.RowBtn0+invui.RadialItems, v.BackTip, invui.KindRow, back)
 	return pg
 }
 

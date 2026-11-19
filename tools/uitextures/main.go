@@ -9,6 +9,7 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"math"
 	"os"
 	"path/filepath"
 
@@ -161,6 +162,31 @@ func launcherBox(fill, edge color.NRGBA, thick int) image.Image {
 	return img
 }
 
+// disc is the ring of a radial menu: a dark translucent disc with a light
+// edge, and the hub in the middle drawn lighter with an edge of its own.
+func disc(size, hub int) image.Image {
+	img := image.NewNRGBA(image.Rect(0, 0, size, size))
+	c := float64(size-1) / 2
+	outer, inner := float64(size)/2, float64(hub)/2
+	for x := range size {
+		for y := range size {
+			d := math.Hypot(float64(x)-c, float64(y)-c)
+			switch {
+			case d > outer:
+			case d > outer-2:
+				img.SetNRGBA(x, y, color.NRGBA{120, 120, 132, 255})
+			case d > inner:
+				img.SetNRGBA(x, y, color.NRGBA{30, 30, 36, 220})
+			case d > inner-2:
+				img.SetNRGBA(x, y, color.NRGBA{120, 120, 132, 255})
+			default:
+				img.SetNRGBA(x, y, color.NRGBA{52, 52, 60, 235})
+			}
+		}
+	}
+	return img
+}
+
 // glyph draws a 16×16 white icon from rows of '#'.
 func glyph(rows ...string) image.Image {
 	img := image.NewNRGBA(image.Rect(0, 0, 16, 16))
@@ -223,6 +249,7 @@ func main() {
 	write("arrow_left", arrow(2))
 	write("arrow_up", arrow(3))
 	write("chevron_right", mirror(chevron()))
+	write("radial_disc", disc(320, 72))
 
 	// the lobby screens' buttons and windows
 	write("launcher_button", launcherBox(color.NRGBA{18, 28, 48, 200}, color.NRGBA{110, 135, 170, 230}, 1))

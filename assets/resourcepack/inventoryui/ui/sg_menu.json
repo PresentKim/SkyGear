@@ -181,7 +181,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -197,6 +197,7 @@
             15,
             -1
           ],
+          "shadow": true,
           "size": [
             "100% - 17px",
             "default"
@@ -408,200 +409,434 @@
     ],
     "controls": [
       {
-        "b": {
+        "card": {
           "bindings": [
             {
               "binding_collection_name": "container_items",
-              "binding_type": "collection_details"
-            }
-          ],
-          "button_mappings": [
-            {
-              "consume_event": false,
-              "from_button_id": "button.menu_select",
-              "mapping_type": "pressed",
-              "to_button_id": "button.container_auto_place"
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
             },
             {
-              "consume_event": false,
-              "from_button_id": "button.menu_ok",
-              "mapping_type": "pressed",
-              "to_button_id": "button.container_auto_place"
-            },
-            {
-              "mapping_type": "pressed",
-              "to_button_id": "button.container_slot_hovered"
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(((#hover_text - '§z§y') = #hover_text) and ((#hover_text - '§z§g') = #hover_text))",
+              "target_property_name": "#visible"
             }
           ],
           "controls": [
             {
-              "default": {
+              "chosen": {
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "always",
+                    "binding_name": "#hover_text",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_condition": "always",
+                    "binding_type": "view",
+                    "source_property_name": "(not ((#hover_text - '§z§c') = #hover_text))",
+                    "target_property_name": "#visible"
+                  }
+                ],
                 "controls": [
                   {
-                    "bg": {
-                      "layer": 1,
-                      "size": [
-                        "100%",
-                        "100%"
+                    "t": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.2980392156862745,
+                        0.788235294117647,
+                        0.23529411764705882
                       ],
-                      "texture": "textures/ui/sg/button",
+                      "layer": 5,
+                      "offset": [
+                        0,
+                        0
+                      ],
+                      "size": [
+                        76,
+                        2
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "b": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.2980392156862745,
+                        0.788235294117647,
+                        0.23529411764705882
+                      ],
+                      "layer": 5,
+                      "offset": [
+                        0,
+                        48
+                      ],
+                      "size": [
+                        76,
+                        2
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "l": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.2980392156862745,
+                        0.788235294117647,
+                        0.23529411764705882
+                      ],
+                      "layer": 5,
+                      "offset": [
+                        0,
+                        0
+                      ],
+                      "size": [
+                        2,
+                        50
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "r": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.2980392156862745,
+                        0.788235294117647,
+                        0.23529411764705882
+                      ],
+                      "layer": 5,
+                      "offset": [
+                        74,
+                        0
+                      ],
+                      "size": [
+                        2,
+                        50
+                      ],
+                      "texture": "textures/ui/White",
                       "type": "image"
                     }
                   }
                 ],
                 "size": [
-                  "100%",
-                  "100%"
+                  76,
+                  50
                 ],
                 "type": "panel"
               }
             },
             {
-              "hover": {
+              "b": {
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_type": "collection_details"
+                  }
+                ],
+                "button_mappings": [
+                  {
+                    "consume_event": false,
+                    "from_button_id": "button.menu_select",
+                    "mapping_type": "pressed",
+                    "to_button_id": "button.container_auto_place"
+                  },
+                  {
+                    "consume_event": false,
+                    "from_button_id": "button.menu_ok",
+                    "mapping_type": "pressed",
+                    "to_button_id": "button.container_auto_place"
+                  },
+                  {
+                    "mapping_type": "pressed",
+                    "to_button_id": "button.container_slot_hovered"
+                  }
+                ],
                 "controls": [
                   {
-                    "bg": {
-                      "layer": 1,
+                    "default": {
+                      "controls": [
+                        {
+                          "bg": {
+                            "layer": 1,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "texture": "textures/ui/sg/button",
+                            "type": "image"
+                          }
+                        }
+                      ],
                       "size": [
                         "100%",
                         "100%"
                       ],
-                      "texture": "textures/ui/sg/button_hover",
-                      "type": "image"
+                      "type": "panel"
+                    }
+                  },
+                  {
+                    "hover": {
+                      "controls": [
+                        {
+                          "bg": {
+                            "layer": 1,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "texture": "textures/ui/sg/button_hover",
+                            "type": "image"
+                          }
+                        }
+                      ],
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "panel"
+                    }
+                  },
+                  {
+                    "pressed": {
+                      "controls": [
+                        {
+                          "bg": {
+                            "layer": 1,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "texture": "textures/ui/sg/button_pressed",
+                            "type": "image"
+                          }
+                        }
+                      ],
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "panel"
                     }
                   }
                 ],
+                "default_control": "default",
+                "focus_enabled": true,
+                "focus_magnet_enabled": true,
+                "hover_control": "hover",
+                "layer": 1,
+                "pressed_control": "pressed",
                 "size": [
-                  "100%",
-                  "100%"
+                  72,
+                  46
                 ],
-                "type": "panel"
+                "sound_name": "random.click",
+                "sound_pitch": 1,
+                "sound_volume": 1,
+                "type": "button"
               }
             },
             {
-              "pressed": {
-                "controls": [
+              "dim": {
+                "alpha": 0.5,
+                "bindings": [
                   {
-                    "bg": {
-                      "layer": 1,
-                      "size": [
-                        "100%",
-                        "100%"
-                      ],
-                      "texture": "textures/ui/sg/button_pressed",
-                      "type": "image"
-                    }
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "always",
+                    "binding_name": "#hover_text",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_condition": "always",
+                    "binding_type": "view",
+                    "source_property_name": "(not ((#hover_text - '§z§s') = #hover_text))",
+                    "target_property_name": "#visible"
                   }
                 ],
-                "size": [
-                  "100%",
-                  "100%"
+                "color": [
+                  0.6,
+                  0.6,
+                  0.6
                 ],
-                "type": "panel"
+                "layer": 2,
+                "size": [
+                  72,
+                  46
+                ],
+                "texture": "textures/ui/sg/button",
+                "type": "image"
               }
-            }
-          ],
-          "default_control": "default",
-          "focus_enabled": true,
-          "focus_magnet_enabled": true,
-          "hover_control": "hover",
-          "layer": 1,
-          "pressed_control": "pressed",
-          "size": [
-            72,
-            46
-          ],
-          "sound_name": "random.click",
-          "sound_pitch": 1,
-          "sound_volume": 1,
-          "type": "button"
-        }
-      },
-      {
-        "i": {
-          "anchor_from": "top_middle",
-          "anchor_to": "top_middle",
-          "controls": [
+            },
             {
               "i": {
-                "collection_name": "container_items",
+                "anchor_from": "top_middle",
+                "anchor_to": "top_middle",
                 "controls": [
                   {
-                    "i@sg_menu.icon_slot": {
-                      "collection_index": "$icon_index",
+                    "i": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "i@sg_menu.icon_slot": {
+                            "collection_index": "$icon_index",
+                            "size": [
+                              22,
+                              22
+                            ]
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
                       "size": [
                         22,
                         22
-                      ]
+                      ],
+                      "type": "stack_panel"
                     }
                   }
                 ],
-                "orientation": "vertical",
+                "layer": 3,
+                "offset": [
+                  2,
+                  7
+                ],
                 "size": [
                   22,
                   22
                 ],
-                "type": "stack_panel"
+                "type": "panel"
+              }
+            },
+            {
+              "l": {
+                "anchor_from": "top_middle",
+                "anchor_to": "top_middle",
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "visible",
+                    "binding_name": "#hover_text",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_condition": "visible",
+                    "binding_type": "view",
+                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
+                    "target_property_name": "#text"
+                  }
+                ],
+                "color": [
+                  0.95,
+                  0.95,
+                  0.97
+                ],
+                "font_scale_factor": 0.8,
+                "layer": 4,
+                "localize": false,
+                "offset": [
+                  0,
+                  31
+                ],
+                "shadow": true,
+                "size": [
+                  66,
+                  "default"
+                ],
+                "text": "#text",
+                "text_alignment": "center",
+                "type": "label"
               }
             }
           ],
-          "layer": 3,
-          "offset": [
-            2,
-            10
-          ],
           "size": [
-            22,
-            22
+            76,
+            50
           ],
           "type": "panel"
         }
       },
       {
-        "l": {
-          "anchor_from": "bottom_middle",
-          "anchor_to": "bottom_middle",
+        "heading": {
           "bindings": [
             {
               "binding_collection_name": "container_items",
-              "binding_condition": "visible",
+              "binding_condition": "always",
               "binding_name": "#hover_text",
               "binding_type": "collection"
             },
             {
-              "binding_condition": "visible",
+              "binding_condition": "always",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
-              "target_property_name": "#text"
+              "source_property_name": "(not ((#hover_text - '§z§y') = #hover_text))",
+              "target_property_name": "#visible"
             }
           ],
-          "color": [
-            0.95,
-            0.95,
-            0.97
-          ],
-          "font_scale_factor": 0.8,
-          "layer": 4,
-          "localize": false,
-          "offset": [
-            0,
-            -6
+          "controls": [
+            {
+              "l": {
+                "anchor_from": "left_middle",
+                "anchor_to": "left_middle",
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "visible",
+                    "binding_name": "#hover_text",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_condition": "visible",
+                    "binding_type": "view",
+                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
+                    "target_property_name": "#text"
+                  }
+                ],
+                "color": [
+                  0.3,
+                  0.3,
+                  0.3
+                ],
+                "font_scale_factor": 0.8,
+                "layer": 3,
+                "localize": false,
+                "offset": [
+                  2,
+                  1
+                ],
+                "size": [
+                  300,
+                  "default"
+                ],
+                "text": "#text",
+                "type": "label"
+              }
+            }
           ],
           "size": [
-            66,
-            "default"
+            76,
+            13
           ],
-          "text": "#text",
-          "text_alignment": "center",
-          "type": "label"
+          "type": "panel"
         }
       }
     ],
+    "orientation": "vertical",
     "size": [
       76,
-      50
+      "100%c"
     ],
-    "type": "panel"
+    "type": "stack_panel"
   },
   "cell": {
     "controls": [
@@ -770,7 +1005,7 @@
                   {
                     "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
                     "target_property_name": "#text"
                   }
                 ],
@@ -833,7 +1068,7 @@
                   {
                     "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
                     "target_property_name": "#text"
                   }
                 ],
@@ -3755,7 +3990,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -3791,6 +4026,32 @@
     "size": [
       0,
       0
+    ],
+    "type": "panel"
+  },
+  "filled_cell": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not (#hover_text = ''))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "c@sg_menu.cell": {}
+      }
+    ],
+    "size": [
+      18,
+      18
     ],
     "type": "panel"
   },
@@ -4460,6 +4721,348 @@
     ],
     "type": "panel"
   },
+  "gate_pick": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not ((#hover_text - 'pk') = #hover_text))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "c0": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "controls": [
+            {
+              "r0": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "g@sg_menu.pick_row_0": {
+                      "collection_index": 82
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  "100%",
+                  "100%c"
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "r1": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "g@sg_menu.pick_row_1": {
+                      "collection_index": 85
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  "100%",
+                  "100%c"
+                ],
+                "type": "stack_panel"
+              }
+            }
+          ],
+          "orientation": "vertical",
+          "size": [
+            "100%",
+            "100%c"
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "gap": {
+          "controls": [],
+          "size": [
+            "100%",
+            3
+          ],
+          "type": "panel"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      "100%c"
+    ],
+    "type": "panel"
+  },
+  "gate_result": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not ((#hover_text - 'rs') = #hover_text))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "c0": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "controls": [
+            {
+              "head": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "h@sg_menu.result_head": {
+                      "collection_index": 3
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  "100%",
+                  22
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "stars": {
+                "controls": [
+                  {
+                    "s": {
+                      "anchor_from": "center",
+                      "anchor_to": "center",
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "c0@sg_menu.filled_cell": {
+                            "collection_index": 130
+                          }
+                        },
+                        {
+                          "c1@sg_menu.filled_cell": {
+                            "collection_index": 131
+                          }
+                        },
+                        {
+                          "c2@sg_menu.filled_cell": {
+                            "collection_index": 132
+                          }
+                        }
+                      ],
+                      "orientation": "horizontal",
+                      "size": [
+                        "100%c",
+                        18
+                      ],
+                      "type": "stack_panel"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  20
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "gap": {
+                "controls": [],
+                "size": [
+                  "100%",
+                  2
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "table": {
+                "controls": [
+                  {
+                    "t": {
+                      "anchor_from": "top_middle",
+                      "anchor_to": "top_middle",
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "l0@sg_menu.result_line": {
+                            "$value_index": 134,
+                            "collection_index": 133
+                          }
+                        },
+                        {
+                          "l1@sg_menu.result_line": {
+                            "$value_index": 136,
+                            "collection_index": 135
+                          }
+                        },
+                        {
+                          "l2@sg_menu.result_line": {
+                            "$value_index": 138,
+                            "collection_index": 137
+                          }
+                        },
+                        {
+                          "l3@sg_menu.result_line": {
+                            "$value_index": 140,
+                            "collection_index": 139
+                          }
+                        },
+                        {
+                          "l4@sg_menu.result_line": {
+                            "$value_index": 142,
+                            "collection_index": 141
+                          }
+                        },
+                        {
+                          "l5@sg_menu.result_line": {
+                            "$value_index": 144,
+                            "collection_index": 143
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        200,
+                        "100%c"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%c"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "gap": {
+                "controls": [],
+                "size": [
+                  "100%",
+                  3
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "rewards": {
+                "controls": [
+                  {
+                    "s": {
+                      "anchor_from": "center",
+                      "anchor_to": "center",
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "c0@sg_menu.filled_cell": {
+                            "collection_index": 145
+                          }
+                        },
+                        {
+                          "c1@sg_menu.filled_cell": {
+                            "collection_index": 146
+                          }
+                        },
+                        {
+                          "c2@sg_menu.filled_cell": {
+                            "collection_index": 147
+                          }
+                        },
+                        {
+                          "c3@sg_menu.filled_cell": {
+                            "collection_index": 148
+                          }
+                        },
+                        {
+                          "c4@sg_menu.filled_cell": {
+                            "collection_index": 149
+                          }
+                        },
+                        {
+                          "c5@sg_menu.filled_cell": {
+                            "collection_index": 150
+                          }
+                        },
+                        {
+                          "c6@sg_menu.filled_cell": {
+                            "collection_index": 151
+                          }
+                        },
+                        {
+                          "c7@sg_menu.filled_cell": {
+                            "collection_index": 152
+                          }
+                        },
+                        {
+                          "c8@sg_menu.filled_cell": {
+                            "collection_index": 153
+                          }
+                        }
+                      ],
+                      "orientation": "horizontal",
+                      "size": [
+                        "100%c",
+                        18
+                      ],
+                      "type": "stack_panel"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  20
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "gap": {
+                "controls": [],
+                "size": [
+                  "100%",
+                  3
+                ],
+                "type": "panel"
+              }
+            }
+          ],
+          "orientation": "vertical",
+          "size": [
+            "100%",
+            "100%c"
+          ],
+          "type": "stack_panel"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      "100%c"
+    ],
+    "type": "panel"
+  },
   "gate_rows": {
     "bindings": [
       {
@@ -4852,7 +5455,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -5305,7 +5908,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -6967,7 +7570,7 @@
                   {
                     "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
                     "target_property_name": "#text"
                   }
                 ],
@@ -7378,7 +7981,7 @@
                   {
                     "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
                     "target_property_name": "#text"
                   }
                 ],
@@ -7749,7 +8352,7 @@
                   {
                     "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
                     "target_property_name": "#text"
                   }
                 ],
@@ -7822,7 +8425,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -8354,7 +8957,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -8401,7 +9004,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -9046,7 +9649,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -9107,7 +9710,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -9150,7 +9753,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -9193,7 +9796,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -9237,7 +9840,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -9281,7 +9884,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -9633,7 +10236,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -9679,7 +10282,7 @@
             {
               "binding_condition": "always",
               "binding_type": "view",
-              "source_property_name": "((#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k') - '§r' - '§f')",
+              "source_property_name": "(((#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k') - '§r' - '§f') - ('%.21s' * (#hover_text - '§o' - '§f')))",
               "target_property_name": "#texture"
             },
             {
@@ -9755,7 +10358,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -10250,7 +10853,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -10266,6 +10869,7 @@
             27,
             5
           ],
+          "shadow": true,
           "size": [
             "100% - 30px",
             9
@@ -10371,6 +10975,42 @@
           "controls": [
             {
               "g@sg_menu.gate_cards": {
+                "collection_index": 0
+              }
+            }
+          ],
+          "orientation": "vertical",
+          "size": [
+            "100%",
+            "100%c"
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "pick": {
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "g@sg_menu.gate_pick": {
+                "collection_index": 0
+              }
+            }
+          ],
+          "orientation": "vertical",
+          "size": [
+            "100%",
+            "100%c"
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "result": {
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "g@sg_menu.gate_result": {
                 "collection_index": 0
               }
             }
@@ -10903,7 +11543,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -10932,6 +11572,135 @@
     ],
     "type": "panel"
   },
+  "loading_rinfo": {
+    "controls": [
+      {
+        "l": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            1,
+            1,
+            1
+          ],
+          "font_scale_factor": 0.8,
+          "layer": 3,
+          "localize": false,
+          "shadow": true,
+          "size": [
+            "100%",
+            "default"
+          ],
+          "text": "#text",
+          "text_alignment": "center",
+          "type": "label"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      10
+    ],
+    "type": "panel"
+  },
+  "loading_rline": {
+    "controls": [
+      {
+        "l": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            0.6941176470588235,
+            0.6980392156862745,
+            0.7098039215686275
+          ],
+          "font_scale_factor": 0.75,
+          "layer": 3,
+          "localize": false,
+          "shadow": true,
+          "size": [
+            "100%",
+            "default"
+          ],
+          "text": "#text",
+          "text_alignment": "center",
+          "type": "label"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      10
+    ],
+    "type": "panel"
+  },
+  "loading_rtitle": {
+    "controls": [
+      {
+        "l": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            1,
+            0.8431372549019608,
+            0.3686274509803922
+          ],
+          "font_scale_factor": 1.3,
+          "layer": 3,
+          "localize": false,
+          "shadow": true,
+          "size": [
+            "100%",
+            "default"
+          ],
+          "text": "#text",
+          "text_alignment": "center",
+          "type": "label"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      14
+    ],
+    "type": "panel"
+  },
   "loading_sub": {
     "controls": [
       {
@@ -10946,7 +11715,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -10989,7 +11758,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -11032,7 +11801,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -11166,7 +11935,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -11211,7 +11980,7 @@
                   {
                     "binding_condition": "always",
                     "binding_type": "view",
-                    "source_property_name": "((#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k') - '§r' - '§f')",
+                    "source_property_name": "(((#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k') - '§r' - '§f') - ('%.21s' * (#hover_text - '§o' - '§f')))",
                     "target_property_name": "#texture"
                   },
                   {
@@ -11553,6 +12322,24 @@
                       ],
                       "type": "stack_panel"
                     }
+                  },
+                  {
+                    "radial": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "g@sg_menu.radial_gate": {
+                            "collection_index": 0
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "stack_panel"
+                    }
                   }
                 ],
                 "layer": 1,
@@ -11682,6 +12469,680 @@
     "size": [
       "100%",
       "100%"
+    ],
+    "type": "panel"
+  },
+  "pick_cell": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not (#hover_text = ''))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "common": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "color": [
+            0.5450980392156862,
+            0.5450980392156862,
+            0.5568627450980392
+          ],
+          "layer": 1,
+          "size": [
+            100,
+            104
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "rare": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - '§z§j') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "color": [
+            0.2901960784313726,
+            0.6392156862745098,
+            1
+          ],
+          "layer": 1,
+          "size": [
+            100,
+            104
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "epic": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - '§z§p') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "color": [
+            0.6901960784313725,
+            0.3607843137254902,
+            1
+          ],
+          "layer": 1,
+          "size": [
+            100,
+            104
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "b": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_type": "collection_details"
+            }
+          ],
+          "button_mappings": [
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_select",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_ok",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_slot_hovered"
+            }
+          ],
+          "controls": [
+            {
+              "default": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.118,
+                        0.118,
+                        0.122
+                      ],
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "band": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.09411764705882353,
+                        0.09411764705882353,
+                        0.10980392156862745
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 2px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.1568627450980392,
+                        0.1607843137254902,
+                        0.18823529411764706
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 4px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "hover": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.118,
+                        0.118,
+                        0.122
+                      ],
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "band": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.09411764705882353,
+                        0.09411764705882353,
+                        0.10980392156862745
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 2px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.20392156862745098,
+                        0.21176470588235294,
+                        0.25098039215686274
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 4px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "pressed": {
+                "controls": [
+                  {
+                    "edge": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.118,
+                        0.118,
+                        0.122
+                      ],
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "band": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.09411764705882353,
+                        0.09411764705882353,
+                        0.10980392156862745
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        1
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 2px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "fill": {
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "color": [
+                        0.20392156862745098,
+                        0.21176470588235294,
+                        0.25098039215686274
+                      ],
+                      "layer": 1,
+                      "offset": [
+                        1,
+                        2
+                      ],
+                      "size": [
+                        "100% - 2px",
+                        "100% - 4px"
+                      ],
+                      "texture": "textures/ui/White",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            }
+          ],
+          "default_control": "default",
+          "focus_enabled": true,
+          "focus_magnet_enabled": true,
+          "hover_control": "hover",
+          "layer": 2,
+          "offset": [
+            3,
+            3
+          ],
+          "pressed_control": "pressed",
+          "size": [
+            94,
+            98
+          ],
+          "sound_name": "random.click",
+          "sound_pitch": 1,
+          "sound_volume": 1,
+          "type": "button"
+        }
+      },
+      {
+        "tag": {
+          "anchor_from": "top_middle",
+          "anchor_to": "top_middle",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "t@sg_menu.pick_line": {
+                "$line_scale": 0.8,
+                "collection_index": "$tag_index"
+              }
+            }
+          ],
+          "layer": 4,
+          "offset": [
+            -1,
+            7
+          ],
+          "orientation": "vertical",
+          "size": [
+            88,
+            "100%c"
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i": {
+          "anchor_from": "top_middle",
+          "anchor_to": "top_middle",
+          "controls": [
+            {
+              "i": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "i@sg_menu.icon_slot": {
+                      "collection_index": "$icon_index",
+                      "size": [
+                        24,
+                        24
+                      ]
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  24,
+                  24
+                ],
+                "type": "stack_panel"
+              }
+            }
+          ],
+          "layer": 4,
+          "offset": [
+            -1,
+            18
+          ],
+          "size": [
+            24,
+            24
+          ],
+          "type": "panel"
+        }
+      },
+      {
+        "title": {
+          "anchor_from": "top_middle",
+          "anchor_to": "top_middle",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            0.95,
+            0.95,
+            0.97
+          ],
+          "font_scale_factor": 1,
+          "layer": 4,
+          "localize": false,
+          "offset": [
+            -1,
+            47
+          ],
+          "shadow": true,
+          "size": [
+            92,
+            "default"
+          ],
+          "text": "#text",
+          "text_alignment": "center",
+          "type": "label"
+        }
+      },
+      {
+        "text": {
+          "anchor_from": "top_middle",
+          "anchor_to": "top_middle",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "t@sg_menu.pick_line": {
+                "$line_scale": 0.7,
+                "collection_index": "$text_index"
+              }
+            }
+          ],
+          "layer": 4,
+          "offset": [
+            -1,
+            60
+          ],
+          "orientation": "vertical",
+          "size": [
+            88,
+            "100%c"
+          ],
+          "type": "stack_panel"
+        }
+      }
+    ],
+    "size": [
+      102,
+      106
+    ],
+    "type": "panel"
+  },
+  "pick_line": {
+    "$line_scale|default": 1,
+    "controls": [
+      {
+        "l": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            0.8,
+            0.8,
+            0.82
+          ],
+          "font_scale_factor": "$line_scale",
+          "layer": 3,
+          "localize": false,
+          "shadow": true,
+          "size": [
+            "100%",
+            "default"
+          ],
+          "text": "#text",
+          "text_alignment": "center",
+          "type": "label"
+        }
+      }
+    ],
+    "size": [
+      88,
+      "100%c"
+    ],
+    "type": "panel"
+  },
+  "pick_row_0": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not (#hover_text = ''))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "s": {
+          "anchor_from": "top_middle",
+          "anchor_to": "top_middle",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "c0@sg_menu.pick_cell": {
+                "$icon_index": 34,
+                "$tag_index": 130,
+                "$text_index": 131,
+                "collection_index": 82
+              }
+            },
+            {
+              "c1@sg_menu.pick_cell": {
+                "$icon_index": 35,
+                "$tag_index": 132,
+                "$text_index": 133,
+                "collection_index": 83
+              }
+            },
+            {
+              "c2@sg_menu.pick_cell": {
+                "$icon_index": 36,
+                "$tag_index": 134,
+                "$text_index": 135,
+                "collection_index": 84
+              }
+            }
+          ],
+          "orientation": "horizontal",
+          "size": [
+            "100%c",
+            106
+          ],
+          "type": "stack_panel"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      106
+    ],
+    "type": "panel"
+  },
+  "pick_row_1": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not (#hover_text = ''))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "s": {
+          "anchor_from": "top_middle",
+          "anchor_to": "top_middle",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "c0@sg_menu.pick_cell": {
+                "$icon_index": 37,
+                "$tag_index": 136,
+                "$text_index": 137,
+                "collection_index": 85
+              }
+            },
+            {
+              "c1@sg_menu.pick_cell": {
+                "$icon_index": 38,
+                "$tag_index": 138,
+                "$text_index": 139,
+                "collection_index": 86
+              }
+            },
+            {
+              "c2@sg_menu.pick_cell": {
+                "$icon_index": 39,
+                "$tag_index": 140,
+                "$text_index": 141,
+                "collection_index": 87
+              }
+            }
+          ],
+          "orientation": "horizontal",
+          "size": [
+            "100%c",
+            106
+          ],
+          "type": "stack_panel"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      106
     ],
     "type": "panel"
   },
@@ -11853,6 +13314,1897 @@
     ],
     "type": "panel"
   },
+  "radial_center": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not (#hover_text = ''))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "b": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_type": "collection_details"
+            }
+          ],
+          "button_mappings": [
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_select",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_ok",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_slot_hovered"
+            }
+          ],
+          "controls": [
+            {
+              "default": {
+                "controls": [],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "hover": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/hover_flat",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "tip": {
+                      "allow_clipping": false,
+                      "layer": 30,
+                      "renderer": "hover_text_renderer",
+                      "type": "custom"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "pressed": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/press_flat",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            }
+          ],
+          "default_control": "default",
+          "focus_enabled": true,
+          "focus_magnet_enabled": true,
+          "hover_control": "hover",
+          "layer": 1,
+          "pressed_control": "pressed",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "sound_name": "random.click",
+          "sound_pitch": 1,
+          "sound_volume": 1,
+          "type": "button"
+        }
+      },
+      {
+        "i": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "controls": [
+            {
+              "i": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "i@sg_menu.icon_slot": {
+                      "collection_index": "$icon_index",
+                      "size": [
+                        16,
+                        16
+                      ]
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  16,
+                  16
+                ],
+                "type": "stack_panel"
+              }
+            }
+          ],
+          "layer": 3,
+          "size": [
+            16,
+            16
+          ],
+          "type": "panel"
+        }
+      }
+    ],
+    "size": [
+      30,
+      30
+    ],
+    "type": "panel"
+  },
+  "radial_gate": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not ((#hover_text - 'rd') = #hover_text))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "bg": {
+          "alpha": 0.35,
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "color": [
+            0,
+            0,
+            0
+          ],
+          "layer": 1,
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      },
+      {
+        "middle": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "controls": [
+            {
+              "rtitle": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "t@sg_menu.loading_rtitle": {
+                      "collection_index": 1
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  "100%",
+                  14
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "rline": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "t@sg_menu.loading_rline": {
+                      "collection_index": 2
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  "100%",
+                  10
+                ],
+                "type": "stack_panel"
+              }
+            },
+            {
+              "ring": {
+                "controls": [
+                  {
+                    "r1": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "g@sg_menu.radial_ring_1": {
+                            "collection_index": 0
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "r2": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "g@sg_menu.radial_ring_2": {
+                            "collection_index": 0
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "r3": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "g@sg_menu.radial_ring_3": {
+                            "collection_index": 0
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "r4": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "g@sg_menu.radial_ring_4": {
+                            "collection_index": 0
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "r5": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "g@sg_menu.radial_ring_5": {
+                            "collection_index": 0
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "r6": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "g@sg_menu.radial_ring_6": {
+                            "collection_index": 0
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "r7": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "g@sg_menu.radial_ring_7": {
+                            "collection_index": 0
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "r8": {
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "g@sg_menu.radial_ring_8": {
+                            "collection_index": 0
+                          }
+                        }
+                      ],
+                      "orientation": "vertical",
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "type": "stack_panel"
+                    }
+                  },
+                  {
+                    "disc": {
+                      "anchor_from": "center",
+                      "anchor_to": "center",
+                      "layer": 1,
+                      "size": [
+                        164,
+                        164
+                      ],
+                      "texture": "textures/ui/sg/radial_disc",
+                      "type": "image"
+                    }
+                  },
+                  {
+                    "center": {
+                      "anchor_from": "center",
+                      "anchor_to": "center",
+                      "collection_name": "container_items",
+                      "controls": [
+                        {
+                          "c@sg_menu.radial_center": {
+                            "$icon_index": 42,
+                            "collection_index": 90
+                          }
+                        }
+                      ],
+                      "layer": 3,
+                      "orientation": "vertical",
+                      "size": [
+                        30,
+                        30
+                      ],
+                      "type": "stack_panel"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  168
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "rinfo": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "t@sg_menu.loading_rinfo": {
+                      "collection_index": 3
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  "100%",
+                  10
+                ],
+                "type": "stack_panel"
+              }
+            }
+          ],
+          "layer": 2,
+          "orientation": "vertical",
+          "size": [
+            300,
+            "100%c"
+          ],
+          "type": "stack_panel"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "radial_item": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not (#hover_text = ''))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "b": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_type": "collection_details"
+            }
+          ],
+          "button_mappings": [
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_select",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "consume_event": false,
+              "from_button_id": "button.menu_ok",
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_auto_place"
+            },
+            {
+              "mapping_type": "pressed",
+              "to_button_id": "button.container_slot_hovered"
+            }
+          ],
+          "controls": [
+            {
+              "default": {
+                "controls": [],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "hover": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/hover_flat",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            },
+            {
+              "pressed": {
+                "controls": [
+                  {
+                    "bg": {
+                      "layer": 1,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "texture": "textures/ui/sg/press_flat",
+                      "type": "image"
+                    }
+                  }
+                ],
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "type": "panel"
+              }
+            }
+          ],
+          "default_control": "default",
+          "focus_enabled": true,
+          "focus_magnet_enabled": true,
+          "hover_control": "hover",
+          "layer": 1,
+          "pressed_control": "pressed",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "sound_name": "random.click",
+          "sound_pitch": 1,
+          "sound_volume": 1,
+          "type": "button"
+        }
+      },
+      {
+        "i": {
+          "anchor_from": "top_middle",
+          "anchor_to": "top_middle",
+          "controls": [
+            {
+              "i": {
+                "collection_name": "container_items",
+                "controls": [
+                  {
+                    "i@sg_menu.icon_slot": {
+                      "collection_index": "$icon_index",
+                      "size": [
+                        16,
+                        16
+                      ]
+                    }
+                  }
+                ],
+                "orientation": "vertical",
+                "size": [
+                  16,
+                  16
+                ],
+                "type": "stack_panel"
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            0,
+            2
+          ],
+          "size": [
+            16,
+            16
+          ],
+          "type": "panel"
+        }
+      },
+      {
+        "l": {
+          "anchor_from": "top_middle",
+          "anchor_to": "top_middle",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            1,
+            1,
+            1
+          ],
+          "font_scale_factor": 0.75,
+          "layer": 4,
+          "localize": false,
+          "offset": [
+            0,
+            20
+          ],
+          "shadow": true,
+          "size": [
+            58,
+            "default"
+          ],
+          "text": "#text",
+          "text_alignment": "center",
+          "type": "label"
+        }
+      },
+      {
+        "v": {
+          "anchor_from": "top_middle",
+          "anchor_to": "top_middle",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "v@sg_menu.radial_value": {
+                "collection_index": "$value_index"
+              }
+            }
+          ],
+          "layer": 4,
+          "offset": [
+            0,
+            29
+          ],
+          "orientation": "vertical",
+          "size": [
+            58,
+            8
+          ],
+          "type": "stack_panel"
+        }
+      }
+    ],
+    "size": [
+      60,
+      38
+    ],
+    "type": "panel"
+  },
+  "radial_ring_1": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not ((#hover_text - 'rd1') = #hover_text))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "i0": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 34,
+                "$value_index": 130,
+                "collection_index": 82
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            0,
+            -56
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "radial_ring_2": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not ((#hover_text - 'rd2') = #hover_text))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "i0": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 34,
+                "$value_index": 130,
+                "collection_index": 82
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            0,
+            -56
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i1": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 35,
+                "$value_index": 131,
+                "collection_index": 83
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            0,
+            56
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "radial_ring_3": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not ((#hover_text - 'rd3') = #hover_text))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "i0": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 34,
+                "$value_index": 130,
+                "collection_index": 82
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            0,
+            -56
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i1": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 35,
+                "$value_index": 131,
+                "collection_index": 83
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            48,
+            28
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i2": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 36,
+                "$value_index": 132,
+                "collection_index": 84
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            -48,
+            28
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "radial_ring_4": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not ((#hover_text - 'rd4') = #hover_text))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "i0": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 34,
+                "$value_index": 130,
+                "collection_index": 82
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            0,
+            -56
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i1": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 35,
+                "$value_index": 131,
+                "collection_index": 83
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            56,
+            0
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i2": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 36,
+                "$value_index": 132,
+                "collection_index": 84
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            0,
+            56
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i3": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 37,
+                "$value_index": 133,
+                "collection_index": 85
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            -56,
+            0
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "radial_ring_5": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not ((#hover_text - 'rd5') = #hover_text))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "i0": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 34,
+                "$value_index": 130,
+                "collection_index": 82
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            0,
+            -56
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i1": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 35,
+                "$value_index": 131,
+                "collection_index": 83
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            53,
+            -17
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i2": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 36,
+                "$value_index": 132,
+                "collection_index": 84
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            33,
+            45
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i3": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 37,
+                "$value_index": 133,
+                "collection_index": 85
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            -33,
+            45
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i4": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 38,
+                "$value_index": 134,
+                "collection_index": 86
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            -53,
+            -17
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "radial_ring_6": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not ((#hover_text - 'rd6') = #hover_text))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "i0": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 34,
+                "$value_index": 130,
+                "collection_index": 82
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            0,
+            -56
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i1": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 35,
+                "$value_index": 131,
+                "collection_index": 83
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            48,
+            -28
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i2": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 36,
+                "$value_index": 132,
+                "collection_index": 84
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            48,
+            28
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i3": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 37,
+                "$value_index": 133,
+                "collection_index": 85
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            0,
+            56
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i4": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 38,
+                "$value_index": 134,
+                "collection_index": 86
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            -48,
+            28
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i5": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 39,
+                "$value_index": 135,
+                "collection_index": 87
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            -48,
+            -28
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "radial_ring_7": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not ((#hover_text - 'rd7') = #hover_text))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "i0": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 34,
+                "$value_index": 130,
+                "collection_index": 82
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            0,
+            -56
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i1": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 35,
+                "$value_index": 131,
+                "collection_index": 83
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            44,
+            -35
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i2": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 36,
+                "$value_index": 132,
+                "collection_index": 84
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            55,
+            12
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i3": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 37,
+                "$value_index": 133,
+                "collection_index": 85
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            24,
+            50
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i4": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 38,
+                "$value_index": 134,
+                "collection_index": 86
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            -24,
+            50
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i5": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 39,
+                "$value_index": 135,
+                "collection_index": 87
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            -55,
+            12
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i6": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 40,
+                "$value_index": 136,
+                "collection_index": 88
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            -44,
+            -35
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "radial_ring_8": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not ((#hover_text - 'rd8') = #hover_text))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "i0": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 34,
+                "$value_index": 130,
+                "collection_index": 82
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            0,
+            -56
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i1": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 35,
+                "$value_index": 131,
+                "collection_index": 83
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            40,
+            -40
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i2": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 36,
+                "$value_index": 132,
+                "collection_index": 84
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            56,
+            0
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i3": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 37,
+                "$value_index": 133,
+                "collection_index": 85
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            40,
+            40
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i4": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 38,
+                "$value_index": 134,
+                "collection_index": 86
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            0,
+            56
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i5": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 39,
+                "$value_index": 135,
+                "collection_index": 87
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            -40,
+            40
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i6": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 40,
+                "$value_index": 136,
+                "collection_index": 88
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            -56,
+            0
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "i7": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "i@sg_menu.radial_item": {
+                "$icon_index": 41,
+                "$value_index": 137,
+                "collection_index": 89
+              }
+            }
+          ],
+          "layer": 3,
+          "offset": [
+            -40,
+            -40
+          ],
+          "orientation": "vertical",
+          "size": [
+            60,
+            38
+          ],
+          "type": "stack_panel"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "radial_value": {
+    "controls": [
+      {
+        "l": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            1,
+            0.8431372549019608,
+            0.3686274509803922
+          ],
+          "font_scale_factor": 0.65,
+          "layer": 3,
+          "localize": false,
+          "shadow": true,
+          "size": [
+            "100%",
+            "default"
+          ],
+          "text": "#text",
+          "text_alignment": "center",
+          "type": "label"
+        }
+      }
+    ],
+    "size": [
+      58,
+      8
+    ],
+    "type": "panel"
+  },
   "range_heading": {
     "bindings": [
       {
@@ -11883,7 +15235,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -12794,7 +16146,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -13287,6 +16639,192 @@
     ],
     "type": "panel"
   },
+  "result_head": {
+    "controls": [
+      {
+        "l": {
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            0.95,
+            0.95,
+            0.97
+          ],
+          "font_scale_factor": 1.6,
+          "layer": 3,
+          "localize": false,
+          "shadow": true,
+          "size": [
+            "100%",
+            "default"
+          ],
+          "text": "#text",
+          "text_alignment": "center",
+          "type": "label"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      22
+    ],
+    "type": "panel"
+  },
+  "result_line": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not (#hover_text = ''))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "l": {
+          "anchor_from": "left_middle",
+          "anchor_to": "left_middle",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            0.3,
+            0.3,
+            0.3
+          ],
+          "font_scale_factor": 0.8,
+          "layer": 3,
+          "localize": false,
+          "size": [
+            "100%",
+            "default"
+          ],
+          "text": "#text",
+          "type": "label"
+        }
+      },
+      {
+        "v": {
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "v@sg_menu.result_value": {
+                "collection_index": "$value_index"
+              }
+            }
+          ],
+          "orientation": "vertical",
+          "size": [
+            "100%",
+            11
+          ],
+          "type": "stack_panel"
+        }
+      },
+      {
+        "line": {
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "color": [
+            0.55,
+            0.55,
+            0.56
+          ],
+          "layer": 1,
+          "offset": [
+            0,
+            11
+          ],
+          "size": [
+            "100%",
+            1
+          ],
+          "texture": "textures/ui/White",
+          "type": "image"
+        }
+      }
+    ],
+    "size": [
+      200,
+      12
+    ],
+    "type": "panel"
+  },
+  "result_value": {
+    "controls": [
+      {
+        "l": {
+          "anchor_from": "left_middle",
+          "anchor_to": "left_middle",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "visible",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "visible",
+              "binding_type": "view",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
+              "target_property_name": "#text"
+            }
+          ],
+          "color": [
+            0.2,
+            0.2,
+            0.2
+          ],
+          "font_scale_factor": 0.8,
+          "layer": 3,
+          "localize": false,
+          "size": [
+            "100%",
+            "default"
+          ],
+          "text": "#text",
+          "text_alignment": "right",
+          "type": "label"
+        }
+      }
+    ],
+    "size": [
+      "100%",
+      11
+    ],
+    "type": "panel"
+  },
   "row_cell": {
     "bindings": [
       {
@@ -13519,7 +17057,7 @@
                   {
                     "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
                     "target_property_name": "#text"
                   }
                 ],
@@ -13535,6 +17073,7 @@
                   29,
                   -1
                 ],
+                "shadow": true,
                 "size": [
                   "100% - 34px",
                   "default"
@@ -13644,7 +17183,7 @@
                   {
                     "binding_condition": "visible",
                     "binding_type": "view",
-                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+                    "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
                     "target_property_name": "#text"
                   }
                 ],
@@ -13753,7 +17292,7 @@
                   {
                     "binding_condition": "always",
                     "binding_type": "view",
-                    "source_property_name": "((#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k') - '§r' - '§f')",
+                    "source_property_name": "(((#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k') - '§r' - '§f') - ('%.21s' * (#hover_text - '§o' - '§f')))",
                     "target_property_name": "#texture"
                   },
                   {
@@ -13822,32 +17361,135 @@
           "bindings": [
             {
               "binding_collection_name": "container_items",
-              "binding_condition": "visible",
-              "binding_name": "#inventory_stack_count",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
               "binding_type": "collection"
             },
             {
-              "binding_condition": "visible",
+              "binding_condition": "always",
               "binding_type": "view",
-              "source_property_name": "('§r' + #inventory_stack_count)",
-              "target_property_name": "#text"
+              "source_property_name": "('%.12s' * (#hover_text - '§o' - '§f'))",
+              "target_property_name": "#count_head"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(#count_head = '§ § § § ')",
+              "target_property_name": "#visible"
             }
           ],
-          "color": [
-            1,
-            1,
-            1
+          "clips_children": true,
+          "controls": [
+            {
+              "l": {
+                "anchor_from": "bottom_right",
+                "anchor_to": "bottom_right",
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "visible",
+                    "binding_name": "#hover_text",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_condition": "visible",
+                    "binding_type": "view",
+                    "source_property_name": "(('§r' + ('%.21s' * (#hover_text - '§o' - '§f'))) - '§')",
+                    "target_property_name": "#text"
+                  }
+                ],
+                "color": [
+                  1,
+                  1,
+                  1
+                ],
+                "font_scale_factor": 0.86,
+                "localize": false,
+                "shadow": true,
+                "text": "#text",
+                "type": "label"
+              }
+            }
           ],
-          "font_scale_factor": 0.86,
           "layer": 5,
-          "localize": false,
           "offset": [
             0,
             1
           ],
-          "shadow": true,
-          "text": "#text",
-          "type": "label"
+          "size": [
+            20,
+            10
+          ],
+          "type": "panel"
+        }
+      },
+      {
+        "count_long": {
+          "anchor_from": "bottom_right",
+          "anchor_to": "bottom_right",
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "('%.12s' * (#hover_text - '§o' - '§f'))",
+              "target_property_name": "#count_head"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not (#count_head = '§ § § § '))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "clips_children": true,
+          "controls": [
+            {
+              "l": {
+                "anchor_from": "bottom_right",
+                "anchor_to": "bottom_right",
+                "bindings": [
+                  {
+                    "binding_collection_name": "container_items",
+                    "binding_condition": "visible",
+                    "binding_name": "#hover_text",
+                    "binding_type": "collection"
+                  },
+                  {
+                    "binding_condition": "visible",
+                    "binding_type": "view",
+                    "source_property_name": "(('§r' + ('%.21s' * (#hover_text - '§o' - '§f'))) - '§')",
+                    "target_property_name": "#text"
+                  }
+                ],
+                "color": [
+                  1,
+                  1,
+                  1
+                ],
+                "font_scale_factor": 0.62,
+                "localize": false,
+                "shadow": true,
+                "text": "#text",
+                "type": "label"
+              }
+            }
+          ],
+          "layer": 5,
+          "offset": [
+            0,
+            1
+          ],
+          "size": [
+            19,
+            10
+          ],
+          "type": "panel"
         }
       },
       {
@@ -14778,6 +18420,20 @@
   },
   "text_slot": {
     "$text_scale|default": 1,
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not (#hover_text = ''))",
+        "target_property_name": "#visible"
+      }
+    ],
     "controls": [
       {
         "l": {
@@ -14793,7 +18449,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -14838,7 +18494,7 @@
             {
               "binding_condition": "visible",
               "binding_type": "view",
-              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§g' - '§z§l' - '§z§k')",
+              "source_property_name": "(#hover_text - '§o' - '§z§a' - '§z§s' - '§z§c' - '§z§h' - '§z§d' - '§z§v' - '§z§x' - '§z§t' - '§z§u' - '§z§b' - '§z§q' - '§z§i' - '§z§f' - '§z§w' - '§z§y' - '§z§m' - '§z§n' - '§z§e' - '§z§j' - '§z§p' - '§z§g' - '§z§l' - '§z§k')",
               "target_property_name": "#text"
             }
           ],
@@ -15213,7 +18869,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(((#hover_text - 'hm') = #hover_text) and ((#hover_text - 'ld') = #hover_text))",
+        "source_property_name": "(((#hover_text - 'hm') = #hover_text) and ((#hover_text - 'ld') = #hover_text) and ((#hover_text - 'rd') = #hover_text))",
         "target_property_name": "#visible"
       }
     ],

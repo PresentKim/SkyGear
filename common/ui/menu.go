@@ -28,7 +28,7 @@ type menuPage struct {
 func newMenuPage(key string) *menuPage {
 	pg := &menuPage{items: make([]item.Stack, invui.Size), ids: map[int]string{}}
 	switch key[:2] {
-	case invui.KeyMenu, invui.KeyCards, invui.KeyGrid, invui.KeyBoard:
+	case invui.KeyMenu, invui.KeyCards, invui.KeyGrid, invui.KeyBoard, invui.KeyPick, invui.KeyResult:
 		key += invui.KeyList
 	}
 	pg.text(invui.SlotKey, key)
@@ -55,11 +55,12 @@ func (pg *menuPage) button(slot int, text, kind, id string) {
 
 // icon puts an icon (oreIcon) in slot: the item itself for an item icon, a
 // paper named the texture path for a texture. The kind is the kind of the
-// element the icon belongs to.
+// element the icon belongs to. A texture's name starts with a blank count
+// text (invui.CountMark), as every texture name the pack reads does.
 func (pg *menuPage) icon(slot int, icon, kind string) {
 	switch {
 	case strings.HasPrefix(icon, "tex:"):
-		pg.items[slot] = item.NewStack(item.Paper{}, 1).WithCustomName(strings.TrimPrefix(icon, "tex:") + kind)
+		pg.items[slot] = item.NewStack(item.Paper{}, 1).WithCustomName(invui.CountMark("") + strings.TrimPrefix(icon, "tex:") + kind)
 	case strings.HasPrefix(icon, "aux:"):
 		aux, err := strconv.ParseInt(strings.TrimPrefix(icon, "aux:"), 10, 64)
 		if err != nil {
@@ -74,7 +75,7 @@ func (pg *menuPage) icon(slot int, icon, kind string) {
 }
 
 func (pg *menuPage) chrome(c dChrome) {
-	pg.text(invui.SlotTitle, "§r"+i18n.Plain(c.Title))
+	pg.text(invui.SlotTitle, "§r"+ink(c.Title))
 	for i, t := range c.Tabs {
 		if i >= invui.Tabs {
 			break
@@ -141,9 +142,9 @@ func (pg *menuPage) buttons(first int, kind string, bs []dButton) {
 	}
 }
 
-// cell puts an item slot in cell i: the item itself named with the
-// tooltip, its count as the stack's when it is a number up to 64, and a
-// texture icon as a paper named with the path (which has no tooltip). press
+// cell puts an item slot in cell i: the item itself named with its count
+// text (invui.CountMark) and the tooltip, and a texture icon as a paper
+// named with its count text and the path (which has no tooltip). press
 // and view are the kinds of a slot that can and cannot be pressed.
 func (pg *menuPage) cell(i int, s dSlot, press, view string) {
 	if i < 0 || i >= invui.Cells {
@@ -163,10 +164,6 @@ func (pg *menuPage) cell(i int, s dSlot, press, view string) {
 	} else {
 		kind += invui.FamSlot
 	}
-	count := 1
-	if n, err := strconv.Atoi(s.Count); err == nil && n > 1 && n <= 64 {
-		count = n
-	}
 	switch {
 	case strings.HasPrefix(s.Icon, "aux:"):
 		aux, err := strconv.ParseInt(strings.TrimPrefix(s.Icon, "aux:"), 10, 64)
@@ -177,11 +174,11 @@ func (pg *menuPage) cell(i int, s dSlot, press, view string) {
 		if !ok {
 			return
 		}
-		pg.items[slot] = item.NewStack(it, count).WithCustomName("§r" + i18n.Plain(s.Tip) + kind)
+		pg.items[slot] = item.NewStack(it, 1).WithCustomName(invui.CountMark(s.Count) + "§r" + i18n.Plain(s.Tip) + kind)
 	case strings.HasPrefix(s.Icon, "tex:"):
-		pg.items[slot] = item.NewStack(item.Paper{}, count).WithCustomName(strings.TrimPrefix(s.Icon, "tex:") + kind)
+		pg.items[slot] = item.NewStack(item.Paper{}, 1).WithCustomName(invui.CountMark(s.Count) + strings.TrimPrefix(s.Icon, "tex:") + kind)
 	default:
-		pg.items[slot] = item.NewStack(item.Paper{}, count).WithCustomName("§r" + i18n.Plain(s.Tip) + kind)
+		pg.items[slot] = item.NewStack(item.Paper{}, 1).WithCustomName(invui.CountMark(s.Count) + "§r" + i18n.Plain(s.Tip) + kind)
 	}
 	if pressable && s.ID != "" {
 		pg.ids[slot] = s.ID
