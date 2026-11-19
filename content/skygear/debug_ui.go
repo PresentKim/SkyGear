@@ -87,7 +87,7 @@ type debugScreen struct {
 }
 
 func (c debugScreen) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
-	p, _, ok := c.session(src, o, tx)
+	p, ok := src.(*player.Player)
 	if !ok {
 		return
 	}
