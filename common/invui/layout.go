@@ -48,10 +48,12 @@ const (
 )
 
 // Cells are the item slots of a screen's grid: one slot each, holding the
-// item itself named with its tooltip.
+// item itself named with its tooltip. A grid, board or split screen draws
+// the first GridCells, a quest book a canvas of QuestGrids.
 const (
-	Cells = 110
-	Cell0 = RowBtn0 + Rows
+	Cells     = 165
+	GridCells = 110
+	Cell0     = RowBtn0 + Rows
 )
 
 // SlotLogo and SlotGame are the logo and the game's name the lobby draws over
@@ -203,8 +205,7 @@ func LayoutOf(key string) string {
 // its quests.
 var Shared = map[string][]string{
 	KeyHome:        {KeyHome, KeyMenu, KeyCards, KeyListSplit},
-	KeyQuest + "0": {KeyQuest + "0", KeyQuest + "1", KeyMenu},
-	KeyQuest + "1": {KeyQuest + "0", KeyQuest + "1", KeyMenu},
+	KeyQuest + "0": {KeyQuest + "0", KeyMenu},
 }
 
 // LayoutsFor returns the layouts a window opened for layout draws.
@@ -264,12 +265,12 @@ const (
 	RadialItems = 8
 
 	// QuestChapters is the most chapters a quest book lists.
-	QuestChapters = Rows / 2
+	QuestChapters = 13
 )
 
 // QuestGrids are the canvases of a quest book, columns by rows, each within
 // Cells.
-var QuestGrids = [...][2]int{{11, 10}, {7, 15}}
+var QuestGrids = [...][2]int{{11, 15}}
 
 // Kind markers end a slot's name and say what the slot draws. They are
 // invisible format codes the pack takes off the text.

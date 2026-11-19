@@ -37,7 +37,7 @@ func TestQuestCanvasDrawsLineThroughLane(t *testing.T) {
 	}
 }
 
-func TestTallQuestChapterUsesNarrowCanvas(t *testing.T) {
+func TestTallQuestChapterFitsTheCanvas(t *testing.T) {
 	var nodes []questNodeD
 	for x := range 6 {
 		for y := range 15 {
@@ -47,7 +47,7 @@ func TestTallQuestChapterUsesNarrowCanvas(t *testing.T) {
 		}
 	}
 	pg := questPage(questData{Nodes: nodes})
-	if key := pg.items[invui.SlotKey].CustomName(); key != invui.KeyQuest+"1" {
+	if key := pg.items[invui.SlotKey].CustomName(); key != invui.KeyQuest+"0" {
 		t.Fatalf("key = %q", key)
 	}
 	placed := 0

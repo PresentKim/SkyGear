@@ -9,7 +9,7 @@ import "fmt"
 // Common are the slots every layout uses, at the front of the window in this
 // order.
 var Common = concat(
-	span(SlotKey, SlotNext+1),
+	span(SlotKey, SlotInfo+1),
 	span(TabIcon0, TabBtn0+Tabs),
 	span(BarIcon0, BarBtn0+Bars),
 	span(SlotLogo, SlotRight+1),
@@ -23,14 +23,14 @@ const ListActions = 12
 var own = map[string][]int{
 	KeyMenu:      rows(Rows),
 	KeyCards:     rows(Rows),
-	KeyGrid:      concat(rows(24), field(), cells(Cells)),
-	KeyBoard:     concat(rows(24), cells(Cells)),
+	KeyGrid:      concat(rows(24), field(), cells(GridCells)),
+	KeyBoard:     concat(rows(24), cells(GridCells)),
 	KeyPick:      concat(rows(24), cells(2*PickCards)),
 	KeyResult:    concat(rows(24), cells(ResultReward0+ResultRewards)),
-	KeySplit:     concat(rows(1+SplitActions), cells(Cells)),
+	KeySplit:     concat(pages(), rows(1+SplitActions), cells(GridCells)),
 	KeyListSplit: concat(rows(ListRows+ListActions), cells(ListRows)),
 	KeyRange:     concat(rows(RangeRow0+4), cells(RangeView+1)),
-	KeyHome:      concat(rows(HomeOverRow0+HomeOvers), cells(HomeSideBadge0+HomeSides)),
+	KeyHome:      concat(pages(), rows(HomeOverRow0+HomeOvers), cells(HomeSideBadge0+HomeSides)),
 	KeyLoading:   concat(rows(1), cells(1)),
 }
 
@@ -39,7 +39,7 @@ func init() {
 		own[KeyRadial+fmt.Sprint(n)] = concat(rows(RadialItems+1), cells(RadialItems))
 	}
 	for g := range QuestGrids {
-		own[KeyQuest+fmt.Sprint(g)] = concat(span(RowIcon0, RowIcon0+QuestChapters), span(RowBtn0, RowBtn0+2*QuestChapters), cells(Cells))
+		own[KeyQuest+fmt.Sprint(g)] = concat(span(RowIcon0, RowIcon0+QuestChapters), span(RowBtn0, RowBtn0+2*QuestChapters), cells(QuestGrids[g][0]*QuestGrids[g][1]))
 	}
 	for layout, slots := range own {
 		places[layout] = map[int]int{}
@@ -107,6 +107,8 @@ func span(from, to int) []int {
 func rows(n int) []int { return concat(span(RowIcon0, RowIcon0+n), span(RowBtn0, RowBtn0+n)) }
 
 func cells(n int) []int { return span(Cell0, Cell0+n) }
+
+func pages() []int { return []int{SlotPrev, SlotNext} }
 
 func field() []int { return []int{RowIcon0 + RowField, RowBtn0 + RowField} }
 

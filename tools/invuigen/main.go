@@ -408,7 +408,7 @@ func defs() obj {
 	d["bar_cell"] = with(panel([]any{15, 22},
 		obj{"b": press(button([]any{15, 15}, "", "textures/ui/sg/hover_flat", "textures/ui/sg/press_flat", true), "")},
 		obj{"i": with(icon(15), obj{"layer": 3})},
-		obj{"q": obj{"type": "label", "layer": 3, "text": "?", "localize": false, "color": title, "bindings": shown(has(invui.KindHelp))}},
+		obj{"q": obj{"type": "label", "layer": 3, "text": "?", "localize": false, "color": light, "bindings": shown(has(invui.KindHelp))}},
 	), obj{"bindings": shown(filled)})
 
 	// List rows: rows, rows that cannot be pressed and toggles share one
@@ -687,9 +687,9 @@ func defs() obj {
 		case invui.KeyResult:
 			controls = append(controls, obj{"result": column("100%", resultBody()...)})
 		case invui.KeyGrid:
-			controls = append(controls, obj{"grid": cellGrid(0, invui.Cells/invui.GridColumns, invui.GridColumns, "cell_list")}, gap(3))
+			controls = append(controls, obj{"grid": cellGrid(0, invui.GridCells/invui.GridColumns, invui.GridColumns, "cell_list")}, gap(3))
 		case invui.KeyBoard:
-			board := cellGrid(0, invui.Cells/invui.BoardColumns, invui.BoardColumns, "cell")
+			board := cellGrid(0, invui.GridCells/invui.BoardColumns, invui.BoardColumns, "cell")
 			board["anchor_from"], board["anchor_to"] = "top_middle", "top_middle"
 			controls = append(controls, obj{"board": panel([]any{"100%", "100%c"}, obj{"g": board})}, gap(3))
 		}
@@ -725,7 +725,7 @@ func defs() obj {
 		obj{"actions": slots("vertical", []any{"100%", "100%c"}, actionCells(1, 1+invui.SplitActions))},
 		body(0.8),
 		gap(3),
-		obj{"rows": cellGrid(invui.SplitCells, (invui.Cells-invui.SplitCells)/invui.RightColumns, invui.RightColumns, "cell_list")},
+		obj{"rows": cellGrid(invui.SplitCells, (invui.GridCells-invui.SplitCells)/invui.RightColumns, invui.RightColumns, "cell_list")},
 	)
 	scroll("split_right_scroll", "split_right_body")
 	splitGrid := cellGrid(0, invui.SplitCells/invui.SplitColumns, invui.SplitColumns, "cell_pick")
@@ -1005,7 +1005,7 @@ func questDefs(d obj, gap func(int) obj) {
 	}
 	pictured := func(name, texture string, size, offset []any, layer int) obj {
 		return obj{name: image("#texture", size, layer, with(obj{"offset": offset,
-			"bindings": []any{slotText(), view("('textures/ui/sg/"+texture, "#texture")}}, top))}
+			"bindings": []any{slotText(), view("('textures/ui/sg/"+texture, "#texture"), view(filled, "#visible")}}, top))}
 	}
 	parts := []any{obj{"canvas": rect(rgb(0x1c, 0x1c, 0x22), []any{questCellW, questCellH}, nil, 0)}}
 	for p, ln := range []struct {

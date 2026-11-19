@@ -574,7 +574,7 @@ func arrowOf(slot int) (dx, dy int, ok bool) {
 // to the chosen one (the first that can be pressed when none is chosen),
 // or a split screen's page arrow past the grid's left or right edge.
 func (pg *menuPage) arrow(dx, dy int) string {
-	cols, n := 0, invui.Cells
+	cols, n := 0, invui.GridCells
 	switch invui.LayoutOf(pg.items[invui.SlotKey].CustomName()) {
 	case invui.KeySplit:
 		cols, n = invui.SplitColumns, invui.SplitCells
