@@ -302,8 +302,6 @@ func menuPageOf(name string, data any) *menuPage {
 		return slotMenuPage(v)
 	case choiceData:
 		return choicePage(v)
-	case stepperData:
-		return stepperPage(v)
 	case sieveData:
 		return sievePage(v)
 	case sidesData:

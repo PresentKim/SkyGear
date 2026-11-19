@@ -147,26 +147,6 @@ func choicePage(v choiceData) *menuPage {
 	return pg
 }
 
-func stepperPage(v stepperData) *menuPage {
-	pg := listPage(invui.KeyBoard+invui.KeyRows, v.Chrome, v.Line)
-	b := newBoard(pg, invui.BoardColumns)
-	step := func(btn dBarButton, texture string) dSlot {
-		return dSlot{ID: btn.ID, Icon: "tex:" + texture}
-	}
-	for _, st := range v.Steppers {
-		b.slot(step(st.Down, "textures/ui/sg/step_down"))
-		b.mark(st.Label+"§r  "+st.Value, invui.KindText, b.cols-2)
-		b.slot(step(st.Up, "textures/ui/sg/step_up"))
-		b.line()
-	}
-	items := make([]dItem, 0, len(v.Side))
-	for _, s := range v.Side {
-		items = append(items, dItem{dButton: dButton{ID: s.ID, Label: s.Tip, Icon: s.Icon}})
-	}
-	pg.rows(0, items)
-	return pg
-}
-
 func sievePage(v sieveData) *menuPage {
 	pg := listPage(invui.KeyBoard+invui.KeyRows, v.Chrome, "")
 	b := newBoard(pg, invui.BoardColumns)
