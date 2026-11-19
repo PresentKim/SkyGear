@@ -732,6 +732,8 @@ type searchData struct {
 	Info        string     `json:"info"`
 	Sections    []dSlotRow `json:"sections"`
 	Items       []dItem    `json:"items"`
+	// Prompt asks for the query in an input form, for the menu window.
+	Prompt dButton `json:"-"`
 }
 
 // SearchGrid shows an input box over the results of find, shown again as
@@ -753,9 +755,18 @@ func SearchGrid(p *player.Player, title, label, query string, find func(p *playe
 		for _, sec := range r.Sections {
 			sections = append(sections, SlotRow{Heading: sec.Heading, Slots: sec.Slots})
 		}
+		prompt := l.buttonOf(Option{Label: label + "§7  " + query, Icon: "textures/ui/magnifyingGlass", Run: func(p *player.Player, _ *world.Tx) {
+			Input(p, title, label, query, func(p *player.Player, _ *world.Tx, v string) {
+				turn++
+				show(p, v, "r"+strconv.Itoa(turn)+"_")
+			}, func(p *player.Player, _ *world.Tx) {
+				turn++
+				show(p, query, "r"+strconv.Itoa(turn)+"_")
+			})
+		}})
 		showScreen(p, l, "search", searchData{
 			Chrome: chrome, Field: "search", Query: query, Placeholder: label, Info: r.Info,
-			Sections: l.rowsOf(sections), Items: l.itemsOf(rest),
+			Sections: l.rowsOf(sections), Items: l.itemsOf(rest), Prompt: prompt,
 		})
 	}
 	show(p, query, "o")

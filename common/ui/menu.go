@@ -235,25 +235,9 @@ func menuPageOf(name string, data any) *menuPage {
 		pg := newMenuPage(invui.KeyBoard + invui.KeyRows)
 		pg.chrome(v.Chrome)
 		pg.text(invui.SlotBody, "§r"+ink(v.Body))
-		for r, row := range v.Rows {
-			i := r * invui.BoardColumns
-			pg.mark(i, "", invui.KindBlank)
-			for _, c := range row {
-				switch c.K {
-				case "slot":
-					pg.cell(i, *c.Slot, invui.KindRow, invui.KindStatic)
-				case "mini":
-					pg.cell(i, *c.Slot, invui.KindMini, invui.KindMiniView)
-				case "frame":
-					pg.mark(i, "", invui.KindFrame)
-				case "arrow":
-					pg.mark(i, "", invui.KindArrow)
-				case "text":
-					pg.mark(i, ink(c.Text), invui.KindText)
-					i += max(c.Span, 1) - 1
-				}
-				i++
-			}
+		b := newBoard(pg, invui.BoardColumns)
+		for _, row := range v.Rows {
+			b.cells(row)
 		}
 		pg.rows(0, v.Items)
 		return pg
@@ -314,8 +298,35 @@ func menuPageOf(name string, data any) *menuPage {
 		}
 		pg.buttons(invui.ListRows, invui.KindRow, v.Actions)
 		return pg
-	}
-	if v, ok := data.(homeData); ok {
+	case slotMenuData:
+		return slotMenuPage(v)
+	case choiceData:
+		return choicePage(v)
+	case stepperData:
+		return stepperPage(v)
+	case sieveData:
+		return sievePage(v)
+	case sidesData:
+		return sidesPage(v)
+	case pickData:
+		return pickPage(v)
+	case resultData:
+		return resultPage(v)
+	case equipData:
+		return equipPage(v)
+	case consoleData:
+		return consolePage(v)
+	case searchData:
+		return searchPage(v)
+	case loadingData:
+		return loadingPage(v)
+	case radialData:
+		return radialPage(v)
+	case planeData:
+		return planePage(v)
+	case questData:
+		return questPage(v)
+	case homeData:
 		return homePage(v)
 	}
 	pg := newMenuPage(invui.KeyMenu + invui.KeyRows)

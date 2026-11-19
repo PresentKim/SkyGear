@@ -28,6 +28,8 @@ type consoleData struct {
 	Field  string   `json:"field"`
 	Hint   string   `json:"hint"`
 	Submit dButton  `json:"submit"`
+	// Prompt asks for a command in an input form, for the menu window.
+	Prompt dButton `json:"-"`
 }
 
 // ConsoleScreen shows p a command console: the log scrolled to its end and,
@@ -47,5 +49,12 @@ func ConsoleScreen(p *player.Player, title string, c Console) {
 			c.Run(p, tx, v)
 		}
 	}})
-	showScreen(p, l, "console", consoleData{Chrome: chrome, Lines: append([]string{}, c.Lines...), Field: field, Hint: c.Hint, Submit: submit})
+	prompt := l.buttonOf(Option{Label: c.Submit, Icon: "textures/ui/sg/icon_cube", Run: func(p *player.Player, _ *world.Tx) {
+		Input(p, title, c.Hint, "", func(p *player.Player, tx *world.Tx, v string) {
+			if v != "" && c.Run != nil {
+				c.Run(p, tx, v)
+			}
+		}, func(p *player.Player, _ *world.Tx) { ConsoleScreen(p, title, c) })
+	}})
+	showScreen(p, l, "console", consoleData{Chrome: chrome, Lines: append([]string{}, c.Lines...), Field: field, Hint: c.Hint, Submit: submit, Prompt: prompt})
 }
