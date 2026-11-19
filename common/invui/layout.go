@@ -395,13 +395,19 @@ const (
 // QuestCodeChars is how many digits QuestCode writes.
 const QuestCodeChars = 3 + 8
 
+// QuestDigits are the letters QuestCode writes for 0, 1 and 2: colour codes
+// that show nothing. A digit is not used: the pack's text that starts with
+// one is read as a number (bedrock-research EXP-30).
+const QuestDigits = "ghi"
+
 // QuestCode follows the face (CellFace) of a quest canvas cell: the state
 // of its lines, a flag a piece of QuestPieces it draws, its quest's shape
-// and its quest's state, each a digit after a format sign. The pack builds
-// the pictures' names from the digits at their fixed places.
+// and its quest's state, each a letter of QuestDigits after a format sign.
+// The pack builds the pictures' names from the letters at their fixed
+// places.
 func QuestCode(lines int, pieces string, shape, state int) string {
 	var b strings.Builder
-	digit := func(n int) { b.WriteString("§" + string(rune('0'+n))) }
+	digit := func(n int) { b.WriteString("§" + QuestDigits[n:n+1]) }
 	digit(lines)
 	for _, p := range QuestPieces {
 		if strings.Contains(pieces, p) {

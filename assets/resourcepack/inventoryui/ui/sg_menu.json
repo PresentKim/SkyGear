@@ -13406,21 +13406,15 @@
                 "bindings": [
                   {
                     "binding_collection_name": "container_items",
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_name": "#hover_text",
                     "binding_type": "collection"
                   },
                   {
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_type": "view",
                     "source_property_name": "('textures/ui/sg/ql' + (('%.91s' * (#hover_text - '§o' - '§f')) - ('%.90s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
                     "target_property_name": "#texture"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "(not (#hover_text = ''))",
-                    "target_property_name": "#visible"
                   }
                 ],
                 "layer": 1,
@@ -13443,21 +13437,15 @@
                 "bindings": [
                   {
                     "binding_collection_name": "container_items",
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_name": "#hover_text",
                     "binding_type": "collection"
                   },
                   {
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_type": "view",
                     "source_property_name": "('textures/ui/sg/ql' + (('%.94s' * (#hover_text - '§o' - '§f')) - ('%.93s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
                     "target_property_name": "#texture"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "(not (#hover_text = ''))",
-                    "target_property_name": "#visible"
                   }
                 ],
                 "layer": 1,
@@ -13480,21 +13468,15 @@
                 "bindings": [
                   {
                     "binding_collection_name": "container_items",
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_name": "#hover_text",
                     "binding_type": "collection"
                   },
                   {
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_type": "view",
                     "source_property_name": "('textures/ui/sg/ql' + (('%.97s' * (#hover_text - '§o' - '§f')) - ('%.96s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
                     "target_property_name": "#texture"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "(not (#hover_text = ''))",
-                    "target_property_name": "#visible"
                   }
                 ],
                 "layer": 1,
@@ -13517,21 +13499,15 @@
                 "bindings": [
                   {
                     "binding_collection_name": "container_items",
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_name": "#hover_text",
                     "binding_type": "collection"
                   },
                   {
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_type": "view",
                     "source_property_name": "('textures/ui/sg/ql' + (('%.100s' * (#hover_text - '§o' - '§f')) - ('%.99s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
                     "target_property_name": "#texture"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "(not (#hover_text = ''))",
-                    "target_property_name": "#visible"
                   }
                 ],
                 "layer": 1,
@@ -13554,21 +13530,15 @@
                 "bindings": [
                   {
                     "binding_collection_name": "container_items",
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_name": "#hover_text",
                     "binding_type": "collection"
                   },
                   {
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_type": "view",
                     "source_property_name": "('textures/ui/sg/ql' + (('%.103s' * (#hover_text - '§o' - '§f')) - ('%.102s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
                     "target_property_name": "#texture"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "(not (#hover_text = ''))",
-                    "target_property_name": "#visible"
                   }
                 ],
                 "layer": 1,
@@ -13591,21 +13561,15 @@
                 "bindings": [
                   {
                     "binding_collection_name": "container_items",
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_name": "#hover_text",
                     "binding_type": "collection"
                   },
                   {
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_type": "view",
                     "source_property_name": "('textures/ui/sg/ql' + (('%.106s' * (#hover_text - '§o' - '§f')) - ('%.105s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
                     "target_property_name": "#texture"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "(not (#hover_text = ''))",
-                    "target_property_name": "#visible"
                   }
                 ],
                 "layer": 1,
@@ -13628,21 +13592,15 @@
                 "bindings": [
                   {
                     "binding_collection_name": "container_items",
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_name": "#hover_text",
                     "binding_type": "collection"
                   },
                   {
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_type": "view",
                     "source_property_name": "('textures/ui/sg/ql' + (('%.109s' * (#hover_text - '§o' - '§f')) - ('%.108s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
                     "target_property_name": "#texture"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "(not (#hover_text = ''))",
-                    "target_property_name": "#visible"
                   }
                 ],
                 "layer": 1,
@@ -13665,21 +13623,15 @@
                 "bindings": [
                   {
                     "binding_collection_name": "container_items",
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_name": "#hover_text",
                     "binding_type": "collection"
                   },
                   {
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_type": "view",
                     "source_property_name": "('textures/ui/sg/ql' + (('%.112s' * (#hover_text - '§o' - '§f')) - ('%.111s' * (#hover_text - '§o' - '§f'))) + (('%.88s' * (#hover_text - '§o' - '§f')) - ('%.87s' * (#hover_text - '§o' - '§f'))))",
                     "target_property_name": "#texture"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "(not (#hover_text = ''))",
-                    "target_property_name": "#visible"
                   }
                 ],
                 "layer": 1,
@@ -13729,21 +13681,15 @@
                 "bindings": [
                   {
                     "binding_collection_name": "container_items",
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_name": "#hover_text",
                     "binding_type": "collection"
                   },
                   {
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_type": "view",
                     "source_property_name": "('textures/ui/sg/qf' + (('%.115s' * (#hover_text - '§o' - '§f')) - ('%.114s' * (#hover_text - '§o' - '§f'))))",
                     "target_property_name": "#texture"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "(not (#hover_text = ''))",
-                    "target_property_name": "#visible"
                   }
                 ],
                 "color": [
@@ -13771,21 +13717,15 @@
                 "bindings": [
                   {
                     "binding_collection_name": "container_items",
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_name": "#hover_text",
                     "binding_type": "collection"
                   },
                   {
-                    "binding_condition": "always",
+                    "binding_condition": "visible",
                     "binding_type": "view",
                     "source_property_name": "('textures/ui/sg/qe' + (('%.115s' * (#hover_text - '§o' - '§f')) - ('%.114s' * (#hover_text - '§o' - '§f'))) + (('%.118s' * (#hover_text - '§o' - '§f')) - ('%.117s' * (#hover_text - '§o' - '§f'))))",
                     "target_property_name": "#texture"
-                  },
-                  {
-                    "binding_condition": "always",
-                    "binding_type": "view",
-                    "source_property_name": "(not (#hover_text = ''))",
-                    "target_property_name": "#visible"
                   }
                 ],
                 "layer": 3,

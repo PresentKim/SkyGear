@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/presentkim/skygear/common/invui"
 	"github.com/presentkim/skygear/tools/internal/imgio"
 )
 
@@ -385,14 +386,15 @@ func main() {
 	// circle.
 	lines := []color.NRGBA{{0x9a, 0x9a, 0xa6, 255}, {0x4c, 0xc9, 0x3c, 255}, {0x4a, 0x4a, 0x55, 255}}
 	edges := []color.NRGBA{{0xdc, 0xdc, 0xe2, 255}, {0x4c, 0xc9, 0x3c, 255}, {0x6a, 0x6a, 0x74, 255}}
+	letter := func(n int) string { return invui.QuestDigits[n : n+1] }
 	for st, c := range lines {
-		write(fmt.Sprintf("ql1%d", st), solid(c))
-		write(fmt.Sprintf("ql0%d", st), solid(color.NRGBA{}))
+		write("ql"+letter(1)+letter(st), solid(c))
+		write("ql"+letter(0)+letter(st), solid(color.NRGBA{}))
 	}
 	for sh, name := range []string{"square", "diamond", "circle"} {
-		write(fmt.Sprintf("qf%d", sh), questShape(name, false))
+		write("qf"+letter(sh), questShape(name, false))
 		for st, c := range edges {
-			write(fmt.Sprintf("qe%d%d", sh, st), tint(questShape(name, true), c))
+			write("qe"+letter(sh)+letter(st), tint(questShape(name, true), c))
 		}
 	}
 	sliced("frame1", frame(1), 1)

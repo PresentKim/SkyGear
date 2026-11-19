@@ -963,7 +963,7 @@ func questDefs(d obj, gap func(int) obj) {
 	}
 	pictured := func(name, texture string, size, offset []any, layer int) obj {
 		return obj{name: image("#texture", size, layer, with(obj{"offset": offset,
-			"bindings": []any{slotText(), view("('textures/ui/sg/"+texture, "#texture"), view(filled, "#visible")}}, top))}
+			"bindings": []any{slotText(), view("('textures/ui/sg/"+texture, "#texture")}}, top))}
 	}
 	parts := []any{obj{"canvas": rect(rgb(0x1c, 0x1c, 0x22), []any{questCellW, questCellH}, nil, 0)}}
 	for p, ln := range []struct {
