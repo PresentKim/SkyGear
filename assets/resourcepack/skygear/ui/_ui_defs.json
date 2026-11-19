@@ -1,5 +1,6 @@
 {
   "ui_defs": [
-    "ui/sg_machine.json"
+    "ui/sg_machine.json",
+    "ui/sg_terminal.json"
   ]
 }

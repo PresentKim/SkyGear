@@ -1035,83 +1035,23 @@
     "$sg_machine_slots": "sg_machine.miner1_slots",
     "$sg_machine_outputs": "(#collection_index = 13)"
   },
-  // The storage network terminal (content/skygear/netstore/terminalui.go):
-  // the network's items in twelve rows of slots (the last left empty for an
-  // item going in) and the buttons (slots 108 to 116) in a column left of the
-  // window. An item's name starts with its count text
+  // The storage network terminal (content/skygear/netstore/terminalui.go,
+  // slots in netstore/termlayout): its slots are ui/sg_terminal.json
+  // (tools/termuigen). A kind's picture is named with its count text
   // (common/invui CountMark): a run of format codes the tooltip hides, cut
   // off here by its length in bytes and drawn at the slot's bottom right, as
   // a count over 64 does not fit the stack. Taking out the format signs from
   // a text that reads as a number gives an empty text, so the reset code's
   // letter stays in front and the clip box cuts it off with the blanks.
   "terminal_panel@sg_machine.machine_panel": {
-    "$sg_machine_slots": "sg_machine.terminal_slots",
+    "$sg_machine_slots": "sg_terminal.slots",
     "$sg_machine_outputs": "(#collection_index = -1)",
     "$sg_machine_root_size": [ 184, 208 ],
     "$sg_machine_top_size": [ "100%", 120 ],
     "$sg_machine_bar": "sg_machine.close_bar"
   },
-  // Five rows of the page show at a time over the vanilla inventory, which
-  // keeps its place under them; the page scrolls.
-  "terminal_slots": {
-    "type": "panel",
-    "size": [ 168, 90 ],
-    "anchor_from": "top_left",
-    "anchor_to": "top_left",
-    "controls": [
-      {
-        "list@common.container_scroll_panel": {
-          "$touch": false,
-          "$scrolling_panel_size": [ 168, 90 ],
-          "size": [ 168, 90 ],
-          "$scroll_view_port_size": [ 168, 90 ],
-          "$scroll_view_port_size_touch": [ 168, 90 ],
-          "$scroll_view_port_offset": [ 0, 0 ],
-          "$scroll_view_port_offset_touch": [ 0, 0 ],
-          "$scrolling_content": "sg_machine.terminal_grid",
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "buttons": {
-          "type": "image",
-          "texture": "textures/ui/dialog_background_opaque",
-          "size": [ 26, "100%c + 8px" ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_right",
-          "offset": [ -10, -21 ],
-          "controls": [
-            {
-              // A slot without a button (the page arrows on a single page)
-              // takes no room.
-              "column": {
-                "type": "stack_panel",
-                "orientation": "vertical",
-                "collection_name": "container_items",
-                "size": [ 18, "100%c" ],
-                "offset": [ 4, 4 ],
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "controls": [
-                  { "b0@sg_machine.net_button": { "collection_index": 108 } },
-                  { "b1@sg_machine.net_button": { "collection_index": 109 } },
-                  { "b2@sg_machine.net_button": { "collection_index": 110 } },
-                  { "b3@sg_machine.net_button": { "collection_index": 111 } },
-                  { "b4@sg_machine.net_button": { "collection_index": 112 } },
-                  { "b5@sg_machine.net_button": { "collection_index": 113 } },
-                  { "b6@sg_machine.net_button": { "collection_index": 114 } },
-                  { "b7@sg_machine.net_button": { "collection_index": 115 } },
-                  { "b8@sg_machine.net_button": { "collection_index": 116 } }
-                ]
-              }
-            }
-          ]
-        }
-      }
-    ]
-  },
-  // A button slot of the terminal, hidden while empty. It reads the slot as
+  // A button slot of the terminal, hidden while empty so it takes no room
+  // in the button column (the page arrows on a single page). It reads the slot as
   // #item_id_aux, which stays while the slot is pressed (bar_button).
   "net_button@sg_machine.net_slot": {
     "bindings": [
@@ -1119,37 +1059,11 @@
       { "binding_type": "view", "source_property_name": "(#item_id_aux > 0)", "target_property_name": "#visible" }
     ]
   },
-  "terminal_grid": {
-    "type": "grid",
-    "size": [ 162, 216 ],
-    "grid_dimensions": [ 9, 12 ],
-    "grid_item_template": "sg_machine.net_slot",
-    "collection_name": "container_items",
-    "anchor_from": "top_left",
-    "anchor_to": "top_left"
-  },
   "net_slot": {
     "type": "panel",
     "size": [ 18, 18 ],
     "controls": [
-      { "slot@sg_machine.slot": {} },
-      // An empty slot of the list takes an item into the network.
-      {
-        "drop": {
-          "type": "image",
-          "texture": "textures/ui/ThinPlus",
-          "size": [ 8, 8 ],
-          "alpha": 0.35,
-          "layer": 3,
-          "bindings": [
-            { "binding_type": "collection", "binding_collection_name": "container_items", "binding_name": "#hover_text", "binding_condition": "always" },
-            { "binding_type": "collection_details", "binding_collection_name": "container_items" },
-            { "binding_type": "view", "binding_condition": "always", "source_property_name": "((#hover_text = '') and (#collection_index < 108))", "target_property_name": "#visible" }
-          ]
-        }
-      },
-      { "count@sg_machine.net_count": {} },
-      { "count_long@sg_machine.net_count_long": {} }
+      { "slot@sg_machine.slot": {} }
     ]
   },
   "net_count": {

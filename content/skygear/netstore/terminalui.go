@@ -20,6 +20,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/decor"
 	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/netstore/termlayout"
 	"github.com/presentkim/skygear/content/skygear/storage"
 )
 
@@ -64,27 +65,15 @@ func gridCells(g invclick.Area) []item.Stack {
 	return cells
 }
 
-// The slots of the terminal window: the page of the list, a slot left empty
-// after it for the items put into the network (a shift click moves a stack
-// to the first empty slot), then the buttons of the last row. The marker
-// routes the window to the pack's terminal panel (ui/sg_machine.json),
-// which draws the counts of the list.
+// The slots of the terminal window are termlayout's. The marker routes the
+// window to the pack's terminal panel (ui/sg_terminal.json).
 const (
-	termPage      = 9*12 - 1
-	termListSlots = termPage + 1
-	termPrev      = termListSlots
-	termSearch    = termListSlots + 1
-	termSort      = termListSlots + 2
-	termInfo      = termListSlots + 3
-	termGrid      = termListSlots + 4
-	termTasks     = termListSlots + 5
-	termTake      = termListSlots + 6
-	termPut       = termListSlots + 7
-	termNext      = termListSlots + 8
-	termSize      = termListSlots + 9
-	termMarker    = "§d§m§t"
-	// termShown marks the stacks of the list, which are only pictures.
+	termPage   = termlayout.Kinds
+	termMarker = "§d§m§t"
+	// termShown marks the stacks of the window that are only pictures or
+	// buttons; termCraft a take slot's stack of a kind the network crafts.
 	termShown = "sg_terminal_shown"
+	termCraft = "sg_terminal_craft"
 )
 
 // terminal is the network's list for one player.
@@ -161,14 +150,14 @@ func (w *termWindow) list(p *player.Player, tx *world.Tx) terminal {
 // filtered by query.
 func showTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, query string) {
 	w := &termWindow{s: s, h: p.H(), pos: pos, query: strings.TrimSpace(query)}
-	w.storage = chestui.NewStorage(termSize, termMarker+"§r"+i18n.T(i18n.Of(p), "netstore.terminal.title"))
+	w.storage = chestui.NewStorage(termlayout.Size, termMarker+"§r"+i18n.T(i18n.Of(p), "netstore.terminal.title"))
 	w.fill(p, tx)
 	w.storage.Inventory().Handle(termHandler{w})
 	w.storage.OnChange(w.changed)
 	w.storage.Open(p, nil)
 }
 
-// shown is the picture of a kind in the list: one of it, named with its
+// shown is the picture of a kind in its show slot: one of it, named with its
 // count text and the item's name, the count and the clicks in its lore.
 func shown(lang string, proto item.Stack, count string, lore ...string) item.Stack {
 	st := proto.Grow(1 - proto.Count())
@@ -181,7 +170,8 @@ func termButton(it world.Item, text string, lore ...string) item.Stack {
 	return item.NewStack(it, 1).WithCustomName(invui.CountMark("") + "§r" + text).WithLore(lore...).WithValue(termShown, true)
 }
 
-// fill writes the window's slots: the page of the list and the buttons.
+// fill writes the window's slots: the insert slots empty, the page of the
+// list as take and show slots, and the buttons.
 func (w *termWindow) fill(p *player.Player, tx *world.Tx) {
 	w.filling = true
 	defer func() { w.filling = false }()
@@ -190,51 +180,57 @@ func (w *termWindow) fill(p *player.Player, tx *world.Tx) {
 	pages := max(1, (t.size()+termPage-1)/termPage)
 	w.page = min(max(w.page, 0), pages-1)
 	inv := w.storage.Inventory()
-	for slot := range termListSlots {
-		i := w.page*termPage + slot
-		st := item.Stack{}
+	for slot := range termlayout.Take0 {
+		_ = inv.SetItem(slot, item.Stack{})
+	}
+	for k := range termlayout.Kinds {
+		i := w.page*termPage + k
+		take, show := item.Stack{}, item.Stack{}
 		switch {
-		case slot >= termPage:
 		case i < len(t.list):
 			e := t.list[i]
-			st = shown(lang, e.Item, ui.CountText(int(e.Count)), fmt.Sprintf(i18n.T(lang, "storage.tip"), e.Count))
+			take = e.Item.Grow(int(min(e.Count, int64(e.Item.MaxCount()))) - e.Item.Count())
+			show = shown(lang, e.Item, ui.CountText(int(e.Count)), fmt.Sprintf(i18n.T(lang, "storage.tip"), e.Count))
 		case i < t.size():
-			st = shown(lang, Proto(t.n.Sess, t.craft[i-len(t.list)]), "+", i18n.T(lang, "netstore.terminal.craftTip"))
+			proto := Proto(t.n.Sess, t.craft[i-len(t.list)])
+			take = proto.Grow(1 - proto.Count()).WithValue(termCraft, true)
+			show = shown(lang, proto, "+", i18n.T(lang, "netstore.terminal.craftTip"))
 		}
-		_ = inv.SetItem(slot, st)
+		_ = inv.SetItem(termlayout.Take0+k, take)
+		_ = inv.SetItem(termlayout.Show0+k, show)
 	}
-	for slot := termListSlots; slot < termSize; slot++ {
+	for slot := termlayout.Button0; slot < termlayout.Size; slot++ {
 		_ = inv.SetItem(slot, item.Stack{})
 	}
 	page := fmt.Sprintf(i18n.T(lang, "netstore.terminal.page"), w.page+1, pages)
 	if w.page > 0 {
-		_ = inv.SetItem(termPrev, termButton(item.Arrow{}, i18n.T(lang, "netstore.terminal.prev"), page))
+		_ = inv.SetItem(termlayout.Prev, termButton(item.Arrow{}, i18n.T(lang, "netstore.terminal.prev"), page))
 	}
 	if w.page < pages-1 {
-		_ = inv.SetItem(termNext, termButton(item.Arrow{}, i18n.T(lang, "netstore.terminal.next"), page))
+		_ = inv.SetItem(termlayout.Next, termButton(item.Arrow{}, i18n.T(lang, "netstore.terminal.next"), page))
 	}
 	search := i18n.T(lang, "netstore.terminal.search")
 	if w.query != "" {
 		search += "§r  §e" + w.query
 	}
-	_ = inv.SetItem(termSearch, termButton(item.Spyglass{}, search, i18n.T(lang, "storage.search.label")))
-	_ = inv.SetItem(termSort, termButton(item.Clock{}, i18n.T(lang, sortKeys[orders.Of(w.s)[w.h]]), i18n.T(lang, "netstore.terminal.sortNext")))
+	_ = inv.SetItem(termlayout.Search, termButton(item.Spyglass{}, search, i18n.T(lang, "storage.search.label")))
+	_ = inv.SetItem(termlayout.Sort, termButton(item.Clock{}, i18n.T(lang, sortKeys[orders.Of(w.s)[w.h]]), i18n.T(lang, "netstore.terminal.sortNext")))
 	if t.n == nil {
-		_ = inv.SetItem(termInfo, termButton(machine.Info{}, i18n.T(lang, "netstore.terminal.title"), i18n.T(lang, "netstore.terminal.offline")))
+		_ = inv.SetItem(termlayout.Info, termButton(machine.Info{}, i18n.T(lang, "netstore.terminal.title"), i18n.T(lang, "netstore.terminal.offline")))
 		return
 	}
 	var items int64
 	t.n.Root.Each(func(_ storagenet.Key, c int64) { items += c })
 	info := strings.Split(terminalInfo(lang, len(entriesOf(t.n)), items, w.query, t.found), "\n")
-	_ = inv.SetItem(termInfo, termButton(machine.Info{}, i18n.T(lang, "netstore.terminal.title"), append(info, page)...))
+	_ = inv.SetItem(termlayout.Info, termButton(machine.Info{}, i18n.T(lang, "netstore.terminal.title"), append(info, page)...))
 	if _, ok := gridOf(tx, w.pos); ok {
-		_ = inv.SetItem(termGrid, termButton(block.CraftingTable{}, i18n.T(lang, "netstore.terminal.grid")))
+		_ = inv.SetItem(termlayout.Grid, termButton(block.CraftingTable{}, i18n.T(lang, "netstore.terminal.grid")))
 	}
 	if MonitorHook != nil {
-		_ = inv.SetItem(termTasks, termButton(item.Book{}, i18n.T(lang, "netstore.terminal.monitor")))
+		_ = inv.SetItem(termlayout.Tasks, termButton(item.Book{}, i18n.T(lang, "netstore.terminal.monitor")))
 	}
-	_ = inv.SetItem(termTake, termButton(block.Chest{}, i18n.T(lang, "netstore.terminal.takeMatching")))
-	_ = inv.SetItem(termPut, termButton(block.Hopper{}, i18n.T(lang, "netstore.terminal.putAll")))
+	_ = inv.SetItem(termlayout.TakeMatching, termButton(block.Chest{}, i18n.T(lang, "netstore.terminal.takeMatching")))
+	_ = inv.SetItem(termlayout.PutAll, termButton(block.Hopper{}, i18n.T(lang, "netstore.terminal.putAll")))
 }
 
 // sortKeys name the orders of the list by their index (terminalList).
@@ -248,23 +244,16 @@ func (w *termWindow) press(slot int) {
 		t := w.list(p, tx)
 		lang := i18n.Of(p)
 		switch {
-		case slot < termPage:
-			i := w.page*termPage + slot
-			switch {
-			case i < len(t.keys):
-				k := t.keys[i]
-				if takeInto(t.n, p.Inventory(), k, Proto(t.n.Sess, k).MaxCount()) > 0 {
-					tx.PlaySound(w.pos.Vec3Centre(), sound.ItemAdd{})
-				}
-			case i < t.size():
+		case slot >= termlayout.Take0 && slot < termlayout.Show0:
+			if i := w.page*termPage + slot - termlayout.Take0; i >= len(t.keys) && i < t.size() && RequestHook != nil {
 				RequestHook(w.s, p, t.n, t.craft[i-len(t.keys)])
 				return
 			}
-		case slot == termPrev:
+		case slot == termlayout.Prev:
 			w.page--
-		case slot == termNext:
+		case slot == termlayout.Next:
 			w.page++
-		case slot == termSearch:
+		case slot == termlayout.Search:
 			reopen := func(p *player.Player, q string) {
 				p.H().Do(func(tx *world.Tx, e world.Entity) { showTerminal(w.s, e.(*player.Player), tx, w.pos, q) })
 			}
@@ -273,22 +262,22 @@ func (w *termWindow) press(slot int) {
 				func(p *player.Player, _ *world.Tx, q string) { reopen(p, q) },
 				func(p *player.Player, _ *world.Tx) { reopen(p, w.query) })
 			return
-		case slot == termSort:
+		case slot == termlayout.Sort:
 			orders.Of(w.s)[w.h] = (orders.Of(w.s)[w.h] + 1) % len(sortKeys)
 			w.kept = nil
-		case slot == termGrid:
+		case slot == termlayout.Grid:
 			if _, ok := gridOf(tx, w.pos); ok {
 				showGrid(w.s, p, tx, w.pos, w.query)
 				return
 			}
-		case slot == termTasks && MonitorHook != nil && t.n != nil:
+		case slot == termlayout.Tasks && MonitorHook != nil && t.n != nil:
 			MonitorHook(w.s, p, t.n)
 			return
-		case slot == termTake && t.n != nil:
+		case slot == termlayout.TakeMatching && t.n != nil:
 			if takeMatching(t.n, p.Inventory(), t.list) > 0 {
 				tx.PlaySound(w.pos.Vec3Centre(), sound.ItemAdd{})
 			}
-		case slot == termPut && t.n != nil:
+		case slot == termlayout.PutAll && t.n != nil:
 			if putMain(t.n, p.Inventory()) > 0 {
 				tx.PlaySound(w.pos.Vec3Centre(), sound.ItemAdd{})
 			}
@@ -297,46 +286,81 @@ func (w *termWindow) press(slot int) {
 	})
 }
 
-// changed puts an item that came into an empty slot of the list into the
-// network; what it does not take goes back to the player.
-func (w *termWindow) changed(slot int, _, after item.Stack) {
-	if w.filling || slot >= termListSlots || after.Empty() {
+// changed follows what the player moved in the window: items that left a
+// take slot come out of the network, items that came into an insert or take
+// slot go into it (what it does not take goes back to the player), and the
+// window is written again.
+func (w *termWindow) changed(slot int, before, after item.Stack) {
+	if w.filling || slot >= termlayout.Show0 {
 		return
 	}
-	if _, ok := after.Value(termShown); ok {
+	var taken, put item.Stack
+	switch {
+	case after.Empty() && before.Empty():
 		return
+	case before.Empty():
+		put = after
+	case after.Empty() || after.Comparable(before) && after.Count() < before.Count():
+		taken = before.Grow(after.Count() - before.Count())
+	case after.Comparable(before):
+		put = after.Grow(before.Count() - after.Count())
+	default:
+		taken, put = before, after
+	}
+	if _, craft := taken.Value(termCraft); craft {
+		taken = item.Stack{}
 	}
 	w.h.Do(func(tx *world.Tx, e world.Entity) {
 		p := e.(*player.Player)
-		rest := after.Grow(-int(netInsert(At(tx, w.pos), after)))
-		if !rest.Empty() {
-			if n, _ := p.Inventory().AddItem(rest); n < rest.Count() {
-				p.Drop(rest.Grow(-n))
+		n := At(tx, w.pos)
+		if !taken.Empty() {
+			if short := taken.Count() - netExtract(n, KeyOf(taken), taken.Count()).Count(); short > 0 {
+				_ = p.Inventory().RemoveItem(taken.Grow(short - taken.Count()))
 			}
-		} else {
-			tx.PlaySound(w.pos.Vec3Centre(), sound.ItemAdd{})
+		}
+		if !put.Empty() {
+			rest := put.Grow(-int(netInsert(n, put)))
+			if !rest.Empty() {
+				if got, _ := p.Inventory().AddItem(rest); got < rest.Count() {
+					p.Drop(rest.Grow(-got))
+				}
+			} else {
+				tx.PlaySound(w.pos.Vec3Centre(), sound.ItemAdd{})
+			}
 		}
 		w.fill(p, tx)
 	})
 }
 
-// termHandler keeps the list's pictures and the buttons in the window: a
-// take is a press, and only an empty slot of the list takes an item.
+// termHandler lets the player take from the take slots and put into the
+// insert and take slots; a take of a craftable kind's stack or of a button is
+// a press.
 type termHandler struct{ w *termWindow }
 
-func (h termHandler) HandleTake(ctx *inventory.Context, slot int, _ item.Stack) {
+func (h termHandler) HandleTake(ctx *inventory.Context, slot int, it item.Stack) {
+	_, craft := it.Value(termCraft)
+	if slot >= termlayout.Take0 && slot < termlayout.Show0 && !craft {
+		return
+	}
 	ctx.Cancel()
-	h.w.press(slot)
+	if slot >= termlayout.Take0 {
+		h.w.press(slot)
+	}
 }
 
 func (h termHandler) HandlePlace(ctx *inventory.Context, slot int, _ item.Stack) {
-	if cur, _ := h.w.storage.Inventory().Item(slot); slot < termListSlots && cur.Empty() {
+	if slot < termlayout.Show0 {
 		return
 	}
 	ctx.Cancel()
 }
 
-func (termHandler) HandleDrop(ctx *inventory.Context, _ int, _ item.Stack) { ctx.Cancel() }
+func (h termHandler) HandleDrop(ctx *inventory.Context, slot int, it item.Stack) {
+	if _, craft := it.Value(termCraft); slot >= termlayout.Take0 && slot < termlayout.Show0 && !craft {
+		return
+	}
+	ctx.Cancel()
+}
 
 // craftOnce makes the grid's recipe once if the island of s has it open:
 // one item leaves each cell, and a cell left empty takes the same item from
