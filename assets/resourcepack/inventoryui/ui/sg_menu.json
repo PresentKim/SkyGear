@@ -10157,7 +10157,7 @@
             {
               "binding_condition": "always",
               "binding_type": "view",
-              "source_property_name": "(not ((#hover_text - 'textures/') = #hover_text))",
+              "source_property_name": "(not ((('%.85s' * (#hover_text - '§o' - '§f')) - 'textures/') = ('%.85s' * (#hover_text - '§o' - '§f'))))",
               "target_property_name": "#visible"
             }
           ],
@@ -10188,7 +10188,7 @@
             {
               "binding_condition": "always",
               "binding_type": "view",
-              "source_property_name": "((#hover_text - 'textures/' - '§z§e') = #hover_text)",
+              "source_property_name": "(((('%.85s' * (#hover_text - '§o' - '§f')) - 'textures/') = ('%.85s' * (#hover_text - '§o' - '§f'))) and ((#hover_text - '§z§e') = #hover_text))",
               "target_property_name": "#visible"
             }
           ],
@@ -13412,7 +13412,7 @@
                   {
                     "binding_condition": "always",
                     "binding_type": "view",
-                    "source_property_name": "(not ((#hover_text - 'textures/') = #hover_text))",
+                    "source_property_name": "(not ((('%.85s' * (#hover_text - '§o' - '§f')) - 'textures/') = ('%.85s' * (#hover_text - '§o' - '§f'))))",
                     "target_property_name": "#visible"
                   }
                 ],
@@ -13443,7 +13443,7 @@
                   {
                     "binding_condition": "always",
                     "binding_type": "view",
-                    "source_property_name": "((#hover_text - 'textures/' - '§z§e') = #hover_text)",
+                    "source_property_name": "(((('%.85s' * (#hover_text - '§o' - '§f')) - 'textures/') = ('%.85s' * (#hover_text - '§o' - '§f'))) and ((#hover_text - '§z§e') = #hover_text))",
                     "target_property_name": "#visible"
                   }
                 ],
@@ -15294,7 +15294,7 @@
                         {
                           "binding_condition": "always",
                           "binding_type": "view",
-                          "source_property_name": "(not ((#hover_text - 'textures/') = #hover_text))",
+                          "source_property_name": "(not ((('%.85s' * (#hover_text - '§o' - '§f')) - 'textures/') = ('%.85s' * (#hover_text - '§o' - '§f'))))",
                           "target_property_name": "#visible"
                         }
                       ],
@@ -15325,7 +15325,7 @@
                         {
                           "binding_condition": "always",
                           "binding_type": "view",
-                          "source_property_name": "((#hover_text - 'textures/' - '§z§e') = #hover_text)",
+                          "source_property_name": "(((('%.85s' * (#hover_text - '§o' - '§f')) - 'textures/') = ('%.85s' * (#hover_text - '§o' - '§f'))) and ((#hover_text - '§z§e') = #hover_text))",
                           "target_property_name": "#visible"
                         }
                       ],
@@ -22428,7 +22428,7 @@
                   {
                     "binding_condition": "always",
                     "binding_type": "view",
-                    "source_property_name": "(not ((#hover_text - 'textures/') = #hover_text))",
+                    "source_property_name": "(not ((('%.85s' * (#hover_text - '§o' - '§f')) - 'textures/') = ('%.85s' * (#hover_text - '§o' - '§f'))))",
                     "target_property_name": "#visible"
                   }
                 ],
@@ -22459,7 +22459,7 @@
                   {
                     "binding_condition": "always",
                     "binding_type": "view",
-                    "source_property_name": "((#hover_text - 'textures/' - '§z§e') = #hover_text)",
+                    "source_property_name": "(((('%.85s' * (#hover_text - '§o' - '§f')) - 'textures/') = ('%.85s' * (#hover_text - '§o' - '§f'))) and ((#hover_text - '§z§e') = #hover_text))",
                     "target_property_name": "#visible"
                   }
                 ],

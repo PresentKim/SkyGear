@@ -326,7 +326,9 @@ const cellTipWidth = 150
 // faceIcon draws the icon of a face (invui.Face): its texture, its item, or
 // nothing for a blank one.
 func faceIcon(size []any) obj {
-	return iconOf(size, facePath(), "((#hover_text - 'textures/' - '"+invui.KindBlank+"') = #hover_text)")
+	p := iconOf(size, facePath(), "((("+faceHead()+" - 'textures/') = "+faceHead()+") and ((#hover_text - '"+invui.KindBlank+"') = #hover_text))")
+	p["controls"].([]any)[0].(obj)["image"].(obj)["bindings"].([]any)[2] = view("(not (("+faceHead()+" - 'textures/') = "+faceHead()+"))", "#visible")
+	return p
 }
 
 func iconOf(size []any, path, isItem string) obj {
