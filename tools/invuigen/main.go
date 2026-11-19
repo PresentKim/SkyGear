@@ -299,7 +299,7 @@ func defs() obj {
 			"anchor_from": "bottom_right", "anchor_to": "bottom_right", "offset": []any{0, 1}, "text": "#text",
 			"bindings": []any{slotValue("#inventory_stack_count"), view("('§r' + #inventory_stack_count)", "#text")},
 		}},
-		obj{"chosen": image("textures/ui/sg/slot_chosen", []any{18, 18}, 6, obj{"bindings": shown(has(invui.KindChosen))})},
+		obj{"chosen": image("textures/ui/sg/slot_chosen", []any{18, 18}, 1, obj{"bindings": shown(has(invui.KindChosen))})},
 	)
 	d["mini_face"] = panel([]any{18, 18}, obj{"icon": with(itemIcon([]any{12, 12}), obj{"layer": 2})})
 	cellButton := button([]any{18, 18}, "", "", "", true)
@@ -520,6 +520,7 @@ func defs() obj {
 						obj{"window": slots("vertical", []any{"100%", "100%"}, []any{at("g", "window_gate", invui.SlotKey, nil)})},
 						obj{"home": slots("vertical", []any{"100%", "100%"}, []any{at("g", "home_gate", invui.SlotKey, nil)})},
 						obj{"lobby": slots("vertical", []any{"100%", "100%"}, []any{at("g", "lobby_gate", invui.SlotKey, nil)})},
+						obj{"loading": slots("vertical", []any{"100%", "100%"}, []any{at("g", "loading_gate", invui.SlotKey, nil)})},
 					},
 				}},
 			},
@@ -707,7 +708,27 @@ func homeDefs(d obj) {
 		obj{"profile": profile}, obj{"corner": corner}, obj{"side": side}, obj{"feed": feed}, obj{"start": start},
 		obj{"overlay": with(slots("vertical", []any{"100%", "100%"}, []any{at("g", "home_overlay_gate", invui.SlotKey, nil)}), obj{"layer": 20})},
 	), obj{"bindings": shown(has(invui.KeyHome))})
-	d["window_gate"] = with(panel([]any{"100%", "100%"}, ref("w", "window", nil)), obj{"bindings": shown("((#hover_text - '" + invui.KeyHome + "') = #hover_text)")})
+	d["window_gate"] = with(panel([]any{"100%", "100%"}, ref("w", "window", nil)), obj{"bindings": shown("(((#hover_text - '" + invui.KeyHome + "') = #hover_text) and ((#hover_text - '" + invui.KeyLoading + "') = #hover_text))")})
+
+	// The loading screen over the whole screen.
+	line := func(name string, slot int, color []any, scale float64, h int) obj {
+		def := "loading_" + name
+		d[def] = panel([]any{"100%", h}, obj{"l": label(color, scale, []any{"100%", "default"}, obj{"text_alignment": "center", "shadow": true})})
+		return obj{name: slots("vertical", []any{"100%", h}, []any{at("t", def, slot, nil)})}
+	}
+	d["loading_gate"] = with(panel([]any{"100%", "100%"},
+		obj{"bg": rect(rgb(0x2b, 0x4a, 0x7a), []any{"100%", "100%"}, nil, 1)},
+		obj{"middle": with(obj{"type": "stack_panel", "orientation": "vertical", "size": []any{300, "100%c"}, "layer": 2, "controls": []any{
+			obj{"pic": panel([]any{"100%", 32}, iconAt("i", invui.RowIcon0, 32, nil))},
+			obj{"gap": panel([]any{"100%", 8})},
+			line("title", invui.SlotTitle, white, 1.5, 16),
+			line("sub", invui.SlotInfo, lobbyHead, 0.9, 10),
+			obj{"gap2": panel([]any{"100%", 10})},
+			line("line", invui.SlotBody, white, 1.0, 10),
+		}}, obj{"anchor_from": "center", "anchor_to": "center"})},
+		obj{"tip": with(slots("vertical", []any{300, 10}, []any{at("t", "loading_tip", invui.Cell0, nil)}), obj{"layer": 2, "anchor_from": "bottom_middle", "anchor_to": "bottom_middle", "offset": []any{0, -12}})},
+	), obj{"bindings": shown(has(invui.KeyLoading))})
+	d["loading_tip"] = panel([]any{300, 10}, obj{"l": label(lobbyHead, 0.8, []any{"100%", "default"}, obj{"text_alignment": "center", "shadow": true})})
 
 	d["lobby_name"] = panel([]any{"100%c", 18}, obj{"l": label(white, 1.86, []any{"default", "default"}, obj{"shadow": true})})
 	d["lobby_gate"] = with(panel([]any{"100%", "100%"},

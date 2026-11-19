@@ -106,6 +106,11 @@ const (
 	KeySplit     = "sp"
 	KeyListSplit = "ls"
 	KeyHome      = "hm"
+	// KeyLoading draws the loading screen over the whole screen: the
+	// picture in the first row's icon, the title in SlotTitle, the small
+	// line under it in SlotInfo, the line ending in dots in SlotBody and the
+	// tip in the first cell.
+	KeyLoading = "ld"
 	KeyRows      = "Q"
 	// KeyLobby after a key draws the lobby's logo and name over the screen.
 	KeyLobby = "Y"
