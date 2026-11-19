@@ -140,7 +140,7 @@ const (
 	KindChosen    = "§z§c"
 	KindHeading   = "§z§h"
 	KindDivider   = "§z§d"
-	KindToggleOff = "§z§o"
+	KindToggleOff = "§z§v"
 	KindToggleOn  = "§z§x"
 	KindTab       = "§z§t"
 	KindTabOn     = "§z§u"
