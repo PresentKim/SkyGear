@@ -38,7 +38,10 @@ HUD·입력 폼처럼 게임과 상관없는 것은 `assets/resourcepack/sgui` �
 
 - 칸 버튼의 누름은 바닐라 빠른 이동(`button.container_auto_place`)으로 간다. 칸 버튼은 바닐라 칸 버튼처럼 포커스를 켜고 `button.container_slot_hovered` 를 둔다. 이것이 없으면 클라이언트가 요청을 보내지 않는다.
 - 서버의 창고 핸들러는 칸에서 꺼내기·버리기를 그 칸의 누름으로 받고, 모든 이동을 취소한다(`invui` `handler`). 누른 칸의 요소가 돌고, 새 화면을 보이지 않았으면 `ui.Idle` 이 돌며, 그것도 화면을 보이지 않으면 창이 닫힌다.
-- 창을 닫으면(Esc, 닫기 버튼) 화면의 닫기 동작이 있으면 그것이, 없으면 `ui.Idle` 이 돈다.
+- 창을 닫으면(닫기 버튼) 화면의 닫기 동작이 있으면 그것이, 없으면 `ui.Idle` 이 돈다.
+- Esc(포켓의 뒤로가기도 같다)는 창을 닫지 않고 숨은 칸 `invui.SlotEsc` 를 누른다(`sg_menu.esc_button` 의 전역 매핑 `button.menu_cancel` → `button.container_auto_place`). 서버는 창을 연 채로 닫기 동작이나 `ui.Idle` 을 돌리고, 새 화면이 없을 때만 창을 닫는다. 그래서 다음 화면이 그 자리에서 바뀌고 창이 다시 열리며 깜빡이지 않는다. 메뉴 창 전체를 덮는 모달 입력 판(`cover`)은 키를 먹으므로, Esc 가 빠져나갈 길로 `button.menu_cancel`·`button.menu_inventory_cancel` → `button.menu_exit` 매핑도 둔다.
+- 메뉴 창은 열고 닫을 때 화면 애니메이션이 없다(`chest_screen.json` 이 표식이 있는 제목에 `$screen_animations`·`$background_animations` 를 비운다).
+- 발전과제(`ui.QuestBookMenu`)는 넓은 창(`KeyQuest`)에 그린다: 왼쪽에 장 목록(아이콘, 이름, 개수, 새 표시), 오른쪽에 장 제목과 어두운 판. 판은 퀘스트 하나에 칸 하나(`invui.QuestGrids` 의 11×10 또는 7×15)이고, 퀘스트는 칸 왼쪽 위 18픽셀에 모양(사각·마름모·원)과 상태(열림 흰색·완료 초록·잠김 회색과 빨간 금지 표시)로 그린다. 선은 칸 오른쪽 틈의 세로 길(lane)을 지나 다음 열로 간다. 칸 이름이 길면 끝이 잘리므로 종류 표식은 개수 글자 바로 뒤에 둔다.
 - 창은 플레이어마다 하나다. `ui.FormOpen` 은 메뉴 창이나 입력 폼이 열려 있는지, `ui.ShowingKey` 는 열린 화면의 키를 알린다. 메뉴 창이 아닌 화면을 열면 커서에 든 아이템은 인벤토리로 돌아간다(`ui.ReturnCarried`).
 
 ### 로비와 로딩 화면
