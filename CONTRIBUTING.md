@@ -132,16 +132,14 @@ Thanks for your interest. These are the rules the project follows.
   for shared items (the client recipe book only lists results that are in the
   creative inventory; `TestEveryGameRecipeResultIsCreative` checks this).
 
-## Ore UI page
+## Menu window
 
-- The DDUI screens are drawn by the React page in `web/oreui` (see
-  `docs/tech/oreui.md`). After changing anything under `web/oreui/src` or its
-  `package-lock.json`, run `npm ci --ignore-scripts` once and `npm run build`
-  in `web/oreui`, and commit the rebuilt `oui-app.js` and `oui-app.css` in
-  `assets/resourcepack/oreui/hbui/`. `TestOreUIBundleFresh` fails when the
-  bundle does not match the sources.
-- Always install with `--ignore-scripts`. Run the page's tests with
-  `npx vitest run` and `npm run typecheck`.
+- Menus are drawn in the menu window of `common/invui`, a chest window whose
+  slots the server rewrites (see `docs/tech/json-ui.md`). Its JSON UI,
+  `assets/resourcepack/inventoryui/ui/sg_menu.json`, is generated: after
+  changing `common/invui/layout.go` or `tools/invuigen`, run
+  `go run ./tools/invuigen` from the repository root and commit the result.
+  Do not edit `sg_menu.json` by hand.
 
 ## Patched Dragonfly
 

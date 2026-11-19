@@ -25,7 +25,7 @@
 | `network.go`, `nodes.go` | 망 찾기·무효화(`At`, `Invalidate`), 컨트롤러 틱, 노드별 설정(`Config`) |
 | `diskstore.go` | 디스크 내용의 저장 |
 | `terminal.go` | 단말·컨트롤러 클릭, 넣기·꺼내기, 호퍼·도관 연결 |
-| `terminalui.go` | 단말 창(인벤토리 화면, [oreui.md](oreui.md)): 망 목록, 3×3 제작 칸(단말 칸 0~8), 클릭 규칙 |
+| `terminalui.go` | 단말 창(인벤토리 화면 `ui.ShowInventory`, 메뉴 창에 누를 수 있는 요소마다 한 줄로 보인다, [json-ui.md](json-ui.md)): 망 목록, 3×3 제작 칸(단말 칸 0~8), 클릭 규칙 |
 | `io.go`, `external.go`, `filterui.go` | 입력기·출력기·외부 저장공간과 필터 창 |
 | `pattern.go`, `encoder.go` | 패턴 읽기·쓰기, 패턴 인코더 |
 | `craft.go`, `craftui.go` | 자동 제작 장치, 계산 요청, 작업 실행, 제작 창 |

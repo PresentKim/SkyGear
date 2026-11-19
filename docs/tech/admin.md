@@ -17,14 +17,12 @@
 
 ## 디버그 (`/sgdebug`)
 
-시험에 쓰는 명령: 일을 지금 일으키거나 상태를 출력한다. 코드: `content/skygear/debug.go`, `debug_spline.go`, `debug_ui.go`, `debug_factory.go`, `debug_oreui.go`.
+시험에 쓰는 명령: 일을 지금 일으키거나 상태를 출력한다. 코드: `content/skygear/debug.go`, `debug_spline.go`, `debug_ui.go`, `debug_factory.go`.
 
 | 명령 | 하는 일 |
 |---|---|
 | `/sgdebug locator <규칙 이름> [off]` | 위치 표시 막대 게임 규칙을 그 이름으로 켜서(`off` 면 꺼서) 나에게만 보내고, 앞 20칸에 빨간 웨이포인트를 단다. 실제 클라이언트에서 `locatorBar` 로는 막대가 뜨지 않아 이름(`locatorbar` 등)을 가리는 시험이다([new-packets.md](new-packets.md)) |
 | `/sgdebug spline [rot=py\|yp] [flip] [noset] [rel] [wait] [tfrac\|tticks] [noprog] [endup] [lin]` | 첫 입장 카메라 이동(`intro.Keys`, 내 위치 기준: 위에서 내려다보는 자리에서 눈 위치까지 1.5초)을 서로 다른 점 다섯 개로 나눠(`sghook.Subdivide`, Catmull-Rom 은 점이 넷 이상 필요하고 연속된 같은 점에서 깨진다) 클라이언트 스플라인으로 재생하고 끝나면 카메라를 푼다. 진행도는 지나온 거리 ÷ 전체 길이(0~1)다. `rot=yp` 는 회전 값을 요, 피치 순서로 보내고(기본 `py` 는 피치, 요), `flip` 은 피치 부호를 뒤집고, `noset` 은 스플라인 앞의 시작 위치 `Set` 을 보내지 않으며, `rel` 은 제어점을 눈 위치 기준 상대 좌표로 보내고, `wait` 는 시작 위치 `Set` 을 먼저 보내고 1초 뒤 다른 틱에 스플라인을 보낸다. `tfrac`·`tticks` 는 진행도 키프레임의 시간을 전체 길이의 비율·틱으로 보내고, `noprog` 는 진행도 키프레임을 빼고 보낸다(클라이언트가 강제 종료된다). `endup` 은 끝점을 눈보다 6칸 위에 두고, `lin` 은 직선 스플라인(종류 1)으로 보낸다. 함께 쓸 수 있다 |
-| `/sgdebug oreinput` | Ore UI 페이지가 받는 입력 이벤트(마우스, 휠, 키, 터치, 포인터, 포커스, 글 입력, 게임패드)를 화면에 줄로 보이고 서버로 보낸다. 서버가 받은 줄과 그동안 클라이언트가 보낸 패킷(`ScriptMessage` 는 내용까지)이 창 위에 보인다([oreui-probes.md](oreui-probes.md)) |
-| `/sgdebug oreres` | 서버가 Ore UI 페이지에 화면 리소스를 줄 수 있는 길을 차례로 시험한다([oreui-probes.md](oreui-probes.md)) |
 | `/sgdebug research` | 연구 화면을 연다(연구대를 쓴 것과 같다. 게임 메뉴에는 연구 카드가 없다) |
 | `/sgdebug ui [기계]` | 기계를 놓지 않고 그 기계 창을 연다(입력·출력 칸에 예시 아이템, 진행도·에너지 절반). 기계 없이 쓰면 창이 있는 기계 목록 폼이 열리고 버튼으로 차례로 본다. 창 모양 확인용 |
 | `/sgdebug screen <이름>` | `common/ui` 의 화면 모양마다 예시 데이터로 채운 화면을 연다(`ui.FixtureNames`: `menu`, `sides`, `radial` 등). 버튼은 아무것도 하지 않는다. 화면 모양 확인용 |

@@ -10,7 +10,7 @@
 - 세이브별 인벤토리·체력·허기·경험치·효과·위치 저장과 복원
 - 인스턴스 시간과 경과 일수(호스트가 있을 때만 흐름), 자동 저장, DB·월드 자동 백업
 - 낙하 피해 없음, 사망 시 인벤토리 유지
-- 메뉴는 Ore UI(DDUI) 화면, 로비는 닫히지 않는 메인 화면(프로필, 세이브 카드와 섬으로 출발, Esc 시스템 메뉴)
+- 메뉴는 상자 창 하나에 그리는 메뉴 창, 글 입력은 입력 폼, 로비는 닫히지 않는 메인 화면(프로필, 세이브 카드와 섬으로 출발, Esc 시스템 메뉴)
 - 한국어·영어(클라이언트 언어를 따른다)
 
 ## 협동
@@ -61,7 +61,7 @@
 
 | 위치 | 명령어 |
 |---|---|
-| 어디서나 | `/lobby`(`/spawn`), `/guide`, `/friends`, `/notify`, `/title`, `/settings`, `/uidebug`(Ore UI 화면의 디버그 줄 켜고 끄기) |
+| 어디서나 | `/lobby`(`/spawn`), `/guide`, `/friends`, `/notify`, `/title`, `/settings` |
 | 로비 | `/saves`, `/join [코드]` |
 | 세이브 안 | `/menu`(`/sg`), `/도감`(`/codex`), `/도움말`(`/sghelp`), `/통계`(`/stats`), `/묘목`(`/sapling`), `/메뉴발급`(`/menuitem`), `/invite`·`/members`(호스트) |
 | 운영자 | 관리 `/sgadmin give·research·advance·tps`, 디버그 `/sgdebug …`, 세이브 복제 `/copysave` ([admin.md](tech/admin.md), `platform.toml` 의 `Admin.Operators`) |

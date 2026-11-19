@@ -10,9 +10,11 @@
 | `sghook` | Dragonfly 를 패치하지 않고 세션에 닿는 훅(패킷 가로채기, `go:linkname`, 리플렉션): 카메라·HUD·입력 잠금·가짜 블록·제목·DDUI 패킷·`minecraft:falling_block` 으로 보내는 커스텀 엔티티(떠 있는 글자)에 공기 블록 지정. 클라이언트가 받는 아이템·블록 항목을 고치는 `EditCustomItems`·`EditCustomBlocks`. `sghook/hooktest` 는 가짜 클라이언트를 실제 서버 경로로 접속시켜 받은 패킷을 모으고(`Join`), 글 정규형(`Canon`)과 골든 비교(`Golden`)를 준다 |
 | `clientdef` | 커스텀 아이템·블록이 클라이언트에 보내는 컴포넌트를 Dragonfly 패치 없이 더함(`ItemEntry`는 `sghook.EditCustomItems`, `BlockEntry`는 `sghook.EditCustomBlocks` 안에서). 아이템: `Digger`·`TagDigger` 를 구현하면 `minecraft:digger`(캐기 속도), `item.Usable` 이면 `minecraft:use_modifiers`, `item.Fuel` 이면 `minecraft:fuel`. 블록: 도구 태그, 상호작용 표시, 속성 순서, `ExtraProperties` 의 충돌 상자·뼈 보임, `RenderMethods` 의 재질 렌더 방식 |
 | `chestui` | 아이템이 실제로 오가는 창(엔티티 상자). `assets/resourcepack/inventoryui` 와 짝 |
-| `ui` | 메뉴 화면(메뉴·카드·목록·확인·입력·칸 격자·분할·퀘스트 책 등)과 토스트. 화면은 `assets/resourcepack/oreui` 가 그리는 DDUI 화면이고(`oreui`), 그림은 `assets/resourcepack/sgui` 에 있다 |
-| `oreui` | 서버 주도 DDUI 화면(레이아웃·값 보내기, 누름 받기). `assets/resourcepack/oreui` 와 짝 |
-| `hud` | 사이드바 점수판으로 보내는 HUD 글. `assets/resourcepack/sgui` 의 `ui/scoreboards.json` 이 그린다(`sgui` 는 HUD 의 JSON UI 와 메뉴 화면의 그림) |
+| `ui` | 메뉴 화면(메뉴·카드·목록·확인·입력·칸 격자·분할·퀘스트 책 등)과 토스트. 화면은 `invui` 의 메뉴 창에, 입력은 `formui` 의 입력 폼에 그리고, 그림은 `assets/resourcepack/sgui` 에 있다 |
+| `invui` | 메뉴 창: 서버가 칸을 다시 쓰는 동안 열려 있는 상자 창 하나에 화면을 그리고, 칸 누름을 받는다. `assets/resourcepack/inventoryui` 의 `ui/sg_menu.json`(`tools/invuigen` 이 만든다)과 짝 |
+| `formui` | 서버 폼(액션 폼, 글 한 줄을 받는 커스텀 폼)을 열고 답을 세션보다 먼저 받는다. `assets/resourcepack/sgui` 의 `ui/sg_form.json` 과 짝 |
+| `oreui` | 서버 주도 DDUI 화면(`Open`)과 그 화면이 지킬 클라이언트 설정(`SetClientSettings`, `platform` 이 쓴다) |
+| `hud` | 사이드바 점수판으로 보내는 HUD 글. `assets/resourcepack/sgui` 의 `ui/scoreboards.json` 이 그린다(`sgui` 는 HUD·입력 폼의 JSON UI 와 메뉴 화면의 그림) |
 | `waila` | 바라보는 블록의 패널(제목 형식, 보내기, 도구 아이콘). 블록이 자기 줄을 채우는 `Provider`, 그런 메서드가 없는 블록을 채우는 `Adapter`(`RegisterAdapter`), 둘을 차례로 부르는 `Describe`. `assets/resourcepack/waila` 와 짝 |
 | `slotdeco` | 아이템 칸 장식 표식(`Decorate`, `Strip`, `Of`)과 아이템이 자기 등급과 단계를 말하는 `Decorated`, 등급의 이름 색(`Rarity.Colour`). `assets/resourcepack/slotdeco` 와 짝 |
 | `i18n` | 플레이어 언어별 글 카탈로그. 서버는 `i18n.Register` 로 자기 카탈로그를 더한다. `i18n/i18ntest` 는 서버가 자기 코드에 돌리는 카탈로그 검사 |
@@ -34,7 +36,7 @@
 | `netcompress` | 네트워크 계층의 패킷 압축 |
 | `internal/slottext` | 칸 폼, WAILA 패널, HUD 줄이 같은 방식으로 만드는 글 조각(`common` 안에서만 import) |
 
-패키지들이 그리는 리소스팩(`inventoryui`, `waila`, `slotdeco`, `sgui`, `oreui`)은 `assets/resourcepack/` 에 있다(`assets` 패키지가 실행 파일에 넣는다). `assets/resourcepack/inventoryui` 는 [tedo0627/InventoryUIResourcePack](https://github.com/tedo0627/InventoryUIResourcePack)(MIT)을, `assets/resourcepack/waila` 는 [r4isen1920/WAILA](https://github.com/r4isen1920/WAILA)(MIT)를 바탕으로 한다.
+패키지들이 그리는 리소스팩(`inventoryui`, `waila`, `slotdeco`, `sgui`)은 `assets/resourcepack/` 에 있다(`assets` 패키지가 실행 파일에 넣는다). `assets/resourcepack/inventoryui` 는 [tedo0627/InventoryUIResourcePack](https://github.com/tedo0627/InventoryUIResourcePack)(MIT)을, `assets/resourcepack/waila` 는 [r4isen1920/WAILA](https://github.com/r4isen1920/WAILA)(MIT)를 바탕으로 한다.
 
 ## 쓰기
 
@@ -44,4 +46,4 @@
 ## 개발
 
 - `tools/uitextures`, `tools/slotdecotex assets/resourcepack/slotdeco assets/resourcepack/sgui` 가 팩의 임시 그림을 만든다(저장소 루트에서 `go run`).
-- 패키지별 설계 문서는 `docs/tech/`(chestui·waila·slotdeco·timed-items·i18n·resourcepack·backup·json-ui·oreui·storagenet·conduits·itemio)에 있고, Dragonfly 확장 방법은 `docs/tech/dragonfly.md` 에 있다.
+- 패키지별 설계 문서는 `docs/tech/`(chestui·waila·slotdeco·timed-items·i18n·resourcepack·backup·json-ui·storagenet·conduits·itemio)에 있고, Dragonfly 확장 방법은 `docs/tech/dragonfly.md` 에 있다.

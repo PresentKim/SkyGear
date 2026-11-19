@@ -38,7 +38,7 @@ Dragonfly 자체를 확장하는 방법은 [dragonfly.md](dragonfly.md) 에 있�
 | `state.go` | 세이브 상태 문서의 버전(`State`, `core.NewSaved`) |
 | `blockcounts.go` | 커스텀 블록 수와 상태 수(`CustomBlockCounts`, `LogCustomBlockCounts`). 서버가 시작할 때 로그에 남긴다 |
 | `admin.go` | 운영자 명령 `/sgadmin` |
-| `debug.go`, `debug_factory.go`, `debug_oreui.go`, `debug_ui.go` | 운영자 디버그 명령 `/sgdebug` 와 그 도구 |
+| `debug.go`, `debug_factory.go`, `debug_ui.go` | 운영자 디버그 명령 `/sgdebug` 와 그 도구 |
 
 무엇을 import 할 수 있는지는 다음과 같다.
 
