@@ -33,7 +33,7 @@ func touchDevice(p *player.Player) bool {
 	return false
 }
 
-// ShowingKey is the key of the screen p has open (InventoryScreen.Key), ""
+// ShowingKey is the key of the screen p has open, ""
 // when none is open or it has no key. A screen that redraws itself while open
 // (a machine's) checks it so it never replaces another.
 func ShowingKey(p *player.Player) string {
@@ -66,13 +66,6 @@ type oreLayout struct {
 	// loading marks a loading screen (LoadingScreen), which CloseLoading
 	// closes.
 	loading bool
-	// inventory marks an inventory screen, which keeps the cursor stack
-	// (Carried); any other screen gives it back.
-	inventory bool
-	slot      func(p *player.Player, tx *world.Tx, a SlotAct)
-	drag      func(p *player.Player, tx *world.Tx, d DragAct)
-	drop      func(p *player.Player, tx *world.Tx, one bool)
-	hold      func(p *player.Player, tx *world.Tx, on bool)
 }
 
 // Key is a key of the keyboard a screen can answer: the arrow keys and WASD

@@ -76,7 +76,6 @@ func forgetForm(id uuid.UUID) {
 // button's run with the text, then Idle when that showed no other screen;
 // closing it runs its back button's run, or the layout's close run, or Idle.
 func openInput(p *player.Player, l *oreLayout, in inputData) {
-	ReturnCarried(p)
 	invui.Close(p)
 	formScreens.Lock()
 	st := formScreens.m[p.UUID()]

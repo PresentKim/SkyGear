@@ -523,9 +523,6 @@ func closeMenuOf(id uuid.UUID) {
 // closes when Idle showed none either; closing the window runs the layout's
 // close run, or Idle.
 func openMenu(p *player.Player, l *oreLayout, pg *menuPage) {
-	if !l.inventory {
-		ReturnCarried(p)
-	}
 	closeForm(p)
 	formScreens.Lock()
 	st := formScreens.m[p.UUID()]
