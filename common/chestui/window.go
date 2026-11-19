@@ -35,6 +35,10 @@ const (
 	// transitionWindow is how soon after a window closed a new one is
 	// treated as a switch of screens.
 	transitionWindow = time.Second
+	// transitionDelay is how long after a window closed the client accepts
+	// a new one: it answers the close but still drops a window opened sooner
+	// (Windows 1.26.65, switching between two chest windows).
+	transitionDelay = 500 * time.Millisecond
 	// openRetries limits the ContainerOpen resends (one per tick).
 	openRetries = 20
 	// selfRuntimeID is the runtime ID Dragonfly gives a player's own entity.
@@ -169,7 +173,14 @@ func openWindow(p *player.Player, inv *inventory.Inventory, title string, onClos
 	// for a NetworkStackLatency round trip first, like InvMenu does.
 	if since := time.Since(time.Unix(0, cl.lastClose.Load())); since < transitionWindow {
 		debug("switching windows: waiting for the client", "since", since)
-		sghook.AfterClientSync(p, spawn)
+		sghook.AfterClientSync(p, func(p *player.Player, tx *world.Tx) {
+			wait := transitionDelay - time.Since(time.Unix(0, cl.lastClose.Load()))
+			if wait <= 0 {
+				spawn(p, tx)
+				return
+			}
+			p.H().DoAfter(wait, func(tx *world.Tx, e world.Entity) { spawn(e.(*player.Player), tx) })
+		})
 		return
 	}
 	spawn(p, p.Tx())
