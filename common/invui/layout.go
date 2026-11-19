@@ -179,10 +179,29 @@ func LayoutOf(key string) string {
 	return key[:2]
 }
 
-// Title is the title of a window opened for the screens of layout. The pack
-// builds only the controls of that layout, so a screen of another layout
+// Shared are the layouts a window opened for a screen of the key's layout
+// also draws, so going between them changes the window in place: the lobby's
+// main screen and the screens of its buttons.
+var Shared = map[string][]string{KeyHome: {KeyHome, KeyMenu, KeyCards, KeyListSplit}}
+
+// LayoutsFor returns the layouts a window opened for layout draws.
+func LayoutsFor(layout string) []string {
+	if s, ok := Shared[layout]; ok {
+		return s
+	}
+	return []string{layout}
+}
+
+// Title is the title of a window opened for the screens of layouts. The pack
+// builds only the controls of those layouts, so a screen of another layout
 // opens a new window.
-func Title(layout string) string { return Marker + TitleMark(layout) }
+func Title(layouts []string) string {
+	s := Marker
+	for _, l := range layouts {
+		s += TitleMark(l)
+	}
+	return s
+}
 
 // TitleMark is the part of a window title that names its layout.
 func TitleMark(layout string) string { return "|" + layout + "|" }
@@ -309,6 +328,28 @@ func CountMark(count string) string {
 	}
 	return b.String()
 }
+
+// FacePathBytes is how many bytes the texture path of a face takes, padded
+// with spaces.
+const FacePathBytes = 64
+
+// Face is the start of the name of an element's face (see Faces): a blank
+// count text and the texture path padded to FacePathBytes, so the pack cuts
+// a fixed number of bytes off the front for the path and reads the rest as
+// the kind and the label. A longer path is cut.
+func Face(path string) string {
+	if len(path) > FacePathBytes {
+		path = path[:FacePathBytes]
+	}
+	return CountMark("") + path + strings.Repeat(" ", FacePathBytes-len(path))
+}
+
+// Faces are the icon slots and the button slots of the elements: the pack
+// draws an element from its icon slot, named its face (Face, then the button
+// slot's name), and a press goes to its button slot. A quick move empties
+// the pressed slot on the client until the server answers, and the element
+// stays drawn meanwhile.
+var Faces = [][3]int{{TabIcon0, TabBtn0, Tabs}, {BarIcon0, BarBtn0, Bars}, {RowIcon0, RowBtn0, Rows}}
 
 // Kinds are the kind markers in the order the pack strips them.
 var Kinds = []string{KindGapW, KindGapE, KindGapN, KindGapS, KindDiamond, KindCircle, KindGate, KindSquare, KindNew, KindRow, KindStatic, KindChosen, KindHeading, KindDivider, KindToggleOff, KindToggleOn, KindTab, KindTabOn, KindBar, KindHelp, KindIcon, KindFrame, KindArrow, KindText, KindMini, KindMiniView, KindBlank, KindRare, KindEpic, KindCanvas, KindLineN, KindLineS, KindLineW, KindLineE, KindDone, KindLocked, KindField, FamRow, FamSlot, FamMini}

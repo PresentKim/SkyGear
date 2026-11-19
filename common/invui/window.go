@@ -1,6 +1,7 @@
 package invui
 
 import (
+	"slices"
 	"sync"
 
 	"github.com/df-mc/dragonfly/server/item"
@@ -19,7 +20,7 @@ type window struct {
 	mu     sync.Mutex
 	open   bool
 	quiet  bool
-	layout string
+	layouts []string
 	press  func(p *player.Player, tx *world.Tx, slot int)
 	closed func(p *player.Player, tx *world.Tx)
 }
@@ -54,9 +55,10 @@ func Forget(id uuid.UUID) {
 }
 
 // Show puts items in the slots of p's menu window and opens it if it is not
-// open, or opens it again when the layout of the key in items changed (see
-// Title). press runs when p presses a slot, closed when p closes the window.
-// Slots past the end of items are emptied. It must run in p's transaction.
+// open, or opens it again when the window does not draw the layout of the
+// key in items (see Title). press runs when p presses a slot, closed when p
+// closes the window. Slots past the end of items are emptied. It must run in
+// p's transaction.
 func Show(p *player.Player, items []item.Stack, press func(p *player.Player, tx *world.Tx, slot int), closed func(p *player.Player, tx *world.Tx)) {
 	layout := ""
 	if len(items) > SlotKey {
@@ -64,14 +66,18 @@ func Show(p *player.Player, items []item.Stack, press func(p *player.Player, tx 
 	}
 	w := windowOf(p)
 	w.mu.Lock()
-	open, moved := w.open, w.open && w.layout != layout
+	open, moved := w.open, w.open && !slices.Contains(w.layouts, layout)
 	w.mu.Unlock()
 	if moved {
 		Close(p)
 		open = false
 	}
 	w.mu.Lock()
-	w.press, w.closed, w.layout = press, closed, layout
+	w.press, w.closed = press, closed
+	if !open {
+		w.layouts = LayoutsFor(layout)
+	}
+	layouts := w.layouts
 	w.mu.Unlock()
 	inv := w.st.Inventory()
 	w.st.Batch(func() {
@@ -91,7 +97,7 @@ func Show(p *player.Player, items []item.Stack, press func(p *player.Player, tx 
 	w.mu.Lock()
 	w.open, w.quiet = true, false
 	w.mu.Unlock()
-	w.st.SetTitle(Title(layout))
+	w.st.SetTitle(Title(layouts))
 	w.st.Open(p, func(p *player.Player, tx *world.Tx) {
 		w.mu.Lock()
 		w.open = false

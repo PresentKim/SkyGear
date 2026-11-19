@@ -53,14 +53,15 @@ func (pg *menuPage) button(slot int, text, kind, id string) {
 	}
 }
 
-// icon puts an icon (oreIcon) in slot: the item itself for an item icon, a
-// paper named the texture path for a texture. The kind is the kind of the
-// element the icon belongs to. A texture's name starts with a blank count
-// text (invui.CountMark), as every texture name the pack reads does.
+// icon puts an icon (oreIcon) in slot, named its face (invui.Face) and kind:
+// the item itself for an item icon, a paper for a texture, and a paper of
+// kind invui.KindBlank for no icon. The kind is the kind of the element the
+// icon belongs to.
 func (pg *menuPage) icon(slot int, icon, kind string) {
+	pg.items[slot] = item.NewStack(item.Paper{}, 1).WithCustomName(invui.Face("") + invui.KindBlank + kind)
 	switch {
 	case strings.HasPrefix(icon, "tex:"):
-		pg.items[slot] = item.NewStack(item.Paper{}, 1).WithCustomName(invui.CountMark("") + strings.TrimPrefix(icon, "tex:") + kind)
+		pg.items[slot] = item.NewStack(item.Paper{}, 1).WithCustomName(invui.Face(strings.TrimPrefix(icon, "tex:")) + kind)
 	case strings.HasPrefix(icon, "aux:"):
 		aux, err := strconv.ParseInt(strings.TrimPrefix(icon, "aux:"), 10, 64)
 		if err != nil {
@@ -70,7 +71,25 @@ func (pg *menuPage) icon(slot int, icon, kind string) {
 		if !ok {
 			return
 		}
-		pg.items[slot] = item.NewStack(it, 1).WithCustomName(kind)
+		pg.items[slot] = item.NewStack(it, 1).WithCustomName(invui.Face("") + kind)
+	}
+}
+
+// faces names the icon slot of every element with a button after the
+// button: the pack draws the element from it (invui.Faces).
+func (pg *menuPage) faces() {
+	for _, f := range invui.Faces {
+		for i := 0; i < f[2]; i++ {
+			b := pg.items[f[1]+i]
+			if b.Empty() {
+				continue
+			}
+			if pg.items[f[0]+i].Empty() {
+				pg.icon(f[0]+i, "", "")
+			}
+			icon := pg.items[f[0]+i]
+			pg.items[f[0]+i] = icon.WithCustomName(icon.CustomName() + b.CustomName())
+		}
 	}
 }
 
@@ -551,6 +570,7 @@ func openMenu(p *player.Player, l *oreLayout, pg *menuPage) {
 	}
 	closeRun := l.close
 	pg.text(invui.SlotEsc, "§r")
+	pg.faces()
 	invui.Show(p, pg.items, func(p *player.Player, tx *world.Tx, slot int) {
 		if slot == invui.SlotEsc {
 			if !current() {
