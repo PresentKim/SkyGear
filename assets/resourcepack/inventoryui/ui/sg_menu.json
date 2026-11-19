@@ -10157,7 +10157,13 @@
             {
               "binding_condition": "always",
               "binding_type": "view",
-              "source_property_name": "(not ((('%.85s' * (#hover_text - '§o' - '§f')) - 'textures/') = ('%.85s' * (#hover_text - '§o' - '§f'))))",
+              "source_property_name": "('%.85s' * (#hover_text - '§o' - '§f'))",
+              "target_property_name": "#head"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#head - 'textures/') = #head))",
               "target_property_name": "#visible"
             }
           ],
@@ -10188,7 +10194,13 @@
             {
               "binding_condition": "always",
               "binding_type": "view",
-              "source_property_name": "(((('%.85s' * (#hover_text - '§o' - '§f')) - 'textures/') = ('%.85s' * (#hover_text - '§o' - '§f'))) and ((#hover_text - '§z§e') = #hover_text))",
+              "source_property_name": "('%.85s' * (#hover_text - '§o' - '§f'))",
+              "target_property_name": "#head"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(((#head - 'textures/') = #head) and ((#hover_text - '§z§e') = #hover_text))",
               "target_property_name": "#visible"
             }
           ],
@@ -13412,7 +13424,13 @@
                   {
                     "binding_condition": "always",
                     "binding_type": "view",
-                    "source_property_name": "(not ((('%.85s' * (#hover_text - '§o' - '§f')) - 'textures/') = ('%.85s' * (#hover_text - '§o' - '§f'))))",
+                    "source_property_name": "('%.85s' * (#hover_text - '§o' - '§f'))",
+                    "target_property_name": "#head"
+                  },
+                  {
+                    "binding_condition": "always",
+                    "binding_type": "view",
+                    "source_property_name": "(not ((#head - 'textures/') = #head))",
                     "target_property_name": "#visible"
                   }
                 ],
@@ -13443,7 +13461,13 @@
                   {
                     "binding_condition": "always",
                     "binding_type": "view",
-                    "source_property_name": "(((('%.85s' * (#hover_text - '§o' - '§f')) - 'textures/') = ('%.85s' * (#hover_text - '§o' - '§f'))) and ((#hover_text - '§z§e') = #hover_text))",
+                    "source_property_name": "('%.85s' * (#hover_text - '§o' - '§f'))",
+                    "target_property_name": "#head"
+                  },
+                  {
+                    "binding_condition": "always",
+                    "binding_type": "view",
+                    "source_property_name": "(((#head - 'textures/') = #head) and ((#hover_text - '§z§e') = #hover_text))",
                     "target_property_name": "#visible"
                   }
                 ],
@@ -15294,7 +15318,13 @@
                         {
                           "binding_condition": "always",
                           "binding_type": "view",
-                          "source_property_name": "(not ((('%.85s' * (#hover_text - '§o' - '§f')) - 'textures/') = ('%.85s' * (#hover_text - '§o' - '§f'))))",
+                          "source_property_name": "('%.85s' * (#hover_text - '§o' - '§f'))",
+                          "target_property_name": "#head"
+                        },
+                        {
+                          "binding_condition": "always",
+                          "binding_type": "view",
+                          "source_property_name": "(not ((#head - 'textures/') = #head))",
                           "target_property_name": "#visible"
                         }
                       ],
@@ -15325,7 +15355,13 @@
                         {
                           "binding_condition": "always",
                           "binding_type": "view",
-                          "source_property_name": "(((('%.85s' * (#hover_text - '§o' - '§f')) - 'textures/') = ('%.85s' * (#hover_text - '§o' - '§f'))) and ((#hover_text - '§z§e') = #hover_text))",
+                          "source_property_name": "('%.85s' * (#hover_text - '§o' - '§f'))",
+                          "target_property_name": "#head"
+                        },
+                        {
+                          "binding_condition": "always",
+                          "binding_type": "view",
+                          "source_property_name": "(((#head - 'textures/') = #head) and ((#hover_text - '§z§e') = #hover_text))",
                           "target_property_name": "#visible"
                         }
                       ],
@@ -22428,7 +22464,13 @@
                   {
                     "binding_condition": "always",
                     "binding_type": "view",
-                    "source_property_name": "(not ((('%.85s' * (#hover_text - '§o' - '§f')) - 'textures/') = ('%.85s' * (#hover_text - '§o' - '§f'))))",
+                    "source_property_name": "('%.85s' * (#hover_text - '§o' - '§f'))",
+                    "target_property_name": "#head"
+                  },
+                  {
+                    "binding_condition": "always",
+                    "binding_type": "view",
+                    "source_property_name": "(not ((#head - 'textures/') = #head))",
                     "target_property_name": "#visible"
                   }
                 ],
@@ -22459,7 +22501,13 @@
                   {
                     "binding_condition": "always",
                     "binding_type": "view",
-                    "source_property_name": "(((('%.85s' * (#hover_text - '§o' - '§f')) - 'textures/') = ('%.85s' * (#hover_text - '§o' - '§f'))) and ((#hover_text - '§z§e') = #hover_text))",
+                    "source_property_name": "('%.85s' * (#hover_text - '§o' - '§f'))",
+                    "target_property_name": "#head"
+                  },
+                  {
+                    "binding_condition": "always",
+                    "binding_type": "view",
+                    "source_property_name": "(((#head - 'textures/') = #head) and ((#hover_text - '§z§e') = #hover_text))",
                     "target_property_name": "#visible"
                   }
                 ],

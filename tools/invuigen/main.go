@@ -325,9 +325,15 @@ const cellTipWidth = 150
 
 // faceIcon draws the icon of a face (invui.Face): its texture, its item, or
 // nothing for a blank one.
+// A comparison of a subtraction is made on a property a binding before
+// wrote: compared inline, the result came out inverted (bedrock-research
+// BND-34, inventoryui vertical_scroll_screen.json).
 func faceIcon(size []any) obj {
-	p := iconOf(size, facePath(), "((("+faceHead()+" - 'textures/') = "+faceHead()+") and ((#hover_text - '"+invui.KindBlank+"') = #hover_text))")
-	p["controls"].([]any)[0].(obj)["image"].(obj)["bindings"].([]any)[2] = view("(not (("+faceHead()+" - 'textures/') = "+faceHead()+"))", "#visible")
+	p := iconOf(size, facePath(), "")
+	image := p["controls"].([]any)[0].(obj)["image"].(obj)
+	image["bindings"] = []any{slotText(), view(facePath(), "#texture"), view(faceHead(), "#head"), view("(not ((#head - 'textures/') = #head))", "#visible")}
+	item := p["controls"].([]any)[1].(obj)["item"].(obj)
+	item["bindings"] = []any{slotText(), slotValue("#item_id_aux"), view(faceHead(), "#head"), view("(((#head - 'textures/') = #head) and ((#hover_text - '"+invui.KindBlank+"') = #hover_text))", "#visible")}
 	return p
 }
 
