@@ -1,27 +1,26 @@
 package netstore
 
 import (
-	"fmt"
 	"slices"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
+	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/common/chestui"
 	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/common/invclick"
 	"github.com/presentkim/skygear/common/storagenet"
-	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/content/skygear/core"
-	"github.com/presentkim/skygear/content/skygear/decor"
 	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/wintext"
 )
 
 // The window of an importer, exporter or external storage, laid out like
-// Refined Storage's: a row of filter slots, the mode (and priority) buttons
-// beside the window and the player's inventory below. A filter slot pressed
-// with an item held takes that kind (nothing is used up), pressed with an
-// empty hand it empties; a shift click in the inventory adds the kind.
+// Refined Storage's: a chest of two rows, the filter slots on top and under
+// them the upgrade slots, the info and the mode (and priority) buttons. An
+// item put on a filter slot (a shift click in the inventory too) adds its
+// kind there and goes back; taking a filter slot empties it.
 
 // clickFilter is the click on an importer, exporter or external storage: it
 // opens the filter window.
@@ -40,160 +39,174 @@ const (
 	filterSlots = 9
 )
 
+// The slots of the second row: the upgrades from its start, then the info
+// and the buttons at its end.
+const (
+	upgradeSlot0 = filterSlots
+	infoSlot     = 14
+	modeSlot     = 15
+	prioUpSlot   = 16
+	prioDownSlot = 17
+	filterSize   = 18
+)
+
+// filterWindow is a filter window open for one player.
+type filterWindow struct {
+	s       *core.Session
+	p       *player.Player
+	pos     cube.Pos
+	kind    string
+	storage *chestui.Storage
+	// ups is how many upgrade slots the node has.
+	ups int
+	// filling is set while the window's slots are written from the node.
+	filling bool
+}
+
 func showFilter(s *core.Session, p *player.Player, pos cube.Pos, kind string) {
-	lang := i18n.Of(p)
-	cfg := Config(s, pos)
-	again := func(p *player.Player, tx *world.Tx) {
-		s.MarkDirty()
-		Invalidate(tx, pos)
-		showFilter(s, p, pos, kind)
+	w := &filterWindow{s: s, p: p, pos: pos, kind: kind}
+	if st := stateAt(p.Tx(), pos); st != nil {
+		w.ups = len(st.Def.Input)
 	}
-	tipOf := func(st item.Stack) string {
-		if st.Empty() {
-			return ""
-		}
-		return decor.TipName(lang, st)
-	}
-	n := max(filterSlots, (len(cfg.Filter)+filterSlots-1)/filterSlots*filterSlots)
-	filter := make([]ui.InvSlot, n)
-	for i, k := range cfg.Filter {
-		filter[i] = ui.StackSlot(Proto(s, storagenet.Key(k)), tipOf(Proto(s, storagenet.Key(k))))
-	}
-	inv := p.Inventory()
-	main, hot := invclick.Main(inv), invclick.Hotbar(inv)
+	w.storage = chestui.NewStorage(filterSize, machine.Kinds[kind].Title(i18n.Of(p)))
+	w.fill(p.Tx())
+	w.storage.Inventory().Handle(filterHandler{w})
+	w.storage.OnChange(w.changed)
+	w.storage.Open(p, nil)
+}
 
-	mode, icon := "netstore.io.deny", "textures/ui/cancel"
-	if cfg.Allow {
-		mode, icon = "netstore.io.allow", "textures/ui/confirm"
+// fill writes the window's slots from the node's filter, upgrades and modes.
+func (w *filterWindow) fill(tx *world.Tx) {
+	w.filling = true
+	defer func() { w.filling = false }()
+	cfg := Config(w.s, w.pos)
+	inv := w.storage.Inventory()
+	for i := range filterSlots {
+		it := item.Stack{}
+		if i < len(cfg.Filter) {
+			it = Proto(w.s, storagenet.Key(cfg.Filter[i]))
+		}
+		_ = inv.SetItem(i, it)
 	}
-	var side []ui.Option
-	if kind != machine.KindNetExporter {
-		side = append(side, ui.Option{Label: i18n.T(lang, mode), Icon: icon, Run: func(p *player.Player, tx *world.Tx) {
+	info := []wintext.Text{{wintext.Raw("§7"), wintext.Key("netstore.io.body." + w.kind)}}
+	if st := stateAt(tx, w.pos); st != nil {
+		for i, slot := range st.Def.Input {
+			it, _ := st.Inv().Item(slot)
+			_ = inv.SetItem(upgradeSlot0+i, it)
+		}
+		if len(st.Def.Input) > 0 {
+			info = append(info, wintext.Text{wintext.Raw("§7"), wintext.Key("netstore.io.speed", ioRateOf(st), ioAmountOf(st))})
+		}
+	}
+	if w.kind == machine.KindNetExternal {
+		info = append(info, wintext.Text{wintext.Raw("§7"), wintext.Key("netstore.io.priority", cfg.Priority)})
+		_ = inv.SetItem(prioUpSlot, button(item.Paper{}, "netstore.io.prioUp"))
+		_ = inv.SetItem(prioDownSlot, button(item.Paper{}, "netstore.io.prioDown"))
+	}
+	_ = inv.SetItem(infoSlot, wintext.With(item.NewStack(item.Book{}, 1), wintext.Text{wintext.Raw("§r"), wintext.Key("netstore.io.title")}, info...))
+	if w.kind != machine.KindNetExporter {
+		mode := button(item.Dye{Colour: item.ColourRed()}, "netstore.io.deny")
+		if cfg.Allow {
+			mode = button(item.Dye{Colour: item.ColourLime()}, "netstore.io.allow")
+		}
+		_ = inv.SetItem(modeSlot, mode)
+	}
+}
+
+// button is a button of the window: it named with the text of key.
+func button(it world.Item, key string) item.Stack {
+	return wintext.With(item.NewStack(it, 1), wintext.Text{wintext.Raw("§r"), wintext.Key(key)})
+}
+
+// press runs what pressing slot does, in the player's world after the move
+// is answered, and writes the window again.
+func (w *filterWindow) press(slot int, held item.Stack) {
+	w.p.H().Do(func(tx *world.Tx, _ world.Entity) {
+		cfg := Config(w.s, w.pos)
+		switch {
+		case slot < filterSlots && !held.Empty():
+			k := string(KeyOf(held))
+			switch {
+			case slices.Contains(cfg.Filter, k):
+			case slot < len(cfg.Filter):
+				cfg.Filter[slot] = k
+			case len(cfg.Filter) < filterSlots:
+				cfg.Filter = append(cfg.Filter, k)
+			}
+		case slot < filterSlots && slot < len(cfg.Filter):
+			cfg.Filter = slices.Delete(cfg.Filter, slot, slot+1)
+		case slot == modeSlot && w.kind != machine.KindNetExporter:
 			cfg.Allow = !cfg.Allow
-			again(p, tx)
-		}})
-	}
-	info := i18n.T(lang, "netstore.io.body."+kind)
-	if kind == machine.KindNetExternal {
-		side = append(side,
-			ui.Option{Label: i18n.T(lang, "netstore.io.prioUp"), Icon: "textures/ui/sg/arrow_up", Run: func(p *player.Player, tx *world.Tx) {
-				cfg.Priority += priorityStep
-				again(p, tx)
-			}},
-			ui.Option{Label: i18n.T(lang, "netstore.io.prioDown"), Icon: "textures/ui/sg/arrow_down", Run: func(p *player.Player, tx *world.Tx) {
-				cfg.Priority -= priorityStep
-				again(p, tx)
-			}})
-		info += "\n" + fmt.Sprintf(i18n.T(lang, "netstore.io.priority"), cfg.Priority)
-	}
-
-	add := func(st item.Stack) {
-		if k := string(KeyOf(st)); !st.Empty() && !slices.Contains(cfg.Filter, k) {
-			cfg.Filter = append(cfg.Filter, k)
+		case slot == prioUpSlot && w.kind == machine.KindNetExternal:
+			cfg.Priority += priorityStep
+		case slot == prioDownSlot && w.kind == machine.KindNetExternal:
+			cfg.Priority -= priorityStep
 		}
-	}
-	rows := []ui.InvRow{{Heading: i18n.T(lang, "netstore.io.title"), Parts: []ui.InvPart{{Area: "filter", Cols: filterSlots, Slots: filter}}}}
-	st := stateAt(p.Tx(), pos)
-	var ups invclick.Slots
-	if st != nil && len(st.Def.Input) > 0 {
-		ups = make(invclick.Slots, len(st.Def.Input))
-		for i, s := range st.Def.Input {
-			ups[i], _ = st.Inv().Item(s)
-		}
-		rows = append(rows, ui.InvRow{Heading: i18n.T(lang, "netstore.io.upgrades"), Parts: []ui.InvPart{{Area: "upgrade", Cols: len(ups), Slots: areaSlots(ups, tipOf)}}})
-		info += "\n" + fmt.Sprintf(i18n.T(lang, "netstore.io.speed"), ioRateOf(st), ioAmountOf(st))
-	}
-	rows = append(rows,
-		ui.InvRow{Heading: i18n.T(lang, "netstore.terminal.inventory"), Parts: []ui.InvPart{{Area: "inv", Cols: 9, Slots: areaSlots(main, tipOf)}}},
-		ui.InvRow{Parts: []ui.InvPart{{Area: "hotbar", Cols: 9, Slots: areaSlots(hot, tipOf)}}},
-	)
-	// putUpgrade moves one upgrade of it into a free upgrade slot and reports
-	// whether it went in.
-	putUpgrade := func(tx *world.Tx, slot int, it item.Stack) bool {
-		st := stateAt(tx, pos)
-		if st == nil || slot < 0 || slot >= len(st.Def.Input) || !upgradeFits(st, it) {
-			return false
-		}
-		if cur, _ := st.Inv().Item(st.Def.Input[slot]); !cur.Empty() {
-			return false
-		}
-		_ = st.Inv().SetItem(st.Def.Input[slot], it.Grow(1-it.Count()))
-		return true
-	}
-	freeUpgradeSlot := func(tx *world.Tx) int {
-		if st := stateAt(tx, pos); st != nil {
-			for i, s := range st.Def.Input {
-				if cur, _ := st.Inv().Item(s); cur.Empty() {
-					return i
-				}
-			}
-		}
-		return -1
-	}
-	ui.ShowInventory(p, ui.InventoryScreen{
-		Title: machine.Kinds[kind].Title(lang),
-		Info:  info,
-		Rows:  rows,
-		Side:  side,
-		Slot: func(p *player.Player, tx *world.Tx, a ui.SlotAct) {
-			cur := a.Carried
-			switch a.Area {
-			case "upgrade":
-				st := stateAt(tx, pos)
-				if st == nil || a.Index >= len(st.Def.Input) {
-					break
-				}
-				in, _ := st.Inv().Item(st.Def.Input[a.Index])
-				switch {
-				case in.Empty() && !cur.Empty():
-					if putUpgrade(tx, a.Index, cur) {
-						ui.SetCarried(p, cur.Grow(-1))
-					}
-				case in.Empty():
-				case a.Shift:
-					if left := invclick.Move(in, hot, main); left.Empty() {
-						_ = st.Inv().SetItem(st.Def.Input[a.Index], item.Stack{})
-					}
-				case cur.Empty():
-					_ = st.Inv().SetItem(st.Def.Input[a.Index], item.Stack{})
-					ui.SetCarried(p, in)
-				}
-				Invalidate(tx, pos)
-			case "filter":
-				switch {
-				case !cur.Empty() && a.Index < len(cfg.Filter):
-					if k := string(KeyOf(cur)); !slices.Contains(cfg.Filter, k) {
-						cfg.Filter[a.Index] = k
-					}
-				case !cur.Empty():
-					add(cur)
-				case a.Index < len(cfg.Filter):
-					cfg.Filter = slices.Delete(cfg.Filter, a.Index, a.Index+1)
-				}
-			case "inv", "hotbar":
-				area := invclick.Area(main)
-				if a.Area == "hotbar" {
-					area = hot
-				}
-				if a.Index >= area.Len() {
-					break
-				}
-				if it := area.Item(a.Index); a.Shift {
-					if _, up := it.Item().(Upgrade); up {
-						if putUpgrade(tx, freeUpgradeSlot(tx), it) {
-							area.Set(a.Index, it.Grow(-1))
-						}
-						Invalidate(tx, pos)
-						break
-					}
-					add(it)
-					break
-				}
-				ui.SetCarried(p, invclick.Click(area, a.Index, cur, a.Right))
-			}
-			again(p, tx)
-		},
-		Again: again,
-		Size:  "filter",
+		w.s.MarkDirty()
+		Invalidate(tx, w.pos)
+		w.fill(tx)
 	})
+}
+
+// changed keeps the node's upgrade slots to the window's: one upgrade a
+// slot, the rest back to the player.
+func (w *filterWindow) changed(slot int, _, after item.Stack) {
+	if w.filling || slot < upgradeSlot0 || slot >= infoSlot {
+		return
+	}
+	w.p.H().Do(func(tx *world.Tx, e world.Entity) {
+		st := stateAt(tx, w.pos)
+		if st == nil || slot-upgradeSlot0 >= len(st.Def.Input) {
+			return
+		}
+		if after.Count() > 1 {
+			if _, err := e.(*player.Player).Inventory().AddItem(after.Grow(-1)); err != nil {
+				e.(*player.Player).Drop(after.Grow(-1))
+			}
+			after = after.Grow(1 - after.Count())
+		}
+		_ = st.Inv().SetItem(st.Def.Input[slot-upgradeSlot0], after)
+		Invalidate(tx, w.pos)
+		w.fill(tx)
+	})
+}
+
+// filterHandler keeps the moves in the filter window to its upgrade slots;
+// the filter slots and buttons take a press instead.
+type filterHandler struct{ w *filterWindow }
+
+func (h filterHandler) upgrade(slot int) bool {
+	return slot >= upgradeSlot0 && slot < upgradeSlot0+h.w.ups
+}
+
+func (h filterHandler) HandleTake(ctx *inventory.Context, slot int, _ item.Stack) {
+	if h.upgrade(slot) {
+		return
+	}
+	ctx.Cancel()
+	h.w.press(slot, item.Stack{})
+}
+
+func (h filterHandler) HandlePlace(ctx *inventory.Context, slot int, it item.Stack) {
+	if h.upgrade(slot) {
+		if p, ok := ctx.Val().(*player.Player); ok {
+			if st := stateAt(p.Tx(), h.w.pos); st != nil {
+				if cur, _ := h.w.storage.Inventory().Item(slot); cur.Empty() && upgradeFits(st, it) {
+					return
+				}
+			}
+		}
+		ctx.Cancel()
+		return
+	}
+	ctx.Cancel()
+	if slot < filterSlots {
+		h.w.press(slot, it)
+	}
+}
+
+func (h filterHandler) HandleDrop(ctx *inventory.Context, slot int, _ item.Stack) {
+	if !h.upgrade(slot) {
+		ctx.Cancel()
+	}
 }
