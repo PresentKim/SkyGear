@@ -177,6 +177,14 @@
 				"requires": "(not (($container_title_copy - '§d§m§9') = $container_title_copy)) and $desktop_screen",
 				"$screen_content": "sg_machine.magicsieve_panel"
 			},
+			{
+				"requires": "(not (($container_title_copy - '§d§m§t') = $container_title_copy)) and $desktop_screen",
+				"$screen_content": "sg_machine.terminal_panel"
+			},
+			{
+				"requires": "(not (($container_title_copy - '§d§m§g') = $container_title_copy)) and $desktop_screen",
+				"$screen_content": "sg_machine.craftgrid_panel"
+			},
 
 			// skygear: the menu window of common/invui (ui/sg_menu.json, tools/invuigen)
 

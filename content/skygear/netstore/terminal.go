@@ -147,26 +147,6 @@ func takeInto(n *Network, inv *inventory.Inventory, k storagenet.Key, want int) 
 	return added
 }
 
-// takeAll fills inv with stacks of list, in its order, until it is full, and
-// returns how many items moved.
-func takeAll(n *Network, inv *inventory.Inventory, list []storage.Entry) int {
-	total := 0
-	for _, e := range list {
-		k := KeyOf(e.Item)
-		for n.Root.Count(k) > 0 {
-			moved := takeInto(n, inv, k, e.Item.MaxCount())
-			total += moved
-			if moved < e.Item.MaxCount() {
-				if n.Root.Count(k) > 0 {
-					return total
-				}
-				break
-			}
-		}
-	}
-	return total
-}
-
 // takeMatching fills the stacks inv holds up to full stacks from n, and
 // returns how many items moved.
 func takeMatching(n *Network, inv *inventory.Inventory, _ []storage.Entry) int {
@@ -259,14 +239,8 @@ func depositKinds(n *Network, inv *inventory.Inventory) int64 {
 	return total
 }
 
-var (
-	// orders are how each player sorts the list.
-	orders = core.NewPlayers[int]()
-	// keptOrders is the list order kept while the player holds a button, a
-	// finger or shift on the terminal window (nil until the first draw after
-	// the hold began).
-	keptOrders = core.NewPlayers[[]storagenet.Key]()
-)
+// orders are how each player sorts the list.
+var orders = core.NewPlayers[int]()
 
 // IsTerminal reports whether b is a terminal or a network controller, whose
 // network ShowTerminal can open.
@@ -281,7 +255,6 @@ func ShowTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos)
 	if At(tx, pos) == nil || s.Debounced(p) {
 		return
 	}
-	delete(keptOrders.Of(s), p.H())
 	showTerminal(s, p, tx, pos, "")
 }
 

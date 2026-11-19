@@ -25,7 +25,8 @@
 | `network.go`, `nodes.go` | 망 찾기·무효화(`At`, `Invalidate`), 컨트롤러 틱, 노드별 설정(`Config`) |
 | `diskstore.go` | 디스크 내용의 저장 |
 | `terminal.go` | 단말·컨트롤러 클릭, 넣기·꺼내기, 호퍼·도관 연결 |
-| `terminalui.go` | 단말 창(인벤토리 화면 `ui.ShowInventory`, 메뉴 창에 누를 수 있는 요소마다 한 줄로 보인다, [json-ui.md](json-ui.md)): 망 목록, 3×3 제작 칸(단말 칸 0~8), 클릭 규칙 |
+| `terminalui.go` | 단말 창: 6줄짜리 상자 창(`chestui.Storage`, 제목 표식 `§d§m§t`, 팩 `sg_machine.terminal_panel`). 앞 5줄은 망 목록 한 쪽(44칸)과 넣기용 빈 칸, 마지막 줄은 버튼(쪽 넘기기, 검색, 정렬, 정보, 제작 칸, 제작 작업, 있는 것만 꺼내기, 모두 넣기)이다. 목록 칸은 그림일 뿐이어서 누르면 그 종류 한 묶음이 인벤토리로 들어오고, 목록의 빈 칸에 놓거나 쉬프트 클릭으로 옮긴 아이템은 망에 들어간다. 개수는 이름 앞의 개수 글(`invui.CountMark`)로 그린다. 창을 연 동안에는 목록 순서를 지킨다(`keepOrder`) |
+| `terminalgrid.go` | 단말의 제작 창(표식 `§d§m§g`, 팩 `sg_machine.craftgrid_panel`): 3×3 제작 칸(단말 칸 0~8)과 결과, 한 묶음 만들기, 레시피 책(메뉴 창의 `ui.ItemGrid`), 비우기, 단말로 돌아가기 |
 | `io.go`, `external.go`, `filterui.go` | 입력기·출력기·외부 저장공간과 필터 창 |
 | `pattern.go`, `encoder.go` | 패턴 읽기·쓰기, 패턴 인코더 |
 | `craft.go`, `craftui.go` | 자동 제작 장치, 계산 요청, 작업 실행, 제작 창 |

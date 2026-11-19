@@ -78,7 +78,7 @@ func TestTerminalCap240(t *testing.T) {
 	})
 }
 
-func TestTerminalKeepsOrderWhileHeld(t *testing.T) {
+func TestTerminalKeepsOrder(t *testing.T) {
 	netEnv(t, func(s *core.Session, tx *world.Tx) {
 		n := termNet(t, tx, 0)
 		stone, dirt, sand := item.NewStack(block.Stone{}, 30), item.NewStack(block.Dirt{}, 20), item.NewStack(block.Sand{}, 10)
@@ -119,10 +119,6 @@ func TestTransferBars(t *testing.T) {
 		}
 		if st, _ := inv.Item(0); st.Count() != 5 {
 			t.Fatalf("hotbar dirt %d, want 5", st.Count())
-		}
-		list, _, _ := terminalList(n, "en_US", "", 0)
-		if got := takeAll(n, inv, list); got != 220 {
-			t.Fatalf("took all %d, want 220", got)
 		}
 		inv = inventory.New(36, nil)
 		_ = inv.SetItem(12, stone.Grow(59))

@@ -4,6 +4,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/creative"
 	"github.com/df-mc/dragonfly/server/item/recipe"
@@ -12,9 +13,7 @@ import (
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/invclick"
 	"github.com/presentkim/skygear/common/textsearch"
-	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/content/skygear/core"
-	"github.com/presentkim/skygear/content/skygear/decor"
 	"github.com/presentkim/skygear/content/skygear/machinerecipe"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/progress"
@@ -31,17 +30,18 @@ import (
 // bookSlots is how many recipes the book shows.
 const bookSlots = 240
 
-// bookTabs are the book's tabs in the vanilla order; the last is the search
-// tab.
+// bookTabs are the book's tabs in the vanilla order with the item on each;
+// the last is the search tab.
 var bookTabs = []struct {
-	cat       creative.Category
-	key, icon string
+	cat  creative.Category
+	key  string
+	icon world.Item
 }{
-	{creative.ConstructionCategory(), "netstore.terminal.tab.construction", "textures/ui/icon_recipe_construction"},
-	{creative.EquipmentCategory(), "netstore.terminal.tab.equipment", "textures/ui/icon_recipe_equipment"},
-	{creative.ItemsCategory(), "netstore.terminal.tab.items", "textures/ui/icon_recipe_item"},
-	{creative.NatureCategory(), "netstore.terminal.tab.nature", "textures/ui/icon_recipe_nature"},
-	{key: "netstore.terminal.tab.search", icon: "textures/ui/magnifyingGlass"},
+	{creative.ConstructionCategory(), "netstore.terminal.tab.construction", block.Bricks{}},
+	{creative.EquipmentCategory(), "netstore.terminal.tab.equipment", item.Sword{Tier: item.ToolTierIron}},
+	{creative.ItemsCategory(), "netstore.terminal.tab.items", item.Bucket{}},
+	{creative.NatureCategory(), "netstore.terminal.tab.nature", block.Grass{}},
+	{key: "netstore.terminal.tab.search"},
 }
 
 // searchTab is the index of the search tab in bookTabs.
@@ -212,44 +212,6 @@ func openTab(s *core.Session, p *player.Player) int {
 	return searchTab
 }
 
-func bookPanel(s *core.Session, p *player.Player, book []bookEntry, again func(p *player.Player, tx *world.Tx)) *ui.InvBook {
-	lang := i18n.Of(p)
-	open := openTab(s, p)
-	b := &ui.InvBook{}
-	for i, t := range bookTabs {
-		b.Tabs = append(b.Tabs, ui.InvTab{Label: i18n.T(lang, t.key), Icon: t.icon, On: i == open, End: i == searchTab, Run: func(p *player.Player, tx *world.Tx) {
-			bookTab.Of(s)[p.H()] = i
-			again(p, tx)
-		}})
-	}
-	if open == searchTab {
-		b.Search = &ui.InvSearch{Query: bookQuery.Of(s)[p.H()], Placeholder: i18n.T(lang, "storage.search.label"), Change: func(p *player.Player, tx *world.Tx, q string) {
-			bookQuery.Of(s)[p.H()] = q
-			again(p, tx)
-		}}
-	} else {
-		b.Title = i18n.T(lang, bookTabs[open].key)
-	}
-	key, icon := "netstore.terminal.bookCan", "textures/ui/craft_toggle_on"
-	if !bookCanOnly.Of(s)[p.H()] {
-		key, icon = "netstore.terminal.bookAll", "textures/ui/craft_toggle_off"
-	}
-	b.Filter = &ui.Option{Label: i18n.T(lang, key), Icon: icon, Run: func(p *player.Player, tx *world.Tx) {
-		bookCanOnly.Of(s)[p.H()] = !bookCanOnly.Of(s)[p.H()]
-		again(p, tx)
-	}}
-	for _, e := range book {
-		tip := decor.TipName(lang, e.cr.Out) + "\n" + strings.Join(e.cr.Tip(lang), "\n") + "\n§7" + i18n.T(lang, "netstore.terminal.bookTip")
-		sl := ui.StackSlot(e.cr.Out, tip)
-		sl.Dim = !e.can
-		b.Slots = append(b.Slots, sl)
-	}
-	if len(book) == 0 {
-		b.Note = i18n.T(lang, "netstore.terminal.bookNone")
-	}
-	return b
-}
-
 // gridPattern is what each grid cell of a recipe holds: a shaped recipe
 // from the top left, a shapeless one cell by cell.
 func gridPattern(cr *machinerecipe.Crafter) ([]recipe.Item, bool) {
@@ -332,43 +294,4 @@ func layRecipe(n *Network, grid invclick.Area, cr *machinerecipe.Crafter, p *pla
 		grid.Set(i, got)
 	}
 	return true
-}
-
-// bookClick runs a click on recipe cr of the book: lay it (left), craft a
-// stack into the inventory (shift) or craft once into it (right, nothing
-// held). It returns the cursor stack.
-func bookClick(s *core.Session, n *Network, grid invclick.Area, cr *machinerecipe.Crafter, cur item.Stack, right, shift bool, p *player.Player) item.Stack {
-	if !shift && !right {
-		layRecipe(n, grid, cr, p)
-		return cur
-	}
-	if right && !cur.Empty() {
-		return cur
-	}
-	made := 0
-	for made < max(1, cr.Out.MaxCount()) {
-		if c, ok := gridRecipe(s, grid); !ok || c != cr {
-			if !layRecipe(n, grid, cr, p) {
-				break
-			}
-		}
-		out, ok := craftOnce(s, n, grid)
-		if !ok {
-			break
-		}
-		inv := p.Inventory()
-		if rest := invclick.Move(out, invclick.Hotbar(inv), invclick.Main(inv)); !rest.Empty() {
-			if n != nil && n.Online() {
-				rest = rest.Grow(-int(netInsert(n, rest)))
-			}
-			if !rest.Empty() {
-				p.Drop(rest)
-			}
-		}
-		made += out.Count()
-		if right {
-			break
-		}
-	}
-	return cur
 }
