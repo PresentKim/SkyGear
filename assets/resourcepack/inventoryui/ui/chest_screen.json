@@ -195,6 +195,11 @@
 			{
 				"requires": "(not (($container_title_copy - '§s§g§m§u') = $container_title_copy)) and $pocket_screen",
 				"$screen_content": "pocket_containers.small_chest_panel"
+			},
+			{
+				"requires": "(not (($container_title_copy - '§s§g§m§u') = $container_title_copy))",
+				"$screen_animations": [],
+				"$background_animations": []
 			}
 		]
     },
