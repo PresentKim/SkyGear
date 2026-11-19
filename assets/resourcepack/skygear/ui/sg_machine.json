@@ -1077,36 +1077,46 @@
         "buttons": {
           "type": "image",
           "texture": "textures/ui/dialog_background_opaque",
-          "size": [ 26, 170 ],
+          "size": [ 26, "100%c + 8px" ],
           "anchor_from": "top_left",
           "anchor_to": "top_right",
           "offset": [ -10, -21 ],
           "controls": [
             {
+              // A slot without a button (the page arrows on a single page)
+              // takes no room.
               "column": {
                 "type": "stack_panel",
                 "orientation": "vertical",
                 "collection_name": "container_items",
-                "size": [ 18, 162 ],
+                "size": [ 18, "100%c" ],
                 "offset": [ 4, 4 ],
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
                 "controls": [
-                  { "b0@sg_machine.net_slot": { "collection_index": 108 } },
-                  { "b1@sg_machine.net_slot": { "collection_index": 109 } },
-                  { "b2@sg_machine.net_slot": { "collection_index": 110 } },
-                  { "b3@sg_machine.net_slot": { "collection_index": 111 } },
-                  { "b4@sg_machine.net_slot": { "collection_index": 112 } },
-                  { "b5@sg_machine.net_slot": { "collection_index": 113 } },
-                  { "b6@sg_machine.net_slot": { "collection_index": 114 } },
-                  { "b7@sg_machine.net_slot": { "collection_index": 115 } },
-                  { "b8@sg_machine.net_slot": { "collection_index": 116 } }
+                  { "b0@sg_machine.net_button": { "collection_index": 108 } },
+                  { "b1@sg_machine.net_button": { "collection_index": 109 } },
+                  { "b2@sg_machine.net_button": { "collection_index": 110 } },
+                  { "b3@sg_machine.net_button": { "collection_index": 111 } },
+                  { "b4@sg_machine.net_button": { "collection_index": 112 } },
+                  { "b5@sg_machine.net_button": { "collection_index": 113 } },
+                  { "b6@sg_machine.net_button": { "collection_index": 114 } },
+                  { "b7@sg_machine.net_button": { "collection_index": 115 } },
+                  { "b8@sg_machine.net_button": { "collection_index": 116 } }
                 ]
               }
             }
           ]
         }
       }
+    ]
+  },
+  // A button slot of the terminal, hidden while empty. It reads the slot as
+  // #item_id_aux, which stays while the slot is pressed (bar_button).
+  "net_button@sg_machine.net_slot": {
+    "bindings": [
+      { "binding_name": "#item_id_aux", "binding_type": "collection", "binding_collection_name": "container_items" },
+      { "binding_type": "view", "source_property_name": "(#item_id_aux > 0)", "target_property_name": "#visible" }
     ]
   },
   "terminal_grid": {
