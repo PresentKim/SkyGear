@@ -24,8 +24,8 @@ import (
 )
 
 // The terminal window (after Refined Storage's grid): the network's items a
-// page of five rows and the buttons in a column left of it, over the vanilla
-// inventory. An item of the list never leaves the window: taking
+// page of twelve rows the pack scrolls apart from the vanilla inventory, and
+// the buttons in a column left of it. An item of the list never leaves the window: taking
 // it puts a stack of its kind into the inventory. An item put on an empty
 // slot of the list, or moved there with a shift click, goes into the
 // network. The terminal's 3×3 crafting grid has a window of its own; its
@@ -70,18 +70,18 @@ func gridCells(g invclick.Area) []item.Stack {
 // routes the window to the pack's terminal panel (ui/sg_machine.json),
 // which draws the counts of the list.
 const (
-	termPage      = 44
-	termListSlots = 45
-	termPrev      = 45
-	termSearch    = 46
-	termSort      = 47
-	termInfo      = 48
-	termGrid      = 49
-	termTasks     = 50
-	termTake      = 51
-	termPut       = 52
-	termNext      = 53
-	termSize      = 54
+	termPage      = 9*12 - 1
+	termListSlots = termPage + 1
+	termPrev      = termListSlots
+	termSearch    = termListSlots + 1
+	termSort      = termListSlots + 2
+	termInfo      = termListSlots + 3
+	termGrid      = termListSlots + 4
+	termTasks     = termListSlots + 5
+	termTake      = termListSlots + 6
+	termPut       = termListSlots + 7
+	termNext      = termListSlots + 8
+	termSize      = termListSlots + 9
 	termMarker    = "§d§m§t"
 	// termShown marks the stacks of the list, which are only pictures.
 	termShown = "sg_terminal_shown"

@@ -1036,8 +1036,9 @@
     "$sg_machine_outputs": "(#collection_index = 13)"
   },
   // The storage network terminal (content/skygear/netstore/terminalui.go):
-  // the network's items in five rows of slots and the buttons (slots 45 to
-  // 53) in a column left of the window. An item's name starts with its count text
+  // the network's items in twelve rows of slots (the last left empty for an
+  // item going in) and the buttons (slots 108 to 116) in a column left of the
+  // window. An item's name starts with its count text
   // (common/invui CountMark): a run of format codes the tooltip hides, cut
   // off here by its length in bytes and drawn at the slot's bottom right, as
   // a count over 64 does not fit the stack. Taking out the format signs from
@@ -1046,23 +1047,28 @@
   "terminal_panel@sg_machine.machine_panel": {
     "$sg_machine_slots": "sg_machine.terminal_slots",
     "$sg_machine_outputs": "(#collection_index = -1)",
-    "$sg_machine_root_size": [ 176, 187 ],
-    "$sg_machine_top_size": [ "100%", 99 ],
+    "$sg_machine_root_size": [ 184, 208 ],
+    "$sg_machine_top_size": [ "100%", 120 ],
     "$sg_machine_bar": "sg_machine.close_bar"
   },
+  // Five rows of the page show at a time over the vanilla inventory, which
+  // keeps its place under them; the page scrolls.
   "terminal_slots": {
     "type": "panel",
-    "size": [ 162, 90 ],
+    "size": [ 168, 90 ],
     "anchor_from": "top_left",
     "anchor_to": "top_left",
     "controls": [
       {
-        "list": {
-          "type": "grid",
-          "size": [ 162, 90 ],
-          "grid_dimensions": [ 9, 5 ],
-          "grid_item_template": "sg_machine.net_slot",
-          "collection_name": "container_items",
+        "list@common.container_scroll_panel": {
+          "$touch": false,
+          "$scrolling_panel_size": [ 168, 90 ],
+          "size": [ 168, 90 ],
+          "$scroll_view_port_size": [ 168, 90 ],
+          "$scroll_view_port_size_touch": [ 168, 90 ],
+          "$scroll_view_port_offset": [ 0, 0 ],
+          "$scroll_view_port_offset_touch": [ 0, 0 ],
+          "$scrolling_content": "sg_machine.terminal_grid",
           "anchor_from": "top_left",
           "anchor_to": "top_left"
         }
@@ -1086,15 +1092,15 @@
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
                 "controls": [
-                  { "b45@sg_machine.net_slot": { "collection_index": 45 } },
-                  { "b46@sg_machine.net_slot": { "collection_index": 46 } },
-                  { "b47@sg_machine.net_slot": { "collection_index": 47 } },
-                  { "b48@sg_machine.net_slot": { "collection_index": 48 } },
-                  { "b49@sg_machine.net_slot": { "collection_index": 49 } },
-                  { "b50@sg_machine.net_slot": { "collection_index": 50 } },
-                  { "b51@sg_machine.net_slot": { "collection_index": 51 } },
-                  { "b52@sg_machine.net_slot": { "collection_index": 52 } },
-                  { "b53@sg_machine.net_slot": { "collection_index": 53 } }
+                  { "b0@sg_machine.net_slot": { "collection_index": 108 } },
+                  { "b1@sg_machine.net_slot": { "collection_index": 109 } },
+                  { "b2@sg_machine.net_slot": { "collection_index": 110 } },
+                  { "b3@sg_machine.net_slot": { "collection_index": 111 } },
+                  { "b4@sg_machine.net_slot": { "collection_index": 112 } },
+                  { "b5@sg_machine.net_slot": { "collection_index": 113 } },
+                  { "b6@sg_machine.net_slot": { "collection_index": 114 } },
+                  { "b7@sg_machine.net_slot": { "collection_index": 115 } },
+                  { "b8@sg_machine.net_slot": { "collection_index": 116 } }
                 ]
               }
             }
@@ -1102,6 +1108,15 @@
         }
       }
     ]
+  },
+  "terminal_grid": {
+    "type": "grid",
+    "size": [ 162, 216 ],
+    "grid_dimensions": [ 9, 12 ],
+    "grid_item_template": "sg_machine.net_slot",
+    "collection_name": "container_items",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left"
   },
   "net_slot": {
     "type": "panel",
@@ -1119,7 +1134,7 @@
           "bindings": [
             { "binding_type": "collection", "binding_collection_name": "container_items", "binding_name": "#hover_text", "binding_condition": "always" },
             { "binding_type": "collection_details", "binding_collection_name": "container_items" },
-            { "binding_type": "view", "binding_condition": "always", "source_property_name": "((#hover_text = '') and (#collection_index < 45))", "target_property_name": "#visible" }
+            { "binding_type": "view", "binding_condition": "always", "source_property_name": "((#hover_text = '') and (#collection_index < 108))", "target_property_name": "#visible" }
           ]
         }
       },
