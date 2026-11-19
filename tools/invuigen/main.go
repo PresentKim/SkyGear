@@ -760,6 +760,10 @@ func defs() obj {
 				obj{"entity_ui_hide_vanilla": obj{"type": "panel", "size": []any{0, 0}, "property_bag": obj{"#entity_ui_vanilla_visible": false}}},
 				obj{"cover": obj{
 					"type": "input_panel", "modal": true, "size": []any{"100%", "100%"}, "layer": 1,
+					"button_mappings": []any{
+						obj{"from_button_id": "button.menu_cancel", "to_button_id": "button.menu_exit", "mapping_type": "global"},
+						obj{"from_button_id": "button.menu_inventory_cancel", "to_button_id": "button.menu_exit", "mapping_type": "global"},
+					},
 					"controls": []any{
 						obj{"sync": obj{"type": "grid", "size": []any{0, 0}, "maximum_grid_items": 27, "collection_name": "container_items", "grid_item_template": "sg_menu.empty"}},
 						obj{"window": slots("vertical", []any{"100%", "100%"}, []any{at("g", "window_gate", invui.SlotKey, nil)})},
