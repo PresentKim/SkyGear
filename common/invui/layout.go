@@ -56,16 +56,26 @@ const (
 
 // SlotLogo and SlotGame are the logo and the game's name the lobby draws over
 // its screens (KeyLobby). SlotEsc is pressed by Esc: the screen's close runs
-// with the window kept open, so the next screen does not reopen it.
+// with the window kept open, so the next screen does not reopen it. The
+// arrow slots are pressed by the arrow keys.
 const (
-	SlotLogo = Cell0 + Cells
-	SlotGame = SlotLogo + 1
-	SlotEsc  = SlotGame + 1
+	SlotLogo  = Cell0 + Cells
+	SlotGame  = SlotLogo + 1
+	SlotEsc   = SlotGame + 1
+	SlotUp    = SlotEsc + 1
+	SlotDown  = SlotUp + 1
+	SlotLeft  = SlotDown + 1
+	SlotRight = SlotLeft + 1
 )
 
-// Size is the number of slots of the menu window: the most a window was seen
-// to read (bedrock-research HOST-16 and the entity examples use 243).
-const Size = SlotEsc + 1
+// Size is the number of slots a screen is written in. A window holds only
+// the slots its layout uses (Slots), at most WindowSize.
+const Size = SlotRight + 1
+
+// WindowSize is the number of slots of the menu window: the most a window
+// was seen to read (bedrock-research HOST-16 and the entity examples use
+// 243).
+const WindowSize = 243
 
 // The slots of the home screen (KeyHome): the profile card, the square
 // buttons at the top right with their badges, the tiles down the left, the

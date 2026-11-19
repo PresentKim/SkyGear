@@ -341,7 +341,7 @@ func menuPageOf(name string, data any) *menuPage {
 				pg.mark(n, r.Info, invui.KindStatic)
 			}
 		}
-		pg.buttons(invui.ListRows, invui.KindRow, v.Actions)
+		pg.buttons(invui.ListRows, invui.KindRow, v.Actions[:min(len(v.Actions), invui.ListActions)])
 		return pg
 	case slotMenuData:
 		return slotMenuPage(v)
@@ -555,6 +555,63 @@ func walkJSON(dec *json.Decoder, f func(map[string]any)) {
 	walk()
 }
 
+// arrowOf is the step of an arrow slot, false for any other slot.
+func arrowOf(slot int) (dx, dy int, ok bool) {
+	switch slot {
+	case invui.SlotUp:
+		return 0, -1, true
+	case invui.SlotDown:
+		return 0, 1, true
+	case invui.SlotLeft:
+		return -1, 0, true
+	case invui.SlotRight:
+		return 1, 0, true
+	}
+	return 0, 0, false
+}
+
+// arrow is the id an arrow key presses: the cell of the screen's grid next
+// to the chosen one (the first that can be pressed when none is chosen),
+// or a split screen's page arrow past the grid's left or right edge.
+func (pg *menuPage) arrow(dx, dy int) string {
+	cols, n := 0, invui.Cells
+	switch invui.LayoutOf(pg.items[invui.SlotKey].CustomName()) {
+	case invui.KeySplit:
+		cols, n = invui.SplitColumns, invui.SplitCells
+	case invui.KeyGrid:
+		cols = invui.GridColumns
+	case invui.KeyBoard:
+		cols = invui.BoardColumns
+	default:
+		return ""
+	}
+	at := -1
+	for i := 0; i < n; i++ {
+		if strings.Contains(pg.items[invui.Cell0+i].CustomName(), invui.KindChosen) {
+			at = i
+			break
+		}
+	}
+	if at < 0 {
+		for i := 0; i < n; i++ {
+			if pg.ids[invui.Cell0+i] != "" {
+				return pg.ids[invui.Cell0+i]
+			}
+		}
+		return ""
+	}
+	x, y := at%cols+dx, at/cols+dy
+	switch {
+	case x < 0 && n == invui.SplitCells:
+		return pg.ids[invui.SlotPrev]
+	case x >= cols && n == invui.SplitCells:
+		return pg.ids[invui.SlotNext]
+	case x < 0 || x >= cols || y < 0 || y*cols+x >= n:
+		return ""
+	}
+	return pg.ids[invui.Cell0+y*cols+x]
+}
+
 // closeID is the id of a button that closes the screen as Esc does.
 const closeID = "\x00close"
 
@@ -601,7 +658,9 @@ func openMenu(p *player.Player, l *oreLayout, pg *menuPage) {
 		return st.gen == gen
 	}
 	closeRun := l.close
-	pg.text(invui.SlotEsc, "§r")
+	for _, s := range []int{invui.SlotEsc, invui.SlotUp, invui.SlotDown, invui.SlotLeft, invui.SlotRight} {
+		pg.text(s, "§r")
+	}
 	pg.faces()
 	invui.Show(p, pg.items, func(p *player.Player, tx *world.Tx, slot int) {
 		if slot == invui.SlotEsc || pg.ids[slot] == closeID {
@@ -624,7 +683,11 @@ func openMenu(p *player.Player, l *oreLayout, pg *menuPage) {
 			}
 			return
 		}
-		run := l.runs[pg.ids[slot]]
+		id := pg.ids[slot]
+		if dx, dy, ok := arrowOf(slot); ok {
+			id = pg.arrow(dx, dy)
+		}
+		run := l.runs[id]
 		if !current() || run == nil {
 			return
 		}

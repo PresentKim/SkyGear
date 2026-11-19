@@ -21,6 +21,8 @@ type window struct {
 	open   bool
 	quiet  bool
 	layouts []string
+	// pressed are the screen's slots of the window's slots (Place).
+	pressed map[int]int
 	press  func(p *player.Player, tx *world.Tx, slot int)
 	closed func(p *player.Player, tx *world.Tx)
 }
@@ -35,7 +37,7 @@ func windowOf(p *player.Player) *window {
 	defer windows.Unlock()
 	w := windows.m[p.UUID()]
 	if w == nil {
-		w = &window{st: chestui.NewStorage(Size, Marker)}
+		w = &window{st: chestui.NewStorage(WindowSize, Marker)}
 		w.st.Inventory().Handle(handler{w})
 		w.st.CloseWithClient()
 		windows.m[p.UUID()] = w
@@ -56,9 +58,11 @@ func Forget(id uuid.UUID) {
 
 // Show puts items in the slots of p's menu window and opens it if it is not
 // open, or opens it again when the window does not draw the layout of the
-// key in items (see Title). press runs when p presses a slot, closed when p
-// closes the window. Slots past the end of items are emptied. It must run in
-// p's transaction.
+// key in items (see Title). items are the screen's slots: the window holds
+// the ones its layout uses at their places (Place), every other slot of the
+// layout's region emptied and the other regions kept. press runs with the
+// screen's slot when p presses one, closed when p closes the window. It must
+// run in p's transaction.
 func Show(p *player.Player, items []item.Stack, press func(p *player.Player, tx *world.Tx, slot int), closed func(p *player.Player, tx *world.Tx)) {
 	layout := ""
 	if len(items) > SlotKey {
@@ -72,8 +76,19 @@ func Show(p *player.Player, items []item.Stack, press func(p *player.Player, tx 
 		Close(p)
 		open = false
 	}
+	slots := map[int]item.Stack{}
+	first, end := Region(layout)
+	for i := first; i < end; i++ {
+		slots[i] = item.Stack{}
+	}
+	pressed := map[int]int{}
+	for v, it := range items {
+		if at, ok := Place(layout, v); ok {
+			slots[at], pressed[at] = it, v
+		}
+	}
 	w.mu.Lock()
-	w.press, w.closed = press, closed
+	w.press, w.closed, w.pressed = press, closed, pressed
 	if !open {
 		w.layouts = LayoutsFor(layout)
 	}
@@ -81,13 +96,9 @@ func Show(p *player.Player, items []item.Stack, press func(p *player.Player, tx 
 	w.mu.Unlock()
 	inv := w.st.Inventory()
 	w.st.Batch(func() {
-		for i := 0; i < Size; i++ {
-			var it item.Stack
-			if i < len(items) {
-				it = items[i]
-			}
-			if old, _ := inv.Item(i); !same(old, it) {
-				_ = inv.SetItem(i, it)
+		for at, it := range slots {
+			if old, _ := inv.Item(at); !same(old, it) {
+				_ = inv.SetItem(at, it)
 			}
 		}
 	})
@@ -164,9 +175,10 @@ func (h handler) press(ctx *inventory.Context, slot int) {
 	p.H().Do(func(tx *world.Tx, e world.Entity) {
 		h.w.mu.Lock()
 		press := h.w.press
+		v, ok := h.w.pressed[slot]
 		h.w.mu.Unlock()
-		if press != nil {
-			press(e.(*player.Player), tx, slot)
+		if press != nil && ok {
+			press(e.(*player.Player), tx, v)
 		}
 	})
 }
