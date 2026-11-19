@@ -72,6 +72,34 @@ func showWindowPicker(s *core.Session, p *player.Player) {
 	ui.Menu(p, "/sgdebug ui", "", opts...)
 }
 
+// fixtureEnum names a sample screen of ui.Fixtures (/sgdebug screen).
+type fixtureEnum string
+
+func (fixtureEnum) Type() string                { return "sg_screen" }
+func (fixtureEnum) Options(cmd.Source) []string { return ui.FixtureNames }
+
+// debugScreen shows a sample screen of every layout of common/ui, so each can
+// be checked in the client.
+type debugScreen struct {
+	adminBase
+	Sub  cmd.SubCommand `cmd:"screen"`
+	Name fixtureEnum    `cmd:"name"`
+}
+
+func (c debugScreen) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	p, _, ok := c.session(src, o, tx)
+	if !ok {
+		return
+	}
+	if !slices.Contains(ui.FixtureNames, string(c.Name)) {
+		o.Errorf("no screen: %s", c.Name)
+		return
+	}
+	p.H().DoAfter(previewDelay, func(_ *world.Tx, e world.Entity) {
+		ui.Fixtures(e.(*player.Player))[string(c.Name)]()
+	})
+}
+
 // previewDelay is how long the preview waits before opening: the client
 // drops a screen opened while the chat screen or a form is still closing.
 const previewDelay = 500 * time.Millisecond
