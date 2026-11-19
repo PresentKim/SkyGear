@@ -172,7 +172,7 @@ func showTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos,
 // count text and the item's name, the count and the clicks in its lore.
 func shown(lang string, proto item.Stack, count string, lore ...string) item.Stack {
 	st := proto.Grow(1 - proto.Count())
-	st = st.WithCustomName(invui.CountMark(count) + "§r" + decor.TipName(lang, proto))
+	st = st.WithCustomName(invui.CountMark(count) + "§r" + i18n.Plain(decor.TipName(lang, proto)))
 	return st.WithLore(lore...).WithValue(termShown, true)
 }
 
