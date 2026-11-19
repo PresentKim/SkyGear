@@ -171,10 +171,15 @@ var ListLayouts = []string{KeyMenu, KeyCards, KeyGrid, KeyBoard, KeyPick, KeyRes
 // WindowLayouts are the layouts drawn in the window with tabs and a bar.
 var WindowLayouts = append([]string{KeySplit, KeyListSplit, KeyRange}, ListLayouts...)
 
-// LayoutOf returns the layout of a screen's key: its first two letters.
+// LayoutOf returns the layout of a screen's key: its first two letters, and
+// for a quest book or a radial menu the digit after them (its canvas or its
+// number of items), so the pack builds only that one.
 func LayoutOf(key string) string {
 	if len(key) < 2 {
 		return key
+	}
+	if (key[:2] == KeyQuest || key[:2] == KeyRadial) && len(key) > 2 {
+		return key[:3]
 	}
 	return key[:2]
 }

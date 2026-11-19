@@ -6,6 +6,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"image/png"
@@ -92,6 +93,40 @@ func chosenBox(size int) image.Image {
 				c = color.RGBA{214, 158, 24, 255}
 			case x == 1 || y == 1 || x == size-2 || y == size-2:
 				c = color.RGBA{255, 222, 92, 255}
+			}
+			img.Set(x, y, c)
+		}
+	}
+	return img
+}
+
+// frame is an 8×8 white edge thick pixels wide around a clear middle, drawn
+// tinted and nine-sliced (frame*.json) at any size.
+func frame(thick int) image.Image {
+	img := image.NewNRGBA(image.Rect(0, 0, 8, 8))
+	for x := range 8 {
+		for y := range 8 {
+			if min(x, y, 7-x, 7-y) < thick {
+				img.SetNRGBA(x, y, color.NRGBA{255, 255, 255, 255})
+			}
+		}
+	}
+	return img
+}
+
+// flatFace is a state of a lobby button (oui-mc.css .mc-lobby .mc-btn) in
+// 10×10, nine-sliced by 4 (flat_*.json): a dark edge, the fill from top rows
+// down to bottom rows above the edge, the band in the rows left.
+func flatFace(fill, band color.RGBA, top, bottom int) image.Image {
+	img := image.NewRGBA(image.Rect(0, 0, 10, 10))
+	for x := range 10 {
+		for y := range 10 {
+			c := band
+			switch {
+			case x == 0 || y == 0 || x == 9 || y == 9:
+				c = color.RGBA{0x1e, 0x1e, 0x1f, 255}
+			case y >= top && y < 10-bottom:
+				c = fill
 			}
 			img.Set(x, y, c)
 		}
@@ -282,6 +317,17 @@ func write(name string, img image.Image) {
 	}
 }
 
+// sliced writes the picture name with its nine-slice description: base is its
+// size and n the width of its edges.
+func sliced(name string, img image.Image, n int) {
+	write(name, img)
+	b := img.Bounds()
+	desc := fmt.Sprintf("{ \"base_size\": [ %d, %d ], \"nineslice_size\": %d }\n", b.Dx(), b.Dy(), n)
+	if err := os.WriteFile(filepath.Join(dir, name+".json"), []byte(desc), 0o644); err != nil {
+		panic(err)
+	}
+}
+
 var force = len(os.Args) > 1 && os.Args[1] == "-f"
 
 func main() {
@@ -309,6 +355,21 @@ func main() {
 		write("quest_"+s+"_edge", questShape(s, true))
 	}
 	write("quest_locked", noEntry())
+	sliced("frame1", frame(1), 1)
+	sliced("frame2", frame(2), 2)
+	for _, s := range []struct {
+		name              string
+		fill, hover, band color.RGBA
+	}{
+		{"lobby", color.RGBA{0x48, 0x49, 0x4a, 255}, color.RGBA{0x5a, 0x5b, 0x5c, 255}, color.RGBA{0x24, 0x25, 0x26, 255}},
+		{"light", color.RGBA{0xd0, 0xd1, 0xd4, 255}, color.RGBA{0xe6, 0xe8, 0xeb, 255}, color.RGBA{0x58, 0x58, 0x5a, 255}},
+		{"play", color.RGBA{0x3c, 0x85, 0x27, 255}, color.RGBA{0x4a, 0x9b, 0x31, 255}, color.RGBA{0x1d, 0x4d, 0x13, 255}},
+		{"pick", color.RGBA{0x28, 0x29, 0x30, 255}, color.RGBA{0x34, 0x36, 0x40, 255}, color.RGBA{0x18, 0x18, 0x1c, 255}},
+	} {
+		sliced("flat_"+s.name, flatFace(s.fill, s.band, 1, 3), 4)
+		sliced("flat_"+s.name+"_hover", flatFace(s.hover, s.band, 1, 3), 4)
+		sliced("flat_"+s.name+"_pressed", flatFace(s.hover, s.band, 2, 2), 4)
+	}
 
 	// the lobby screens' buttons and windows
 	write("launcher_button", launcherBox(color.NRGBA{18, 28, 48, 200}, color.NRGBA{110, 135, 170, 230}, 1))

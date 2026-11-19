@@ -491,101 +491,18 @@
                     "target_property_name": "#visible"
                   }
                 ],
-                "controls": [
-                  {
-                    "t": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.2980392156862745,
-                        0.788235294117647,
-                        0.23529411764705882
-                      ],
-                      "layer": 5,
-                      "offset": [
-                        0,
-                        0
-                      ],
-                      "size": [
-                        76,
-                        2
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "b": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.2980392156862745,
-                        0.788235294117647,
-                        0.23529411764705882
-                      ],
-                      "layer": 5,
-                      "offset": [
-                        0,
-                        48
-                      ],
-                      "size": [
-                        76,
-                        2
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "l": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.2980392156862745,
-                        0.788235294117647,
-                        0.23529411764705882
-                      ],
-                      "layer": 5,
-                      "offset": [
-                        0,
-                        0
-                      ],
-                      "size": [
-                        2,
-                        50
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "r": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.2980392156862745,
-                        0.788235294117647,
-                        0.23529411764705882
-                      ],
-                      "layer": 5,
-                      "offset": [
-                        74,
-                        0
-                      ],
-                      "size": [
-                        2,
-                        50
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  }
+                "color": [
+                  0.2980392156862745,
+                  0.788235294117647,
+                  0.23529411764705882
                 ],
+                "layer": 5,
                 "size": [
                   76,
                   50
                 ],
-                "type": "panel"
+                "texture": "textures/ui/sg/frame2",
+                "type": "image"
               }
             },
             {
@@ -934,9 +851,6 @@
           "controls": [
             {
               "face@sg_menu.slot_face": {}
-            },
-            {
-              "b@sg_menu.cell_button": {}
             }
           ],
           "size": [
@@ -965,9 +879,6 @@
           "controls": [
             {
               "face@sg_menu.mini_face": {}
-            },
-            {
-              "b@sg_menu.cell_button": {}
             }
           ],
           "size": [
@@ -1166,6 +1077,34 @@
                 "text": "#text",
                 "type": "label"
               }
+            }
+          ],
+          "size": [
+            18,
+            18
+          ],
+          "type": "panel"
+        }
+      },
+      {
+        "press": {
+          "bindings": [
+            {
+              "binding_collection_name": "container_items",
+              "binding_condition": "always",
+              "binding_name": "#hover_text",
+              "binding_type": "collection"
+            },
+            {
+              "binding_condition": "always",
+              "binding_type": "view",
+              "source_property_name": "(not ((#hover_text - '§z§l' - '§z§k') = #hover_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "controls": [
+            {
+              "b@sg_menu.cell_button": {}
             }
           ],
           "size": [
@@ -4879,64 +4818,13 @@
                           "default": {
                             "controls": [
                               {
-                                "edge": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.118,
-                                    0.118,
-                                    0.122
-                                  ],
+                                "bg": {
                                   "layer": 1,
                                   "size": [
                                     "100%",
                                     "100%"
                                   ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "band": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.1411764705882353,
-                                    0.1450980392156863,
-                                    0.14901960784313725
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 2px"
-                                  ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "fill": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.2823529411764706,
-                                    0.28627450980392155,
-                                    0.2901960784313726
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 4px"
-                                  ],
-                                  "texture": "textures/ui/White",
+                                  "texture": "textures/ui/sg/flat_lobby",
                                   "type": "image"
                                 }
                               }
@@ -4952,64 +4840,13 @@
                           "hover": {
                             "controls": [
                               {
-                                "edge": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.118,
-                                    0.118,
-                                    0.122
-                                  ],
+                                "bg": {
                                   "layer": 1,
                                   "size": [
                                     "100%",
                                     "100%"
                                   ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "band": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.1411764705882353,
-                                    0.1450980392156863,
-                                    0.14901960784313725
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 2px"
-                                  ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "fill": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.35294117647058826,
-                                    0.3568627450980392,
-                                    0.3607843137254902
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 4px"
-                                  ],
-                                  "texture": "textures/ui/White",
+                                  "texture": "textures/ui/sg/flat_lobby_hover",
                                   "type": "image"
                                 }
                               },
@@ -5033,64 +4870,13 @@
                           "pressed": {
                             "controls": [
                               {
-                                "edge": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.118,
-                                    0.118,
-                                    0.122
-                                  ],
+                                "bg": {
                                   "layer": 1,
                                   "size": [
                                     "100%",
                                     "100%"
                                   ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "band": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.1411764705882353,
-                                    0.1450980392156863,
-                                    0.14901960784313725
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 2px"
-                                  ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "fill": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.35294117647058826,
-                                    0.3568627450980392,
-                                    0.3607843137254902
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    2
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 4px"
-                                  ],
-                                  "texture": "textures/ui/White",
+                                  "texture": "textures/ui/sg/flat_lobby_pressed",
                                   "type": "image"
                                 }
                               }
@@ -6012,64 +5798,13 @@
                                 "default": {
                                   "controls": [
                                     {
-                                      "edge": {
-                                        "anchor_from": "top_left",
-                                        "anchor_to": "top_left",
-                                        "color": [
-                                          0.118,
-                                          0.118,
-                                          0.122
-                                        ],
+                                      "bg": {
                                         "layer": 1,
                                         "size": [
                                           "100%",
                                           "100%"
                                         ],
-                                        "texture": "textures/ui/White",
-                                        "type": "image"
-                                      }
-                                    },
-                                    {
-                                      "band": {
-                                        "anchor_from": "top_left",
-                                        "anchor_to": "top_left",
-                                        "color": [
-                                          0.34509803921568627,
-                                          0.34509803921568627,
-                                          0.35294117647058826
-                                        ],
-                                        "layer": 1,
-                                        "offset": [
-                                          1,
-                                          1
-                                        ],
-                                        "size": [
-                                          "100% - 2px",
-                                          "100% - 2px"
-                                        ],
-                                        "texture": "textures/ui/White",
-                                        "type": "image"
-                                      }
-                                    },
-                                    {
-                                      "fill": {
-                                        "anchor_from": "top_left",
-                                        "anchor_to": "top_left",
-                                        "color": [
-                                          0.8156862745098039,
-                                          0.8196078431372549,
-                                          0.8313725490196079
-                                        ],
-                                        "layer": 1,
-                                        "offset": [
-                                          1,
-                                          1
-                                        ],
-                                        "size": [
-                                          "100% - 2px",
-                                          "100% - 4px"
-                                        ],
-                                        "texture": "textures/ui/White",
+                                        "texture": "textures/ui/sg/flat_light",
                                         "type": "image"
                                       }
                                     }
@@ -6085,64 +5820,13 @@
                                 "hover": {
                                   "controls": [
                                     {
-                                      "edge": {
-                                        "anchor_from": "top_left",
-                                        "anchor_to": "top_left",
-                                        "color": [
-                                          0.118,
-                                          0.118,
-                                          0.122
-                                        ],
+                                      "bg": {
                                         "layer": 1,
                                         "size": [
                                           "100%",
                                           "100%"
                                         ],
-                                        "texture": "textures/ui/White",
-                                        "type": "image"
-                                      }
-                                    },
-                                    {
-                                      "band": {
-                                        "anchor_from": "top_left",
-                                        "anchor_to": "top_left",
-                                        "color": [
-                                          0.34509803921568627,
-                                          0.34509803921568627,
-                                          0.35294117647058826
-                                        ],
-                                        "layer": 1,
-                                        "offset": [
-                                          1,
-                                          1
-                                        ],
-                                        "size": [
-                                          "100% - 2px",
-                                          "100% - 2px"
-                                        ],
-                                        "texture": "textures/ui/White",
-                                        "type": "image"
-                                      }
-                                    },
-                                    {
-                                      "fill": {
-                                        "anchor_from": "top_left",
-                                        "anchor_to": "top_left",
-                                        "color": [
-                                          0.9019607843137255,
-                                          0.9098039215686274,
-                                          0.9215686274509803
-                                        ],
-                                        "layer": 1,
-                                        "offset": [
-                                          1,
-                                          1
-                                        ],
-                                        "size": [
-                                          "100% - 2px",
-                                          "100% - 4px"
-                                        ],
-                                        "texture": "textures/ui/White",
+                                        "texture": "textures/ui/sg/flat_light_hover",
                                         "type": "image"
                                       }
                                     }
@@ -6158,64 +5842,13 @@
                                 "pressed": {
                                   "controls": [
                                     {
-                                      "edge": {
-                                        "anchor_from": "top_left",
-                                        "anchor_to": "top_left",
-                                        "color": [
-                                          0.118,
-                                          0.118,
-                                          0.122
-                                        ],
+                                      "bg": {
                                         "layer": 1,
                                         "size": [
                                           "100%",
                                           "100%"
                                         ],
-                                        "texture": "textures/ui/White",
-                                        "type": "image"
-                                      }
-                                    },
-                                    {
-                                      "band": {
-                                        "anchor_from": "top_left",
-                                        "anchor_to": "top_left",
-                                        "color": [
-                                          0.34509803921568627,
-                                          0.34509803921568627,
-                                          0.35294117647058826
-                                        ],
-                                        "layer": 1,
-                                        "offset": [
-                                          1,
-                                          1
-                                        ],
-                                        "size": [
-                                          "100% - 2px",
-                                          "100% - 2px"
-                                        ],
-                                        "texture": "textures/ui/White",
-                                        "type": "image"
-                                      }
-                                    },
-                                    {
-                                      "fill": {
-                                        "anchor_from": "top_left",
-                                        "anchor_to": "top_left",
-                                        "color": [
-                                          0.9019607843137255,
-                                          0.9098039215686274,
-                                          0.9215686274509803
-                                        ],
-                                        "layer": 1,
-                                        "offset": [
-                                          1,
-                                          2
-                                        ],
-                                        "size": [
-                                          "100% - 2px",
-                                          "100% - 4px"
-                                        ],
-                                        "texture": "textures/ui/White",
+                                        "texture": "textures/ui/sg/flat_light_pressed",
                                         "type": "image"
                                       }
                                     }
@@ -6358,64 +5991,13 @@
               "default": {
                 "controls": [
                   {
-                    "edge": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.118,
-                        0.118,
-                        0.122
-                      ],
+                    "bg": {
                       "layer": 1,
                       "size": [
                         "100%",
                         "100%"
                       ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "band": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.1411764705882353,
-                        0.1450980392156863,
-                        0.14901960784313725
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        1,
-                        1
-                      ],
-                      "size": [
-                        "100% - 2px",
-                        "100% - 2px"
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "fill": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.2823529411764706,
-                        0.28627450980392155,
-                        0.2901960784313726
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        1,
-                        1
-                      ],
-                      "size": [
-                        "100% - 2px",
-                        "100% - 4px"
-                      ],
-                      "texture": "textures/ui/White",
+                      "texture": "textures/ui/sg/flat_lobby",
                       "type": "image"
                     }
                   }
@@ -6431,64 +6013,13 @@
               "hover": {
                 "controls": [
                   {
-                    "edge": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.118,
-                        0.118,
-                        0.122
-                      ],
+                    "bg": {
                       "layer": 1,
                       "size": [
                         "100%",
                         "100%"
                       ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "band": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.1411764705882353,
-                        0.1450980392156863,
-                        0.14901960784313725
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        1,
-                        1
-                      ],
-                      "size": [
-                        "100% - 2px",
-                        "100% - 2px"
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "fill": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.35294117647058826,
-                        0.3568627450980392,
-                        0.3607843137254902
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        1,
-                        1
-                      ],
-                      "size": [
-                        "100% - 2px",
-                        "100% - 4px"
-                      ],
-                      "texture": "textures/ui/White",
+                      "texture": "textures/ui/sg/flat_lobby_hover",
                       "type": "image"
                     }
                   }
@@ -6504,64 +6035,13 @@
               "pressed": {
                 "controls": [
                   {
-                    "edge": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.118,
-                        0.118,
-                        0.122
-                      ],
+                    "bg": {
                       "layer": 1,
                       "size": [
                         "100%",
                         "100%"
                       ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "band": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.1411764705882353,
-                        0.1450980392156863,
-                        0.14901960784313725
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        1,
-                        1
-                      ],
-                      "size": [
-                        "100% - 2px",
-                        "100% - 2px"
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "fill": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.35294117647058826,
-                        0.3568627450980392,
-                        0.3607843137254902
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        1,
-                        2
-                      ],
-                      "size": [
-                        "100% - 2px",
-                        "100% - 4px"
-                      ],
-                      "texture": "textures/ui/White",
+                      "texture": "textures/ui/sg/flat_lobby_pressed",
                       "type": "image"
                     }
                   }
@@ -6819,64 +6299,13 @@
                                 "default": {
                                   "controls": [
                                     {
-                                      "edge": {
-                                        "anchor_from": "top_left",
-                                        "anchor_to": "top_left",
-                                        "color": [
-                                          0.118,
-                                          0.118,
-                                          0.122
-                                        ],
+                                      "bg": {
                                         "layer": 1,
                                         "size": [
                                           "100%",
                                           "100%"
                                         ],
-                                        "texture": "textures/ui/White",
-                                        "type": "image"
-                                      }
-                                    },
-                                    {
-                                      "band": {
-                                        "anchor_from": "top_left",
-                                        "anchor_to": "top_left",
-                                        "color": [
-                                          0.34509803921568627,
-                                          0.34509803921568627,
-                                          0.35294117647058826
-                                        ],
-                                        "layer": 1,
-                                        "offset": [
-                                          1,
-                                          1
-                                        ],
-                                        "size": [
-                                          "100% - 2px",
-                                          "100% - 2px"
-                                        ],
-                                        "texture": "textures/ui/White",
-                                        "type": "image"
-                                      }
-                                    },
-                                    {
-                                      "fill": {
-                                        "anchor_from": "top_left",
-                                        "anchor_to": "top_left",
-                                        "color": [
-                                          0.8156862745098039,
-                                          0.8196078431372549,
-                                          0.8313725490196079
-                                        ],
-                                        "layer": 1,
-                                        "offset": [
-                                          1,
-                                          1
-                                        ],
-                                        "size": [
-                                          "100% - 2px",
-                                          "100% - 4px"
-                                        ],
-                                        "texture": "textures/ui/White",
+                                        "texture": "textures/ui/sg/flat_light",
                                         "type": "image"
                                       }
                                     }
@@ -6892,64 +6321,13 @@
                                 "hover": {
                                   "controls": [
                                     {
-                                      "edge": {
-                                        "anchor_from": "top_left",
-                                        "anchor_to": "top_left",
-                                        "color": [
-                                          0.118,
-                                          0.118,
-                                          0.122
-                                        ],
+                                      "bg": {
                                         "layer": 1,
                                         "size": [
                                           "100%",
                                           "100%"
                                         ],
-                                        "texture": "textures/ui/White",
-                                        "type": "image"
-                                      }
-                                    },
-                                    {
-                                      "band": {
-                                        "anchor_from": "top_left",
-                                        "anchor_to": "top_left",
-                                        "color": [
-                                          0.34509803921568627,
-                                          0.34509803921568627,
-                                          0.35294117647058826
-                                        ],
-                                        "layer": 1,
-                                        "offset": [
-                                          1,
-                                          1
-                                        ],
-                                        "size": [
-                                          "100% - 2px",
-                                          "100% - 2px"
-                                        ],
-                                        "texture": "textures/ui/White",
-                                        "type": "image"
-                                      }
-                                    },
-                                    {
-                                      "fill": {
-                                        "anchor_from": "top_left",
-                                        "anchor_to": "top_left",
-                                        "color": [
-                                          0.9019607843137255,
-                                          0.9098039215686274,
-                                          0.9215686274509803
-                                        ],
-                                        "layer": 1,
-                                        "offset": [
-                                          1,
-                                          1
-                                        ],
-                                        "size": [
-                                          "100% - 2px",
-                                          "100% - 4px"
-                                        ],
-                                        "texture": "textures/ui/White",
+                                        "texture": "textures/ui/sg/flat_light_hover",
                                         "type": "image"
                                       }
                                     }
@@ -6965,64 +6343,13 @@
                                 "pressed": {
                                   "controls": [
                                     {
-                                      "edge": {
-                                        "anchor_from": "top_left",
-                                        "anchor_to": "top_left",
-                                        "color": [
-                                          0.118,
-                                          0.118,
-                                          0.122
-                                        ],
+                                      "bg": {
                                         "layer": 1,
                                         "size": [
                                           "100%",
                                           "100%"
                                         ],
-                                        "texture": "textures/ui/White",
-                                        "type": "image"
-                                      }
-                                    },
-                                    {
-                                      "band": {
-                                        "anchor_from": "top_left",
-                                        "anchor_to": "top_left",
-                                        "color": [
-                                          0.34509803921568627,
-                                          0.34509803921568627,
-                                          0.35294117647058826
-                                        ],
-                                        "layer": 1,
-                                        "offset": [
-                                          1,
-                                          1
-                                        ],
-                                        "size": [
-                                          "100% - 2px",
-                                          "100% - 2px"
-                                        ],
-                                        "texture": "textures/ui/White",
-                                        "type": "image"
-                                      }
-                                    },
-                                    {
-                                      "fill": {
-                                        "anchor_from": "top_left",
-                                        "anchor_to": "top_left",
-                                        "color": [
-                                          0.9019607843137255,
-                                          0.9098039215686274,
-                                          0.9215686274509803
-                                        ],
-                                        "layer": 1,
-                                        "offset": [
-                                          1,
-                                          2
-                                        ],
-                                        "size": [
-                                          "100% - 2px",
-                                          "100% - 4px"
-                                        ],
-                                        "texture": "textures/ui/White",
+                                        "texture": "textures/ui/sg/flat_light_pressed",
                                         "type": "image"
                                       }
                                     }
@@ -8108,7 +7435,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(not (((#hover_text - 'hm') = #hover_text)))",
+        "source_property_name": "(not ((#hover_text - 'hm') = #hover_text))",
         "target_property_name": "#visible"
       }
     ],
@@ -8164,64 +7491,13 @@
                           "default": {
                             "controls": [
                               {
-                                "edge": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.118,
-                                    0.118,
-                                    0.122
-                                  ],
+                                "bg": {
                                   "layer": 1,
                                   "size": [
                                     "100%",
                                     "100%"
                                   ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "band": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.11372549019607843,
-                                    0.30196078431372547,
-                                    0.07450980392156863
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 2px"
-                                  ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "fill": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.23529411764705882,
-                                    0.5215686274509804,
-                                    0.15294117647058825
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 4px"
-                                  ],
-                                  "texture": "textures/ui/White",
+                                  "texture": "textures/ui/sg/flat_play",
                                   "type": "image"
                                 }
                               }
@@ -8237,64 +7513,13 @@
                           "hover": {
                             "controls": [
                               {
-                                "edge": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.118,
-                                    0.118,
-                                    0.122
-                                  ],
+                                "bg": {
                                   "layer": 1,
                                   "size": [
                                     "100%",
                                     "100%"
                                   ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "band": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.11372549019607843,
-                                    0.30196078431372547,
-                                    0.07450980392156863
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 2px"
-                                  ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "fill": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.2901960784313726,
-                                    0.6078431372549019,
-                                    0.19215686274509805
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 4px"
-                                  ],
-                                  "texture": "textures/ui/White",
+                                  "texture": "textures/ui/sg/flat_play_hover",
                                   "type": "image"
                                 }
                               }
@@ -8310,64 +7535,13 @@
                           "pressed": {
                             "controls": [
                               {
-                                "edge": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.118,
-                                    0.118,
-                                    0.122
-                                  ],
+                                "bg": {
                                   "layer": 1,
                                   "size": [
                                     "100%",
                                     "100%"
                                   ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "band": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.11372549019607843,
-                                    0.30196078431372547,
-                                    0.07450980392156863
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 2px"
-                                  ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "fill": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.2901960784313726,
-                                    0.6078431372549019,
-                                    0.19215686274509805
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    2
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 4px"
-                                  ],
-                                  "texture": "textures/ui/White",
+                                  "texture": "textures/ui/sg/flat_play_pressed",
                                   "type": "image"
                                 }
                               }
@@ -8567,64 +7741,13 @@
               "default": {
                 "controls": [
                   {
-                    "edge": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.118,
-                        0.118,
-                        0.122
-                      ],
+                    "bg": {
                       "layer": 1,
                       "size": [
                         "100%",
                         "100%"
                       ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "band": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.1411764705882353,
-                        0.1450980392156863,
-                        0.14901960784313725
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        1,
-                        1
-                      ],
-                      "size": [
-                        "100% - 2px",
-                        "100% - 2px"
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "fill": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.2823529411764706,
-                        0.28627450980392155,
-                        0.2901960784313726
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        1,
-                        1
-                      ],
-                      "size": [
-                        "100% - 2px",
-                        "100% - 4px"
-                      ],
-                      "texture": "textures/ui/White",
+                      "texture": "textures/ui/sg/flat_lobby",
                       "type": "image"
                     }
                   }
@@ -8640,64 +7763,13 @@
               "hover": {
                 "controls": [
                   {
-                    "edge": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.118,
-                        0.118,
-                        0.122
-                      ],
+                    "bg": {
                       "layer": 1,
                       "size": [
                         "100%",
                         "100%"
                       ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "band": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.1411764705882353,
-                        0.1450980392156863,
-                        0.14901960784313725
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        1,
-                        1
-                      ],
-                      "size": [
-                        "100% - 2px",
-                        "100% - 2px"
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "fill": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.35294117647058826,
-                        0.3568627450980392,
-                        0.3607843137254902
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        1,
-                        1
-                      ],
-                      "size": [
-                        "100% - 2px",
-                        "100% - 4px"
-                      ],
-                      "texture": "textures/ui/White",
+                      "texture": "textures/ui/sg/flat_lobby_hover",
                       "type": "image"
                     }
                   }
@@ -8713,64 +7785,13 @@
               "pressed": {
                 "controls": [
                   {
-                    "edge": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.118,
-                        0.118,
-                        0.122
-                      ],
+                    "bg": {
                       "layer": 1,
                       "size": [
                         "100%",
                         "100%"
                       ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "band": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.1411764705882353,
-                        0.1450980392156863,
-                        0.14901960784313725
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        1,
-                        1
-                      ],
-                      "size": [
-                        "100% - 2px",
-                        "100% - 2px"
-                      ],
-                      "texture": "textures/ui/White",
-                      "type": "image"
-                    }
-                  },
-                  {
-                    "fill": {
-                      "anchor_from": "top_left",
-                      "anchor_to": "top_left",
-                      "color": [
-                        0.35294117647058826,
-                        0.3568627450980392,
-                        0.3607843137254902
-                      ],
-                      "layer": 1,
-                      "offset": [
-                        1,
-                        2
-                      ],
-                      "size": [
-                        "100% - 2px",
-                        "100% - 4px"
-                      ],
-                      "texture": "textures/ui/White",
+                      "texture": "textures/ui/sg/flat_lobby_pressed",
                       "type": "image"
                     }
                   }
@@ -8872,64 +7893,13 @@
                           "default": {
                             "controls": [
                               {
-                                "edge": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.118,
-                                    0.118,
-                                    0.122
-                                  ],
+                                "bg": {
                                   "layer": 1,
                                   "size": [
                                     "100%",
                                     "100%"
                                   ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "band": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.1411764705882353,
-                                    0.1450980392156863,
-                                    0.14901960784313725
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 2px"
-                                  ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "fill": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.2823529411764706,
-                                    0.28627450980392155,
-                                    0.2901960784313726
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 4px"
-                                  ],
-                                  "texture": "textures/ui/White",
+                                  "texture": "textures/ui/sg/flat_lobby",
                                   "type": "image"
                                 }
                               }
@@ -8945,64 +7915,13 @@
                           "hover": {
                             "controls": [
                               {
-                                "edge": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.118,
-                                    0.118,
-                                    0.122
-                                  ],
+                                "bg": {
                                   "layer": 1,
                                   "size": [
                                     "100%",
                                     "100%"
                                   ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "band": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.1411764705882353,
-                                    0.1450980392156863,
-                                    0.14901960784313725
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 2px"
-                                  ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "fill": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.35294117647058826,
-                                    0.3568627450980392,
-                                    0.3607843137254902
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 4px"
-                                  ],
-                                  "texture": "textures/ui/White",
+                                  "texture": "textures/ui/sg/flat_lobby_hover",
                                   "type": "image"
                                 }
                               }
@@ -9018,64 +7937,13 @@
                           "pressed": {
                             "controls": [
                               {
-                                "edge": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.118,
-                                    0.118,
-                                    0.122
-                                  ],
+                                "bg": {
                                   "layer": 1,
                                   "size": [
                                     "100%",
                                     "100%"
                                   ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "band": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.1411764705882353,
-                                    0.1450980392156863,
-                                    0.14901960784313725
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 2px"
-                                  ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "fill": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.35294117647058826,
-                                    0.3568627450980392,
-                                    0.3607843137254902
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    2
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 4px"
-                                  ],
-                                  "texture": "textures/ui/White",
+                                  "texture": "textures/ui/sg/flat_lobby_pressed",
                                   "type": "image"
                                 }
                               }
@@ -9484,64 +8352,13 @@
                           "default": {
                             "controls": [
                               {
-                                "edge": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.118,
-                                    0.118,
-                                    0.122
-                                  ],
+                                "bg": {
                                   "layer": 1,
                                   "size": [
                                     "100%",
                                     "100%"
                                   ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "band": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.1411764705882353,
-                                    0.1450980392156863,
-                                    0.14901960784313725
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 2px"
-                                  ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "fill": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.2823529411764706,
-                                    0.28627450980392155,
-                                    0.2901960784313726
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 4px"
-                                  ],
-                                  "texture": "textures/ui/White",
+                                  "texture": "textures/ui/sg/flat_lobby",
                                   "type": "image"
                                 }
                               }
@@ -9557,64 +8374,13 @@
                           "hover": {
                             "controls": [
                               {
-                                "edge": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.118,
-                                    0.118,
-                                    0.122
-                                  ],
+                                "bg": {
                                   "layer": 1,
                                   "size": [
                                     "100%",
                                     "100%"
                                   ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "band": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.1411764705882353,
-                                    0.1450980392156863,
-                                    0.14901960784313725
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 2px"
-                                  ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "fill": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.35294117647058826,
-                                    0.3568627450980392,
-                                    0.3607843137254902
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 4px"
-                                  ],
-                                  "texture": "textures/ui/White",
+                                  "texture": "textures/ui/sg/flat_lobby_hover",
                                   "type": "image"
                                 }
                               }
@@ -9630,64 +8396,13 @@
                           "pressed": {
                             "controls": [
                               {
-                                "edge": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.118,
-                                    0.118,
-                                    0.122
-                                  ],
+                                "bg": {
                                   "layer": 1,
                                   "size": [
                                     "100%",
                                     "100%"
                                   ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "band": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.1411764705882353,
-                                    0.1450980392156863,
-                                    0.14901960784313725
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 2px"
-                                  ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "fill": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.35294117647058826,
-                                    0.3568627450980392,
-                                    0.3607843137254902
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    2
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 4px"
-                                  ],
-                                  "texture": "textures/ui/White",
+                                  "texture": "textures/ui/sg/flat_lobby_pressed",
                                   "type": "image"
                                 }
                               }
@@ -10745,7 +9460,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(not (((#hover_text - 'mn') = #hover_text) and ((#hover_text - 'cd') = #hover_text) and ((#hover_text - 'gd') = #hover_text) and ((#hover_text - 'bd') = #hover_text) and ((#hover_text - 'pk') = #hover_text) and ((#hover_text - 'rs') = #hover_text)))",
+        "source_property_name": "(not ((#hover_text - 'mn' - 'cd' - 'gd' - 'bd' - 'pk' - 'rs') = #hover_text))",
         "target_property_name": "#visible"
       }
     ],
@@ -11043,7 +9758,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(not (((#hover_text - 'ls') = #hover_text)))",
+        "source_property_name": "(not ((#hover_text - 'ls') = #hover_text))",
         "target_property_name": "#visible"
       }
     ],
@@ -11286,7 +10001,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(not (((#hover_text - 'ld') = #hover_text)))",
+        "source_property_name": "(not ((#hover_text - 'ld') = #hover_text))",
         "target_property_name": "#visible"
       }
     ],
@@ -12020,7 +10735,7 @@
                           }
                         }
                       ],
-                      "ignored": "(($sg_title - '|qk|') = $sg_title)",
+                      "ignored": "(($sg_title - '|qk0|' - '|qk1|') = $sg_title)",
                       "orientation": "vertical",
                       "size": [
                         "100%",
@@ -12114,7 +10829,7 @@
                           }
                         }
                       ],
-                      "ignored": "(($sg_title - '|rd|') = $sg_title)",
+                      "ignored": "(($sg_title - '|rd1|' - '|rd2|' - '|rd3|' - '|rd4|' - '|rd5|' - '|rd6|' - '|rd7|' - '|rd8|') = $sg_title)",
                       "orientation": "vertical",
                       "size": [
                         "100%",
@@ -12256,7 +10971,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(not (((#hover_text - 'bd') = #hover_text)))",
+        "source_property_name": "(not ((#hover_text - 'bd') = #hover_text))",
         "target_property_name": "#visible"
       }
     ],
@@ -12797,7 +11512,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(not (((#hover_text - 'cd') = #hover_text)))",
+        "source_property_name": "(not ((#hover_text - 'cd') = #hover_text))",
         "target_property_name": "#visible"
       }
     ],
@@ -12885,7 +11600,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(not (((#hover_text - 'gd') = #hover_text)))",
+        "source_property_name": "(not ((#hover_text - 'gd') = #hover_text))",
         "target_property_name": "#visible"
       }
     ],
@@ -12980,7 +11695,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(not (((#hover_text - 'pk') = #hover_text)))",
+        "source_property_name": "(not ((#hover_text - 'pk') = #hover_text))",
         "target_property_name": "#visible"
       }
     ],
@@ -13251,7 +11966,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(not (((#hover_text - 'rs') = #hover_text)))",
+        "source_property_name": "(not ((#hover_text - 'rs') = #hover_text))",
         "target_property_name": "#visible"
       }
     ],
@@ -13405,64 +12120,13 @@
                           "default": {
                             "controls": [
                               {
-                                "edge": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.118,
-                                    0.118,
-                                    0.122
-                                  ],
+                                "bg": {
                                   "layer": 1,
                                   "size": [
                                     "100%",
                                     "100%"
                                   ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "band": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.09411764705882353,
-                                    0.09411764705882353,
-                                    0.10980392156862745
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 2px"
-                                  ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "fill": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.1568627450980392,
-                                    0.1607843137254902,
-                                    0.18823529411764706
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 4px"
-                                  ],
-                                  "texture": "textures/ui/White",
+                                  "texture": "textures/ui/sg/flat_pick",
                                   "type": "image"
                                 }
                               }
@@ -13478,64 +12142,13 @@
                           "hover": {
                             "controls": [
                               {
-                                "edge": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.118,
-                                    0.118,
-                                    0.122
-                                  ],
+                                "bg": {
                                   "layer": 1,
                                   "size": [
                                     "100%",
                                     "100%"
                                   ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "band": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.09411764705882353,
-                                    0.09411764705882353,
-                                    0.10980392156862745
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 2px"
-                                  ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "fill": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.20392156862745098,
-                                    0.21176470588235294,
-                                    0.25098039215686274
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 4px"
-                                  ],
-                                  "texture": "textures/ui/White",
+                                  "texture": "textures/ui/sg/flat_pick_hover",
                                   "type": "image"
                                 }
                               }
@@ -13551,64 +12164,13 @@
                           "pressed": {
                             "controls": [
                               {
-                                "edge": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.118,
-                                    0.118,
-                                    0.122
-                                  ],
+                                "bg": {
                                   "layer": 1,
                                   "size": [
                                     "100%",
                                     "100%"
                                   ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "band": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.09411764705882353,
-                                    0.09411764705882353,
-                                    0.10980392156862745
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    1
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 2px"
-                                  ],
-                                  "texture": "textures/ui/White",
-                                  "type": "image"
-                                }
-                              },
-                              {
-                                "fill": {
-                                  "anchor_from": "top_left",
-                                  "anchor_to": "top_left",
-                                  "color": [
-                                    0.20392156862745098,
-                                    0.21176470588235294,
-                                    0.25098039215686274
-                                  ],
-                                  "layer": 1,
-                                  "offset": [
-                                    1,
-                                    2
-                                  ],
-                                  "size": [
-                                    "100% - 2px",
-                                    "100% - 4px"
-                                  ],
-                                  "texture": "textures/ui/White",
+                                  "texture": "textures/ui/sg/flat_pick_pressed",
                                   "type": "image"
                                 }
                               }
@@ -16449,6 +15011,18 @@
     "type": "panel"
   },
   "quest_grid_0": {
+    "controls": [
+      {
+        "s@sg_menu.quest_scroll_0": {}
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "quest_grid_0_gate": {
     "bindings": [
       {
         "binding_collection_name": "container_items",
@@ -16465,7 +15039,7 @@
     ],
     "controls": [
       {
-        "s@sg_menu.quest_scroll_0": {}
+        "p@sg_menu.quest_grid_0": {}
       }
     ],
     "size": [
@@ -16475,6 +15049,18 @@
     "type": "panel"
   },
   "quest_grid_1": {
+    "controls": [
+      {
+        "s@sg_menu.quest_scroll_1": {}
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "quest_grid_1_gate": {
     "bindings": [
       {
         "binding_collection_name": "container_items",
@@ -16491,7 +15077,7 @@
     ],
     "controls": [
       {
-        "s@sg_menu.quest_scroll_1": {}
+        "p@sg_menu.quest_grid_1": {}
       }
     ],
     "size": [
@@ -16652,11 +15238,12 @@
                       "collection_name": "container_items",
                       "controls": [
                         {
-                          "g@sg_menu.quest_grid_0": {
+                          "g@sg_menu.quest_grid_0_gate": {
                             "collection_index": 0
                           }
                         }
                       ],
+                      "ignored": "(($sg_title - '|qk0|') = $sg_title)",
                       "orientation": "vertical",
                       "size": [
                         "100%",
@@ -16670,11 +15257,12 @@
                       "collection_name": "container_items",
                       "controls": [
                         {
-                          "g@sg_menu.quest_grid_1": {
+                          "g@sg_menu.quest_grid_1_gate": {
                             "collection_index": 0
                           }
                         }
                       ],
+                      "ignored": "(($sg_title - '|qk1|') = $sg_title)",
                       "orientation": "vertical",
                       "size": [
                         "100%",
@@ -19273,7 +17861,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(not (((#hover_text - 'qk') = #hover_text)))",
+        "source_property_name": "(not ((#hover_text - 'qk0' - 'qk1') = #hover_text))",
         "target_property_name": "#visible"
       }
     ],
@@ -19799,11 +18387,12 @@
                       "collection_name": "container_items",
                       "controls": [
                         {
-                          "g@sg_menu.radial_ring_1": {
+                          "g@sg_menu.radial_ring_1_gate": {
                             "collection_index": 0
                           }
                         }
                       ],
+                      "ignored": "(($sg_title - '|rd1|') = $sg_title)",
                       "orientation": "vertical",
                       "size": [
                         "100%",
@@ -19817,11 +18406,12 @@
                       "collection_name": "container_items",
                       "controls": [
                         {
-                          "g@sg_menu.radial_ring_2": {
+                          "g@sg_menu.radial_ring_2_gate": {
                             "collection_index": 0
                           }
                         }
                       ],
+                      "ignored": "(($sg_title - '|rd2|') = $sg_title)",
                       "orientation": "vertical",
                       "size": [
                         "100%",
@@ -19835,11 +18425,12 @@
                       "collection_name": "container_items",
                       "controls": [
                         {
-                          "g@sg_menu.radial_ring_3": {
+                          "g@sg_menu.radial_ring_3_gate": {
                             "collection_index": 0
                           }
                         }
                       ],
+                      "ignored": "(($sg_title - '|rd3|') = $sg_title)",
                       "orientation": "vertical",
                       "size": [
                         "100%",
@@ -19853,11 +18444,12 @@
                       "collection_name": "container_items",
                       "controls": [
                         {
-                          "g@sg_menu.radial_ring_4": {
+                          "g@sg_menu.radial_ring_4_gate": {
                             "collection_index": 0
                           }
                         }
                       ],
+                      "ignored": "(($sg_title - '|rd4|') = $sg_title)",
                       "orientation": "vertical",
                       "size": [
                         "100%",
@@ -19871,11 +18463,12 @@
                       "collection_name": "container_items",
                       "controls": [
                         {
-                          "g@sg_menu.radial_ring_5": {
+                          "g@sg_menu.radial_ring_5_gate": {
                             "collection_index": 0
                           }
                         }
                       ],
+                      "ignored": "(($sg_title - '|rd5|') = $sg_title)",
                       "orientation": "vertical",
                       "size": [
                         "100%",
@@ -19889,11 +18482,12 @@
                       "collection_name": "container_items",
                       "controls": [
                         {
-                          "g@sg_menu.radial_ring_6": {
+                          "g@sg_menu.radial_ring_6_gate": {
                             "collection_index": 0
                           }
                         }
                       ],
+                      "ignored": "(($sg_title - '|rd6|') = $sg_title)",
                       "orientation": "vertical",
                       "size": [
                         "100%",
@@ -19907,11 +18501,12 @@
                       "collection_name": "container_items",
                       "controls": [
                         {
-                          "g@sg_menu.radial_ring_7": {
+                          "g@sg_menu.radial_ring_7_gate": {
                             "collection_index": 0
                           }
                         }
                       ],
+                      "ignored": "(($sg_title - '|rd7|') = $sg_title)",
                       "orientation": "vertical",
                       "size": [
                         "100%",
@@ -19925,11 +18520,12 @@
                       "collection_name": "container_items",
                       "controls": [
                         {
-                          "g@sg_menu.radial_ring_8": {
+                          "g@sg_menu.radial_ring_8_gate": {
                             "collection_index": 0
                           }
                         }
                       ],
+                      "ignored": "(($sg_title - '|rd8|') = $sg_title)",
                       "orientation": "vertical",
                       "size": [
                         "100%",
@@ -20028,7 +18624,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(not (((#hover_text - 'rd') = #hover_text)))",
+        "source_property_name": "(not ((#hover_text - 'rd1' - 'rd2' - 'rd3' - 'rd4' - 'rd5' - 'rd6' - 'rd7' - 'rd8') = #hover_text))",
         "target_property_name": "#visible"
       }
     ],
@@ -20044,20 +18640,6 @@
     "type": "panel"
   },
   "radial_ring_1": {
-    "bindings": [
-      {
-        "binding_collection_name": "container_items",
-        "binding_condition": "always",
-        "binding_name": "#hover_text",
-        "binding_type": "collection"
-      },
-      {
-        "binding_condition": "always",
-        "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'rd1') = #hover_text))",
-        "target_property_name": "#visible"
-      }
-    ],
     "controls": [
       {
         "i0": {
@@ -20094,7 +18676,7 @@
     ],
     "type": "panel"
   },
-  "radial_ring_2": {
+  "radial_ring_1_gate": {
     "bindings": [
       {
         "binding_collection_name": "container_items",
@@ -20105,10 +18687,22 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'rd2') = #hover_text))",
+        "source_property_name": "(not ((#hover_text - 'rd1') = #hover_text))",
         "target_property_name": "#visible"
       }
     ],
+    "controls": [
+      {
+        "p@sg_menu.radial_ring_1": {}
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "radial_ring_2": {
     "controls": [
       {
         "i0": {
@@ -20173,7 +18767,7 @@
     ],
     "type": "panel"
   },
-  "radial_ring_3": {
+  "radial_ring_2_gate": {
     "bindings": [
       {
         "binding_collection_name": "container_items",
@@ -20184,10 +18778,22 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'rd3') = #hover_text))",
+        "source_property_name": "(not ((#hover_text - 'rd2') = #hover_text))",
         "target_property_name": "#visible"
       }
     ],
+    "controls": [
+      {
+        "p@sg_menu.radial_ring_2": {}
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "radial_ring_3": {
     "controls": [
       {
         "i0": {
@@ -20280,7 +18886,7 @@
     ],
     "type": "panel"
   },
-  "radial_ring_4": {
+  "radial_ring_3_gate": {
     "bindings": [
       {
         "binding_collection_name": "container_items",
@@ -20291,10 +18897,22 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'rd4') = #hover_text))",
+        "source_property_name": "(not ((#hover_text - 'rd3') = #hover_text))",
         "target_property_name": "#visible"
       }
     ],
+    "controls": [
+      {
+        "p@sg_menu.radial_ring_3": {}
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "radial_ring_4": {
     "controls": [
       {
         "i0": {
@@ -20415,7 +19033,7 @@
     ],
     "type": "panel"
   },
-  "radial_ring_5": {
+  "radial_ring_4_gate": {
     "bindings": [
       {
         "binding_collection_name": "container_items",
@@ -20426,10 +19044,22 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'rd5') = #hover_text))",
+        "source_property_name": "(not ((#hover_text - 'rd4') = #hover_text))",
         "target_property_name": "#visible"
       }
     ],
+    "controls": [
+      {
+        "p@sg_menu.radial_ring_4": {}
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "radial_ring_5": {
     "controls": [
       {
         "i0": {
@@ -20578,7 +19208,7 @@
     ],
     "type": "panel"
   },
-  "radial_ring_6": {
+  "radial_ring_5_gate": {
     "bindings": [
       {
         "binding_collection_name": "container_items",
@@ -20589,10 +19219,22 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'rd6') = #hover_text))",
+        "source_property_name": "(not ((#hover_text - 'rd5') = #hover_text))",
         "target_property_name": "#visible"
       }
     ],
+    "controls": [
+      {
+        "p@sg_menu.radial_ring_5": {}
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "radial_ring_6": {
     "controls": [
       {
         "i0": {
@@ -20769,7 +19411,7 @@
     ],
     "type": "panel"
   },
-  "radial_ring_7": {
+  "radial_ring_6_gate": {
     "bindings": [
       {
         "binding_collection_name": "container_items",
@@ -20780,10 +19422,22 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'rd7') = #hover_text))",
+        "source_property_name": "(not ((#hover_text - 'rd6') = #hover_text))",
         "target_property_name": "#visible"
       }
     ],
+    "controls": [
+      {
+        "p@sg_menu.radial_ring_6": {}
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "radial_ring_7": {
     "controls": [
       {
         "i0": {
@@ -20988,7 +19642,7 @@
     ],
     "type": "panel"
   },
-  "radial_ring_8": {
+  "radial_ring_7_gate": {
     "bindings": [
       {
         "binding_collection_name": "container_items",
@@ -20999,10 +19653,22 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(not ((#hover_text - 'rd8') = #hover_text))",
+        "source_property_name": "(not ((#hover_text - 'rd7') = #hover_text))",
         "target_property_name": "#visible"
       }
     ],
+    "controls": [
+      {
+        "p@sg_menu.radial_ring_7": {}
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "radial_ring_8": {
     "controls": [
       {
         "i0": {
@@ -21227,6 +19893,32 @@
           ],
           "type": "stack_panel"
         }
+      }
+    ],
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "type": "panel"
+  },
+  "radial_ring_8_gate": {
+    "bindings": [
+      {
+        "binding_collection_name": "container_items",
+        "binding_condition": "always",
+        "binding_name": "#hover_text",
+        "binding_type": "collection"
+      },
+      {
+        "binding_condition": "always",
+        "binding_type": "view",
+        "source_property_name": "(not ((#hover_text - 'rd8') = #hover_text))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "p@sg_menu.radial_ring_8": {}
       }
     ],
     "size": [
@@ -21746,7 +20438,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(not (((#hover_text - 'rg') = #hover_text)))",
+        "source_property_name": "(not ((#hover_text - 'rg') = #hover_text))",
         "target_property_name": "#visible"
       }
     ],
@@ -23739,101 +22431,18 @@
               "target_property_name": "#visible"
             }
           ],
-          "controls": [
-            {
-              "t": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "color": [
-                  0.2980392156862745,
-                  0.788235294117647,
-                  0.23529411764705882
-                ],
-                "layer": 3,
-                "offset": [
-                  0,
-                  0
-                ],
-                "size": [
-                  18,
-                  1
-                ],
-                "texture": "textures/ui/White",
-                "type": "image"
-              }
-            },
-            {
-              "b": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "color": [
-                  0.2980392156862745,
-                  0.788235294117647,
-                  0.23529411764705882
-                ],
-                "layer": 3,
-                "offset": [
-                  0,
-                  17
-                ],
-                "size": [
-                  18,
-                  1
-                ],
-                "texture": "textures/ui/White",
-                "type": "image"
-              }
-            },
-            {
-              "l": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "color": [
-                  0.2980392156862745,
-                  0.788235294117647,
-                  0.23529411764705882
-                ],
-                "layer": 3,
-                "offset": [
-                  0,
-                  0
-                ],
-                "size": [
-                  1,
-                  18
-                ],
-                "texture": "textures/ui/White",
-                "type": "image"
-              }
-            },
-            {
-              "r": {
-                "anchor_from": "top_left",
-                "anchor_to": "top_left",
-                "color": [
-                  0.2980392156862745,
-                  0.788235294117647,
-                  0.23529411764705882
-                ],
-                "layer": 3,
-                "offset": [
-                  17,
-                  0
-                ],
-                "size": [
-                  1,
-                  18
-                ],
-                "texture": "textures/ui/White",
-                "type": "image"
-              }
-            }
+          "color": [
+            0.2980392156862745,
+            0.788235294117647,
+            0.23529411764705882
           ],
+          "layer": 3,
           "size": [
             18,
             18
           ],
-          "type": "panel"
+          "texture": "textures/ui/sg/frame1",
+          "type": "image"
         }
       },
       {
@@ -24028,7 +22637,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(not (((#hover_text - 'sp') = #hover_text)))",
+        "source_property_name": "(not ((#hover_text - 'sp') = #hover_text))",
         "target_property_name": "#visible"
       }
     ],
@@ -25330,7 +23939,7 @@
       {
         "binding_condition": "always",
         "binding_type": "view",
-        "source_property_name": "(not (((#hover_text - 'sp') = #hover_text) and ((#hover_text - 'ls') = #hover_text) and ((#hover_text - 'rg') = #hover_text) and ((#hover_text - 'mn') = #hover_text) and ((#hover_text - 'cd') = #hover_text) and ((#hover_text - 'gd') = #hover_text) and ((#hover_text - 'bd') = #hover_text) and ((#hover_text - 'pk') = #hover_text) and ((#hover_text - 'rs') = #hover_text)))",
+        "source_property_name": "(not ((#hover_text - 'sp' - 'ls' - 'rg' - 'mn' - 'cd' - 'gd' - 'bd' - 'pk' - 'rs') = #hover_text))",
         "target_property_name": "#visible"
       }
     ],
