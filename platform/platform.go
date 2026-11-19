@@ -42,9 +42,6 @@ type Platform struct {
 	// isOperator reports whether a player is a server operator (platform.toml
 	// [Admin]); operators manage the members of any save they are in.
 	isOperator func(p *player.Player) bool
-	// classicAsk holds the accounts joining without the classic UI, whose
-	// lobby screen waits for askClassicUI (account ID: true).
-	classicAsk sync.Map
 }
 
 // New creates the platform. The lobby world must already be built.
@@ -99,19 +96,10 @@ func (pf *Platform) Join(p *player.Player) {
 		p.Disconnect(i18n.T(i18n.Of(p), "platform.accountLoadFailed"))
 		return
 	}
-	ask := !usesClassicUI(p)
-	if ask {
-		pf.holdLobbyMenu(p)
-	}
-	pf.keepClientSettings(p, false)
 	pf.m.Join(p)
 	account.Count(p, "login", 1)
 	account.Refresh(p)
-	guide := acc.GuideVersion < GuideVersion
-	switch {
-	case ask:
-		sghook.AfterClientReady(p, func(p *player.Player, _ *world.Tx) { pf.askClassicUI(p, guide) })
-	case guide:
+	if acc.GuideVersion < GuideVersion {
 		sghook.AfterClientReady(p, func(p *player.Player, _ *world.Tx) { pf.showGuide(p, true) })
 	}
 	pf.notifyPending(p)
@@ -126,9 +114,6 @@ func (pf *Platform) arriveLobby(p *player.Player) {
 	forgetLobbyHUD(p)
 	startLobbyMotion(p)
 	sendLobbyHUD(p, "")
-	if pf.lobbyMenuHeld(p) {
-		return
-	}
 	if acc, err := pf.db.Account(instance.AccountID(p)); err == nil && acc.GuideVersion >= GuideVersion {
 		sghook.AfterClientReady(p, func(p *player.Player, _ *world.Tx) { pf.showLobbyMenu(p) })
 	}

@@ -3,9 +3,8 @@
 // the selected-item bubble in the item's rarity colour.
 //
 // The client's JSON UI (the container screens) cannot read an item's data,
-// only the text of its hover box (the name and lore); the DDUI screens draw
-// the rarity as the tooltip's border from the same marks (common/ui
-// slotDeco). So the marks are invisible colour-code sequences inside the
+// only the text of its hover box (the name and lore); the menu window's
+// slots take the marks off their tooltips (common/ui slotDeco). So the marks are invisible colour-code sequences inside the
 // name that the pack's bindings look for. A mark must not appear anywhere
 // else in item texts.
 package slotdeco
